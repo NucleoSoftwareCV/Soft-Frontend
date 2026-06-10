@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { HeroComponent }                 from './components/hero/hero.component';
 import { CategoriesComponent }           from './components/categories/categories.component';
-import { EventsSectionComponent }        from './components/events-section/events-section.component';
+import { EventsWeekComponent }           from './components/events-week/events-week.component';
 import { ProfessionalsSectionComponent } from './components/professionals-section/professionals-section.component';
 import { CtaBannerComponent }            from './components/cta-banner/cta-banner.component';
 
@@ -11,11 +11,20 @@ import { CtaBannerComponent }            from './components/cta-banner/cta-banne
   imports: [
     HeroComponent,
     CategoriesComponent,
-    EventsSectionComponent,
+    EventsWeekComponent,
     ProfessionalsSectionComponent,
     CtaBannerComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
-export class HomeComponent {}
+export class HomeComponent {
+  /**
+   * El botón de filtro del hero emite este evento.
+   * Se despacha como CustomEvent global para que el Header
+   * (que vive fuera del árbol de HomeComponent) lo reciba.
+   */
+  onOpenFilter(): void {
+    window.dispatchEvent(new CustomEvent('oona:open-filter'));
+  }
+}

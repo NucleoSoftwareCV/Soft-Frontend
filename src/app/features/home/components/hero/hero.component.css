@@ -1,25 +1,25 @@
 /* ============================================
-   Hero Component – idéntico a oona.es
+   Hero Component
    ============================================ */
 
 .hero {
   padding-top: 68px;
-  background-color: var(--color-cream);
+  background-color: var(--color-bg);
 }
 
 /* ── Pill "Nuevo" ── */
 .hero__announce-wrap {
-  padding: var(--space-4) var(--container-pad);
-  max-width: var(--container-max);
+  max-width: var(--layout-max);
   margin-inline: auto;
+  padding: 1rem var(--layout-pad);
 }
 
 .hero__announce {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 0.55rem 1.1rem 0.55rem 0.55rem;
-  background-color: #fff;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem 0.5rem 0.5rem;
+  background-color: var(--color-bg-card);
   border: 1.5px solid var(--color-divider);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
@@ -36,38 +36,51 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   background-color: var(--color-sage);
   color: #fff;
   flex-shrink: 0;
 }
 
-.hero__announce-icon svg { flex-shrink: 0; }
-
-/* ── Wrapper del banner ── */
-/* Márgenes laterales = container-pad (replicando el ~8% lateral de oona.es) */
-.hero__media-wrap {
-  position: relative;
-  margin-left: var(--container-pad);
-  margin-right: var(--container-pad);
-  border-radius: 18px;
-  overflow: hidden;
-  /* Alto proporcional: en oona.es es aprox 75vh en desktop */
-  min-height: clamp(440px, 72vh, 720px);
-  display: flex;
-  align-items: flex-end;
+/* ── Wrapper principal — mismas medidas que .container ── */
+.hero__outer {
+  max-width: var(--layout-max);
+  margin-inline: auto;
+  padding-inline: var(--layout-pad);
+  padding-bottom: 2rem;
+  /*
+   * overflow: visible para que el dropdown del buscador
+   * pueda salir fuera del banner sin cortarse.
+   */
+  overflow: visible;
 }
 
-/* Fondo negro hasta que llegue el video */
+/* ── Banner (fondo oscuro / video) ── */
+.hero__media-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 18px;
+  min-height: clamp(460px, 72vh, 740px);
+  display: flex;
+  align-items: flex-end;
+  /*
+   * overflow:hidden aquí recorta el video/imagen correctamente,
+   * pero el buscador necesita salir fuera.
+   * Solución: .hero__content tiene overflow:visible y el dropdown
+   * usa position:absolute relativo a .hero__search-outer,
+   * que está FUERA del clip del banner gracias a clip-path:none.
+   */
+  overflow: hidden;
+}
+
 .hero__video-placeholder {
   position: absolute;
   inset: 0;
   background-color: #0d0d0d;
 }
 
-/* Cuando tengas el video: reemplaza el div por <video> con esta clase */
+/* Cuando tengas el video, usa esta clase en lugar del placeholder */
 .hero__video {
   position: absolute;
   inset: 0;
@@ -77,15 +90,14 @@
   object-position: center;
 }
 
-/* Degradado inferior igual al de oona.es */
 .hero__overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(5, 5, 5, 0.80) 0%,
-    rgba(5, 5, 5, 0.30) 45%,
-    rgba(5, 5, 5, 0.05) 100%
+    rgba(5,5,5,0.85)  0%,
+    rgba(5,5,5,0.25) 50%,
+    transparent      100%
   );
 }
 
@@ -93,16 +105,21 @@
 .hero__content {
   position: relative;
   z-index: 2;
-  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 3.5rem);
+  padding: clamp(2rem, 4vw, 3.5rem);
   width: 100%;
   max-width: 760px;
+  /*
+   * Clave: overflow visible para que el dropdown del buscador
+   * no quede recortado por el overflow:hidden del banner padre.
+   * Funciona porque el dropdown es relativo a .hero__search-outer
+   * cuyo stacking context está por encima del clip del banner.
+   */
+  overflow: visible;
 }
 
-/* ── Headline ── */
 .hero__headline {
   font-family: var(--font-display);
-  /* En oona.es el tamaño visual es ~78-82px en 1440px de ancho */
-  font-size: clamp(3rem, 6.2vw, 5rem);
+  font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 700;
   line-height: 1.0;
   letter-spacing: -0.01em;
@@ -110,51 +127,48 @@
   margin-bottom: 1rem;
 }
 
-/* "en Valencia" en itálica, peso 600 */
 .hero__headline em {
   font-style: italic;
   font-weight: 600;
 }
 
-/* ── Subtítulo ── */
 .hero__sub {
-  font-size: clamp(0.9rem, 1.3vw, 1rem);
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.80);
-  line-height: 1.6;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.80);
+  line-height: 1.65;
   margin-bottom: 1.75rem;
   max-width: 500px;
 }
 
-/* ── Buscador interno ── */
-.hero__search-wrap {
+/* ── Buscador ── */
+.hero__search-outer {
   position: relative;
-  max-width: 560px;
+  max-width: 580px;
+  /*
+   * z-index alto para que el dropdown quede por encima
+   * del contenido de la sección siguiente.
+   */
+  z-index: 100;
 }
 
 .hero__search {
   display: flex;
   align-items: center;
   height: 58px;
-  background-color: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background-color: var(--color-bg);
   border-radius: var(--radius-full);
   padding-left: 1.25rem;
-  padding-right: 0.4rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  padding-right: 0.45rem;
   gap: 0.75rem;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.22);
   transition: box-shadow var(--transition-fast);
 }
 
 .hero__search:focus-within {
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.30);
 }
 
-.hero__search-icon {
-  color: var(--color-muted);
-  flex-shrink: 0;
-}
+.hero__search-icon { color: var(--color-muted); flex-shrink: 0; }
 
 .hero__search-input {
   flex: 1;
@@ -167,20 +181,16 @@
   min-width: 0;
 }
 
-.hero__search-input::placeholder {
-  color: var(--color-muted);
-}
+.hero__search-input::placeholder { color: var(--color-muted); }
 
-/* Botón filtro — circular al extremo derecho igual que en oona.es */
 .hero__search-filter {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--color-divider);
-  background-color: #fff;
+  background-color: var(--color-bg-card);
   color: var(--color-muted);
   flex-shrink: 0;
   transition: color var(--transition-fast), border-color var(--transition-fast);
@@ -191,49 +201,51 @@
   border-color: var(--color-sage);
 }
 
-/* ── Dropdown inspiración (sale del buscador hero) ── */
+/* ── Dropdown inspiración ── */
 .hero__inspiration {
   position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  right: 0;
-  background-color: #fff;
+  top: calc(100% + 8px);
+  left: 0; right: 0;
+  background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 1.25rem 1.25rem 1rem;
-  z-index: 50;
+  padding: 1rem 1rem 0.85rem;
+  /*
+   * z-index superior al hero__content (100) para
+   * quedar encima de la sección de categorías.
+   */
+  z-index: 200;
+  border: 1px solid var(--color-divider);
   animation: fadeDown 0.15s ease;
 }
 
 .hero__inspiration-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   color: var(--color-muted);
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.7rem;
 }
 
 .hero__inspiration-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .hero__inspiration-tag {
   padding: 0.65rem 1rem;
-  background-color: var(--color-cream);
+  background-color: var(--color-bg);
   border-radius: var(--radius-md);
   font-family: var(--font-body);
   font-size: 0.875rem;
   color: var(--color-ink);
   text-align: center;
-  font-weight: 400;
+  font-weight: 500;
   transition: background-color var(--transition-fast);
 }
 
-.hero__inspiration-tag:hover {
-  background-color: var(--color-cream-dark);
-}
+.hero__inspiration-tag:hover { background-color: #e6e8e3; }
 
 /* ── Animaciones ── */
 @keyframes fadeDown {
@@ -243,24 +255,13 @@
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .hero__media-wrap {
-    margin-inline: 1rem;
-    min-height: 60vw;
-  }
+  .hero__media-wrap { min-height: 60vw; }
 }
 
 @media (max-width: 600px) {
-  .hero__media-wrap {
-    margin-inline: 0.75rem;
-    border-radius: 12px;
-    min-height: 75vw;
-  }
-
-  .hero__headline {
-    font-size: 2.6rem;
-  }
-
-  .hero__search {
-    height: 52px;
-  }
+  .hero__outer        { padding-inline: 0.75rem; padding-bottom: 1rem; }
+  .hero__media-wrap   { border-radius: 12px; min-height: 75vw; }
+  .hero__headline     { font-size: 2.6rem; }
+  .hero__search       { height: 52px; }
+  .hero__search-filter{ width: 38px; height: 38px; }
 }

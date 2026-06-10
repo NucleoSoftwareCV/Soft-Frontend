@@ -3,7 +3,7 @@
 
     <!-- Logo -->
     <a routerLink="/" class="header__logo" (click)="closeMobileMenu()" aria-label="Oona – Inicio">
-      oona<span class="header__logo-dot">.</span>
+      oona.
     </a>
 
     <!-- Nav principal -->
@@ -11,7 +11,9 @@
       <ul class="header__nav-list">
         @for (link of navLinks; track link.path) {
           <li>
-            <a [routerLink]="link.path" routerLinkActive="header__nav-link--active" class="header__nav-link">
+            <a [routerLink]="link.path"
+               routerLinkActive="header__nav-link--active"
+               class="header__nav-link">
               {{ link.label }}
             </a>
           </li>
@@ -19,10 +21,11 @@
       </ul>
     </nav>
 
-    <!-- Buscador central -->
+    <!-- Buscador central + dropdown inspiración -->
     <div class="header__search-wrap">
       <div class="header__search" [class.header__search--focused]="isSearchFocused()">
-        <svg class="header__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg class="header__search-icon" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <input
@@ -33,17 +36,19 @@
           (input)="searchQuery.set($any($event.target).value)"
           (focus)="onSearchFocus()"
           (blur)="onSearchBlur()"
-          aria-label="Buscar experiencias"
+          aria-label="Buscar experiencias de bienestar"
           autocomplete="off"
         />
         <button
           class="header__filter-btn"
           [class.header__filter-btn--active]="activeFilterCount > 0"
           (click)="openFilter()"
-          [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ' activos)' : '')"
+          [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '')"
+          type="button"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <line x1="4" y1="6" x2="20" y2="6"/>
+          <svg width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="4" y1="6"  x2="20" y2="6"/>
             <line x1="8" y1="12" x2="16" y2="12"/>
             <line x1="11" y1="18" x2="13" y2="18"/>
           </svg>
@@ -52,6 +57,23 @@
           }
         </button>
       </div>
+
+      <!-- Dropdown ¿Necesitas inspiración? -->
+      @if (isSearchFocused() && !searchQuery()) {
+        <div class="header__inspiration" role="listbox" aria-label="Sugerencias de búsqueda">
+          <p class="header__inspiration-title">¿NECESITAS INSPIRACIÓN?</p>
+          <div class="header__inspiration-grid">
+            @for (tag of inspirationTags; track tag) {
+              <button
+                class="header__inspiration-tag"
+                role="option"
+                type="button"
+                (mousedown)="selectInspiration(tag)"
+              >{{ tag }}</button>
+            }
+          </div>
+        </div>
+      }
     </div>
 
     <!-- Acciones derechas -->
@@ -63,48 +85,58 @@
           class="header__city-btn"
           (click)="toggleCity()"
           [attr.aria-expanded]="isCityOpen()"
-          aria-haspopup="true"
+          type="button"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
           <span>{{ filterCity() === 'Todas' ? 'Valencia' : filterCity() }}</span>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <svg width="11" height="11" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
 
         @if (isCityOpen()) {
-          <div class="header__city-dropdown" role="tooltip">
+          <div class="header__city-dropdown">
             <p class="header__city-dropdown-title">Próximamente más ciudades</p>
-            <p class="header__city-dropdown-text">Por ahora Oona vive en la Comunidad Valenciana. Avisanos por dónde te gustaría que aterricemos.</p>
+            <p class="header__city-dropdown-text">
+              Por ahora Oona vive en la Comunidad Valenciana.
+              Avisanos por dónde te gustaría que aterricemos.
+            </p>
           </div>
         }
       </div>
 
       <!-- Favoritos -->
-      <button class="header__icon-btn" aria-label="Mis favoritos">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <button class="header__icon-btn" aria-label="Mis favoritos" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                   a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                   1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       </button>
 
       <!-- Perfil -->
-      <button class="header__icon-btn" aria-label="Mi cuenta">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <button class="header__icon-btn" aria-label="Mi cuenta" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
       </button>
 
-      <!-- Burger -->
+      <!-- Burger móvil -->
       <button
         class="header__burger"
         [class.header__burger--open]="isMobileMenuOpen()"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen()"
         aria-label="Abrir menú"
+        type="button"
       >
         <span></span><span></span><span></span>
       </button>
@@ -116,7 +148,8 @@
      MODAL FILTROS
 ══════════════════════════════════ -->
 @if (isFilterOpen()) {
-  <div class="filter-overlay" (click)="closeFilter()" role="dialog" aria-modal="true" aria-label="Filtros">
+  <div class="filter-overlay" (click)="closeFilter()"
+       role="dialog" aria-modal="true" aria-label="Filtros de búsqueda">
     <div class="filter-modal" (click)="$event.stopPropagation()">
 
       <div class="filter-modal__head">
@@ -126,8 +159,9 @@
             {{ activeFilterCount === 0 ? 'Sin filtros aplicados' : activeFilterCount + ' filtros activos' }}
           </p>
         </div>
-        <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar filtros" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
@@ -135,16 +169,18 @@
 
       <div class="filter-modal__body">
 
-        <!-- Cuándo -->
         <section class="filter-section" aria-labelledby="fw-when">
           <h3 id="fw-when" class="filter-section__title">CUÁNDO</h3>
           <div class="filter-chips">
             @for (opt of whenOptions; track opt) {
-              <button class="filter-chip" [class.filter-chip--active]="filterWhen() === opt" (click)="selectWhen(opt)">{{ opt }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterWhen() === opt"
+                      (click)="selectWhen(opt)" type="button">{{ opt }}</button>
             }
-            <button class="filter-chip filter-chip--date">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            <button class="filter-chip filter-chip--date" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
               </svg>
               Elegir fecha
             </button>
@@ -152,46 +188,47 @@
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Categoría -->
         <section class="filter-section" aria-labelledby="fw-cat">
           <h3 id="fw-cat" class="filter-section__title">CATEGORÍA</h3>
           <div class="filter-chips">
             @for (cat of categoryOptions; track cat) {
-              <button class="filter-chip" [class.filter-chip--active]="filterCategories().includes(cat)" (click)="toggleCategory(cat)">{{ cat }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterCategories().includes(cat)"
+                      (click)="toggleCategory(cat)" type="button">{{ cat }}</button>
             }
           </div>
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Tipo -->
         <section class="filter-section" aria-labelledby="fw-type">
           <h3 id="fw-type" class="filter-section__title">TIPO DE EXPERIENCIA</h3>
           <div class="filter-chips">
             @for (type of typeOptions; track type) {
-              <button class="filter-chip" [class.filter-chip--active]="filterTypes().includes(type)" (click)="toggleType(type)">{{ type }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterTypes().includes(type)"
+                      (click)="toggleType(type)" type="button">{{ type }}</button>
             }
           </div>
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Ubicación -->
         <section class="filter-section" aria-labelledby="fw-city">
           <h3 id="fw-city" class="filter-section__title">UBICACIÓN</h3>
           <div class="filter-chips">
             @for (city of cityOptions; track city) {
-              <button class="filter-chip" [class.filter-chip--active]="filterCity() === city" (click)="selectCity(city)">{{ city }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterCity() === city"
+                      (click)="selectCity(city)" type="button">{{ city }}</button>
             }
-            <button class="filter-chip">Ver más ↓</button>
+            <button class="filter-chip" type="button">Ver más ↓</button>
           </div>
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Hora del día -->
         <section class="filter-section" aria-labelledby="fw-time">
           <h3 id="fw-time" class="filter-section__title">HORA DEL DÍA</h3>
           <div class="filter-time-grid">
             @for (t of timeOptions; track t.label) {
-              <button class="filter-time-card" [class.filter-time-card--active]="filterTimeOfDay() === t.label" (click)="selectTimeOfDay(t.label)">
+              <button class="filter-time-card"
+                      [class.filter-time-card--active]="filterTimeOfDay() === t.label"
+                      (click)="selectTimeOfDay(t.label)" type="button">
                 <span class="filter-time-card__label">{{ t.label }}</span>
                 <span class="filter-time-card__sub">{{ t.sub }}</span>
               </button>
@@ -200,37 +237,39 @@
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Modalidad -->
         <section class="filter-section" aria-labelledby="fw-mod">
           <h3 id="fw-mod" class="filter-section__title">MODALIDAD</h3>
           <div class="filter-chips">
             @for (m of modalityOptions; track m) {
-              <button class="filter-chip" [class.filter-chip--active]="filterModality() === m" (click)="selectModality(m)">{{ m }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterModality() === m"
+                      (click)="selectModality(m)" type="button">{{ m }}</button>
             }
           </div>
         </section>
         <div class="filter-divider"></div>
 
-        <!-- Recurrencia -->
         <section class="filter-section" aria-labelledby="fw-rec">
           <h3 id="fw-rec" class="filter-section__title">RECURRENCIA</h3>
           <div class="filter-chips">
             @for (r of recurrenceOptions; track r) {
-              <button class="filter-chip" [class.filter-chip--active]="filterRecurrence() === r" (click)="selectRecurrence(r)">{{ r }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="filterRecurrence() === r"
+                      (click)="selectRecurrence(r)" type="button">{{ r }}</button>
             }
           </div>
         </section>
-
       </div>
 
       <div class="filter-modal__footer">
-        <button class="filter-modal__clear" (click)="clearFilters()" [disabled]="activeFilterCount === 0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+        <button class="filter-modal__clear" (click)="clearFilters()"
+                [disabled]="activeFilterCount === 0" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6"/>
           </svg>
           Quitar filtros
         </button>
-        <button class="filter-modal__apply btn-primary" (click)="closeFilter()">
+        <button class="filter-modal__apply btn-primary" (click)="closeFilter()" type="button">
           Ver eventos →
         </button>
       </div>
@@ -238,26 +277,26 @@
   </div>
 }
 
-<!-- Overlay ciudad -->
 @if (isCityOpen()) {
   <div class="city-overlay" (click)="closeCity()" aria-hidden="true"></div>
 }
 
-<!-- Menú móvil -->
 @if (isMobileMenuOpen()) {
   <div class="header__mobile" role="dialog" aria-modal="true">
     <nav aria-label="Menú móvil">
       <ul class="header__mobile-list">
         @for (link of navLinks; track link.path) {
           <li>
-            <a [routerLink]="link.path" class="header__mobile-link" (click)="closeMobileMenu()">{{ link.label }}</a>
+            <a [routerLink]="link.path" class="header__mobile-link" (click)="closeMobileMenu()">
+              {{ link.label }}
+            </a>
           </li>
         }
       </ul>
     </nav>
     <div class="header__mobile-actions">
-      <a routerLink="/login" class="btn-outline" (click)="closeMobileMenu()">Entrar</a>
-      <a routerLink="/registro" class="btn-primary" (click)="closeMobileMenu()">Publicar evento</a>
+      <a routerLink="/login"    class="btn-outline"  (click)="closeMobileMenu()">Entrar</a>
+      <a routerLink="/registro" class="btn-primary"  (click)="closeMobileMenu()">Publicar evento</a>
     </div>
   </div>
 }

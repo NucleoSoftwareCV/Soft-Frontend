@@ -1,16 +1,15 @@
-import { Component, HostListener, signal } from '@angular/core';
+import { Component, HostListener, signal, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CommonModule, FormsModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
   isSearchFocused  = signal(false);
@@ -25,7 +24,13 @@ export class HeaderComponent {
     { label: 'Conocer gente', path: '/conocer-gente' },
   ];
 
-  /* ── Filtros ── */
+  inspirationTags = [
+    'Yoga',           'Meditación',
+    'Baño de sonido', 'Baño de hielo',
+    'Breathwork',     'Retiro',
+  ];
+
+  /* Filtros */
   filterWhen       = signal<string | null>(null);
   filterCategories = signal<string[]>([]);
   filterTypes      = signal<string[]>([]);
@@ -64,6 +69,17 @@ export class HeaderComponent {
     );
   }
 
+  /** Listener del evento global emitido por el hero */
+  private readonly openFilterListener = () => this.openFilter();
+
+  ngOnInit(): void {
+    window.addEventListener('oona:open-filter', this.openFilterListener);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('oona:open-filter', this.openFilterListener);
+  }
+
   @HostListener('window:scroll')
   onScroll(): void { this.isScrolled.set(window.scrollY > 10); }
 
@@ -72,32 +88,38 @@ export class HeaderComponent {
     this.isFilterOpen.set(false);
     this.isCityOpen.set(false);
     this.isMobileMenuOpen.set(false);
+    this.isSearchFocused.set(false);
   }
 
   toggleMobileMenu(): void { this.isMobileMenuOpen.update(v => !v); }
   closeMobileMenu():  void { this.isMobileMenuOpen.set(false); }
-  openFilter():       void { this.isFilterOpen.set(true);  this.isCityOpen.set(false); }
+  openFilter():       void { this.isFilterOpen.set(true); this.isCityOpen.set(false); }
   closeFilter():      void { this.isFilterOpen.set(false); }
   toggleCity():       void { this.isCityOpen.update(v => !v); this.isFilterOpen.set(false); }
   closeCity():        void { this.isCityOpen.set(false); }
   onSearchFocus():    void { this.isSearchFocused.set(true); }
-  onSearchBlur():     void { setTimeout(() => this.isSearchFocused.set(false), 150); }
+  onSearchBlur():     void { setTimeout(() => this.isSearchFocused.set(false), 160); }
+
+  selectInspiration(tag: string): void {
+    this.searchQuery.set(tag);
+    this.isSearchFocused.set(false);
+  }
 
   selectWhen(opt: string): void {
     this.filterWhen.set(this.filterWhen() === opt ? null : opt);
   }
   toggleCategory(cat: string): void {
-    const curr = this.filterCategories();
-    this.filterCategories.set(curr.includes(cat) ? curr.filter(c => c !== cat) : [...curr, cat]);
+    const c = this.filterCategories();
+    this.filterCategories.set(c.includes(cat) ? c.filter(x => x !== cat) : [...c, cat]);
   }
-  toggleType(type: string): void {
-    const curr = this.filterTypes();
-    this.filterTypes.set(curr.includes(type) ? curr.filter(t => t !== type) : [...curr, type]);
+  toggleType(t: string): void {
+    const c = this.filterTypes();
+    this.filterTypes.set(c.includes(t) ? c.filter(x => x !== t) : [...c, t]);
   }
-  selectCity(city: string):      void { this.filterCity.set(city); }
-  selectTimeOfDay(t: string):    void { this.filterTimeOfDay.set(this.filterTimeOfDay() === t ? null : t); }
-  selectModality(m: string):     void { this.filterModality.set(this.filterModality() === m ? null : m); }
-  selectRecurrence(r: string):   void { this.filterRecurrence.set(this.filterRecurrence() === r ? null : r); }
+  selectCity(city: string):    void { this.filterCity.set(city); }
+  selectTimeOfDay(t: string):  void { this.filterTimeOfDay.set(this.filterTimeOfDay() === t ? null : t); }
+  selectModality(m: string):   void { this.filterModality.set(this.filterModality() === m ? null : m); }
+  selectRecurrence(r: string): void { this.filterRecurrence.set(this.filterRecurrence() === r ? null : r); }
 
   clearFilters(): void {
     this.filterWhen.set(null);
