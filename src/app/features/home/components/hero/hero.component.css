@@ -1,0 +1,266 @@
+/* ============================================
+   Hero Component – idéntico a oona.es
+   ============================================ */
+
+.hero {
+  padding-top: 68px;
+  background-color: var(--color-cream);
+}
+
+/* ── Pill "Nuevo" ── */
+.hero__announce-wrap {
+  padding: var(--space-4) var(--container-pad);
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+.hero__announce {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.55rem 1.1rem 0.55rem 0.55rem;
+  background-color: #fff;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hero__announce:hover {
+  border-color: var(--color-sage);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero__announce-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--color-sage);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.hero__announce-icon svg { flex-shrink: 0; }
+
+/* ── Wrapper del banner ── */
+/* Márgenes laterales = container-pad (replicando el ~8% lateral de oona.es) */
+.hero__media-wrap {
+  position: relative;
+  margin-left: var(--container-pad);
+  margin-right: var(--container-pad);
+  border-radius: 18px;
+  overflow: hidden;
+  /* Alto proporcional: en oona.es es aprox 75vh en desktop */
+  min-height: clamp(440px, 72vh, 720px);
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Fondo negro hasta que llegue el video */
+.hero__video-placeholder {
+  position: absolute;
+  inset: 0;
+  background-color: #0d0d0d;
+}
+
+/* Cuando tengas el video: reemplaza el div por <video> con esta clase */
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Degradado inferior igual al de oona.es */
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(5, 5, 5, 0.80) 0%,
+    rgba(5, 5, 5, 0.30) 45%,
+    rgba(5, 5, 5, 0.05) 100%
+  );
+}
+
+/* ── Contenido sobre el banner ── */
+.hero__content {
+  position: relative;
+  z-index: 2;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 3.5rem);
+  width: 100%;
+  max-width: 760px;
+}
+
+/* ── Headline ── */
+.hero__headline {
+  font-family: var(--font-display);
+  /* En oona.es el tamaño visual es ~78-82px en 1440px de ancho */
+  font-size: clamp(3rem, 6.2vw, 5rem);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+/* "en Valencia" en itálica, peso 600 */
+.hero__headline em {
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* ── Subtítulo ── */
+.hero__sub {
+  font-size: clamp(0.9rem, 1.3vw, 1rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.80);
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+  max-width: 500px;
+}
+
+/* ── Buscador interno ── */
+.hero__search-wrap {
+  position: relative;
+  max-width: 560px;
+}
+
+.hero__search {
+  display: flex;
+  align-items: center;
+  height: 58px;
+  background-color: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-full);
+  padding-left: 1.25rem;
+  padding-right: 0.4rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  gap: 0.75rem;
+  transition: box-shadow var(--transition-fast);
+}
+
+.hero__search:focus-within {
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.32);
+}
+
+.hero__search-icon {
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.hero__search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  outline: none;
+  min-width: 0;
+}
+
+.hero__search-input::placeholder {
+  color: var(--color-muted);
+}
+
+/* Botón filtro — circular al extremo derecho igual que en oona.es */
+.hero__search-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-divider);
+  background-color: #fff;
+  color: var(--color-muted);
+  flex-shrink: 0;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hero__search-filter:hover {
+  color: var(--color-sage);
+  border-color: var(--color-sage);
+}
+
+/* ── Dropdown inspiración (sale del buscador hero) ── */
+.hero__inspiration {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 1.25rem 1.25rem 1rem;
+  z-index: 50;
+  animation: fadeDown 0.15s ease;
+}
+
+.hero__inspiration-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+  margin-bottom: 0.85rem;
+}
+
+.hero__inspiration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.hero__inspiration-tag {
+  padding: 0.65rem 1rem;
+  background-color: var(--color-cream);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  text-align: center;
+  font-weight: 400;
+  transition: background-color var(--transition-fast);
+}
+
+.hero__inspiration-tag:hover {
+  background-color: var(--color-cream-dark);
+}
+
+/* ── Animaciones ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .hero__media-wrap {
+    margin-inline: 1rem;
+    min-height: 60vw;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero__media-wrap {
+    margin-inline: 0.75rem;
+    border-radius: 12px;
+    min-height: 75vw;
+  }
+
+  .hero__headline {
+    font-size: 2.6rem;
+  }
+
+  .hero__search {
+    height: 52px;
+  }
+}
