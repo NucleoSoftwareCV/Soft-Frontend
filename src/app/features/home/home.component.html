@@ -1,7 +1,26 @@
 <main>
+  <!-- 1. Hero -->
   <app-hero (openFilter)="onOpenFilter()" />
+
+  <!-- 2. Categorías: ¿Qué te apetece hacer hoy? -->
   <app-categories />
-  <app-events-week />
-  <app-professionals-section />
+
+  <!-- 3. Carruseles de eventos -->
+  <app-event-row title="Planes para este fin de semana"    seeAllPath="/eventos/finde"        [events]="weekend"    />
+  <app-event-row title="Yoga"                              seeAllPath="/eventos/yoga"          [events]="yoga"       />
+  <app-event-row title="Breathwork y baños de hielo"       seeAllPath="/eventos/breathwork"    [events]="breathwork" />
+  <app-event-row title="Para desconectar y bajar el ritmo" seeAllPath="/eventos/desconectar"   [events]="disconnect" />
+  <app-event-row title="Talleres para vivir algo diferente" seeAllPath="/eventos/talleres"     [events]="workshops"  />
+
+  <!-- 4. Retiros e inmersiones -->
+  <app-event-row title="Retiros e inmersiones"             seeAllPath="/eventos/retiros"       [events]="retreats"   />
+
+  <!-- 5. Conoce a quienes crean las experiencias -->
+  <app-professionals-grid />
+
+  <!-- 6. Comunidad Oona (WhatsApp) -->
+  <app-community-banner />
+
+  <!-- 7. CTA dual (para usuarios y profesionales) -->
   <app-cta-banner />
 </main>

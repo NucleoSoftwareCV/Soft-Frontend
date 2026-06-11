@@ -1,0 +1,87 @@
+<section class="pg-section" aria-labelledby="pg-title">
+  <div class="container">
+
+    <!-- Cabecera -->
+    <div class="pg-head">
+      <div>
+        <h2 id="pg-title" class="pg-head__title">Conoce a quienes crean las experiencias</h2>
+        <p class="pg-head__sub">Descubre profesionales, centros y organizadores que dan vida a las sesiones, eventos y actividades de Oona.</p>
+      </div>
+      <a routerLink="/profesionales" class="pg-head__link">Ver todo →</a>
+    </div>
+
+    <!-- Feature cards -->
+    <div class="pg-features">
+      @for (f of features; track f.title) {
+        <div class="pg-feature">
+          <span class="pg-feature__icon" aria-hidden="true">
+            @if (f.icon === 'shield') {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            }
+            @if (f.icon === 'pin') {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            }
+            @if (f.icon === 'leaf') {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 8C8 10 5.9 16.17 3.82 19.77A1 1 0 0 0 4.93 21.15C5.5 20.79 6.1 20.32 7 20c3-1 6-1 9-5 1.1-1.37 1.5-3.17 1-5"/>
+                <path d="M9.5 15C10 11.5 14 9 19 9"/>
+              </svg>
+            }
+          </span>
+          <h3 class="pg-feature__title">{{ f.title }}</h3>
+          <p class="pg-feature__desc">{{ f.desc }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Grid de profesionales 2x2 -->
+    <ul class="pg-grid" role="list">
+      @for (pro of professionals; track pro.id) {
+        <li>
+          <a [routerLink]="['/profesionales', pro.id]" class="pg-card">
+            <!-- Avatar -->
+            <img
+              [src]="pro.avatar"
+              [alt]="pro.name"
+              class="pg-card__avatar"
+              width="64" height="64"
+              loading="lazy"
+            />
+            <!-- Info -->
+            <div class="pg-card__body">
+              <span class="pg-card__role">{{ pro.role }}</span>
+              <h3 class="pg-card__name">{{ pro.name }}</h3>
+              <p class="pg-card__location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ pro.location }}
+              </p>
+              <!-- Tags -->
+              <div class="pg-card__tags">
+                @for (tag of pro.tags; track tag) {
+                  <span class="pg-card__tag">{{ tag }}</span>
+                }
+                @if (pro.extraTags > 0) {
+                  <span class="pg-card__tag pg-card__tag--more">+{{ pro.extraTags }}</span>
+                }
+              </div>
+            </div>
+            <!-- Chevron -->
+            <svg class="pg-card__arrow" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        </li>
+      }
+    </ul>
+
+  </div>
+</section>
