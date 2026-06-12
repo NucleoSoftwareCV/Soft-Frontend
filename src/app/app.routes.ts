@@ -38,6 +38,12 @@ export const routes: Routes = [
 
   /* ── 404 ── */
   {
+    path: 'profesionales',
+    loadComponent: () =>
+      import('./features/profesionales/profesionales.component').then(m => m.ProfesionalesComponent),
+    title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
+  },
+  {
     path: '**',
     redirectTo: '',
   },
