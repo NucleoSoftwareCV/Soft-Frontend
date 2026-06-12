@@ -58,18 +58,14 @@
         </button>
       </div>
 
-      <!-- Dropdown ¿Necesitas inspiración? -->
+      <!-- Dropdown inspiración -->
       @if (isSearchFocused() && !searchQuery()) {
         <div class="header__inspiration" role="listbox" aria-label="Sugerencias de búsqueda">
           <p class="header__inspiration-title">¿NECESITAS INSPIRACIÓN?</p>
           <div class="header__inspiration-grid">
             @for (tag of inspirationTags; track tag) {
-              <button
-                class="header__inspiration-tag"
-                role="option"
-                type="button"
-                (mousedown)="selectInspiration(tag)"
-              >{{ tag }}</button>
+              <button class="header__inspiration-tag" role="option" type="button"
+                      (mousedown)="selectInspiration(tag)">{{ tag }}</button>
             }
           </div>
         </div>
@@ -81,12 +77,8 @@
 
       <!-- Ciudad -->
       <div class="header__city-wrap">
-        <button
-          class="header__city-btn"
-          (click)="toggleCity()"
-          [attr.aria-expanded]="isCityOpen()"
-          type="button"
-        >
+        <button class="header__city-btn" (click)="toggleCity()"
+                [attr.aria-expanded]="isCityOpen()" type="button">
           <svg width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -120,33 +112,26 @@
         </svg>
       </button>
 
-      <!-- Perfil -->
-      <button class="header__icon-btn" aria-label="Mi cuenta" type="button">
+      <!-- Perfil → Login -->
+      <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión o ver mi cuenta">
         <svg width="17" height="17" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
-      </button>
+      </a>
 
       <!-- Burger móvil -->
-      <button
-        class="header__burger"
-        [class.header__burger--open]="isMobileMenuOpen()"
-        (click)="toggleMobileMenu()"
-        [attr.aria-expanded]="isMobileMenuOpen()"
-        aria-label="Abrir menú"
-        type="button"
-      >
+      <button class="header__burger" [class.header__burger--open]="isMobileMenuOpen()"
+              (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen()"
+              aria-label="Abrir menú" type="button">
         <span></span><span></span><span></span>
       </button>
     </div>
   </div>
 </header>
 
-<!-- ══════════════════════════════════
-     MODAL FILTROS
-══════════════════════════════════ -->
+<!-- MODAL FILTROS -->
 @if (isFilterOpen()) {
   <div class="filter-overlay" (click)="closeFilter()"
        role="dialog" aria-modal="true" aria-label="Filtros de búsqueda">
@@ -160,15 +145,13 @@
           </p>
         </div>
         <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar filtros" type="button">
-          <svg width="16" height="16" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
 
       <div class="filter-modal__body">
-
         <section class="filter-section" aria-labelledby="fw-when">
           <h3 id="fw-when" class="filter-section__title">CUÁNDO</h3>
           <div class="filter-chips">
@@ -177,10 +160,8 @@
                       (click)="selectWhen(opt)" type="button">{{ opt }}</button>
             }
             <button class="filter-chip filter-chip--date" type="button">
-              <svg width="12" height="12" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18"/>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
               </svg>
               Elegir fecha
             </button>
@@ -226,8 +207,7 @@
           <h3 id="fw-time" class="filter-section__title">HORA DEL DÍA</h3>
           <div class="filter-time-grid">
             @for (t of timeOptions; track t.label) {
-              <button class="filter-time-card"
-                      [class.filter-time-card--active]="filterTimeOfDay() === t.label"
+              <button class="filter-time-card" [class.filter-time-card--active]="filterTimeOfDay() === t.label"
                       (click)="selectTimeOfDay(t.label)" type="button">
                 <span class="filter-time-card__label">{{ t.label }}</span>
                 <span class="filter-time-card__sub">{{ t.sub }}</span>
@@ -262,10 +242,8 @@
       <div class="filter-modal__footer">
         <button class="filter-modal__clear" (click)="clearFilters()"
                 [disabled]="activeFilterCount === 0" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14H6L5 6"/>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
           </svg>
           Quitar filtros
         </button>
@@ -295,8 +273,8 @@
       </ul>
     </nav>
     <div class="header__mobile-actions">
-      <a routerLink="/login"    class="btn-outline"  (click)="closeMobileMenu()">Entrar</a>
-      <a routerLink="/registro" class="btn-primary"  (click)="closeMobileMenu()">Publicar evento</a>
+      <a routerLink="/auth/login" class="btn-outline" (click)="closeMobileMenu()">Entrar</a>
+      <a routerLink="/registro"   class="btn-primary" (click)="closeMobileMenu()">Publicar evento</a>
     </div>
   </div>
 }
