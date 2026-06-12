@@ -1,6 +1,6 @@
-import { Component, HostListener, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, signal, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-header',
@@ -10,6 +10,10 @@ import { CommonModule } from '@angular/common';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  // Identificamos la plataforma actual (Servidor o Navegador)
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
   isSearchFocused  = signal(false);
@@ -68,20 +72,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.filterRecurrence() ? 1 : 0)
     );
   }
-
-  /** Listener del evento global emitido por el hero */
   private readonly openFilterListener = () => this.openFilter();
 
   ngOnInit(): void {
-    window.addEventListener('oona:open-filter', this.openFilterListener);
+    if (this.isBrowser) {
+      window.addEventListener('oona:open-filter', this.openFilterListener);
+    }
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('oona:open-filter', this.openFilterListener);
+    if (this.isBrowser) {
+      window.removeEventListener('oona:open-filter', this.openFilterListener);
+    }
   }
 
   @HostListener('window:scroll')
-  onScroll(): void { this.isScrolled.set(window.scrollY > 10); }
+  onScroll(): void { 
+    if (this.isBrowser) {
+      this.isScrolled.set(window.scrollY > 10); 
+    }
+  }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
