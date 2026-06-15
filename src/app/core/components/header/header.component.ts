@@ -1,6 +1,7 @@
 import { Component, HostListener, signal, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-header',
@@ -10,8 +11,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser  = isPlatformBrowser(this.platformId);
 
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
@@ -71,6 +72,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.filterRecurrence() ? 1 : 0)
     );
   }
+
+  /** Listener del evento global emitido por el hero */
   private readonly openFilterListener = () => this.openFilter();
 
   ngOnInit(): void {
@@ -86,9 +89,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('window:scroll')
-  onScroll(): void { 
+  onScroll(): void {
     if (this.isBrowser) {
-      this.isScrolled.set(window.scrollY > 10); 
+      this.isScrolled.set(window.scrollY > 10);
     }
   }
 
