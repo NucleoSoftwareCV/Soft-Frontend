@@ -10,7 +10,7 @@ import {
   RegisterRequest,
   JwtResponse,
   UserDTO,
-} from '../models/auth.model';
+} from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
