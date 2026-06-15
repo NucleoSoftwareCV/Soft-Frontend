@@ -10,7 +10,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  // Identificamos la plataforma actual (Servidor o Navegador)
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
 
