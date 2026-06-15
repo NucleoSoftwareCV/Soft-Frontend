@@ -4,7 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
   LoginRequest,
   RegisterRequest,
