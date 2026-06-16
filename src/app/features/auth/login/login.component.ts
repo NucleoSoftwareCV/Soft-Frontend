@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
 
-/** Tipo de cuenta seleccionada en los tabs */
 type AccountType = 'usuario' | 'profesional';
+type ViewType = 'login' | 'register';
 
 @Component({
   selector: 'app-login',
@@ -13,22 +14,31 @@ type AccountType = 'usuario' | 'profesional';
   styleUrl:    './login.component.css',
 })
 export class LoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router      = inject(Router);
 
-  /** Tab activo */
   activeTab = signal<AccountType>('usuario');
+  currentView = signal<ViewType>('login');
 
-  /** Datos del formulario */
-  email      = signal('');
-  password   = signal('');
-
-  /** Contraseña visible/oculta */
+  email = signal('');
+  password = signal('');
+  username = signal('');
+  
   showPassword = signal(false);
-
-  /** Estado de carga (futuro: conectar al servicio de auth) */
-  isLoading  = signal(false);
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
 
   selectTab(tab: AccountType): void {
     this.activeTab.set(tab);
+    this.errorMessage.set(null);
+  }
+
+  setView(view: ViewType): void {
+    this.currentView.set(view);
+    this.errorMessage.set(null);
+    this.email.set('');
+    this.password.set('');
+    this.username.set('');
   }
 
   togglePassword(): void {
@@ -37,16 +47,62 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (!this.email() || !this.password()) return;
+
     this.isLoading.set(true);
-    /**
-     * TODO: conectar con AuthService cuando exista el backend.
-     * Por ahora sólo simula el estado de carga.
-     */
-    setTimeout(() => this.isLoading.set(false), 1500);
+    this.errorMessage.set(null);
+
+    this.authService.login({
+      username: this.email(),
+      password: this.password()
+    }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set('Credenciales incorrectas o error en el servidor');
+        console.error(err);
+      }
+    });
+  }
+
+  onRegisterSubmit(): void {
+    if (!this.username() || !this.email() || !this.password()) return;
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.authService.register({
+      username: this.username(),
+      email: this.email(),
+      password: this.password()
+    }).subscribe({
+      next: () => {
+        this.authService.login({
+          username: this.username(),
+          password: this.password()
+        }).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            this.router.navigate(['/']);
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            this.setView('login');
+            console.error(err);
+          }
+        });
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set('Error al registrar el usuario. Nombre o email duplicados.');
+        console.error(err);
+      }
+    });
   }
 
   onGoogleLogin(): void {
-    /** TODO: integrar OAuth con Google */
     console.info('Google login — pendiente de integración');
   }
 }

@@ -1,6 +1,14 @@
+export interface UserDTO {
+  id: number;
+  username: string;
+  email: string;
+  active: boolean;
+  disabledAt: string | null;
+  createdAt: string;
+  roles: string[];
+}
 
 export interface RegisterRequest {
-  /** min 3, max 20 caracteres */
   username: string;
   email: string;
   password: string;
@@ -11,22 +19,22 @@ export interface LoginRequest {
   password: string;
 }
 
-
 export interface JwtResponse {
   token: string;
-  type: string;     
+  refreshToken: string;
+  type: string;
   id: number;
   username: string;
   email: string;
   roles: string[];
 }
 
-export interface UserDTO {
-  id: number;
-  username: string;
-  email: string;
-  active: boolean;
-  disabledAt: string | null;  
-  createdAt: string;          
-  roles: string[];
+export interface TokenRefreshRequest {
+  refreshToken: string;
+}
+
+export interface TokenRefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
 }

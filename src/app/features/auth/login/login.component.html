@@ -1,6 +1,5 @@
 <div class="login-layout">
 
-  <!-- ══ Columna izquierda: imagen ══ -->
   <div class="login-image" aria-hidden="true">
     <img
       src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=900&auto=format&fit=crop&q=85"
@@ -11,21 +10,24 @@
     />
   </div>
 
-  <!-- ══ Columna derecha: formulario ══ -->
   <main class="login-panel" aria-labelledby="login-title">
 
-    <!-- Logo (solo visible en móvil o cuando no hay imagen) -->
     <a routerLink="/" class="login-panel__logo" aria-label="Oona — Volver al inicio">
       oona.
     </a>
 
-    <!-- Título -->
-    <h1 class="login-panel__title" id="login-title">
-      Inicia sesión<br>
-      <em>para continuar</em>
-    </h1>
+    @if (currentView() === 'login') {
+      <h1 class="login-panel__title" id="login-title">
+        Inicia sesión<br>
+        <em>para continuar</em>
+      </h1>
+    } @else {
+      <h1 class="login-panel__title" id="login-title">
+        Crea una cuenta<br>
+        <em>para empezar</em>
+      </h1>
+    }
 
-    <!-- Tabs Usuario / Profesional -->
     <div class="login-tabs" role="tablist" aria-label="Tipo de cuenta">
       <button
         class="login-tabs__btn"
@@ -53,214 +55,235 @@
       </button>
     </div>
 
-    <!-- ── Panel USUARIO ── -->
-    @if (activeTab() === 'usuario') {
-      <div id="panel-usuario" role="tabpanel" aria-labelledby="tab-usuario" class="login-form-wrap">
-
-        <!-- Google -->
-        <button type="button" class="login-google" (click)="onGoogleLogin()">
-          <!-- Icono Google oficial (SVG inline) -->
-          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            <path fill="none" d="M0 0h48v48H0z"/>
-          </svg>
-          Continuar con Google
-        </button>
-
-        <!-- Divisor -->
-        <div class="login-divider" aria-hidden="true">
-          <span>O CON EMAIL</span>
-        </div>
-
-        <!-- Formulario email + contraseña -->
-        <form class="login-form" (ngSubmit)="onSubmit()" novalidate>
-
-          <!-- Email -->
-          <div class="login-field">
-            <label for="email-usuario" class="login-field__label">EMAIL</label>
-            <input
-              id="email-usuario"
-              type="email"
-              class="login-field__input"
-              placeholder="tu@email.com"
-              [value]="email()"
-              (input)="email.set($any($event.target).value)"
-              autocomplete="email"
-              required
-            />
-          </div>
-
-          <!-- Contraseña -->
-          <div class="login-field">
-            <div class="login-field__row">
-              <label for="pwd-usuario" class="login-field__label">CONTRASEÑA</label>
-              <a routerLink="/auth/recuperar" class="login-field__forgot">¿Has olvidado tu contraseña?</a>
-            </div>
-            <div class="login-field__input-wrap">
-              <input
-                id="pwd-usuario"
-                [type]="showPassword() ? 'text' : 'password'"
-                class="login-field__input"
-                [value]="password()"
-                (input)="password.set($any($event.target).value)"
-                autocomplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                class="login-field__eye"
-                (click)="togglePassword()"
-                [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-              >
-                @if (showPassword()) {
-                  <!-- Ojo tachado -->
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                } @else {
-                  <!-- Ojo abierto -->
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                }
-              </button>
-            </div>
-          </div>
-
-          <!-- Submit -->
-          <button
-            type="submit"
-            class="login-submit"
-            [disabled]="isLoading()"
-          >
-            @if (isLoading()) {
-              <span class="login-submit__spinner" aria-hidden="true"></span>
-              Entrando...
-            } @else {
-              Entrar en Oona
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            }
-          </button>
-        </form>
-
-        <!-- Registro -->
-        <p class="login-register">
-          ¿Aún no tienes cuenta?
-          <a routerLink="/auth/registro" class="login-register__link">Crea una cuenta</a>
-        </p>
-
-        <!-- Social proof -->
-        <div class="login-social-proof">
-          <div class="login-social-proof__avatars" aria-hidden="true">
-            @for (i of [1,2,3,4,5,6]; track i) {
-              <img
-                [src]="'https://i.pravatar.cc/32?img=' + i"
-                alt=""
-                class="login-social-proof__avatar"
-                width="32" height="32"
-                loading="lazy"
-              />
-            }
-            <span class="login-social-proof__count">+10k</span>
-          </div>
-          <p class="login-social-proof__text">
-            <strong>+10 mil personas</strong> ya forman parte
-          </p>
-        </div>
-
+    @if (errorMessage()) {
+      <div class="login-error-message" style="color: #ea4335; margin-bottom: 15px; font-size: 14px;">
+        {{ errorMessage() }}
       </div>
     }
 
-    <!-- ── Panel PROFESIONAL ── -->
-    @if (activeTab() === 'profesional') {
-      <div id="panel-profesional" role="tabpanel" aria-labelledby="tab-profesional" class="login-form-wrap">
+    <!-- ══ VISTA DE LOGIN ══ -->
+    @if (currentView() === 'login') {
+      
+      @if (activeTab() === 'usuario') {
+        <div id="panel-usuario" role="tabpanel" aria-labelledby="tab-usuario" class="login-form-wrap">
 
-        <form class="login-form" (ngSubmit)="onSubmit()" novalidate>
+          <button type="button" class="login-google" (click)="onGoogleLogin()">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="none" d="M0 0h48v48H0z"/>
+            </svg>
+            Continuar con Google
+          </button>
 
-          <!-- Email -->
+          <div class="login-divider" aria-hidden="true">
+            <span>O CON EMAIL</span>
+          </div>
+
+          <form class="login-form" (ngSubmit)="onSubmit()" novalidate>
+            <div class="login-field">
+              <label for="email-usuario" class="login-field__label">EMAIL</label>
+              <input
+                id="email-usuario"
+                type="email"
+                name="loginEmail"
+                class="login-field__input"
+                placeholder="tu@email.com"
+                [(ngModel)]="email"
+                autocomplete="email"
+                required
+              />
+            </div>
+
+            <div class="login-field">
+              <div class="login-field__row">
+                <label for="pwd-usuario" class="login-field__label">CONTRASEÑA</label>
+                <a routerLink="/auth/recuperar" class="login-field__forgot">¿Has olvidado tu contraseña?</a>
+              </div>
+              <div class="login-field__input-wrap">
+                <input
+                  id="pwd-usuario"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  name="loginPassword"
+                  class="login-field__input"
+                  [(ngModel)]="password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="login-field__eye"
+                  (click)="togglePassword()"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  @if (showPassword()) {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  } @else {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-submit" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span class="login-submit__spinner" aria-hidden="true"></span> Entrando...
+              } @else {
+                Entrar en Oona <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+              }
+            </button>
+          </form>
+
+          <p class="login-register">
+            ¿Aún no tienes cuenta?
+            <button type="button" (click)="setView('register')" class="login-register__link" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer;">Crea una cuenta</button>
+          </p>
+
+          <div class="login-social-proof">
+            <div class="login-social-proof__avatars" aria-hidden="true">
+              @for (i of [1,2,3,4,5,6]; track i) {
+                <img [src]="'https://i.pravatar.cc/32?img=' + i" alt="" class="login-social-proof__avatar" width="32" height="32" loading="lazy" />
+              }
+              <span class="login-social-proof__count">+10k</span>
+            </div>
+            <p class="login-social-proof__text"><strong>+10 mil personas</strong> ya forman parte</p>
+          </div>
+        </div>
+      }
+
+      @if (activeTab() === 'profesional') {
+        <div id="panel-profesional" role="tabpanel" aria-labelledby="tab-profesional" class="login-form-wrap">
+          <form class="login-form" (ngSubmit)="onSubmit()" novalidate>
+            <div class="login-field">
+              <label for="email-pro" class="login-field__label">EMAIL</label>
+              <input
+                id="email-pro"
+                type="email"
+                name="proEmail"
+                class="login-field__input"
+                placeholder="tu@email.com"
+                [(ngModel)]="email"
+                autocomplete="email"
+                required
+              />
+            </div>
+
+            <div class="login-field">
+              <div class="login-field__row">
+                <label for="pwd-pro" class="login-field__label">CONTRASEÑA</label>
+                <a routerLink="/auth/recuperar" class="login-field__forgot">¿Has olvidado tu contraseña?</a>
+              </div>
+              <div class="login-field__input-wrap">
+                <input
+                  id="pwd-pro"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  name="proPassword"
+                  class="login-field__input"
+                  [(ngModel)]="password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button type="button" class="login-field__eye" (click)="togglePassword()">
+                  @if (showPassword()) {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  } @else {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-submit" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span class="login-submit__spinner" aria-hidden="true"></span> Entrando...
+              } @else {
+                Acceder como profesional <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+              }
+            </button>
+          </form>
+
+          <p class="login-register">
+            ¿Aún no tienes cuenta?
+            <button type="button" (click)="setView('register')" class="login-register__link" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer;">Regístrate como profesional</button>
+          </p>
+        </div>
+      }
+    }
+
+    <!-- ══ VISTA DE REGISTRO (CREAR CUENTA) ══ -->
+    @if (currentView() === 'register') {
+      <div class="login-form-wrap">
+        <form class="login-form" (ngSubmit)="onRegisterSubmit()" novalidate>
+          
           <div class="login-field">
-            <label for="email-pro" class="login-field__label">EMAIL</label>
+            <label for="reg-username" class="login-field__label">NOMBRE DE USUARIO</label>
             <input
-              id="email-pro"
+              id="reg-username"
+              type="text"
+              name="regUsername"
+              class="login-field__input"
+              placeholder="ej. usuario_oona"
+              [(ngModel)]="username"
+              required
+            />
+          </div>
+
+          <div class="login-field">
+            <label for="reg-email" class="login-field__label">EMAIL</label>
+            <input
+              id="reg-email"
               type="email"
+              name="regEmail"
               class="login-field__input"
               placeholder="tu@email.com"
-              [value]="email()"
-              (input)="email.set($any($event.target).value)"
+              [(ngModel)]="email"
               autocomplete="email"
               required
             />
           </div>
 
-          <!-- Contraseña -->
           <div class="login-field">
-            <div class="login-field__row">
-              <label for="pwd-pro" class="login-field__label">CONTRASEÑA</label>
-              <a routerLink="/auth/recuperar" class="login-field__forgot">¿Has olvidado tu contraseña?</a>
-            </div>
+            <label for="reg-pwd" class="login-field__label">CONTRASEÑA</label>
             <div class="login-field__input-wrap">
               <input
-                id="pwd-pro"
+                id="reg-pwd"
                 [type]="showPassword() ? 'text' : 'password'"
+                name="regPassword"
                 class="login-field__input"
-                [value]="password()"
-                (input)="password.set($any($event.target).value)"
-                autocomplete="current-password"
+                [(ngModel)]="password"
+                autocomplete="new-password"
                 required
               />
-              <button
-                type="button"
-                class="login-field__eye"
-                (click)="togglePassword()"
-                [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-              >
+              <button type="button" class="login-field__eye" (click)="togglePassword()">
                 @if (showPassword()) {
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                 } @else {
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 }
               </button>
             </div>
           </div>
 
-          <!-- Submit profesional -->
           <button type="submit" class="login-submit" [disabled]="isLoading()">
             @if (isLoading()) {
-              <span class="login-submit__spinner" aria-hidden="true"></span>
-              Entrando...
+              <span class="login-submit__spinner" aria-hidden="true"></span> Registrando...
             } @else {
-              Acceder como profesional
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
+              @if (activeTab() === 'usuario') {
+                Crear cuenta de Usuario
+              } @else {
+                Crear cuenta de Profesional
+              }
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
             }
           </button>
         </form>
 
         <p class="login-register">
-          ¿Aún no tienes cuenta?
-          <a routerLink="/auth/registro-profesional" class="login-register__link">Regístrate como profesional</a>
+          ¿Ya tienes una cuenta?
+          <button type="button" (click)="setView('login')" class="login-register__link" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer;">Inicia sesión aquí</button>
         </p>
-
       </div>
     }
 
