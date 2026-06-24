@@ -1,0 +1,183 @@
+<section class="detalle-page" *ngIf="evento">
+  <div class="container">
+
+    <div class="gallery" [ngClass]="'gallery-' + getGalleryCount()">
+      <img
+        *ngFor="let img of evento.imagenes.slice(0, 5); let i = index"
+        class="gallery-img"
+        [class.main-img]="i === 0"
+        [src]="img"
+        [alt]="evento.titulo"
+      >
+
+      <div class="gallery-actions">
+        <button class="back-btn">←</button>
+
+        <div class="right-actions">
+          <button>↥</button>
+          <button (click)="toggleFavorito()">
+            {{ evento.favorito ? '♥' : '♡' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="gallery-dots">
+        <span *ngFor="let img of evento.imagenes.slice(0, 5); let i = index" [class.active]="i === 0"></span>
+      </div>
+
+      <div class="image-count">▧ {{ getGalleryCount() }}/{{ evento.imagenes.length }}</div>
+    </div>
+
+    <div class="title-row">
+      <h1>{{ evento.titulo }}</h1>
+
+      <div class="actions">
+        <button>↥</button>
+        <button (click)="toggleFavorito()">
+          {{ evento.favorito ? '♥' : '♡' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="content-layout">
+      <main class="main-content">
+
+        <article class="organizer-card">
+          <div class="organizer-info">
+            <img [src]="evento.avatar" [alt]="evento.autor">
+            <div>
+              <small>Organizado por</small>
+              <strong>{{ evento.autor }}</strong>
+            </div>
+          </div>
+
+          <button class="follow-btn">🔔 Seguir</button>
+        </article>
+
+        <article class="info-card">
+          <h2>📅 Fecha y hora</h2>
+          <h3>{{ evento.fechaDetalle }}</h3>
+          <p>🕒 {{ evento.horaDetalle }}</p>
+        </article>
+
+        <article class="info-card">
+          <h2>📄 Descripción</h2>
+          <p *ngFor="let texto of evento.descripcion">
+            {{ texto }}
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h2>✅ Lo que incluye</h2>
+
+          <div class="chips">
+            <span *ngFor="let item of evento.incluye">✓ {{ item }}</span>
+          </div>
+        </article>
+
+        <article class="info-card">
+          <h2>📦 Qué traer</h2>
+
+          <div class="chips blue">
+            <span *ngFor="let item of evento.traer">{{ item }}</span>
+          </div>
+        </article>
+
+      </main>
+
+      <aside class="sidebar">
+        <div class="general-card">
+          <h2>📋 Información general</h2>
+
+          <div class="row">
+            <span>€ Precio</span>
+            <strong>{{ evento.precio }}</strong>
+          </div>
+
+          <div class="row">
+            <span>Modalidad</span>
+            <strong>{{ evento.modalidad }}</strong>
+          </div>
+
+          <div class="row">
+            <span>Plazas</span>
+            <strong>{{ evento.plazas }}</strong>
+          </div>
+
+          <div class="row">
+            <span>Ubicación</span>
+            <strong>{{ evento.ubicacion }}</strong>
+          </div>
+
+          <div class="row">
+            <span>Ciudad</span>
+            <strong>{{ evento.ciudad }}</strong>
+          </div>
+
+          <div class="status">🔴 Evento completo</div>
+
+          <button class="wait-btn">Apuntarme a la lista de espera</button>
+          <small>Te avisaremos si se libera una plaza</small>
+        </div>
+      </aside>
+    </div>
+
+    <section class="about-organizer">
+      <h2>Sobre el organizador</h2>
+
+      <div class="about-card">
+        <div class="organizer-top">
+          <img [src]="evento.avatar" [alt]="evento.autor">
+
+          <div class="organizer-data">
+            <strong>{{ evento.autor }}</strong>
+            <p>Organizador de este evento</p>
+          </div>
+        </div>
+
+        <button class="profile-btn">
+          Ver perfil →
+        </button>
+
+        <div class="question-box">
+          💬 ¿Tienes alguna pregunta para el organizador?
+          <small>Contactar por WhatsApp</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="similar-events">
+      <h2>Eventos similares</h2>
+
+      <div class="similar-grid">
+        <article
+          class="similar-card"
+          *ngFor="let item of similares"
+          [routerLink]="['/evento', item.id]"
+        >
+          <div class="similar-img">
+            <img [src]="item.imagen" [alt]="item.titulo">
+            <button>♡</button>
+            <span>⌖ {{ item.lugar }}</span>
+          </div>
+
+          <div class="similar-body">
+            <span class="tag">{{ item.categoria }}</span>
+            <p>{{ item.fecha }}</p>
+            <h3>{{ item.titulo }}</h3>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="mobile-bottom-bar">
+      <div>
+        <strong>{{ evento.precio }}</strong>
+        <span>por entrada</span>
+      </div>
+
+      <button>▭ Apuntarme a la lista de espera</button>
+    </div>
+
+  </div>
+</section>

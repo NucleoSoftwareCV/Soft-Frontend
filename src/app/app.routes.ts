@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { Explorar } from './features/explorar/explorar';
+import { DetalleEvento } from './features/detalle-evento/detalle-evento';
 
 export const routes: Routes = [
   /* ── Home ── */
@@ -9,7 +11,19 @@ export const routes: Routes = [
     title: 'Oona | Eventos y profesionales de bienestar cerca de ti',
   },
 
-  /* ── Auth (sin header/footer, layout propio) ── */
+  /* ── Explorar ── */
+  {
+    path: 'explorar',
+    component: Explorar
+  },
+
+  /* ── Detalle Evento ── */
+  {
+    path: 'evento/:id',
+    component: DetalleEvento
+  },
+
+  /* ── Auth ── */
   {
     path: 'auth',
     loadComponent: () =>
@@ -29,20 +43,19 @@ export const routes: Routes = [
     ],
   },
 
-  /* ── Alias corto /login → /auth/login ── */
   {
     path: 'login',
     redirectTo: 'auth/login',
     pathMatch: 'full',
   },
 
-  /* ── 404 ── */
   {
     path: 'profesionales',
     loadComponent: () =>
       import('./features/profesionales/profesionales.component').then(m => m.ProfesionalesComponent),
     title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
   },
+
   {
     path: '**',
     redirectTo: '',
