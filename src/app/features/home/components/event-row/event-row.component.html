@@ -1,0 +1,143 @@
+<section class="er-section" [attr.aria-labelledby]="'er-title-' + title()">
+  <div class="er-wrapper">
+
+    <!-- Cabecera -->
+    <div class="er-section__head">
+      <h2 [id]="'er-title-' + title()" class="er-section__title">{{ title() }}</h2>
+      <a [routerLink]="seeAllPath()" class="er-section__see-all">Ver todo →</a>
+    </div>
+
+    <!-- Carrusel con flechas -->
+    <div class="er-carousel">
+
+      <!-- Flecha ANTERIOR — se muestra cuando hay páginas previas -->
+      @if (canPrev()) {
+        <button
+          class="er-arrow er-arrow--prev"
+          type="button"
+          aria-label="Ver eventos anteriores"
+          (click)="prev()"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+      }
+
+      <!-- Viewport: el área visible del carrusel -->
+      <div class="er-viewport" #viewportRef>
+        <ul class="er-track" role="list" #trackRef>
+          @for (event of events(); track event.id) {
+            <li
+              class="er-card-item"
+              [style.width.px]="cardWidth()"
+              [style.min-width.px]="cardWidth()"
+            >
+              <article class="er-card">
+
+                <!-- Imagen -->
+                <a
+                  [routerLink]="['/eventos', event.id]"
+                  class="er-card__img-wrap"
+                  aria-hidden="true"
+                  tabindex="-1"
+                >
+                  <img
+                    [src]="event.image"
+                    [alt]="event.title"
+                    class="er-card__img"
+                    loading="lazy"
+                    width="600"
+                    height="400"
+                  />
+                  <!-- Chip ubicación -->
+                  <span class="er-card__location">
+                    <svg width="11" height="11" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ event.location }}
+                  </span>
+                  <!-- Favorito -->
+                  <button
+                    class="er-card__fav"
+                    type="button"
+                    aria-label="Guardar en favoritos"
+                    (click)="$event.preventDefault(); $event.stopPropagation()"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                               a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                               1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  </button>
+                </a>
+
+                <!-- Cuerpo -->
+                <div class="er-card__body">
+                  <!-- Fecha + recurrencia -->
+                  <div class="er-card__meta-top">
+                    <span class="er-card__date">{{ event.dateLabel }}</span>
+                    @if (event.recurrent) {
+                      <span class="er-card__recurrent" aria-label="Semanal">
+                        <svg width="11" height="11" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                          <polyline points="17 1 21 5 17 9"/>
+                          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                          <polyline points="7 23 3 19 7 15"/>
+                          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                        </svg>
+                        SEMANAL
+                      </span>
+                    }
+                  </div>
+                  <!-- Título -->
+                  <a [routerLink]="['/eventos', event.id]" class="er-card__title-link">
+                    <h3 class="er-card__title">{{ event.title }}</h3>
+                  </a>
+                  <!-- Host + plazas -->
+                  <div class="er-card__footer">
+                    <div class="er-card__host">
+                      <img
+                        [src]="event.hostAvatar"
+                        [alt]="event.host"
+                        class="er-card__avatar"
+                        width="24" height="24"
+                        loading="lazy"
+                      />
+                      <span class="er-card__host-name">{{ event.host }}</span>
+                    </div>
+                    @if (event.spotsLeft !== null) {
+                      <span class="er-card__spots">● Quedan {{ event.spotsLeft }} plazas</span>
+                    }
+                  </div>
+                </div>
+
+              </article>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- Flecha SIGUIENTE — se muestra cuando hay más páginas -->
+      @if (canNext()) {
+        <button
+          class="er-arrow er-arrow--next"
+          type="button"
+          aria-label="Ver más eventos"
+          (click)="next()"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      }
+
+    </div><!-- /er-carousel -->
+
+  </div><!-- /er-wrapper -->
+</section>

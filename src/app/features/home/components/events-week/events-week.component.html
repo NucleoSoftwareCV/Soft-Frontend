@@ -1,0 +1,132 @@
+<!-- Barra de filtro por icono — sticky bajo el header -->
+<div class="ew-filter-bar" role="navigation" aria-label="Filtrar por categoría">
+  <div class="container">
+    <ul class="ew-filter-track" role="list">
+      @for (icon of filterIcons; track icon.label) {
+        <li>
+          <button
+            class="ew-filter-icon"
+            type="button"
+            [class.ew-filter-icon--active]="selectedCategory() === icon.label"
+            [style.background-color]="icon.bg"
+            (click)="selectCategory(icon.label)"
+            [attr.aria-label]="icon.label"
+            [attr.aria-pressed]="selectedCategory() === icon.label"
+          >
+            <span aria-hidden="true">{{ icon.emoji }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
+
+<!-- Sección "Esta semana" -->
+<section class="ew-section" aria-labelledby="ew-title">
+  <div class="container">
+    <div class="ew-section__head">
+      <h2 id="ew-title" class="ew-section__title">Esta semana</h2>
+      <a routerLink="/eventos" class="ew-section__see-all">Ver todo →</a>
+    </div>
+  </div>
+
+  <!-- Cards en scroll horizontal — sin padding del container para llegar al borde -->
+  <div class="ew-cards-wrap">
+    <div class="container ew-cards-inner">
+      <ul class="ew-cards-track" role="list">
+        @for (event of events; track event.id) {
+          <li class="ew-card-item">
+            <article class="ew-card">
+
+              <!-- Imagen -->
+              <a [routerLink]="['/eventos', event.id]" class="ew-card__img-wrap" aria-hidden="true" tabindex="-1">
+                <img
+                  [src]="event.image"
+                  [alt]="event.title"
+                  class="ew-card__img"
+                  loading="lazy"
+                  width="600"
+                  height="400"
+                />
+                <!-- Chip ubicación -->
+                <span class="ew-card__location">
+                  <svg width="11" height="11" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {{ event.location }}
+                </span>
+                <!-- Favorito -->
+                <button class="ew-card__fav" aria-label="Guardar en favoritos" type="button"
+                        (click)="$event.preventDefault()">
+                  <svg width="15" height="15" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                             a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                             1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </button>
+              </a>
+
+              <!-- Cuerpo -->
+              <div class="ew-card__body">
+                <!-- Tiempo + recurrencia -->
+                <div class="ew-card__meta-top">
+                  <span class="ew-card__time">
+                    {{ event.date ? event.date + ' · ' : '' }}{{ event.time }}
+                  </span>
+                  @if (event.recurrent) {
+                    <span class="ew-card__recurrent">
+                      <svg width="11" height="11" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <polyline points="17 1 21 5 17 9"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                        <polyline points="7 23 3 19 7 15"/>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                      </svg>
+                      SEMANAL
+                    </span>
+                  }
+                </div>
+
+                <!-- Título -->
+                <a [routerLink]="['/eventos', event.id]" class="ew-card__title-link">
+                  <h3 class="ew-card__title">{{ event.title }}</h3>
+                </a>
+
+                <!-- Host + plazas -->
+                <div class="ew-card__footer">
+                  <div class="ew-card__host">
+                    <img
+                      [src]="event.hostAvatar"
+                      [alt]="event.host"
+                      class="ew-card__avatar"
+                      width="24" height="24"
+                      loading="lazy"
+                    />
+                    <span class="ew-card__host-name">{{ event.host }}</span>
+                  </div>
+                  @if (event.spotsLeft !== null) {
+                    <span class="ew-card__spots">● Quedan {{ event.spotsLeft }} plazas</span>
+                  }
+                </div>
+              </div>
+
+            </article>
+          </li>
+        }
+
+        <!-- Botón "ver más" al final del scroll -->
+        <li class="ew-card-item ew-card-item--more">
+          <a routerLink="/eventos" class="ew-card-more">
+            <svg width="28" height="28" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>

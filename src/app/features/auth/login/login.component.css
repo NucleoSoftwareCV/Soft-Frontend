@@ -1,0 +1,398 @@
+/* ============================================
+   Login Page
+   ============================================ */
+
+/*
+ * La página de login ocupa el 100% del viewport y
+ * NO muestra el header/footer de la app.
+ * El layout es de 2 columnas: imagen | formulario.
+ */
+
+/* Ocupa exactamente el viewport sin padding del shell */
+:host {
+  display: contents;
+}
+
+.login-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100svh;
+}
+
+/* ── Columna imagen (izquierda) ── */
+.login-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.login-image__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+/* ── Columna formulario (derecha) ── */
+.login-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 6vw, 5rem);
+  background-color: var(--color-bg);
+  min-height: 100svh;
+  overflow-y: auto;
+}
+
+/* ── Logo (visible en desktop encima del formulario) ── */
+.login-panel__logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.04em;
+  text-align: center;
+  margin-bottom: var(--space-6);
+  line-height: 1;
+}
+
+/* ── Título ── */
+.login-panel__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: var(--color-sage-dark);
+  text-align: center;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-8);
+}
+
+.login-panel__title em {
+  font-style: italic;
+  color: var(--color-sage);
+  font-weight: 600;
+}
+
+/* ── Tabs ── */
+.login-tabs {
+  display: flex;
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--color-bg-card);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  margin-bottom: var(--space-8);
+  gap: 4px;
+}
+
+.login-tabs__btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-muted);
+  background: transparent;
+  border: none;
+  transition: background-color var(--transition-fast),
+              color var(--transition-fast),
+              box-shadow var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.login-tabs__btn--active {
+  background-color: var(--color-sage);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.login-tabs__btn:not(.login-tabs__btn--active):hover {
+  color: var(--color-ink);
+}
+
+/* ── Contenedor del formulario ── */
+.login-form-wrap {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Botón Google ── */
+.login-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  background-color: var(--color-bg-card);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.login-google:hover {
+  border-color: var(--color-sage-light);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Divisor ── */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-muted);
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-divider);
+}
+
+.login-divider span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* ── Formulario ── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Campo ── */
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.login-field__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.login-field__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-light);
+  text-transform: uppercase;
+}
+
+.login-field__input-wrap {
+  position: relative;
+}
+
+.login-field__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-bg-card);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.login-field__input-wrap .login-field__input {
+  padding-right: 3rem;
+}
+
+.login-field__input::placeholder { color: var(--color-muted); }
+
+.login-field__input:focus {
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px rgba(45,106,106,0.10);
+}
+
+.login-field__forgot {
+  font-size: var(--text-xs);
+  color: var(--color-sage);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.login-field__forgot:hover { color: var(--color-sage-dark); }
+
+/* Botón ojo contraseña */
+.login-field__eye {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.login-field__eye:hover { color: var(--color-ink); }
+
+/* ── Botón submit ── */
+.login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 52px;
+  background-color: var(--color-sage);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.login-submit:hover:not(:disabled) {
+  background-color: var(--color-sage-dark);
+  transform: translateY(-1px);
+}
+
+.login-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Spinner de carga */
+.login-submit__spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Enlace de registro ── */
+.login-register {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.login-register__link {
+  color: var(--color-sage);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.login-register__link:hover { color: var(--color-sage-dark); }
+
+/* ── Social proof ── */
+.login-social-proof {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--color-bg-card);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+}
+
+.login-social-proof__avatars {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.login-social-proof__avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-bg);
+  margin-left: -7px;
+}
+
+.login-social-proof__avatar:first-child { margin-left: 0; }
+
+.login-social-proof__count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-sage);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border: 2px solid var(--color-bg);
+  margin-left: -7px;
+  flex-shrink: 0;
+}
+
+.login-social-proof__text {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+
+.login-social-proof__text strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+
+/* Tablet: imagen más pequeña */
+@media (max-width: 960px) {
+  .login-layout {
+    grid-template-columns: 40% 1fr;
+  }
+}
+
+/* Móvil: columna única, imagen se oculta */
+@media (max-width: 640px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-image {
+    display: none;
+  }
+
+  .login-panel {
+    justify-content: flex-start;
+    padding-top: 3rem;
+  }
+}

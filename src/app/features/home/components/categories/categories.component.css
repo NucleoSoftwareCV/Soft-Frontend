@@ -1,0 +1,87 @@
+/* ============================================
+   Categories — scroll horizontal, una fila
+   ============================================ */
+
+.categories {
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-10);
+  background-color: var(--color-bg);
+}
+
+.categories__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 700;
+  color: var(--color-sage-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-8);
+}
+
+/* Wrapper que permite scroll y oculta la scrollbar */
+.categories__track-wrap {
+  overflow-x: auto;
+  /* Scrollbar oculta pero funcional */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Extiende el scroll hasta el borde de la pantalla
+     pero el contenido comienza en el padding del container */
+  margin-inline: calc(-1 * var(--layout-pad));
+  padding-inline: var(--layout-pad);
+}
+
+.categories__track-wrap::-webkit-scrollbar { display: none; }
+
+/* Fila horizontal sin wrap */
+.categories__track {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  padding-bottom: 0.5rem; /* espacio para que el foco no quede cortado */
+}
+
+/* Cada ítem */
+.categories__item { flex-shrink: 0; }
+
+.categories__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 88px;
+  text-align: center;
+}
+
+/* Icono con fondo de color redondeado */
+.categories__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  font-size: 2rem;
+  line-height: 1;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.categories__link:hover .categories__icon {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Etiqueta debajo del icono */
+.categories__label {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--color-ink-light);
+  line-height: 1.3;
+  white-space: pre-line; /* respeta los \n del label */
+  text-align: center;
+}
+
+/* Responsive: en móvil el icono es un poco más pequeño */
+@media (max-width: 600px) {
+  .categories__icon  { width: 60px; height: 60px; font-size: 1.7rem; }
+  .categories__track { gap: 1rem; }
+  .categories__link  { width: 72px; }
+}

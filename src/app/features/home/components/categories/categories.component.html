@@ -1,0 +1,25 @@
+<section class="categories" aria-labelledby="categories-title">
+  <div class="container">
+
+    <h2 id="categories-title" class="categories__title">¿Qué te apetece hacer hoy?</h2>
+
+    <!-- Scroll horizontal con todos los items en una fila -->
+    <div class="categories__track-wrap">
+      <ul class="categories__track" role="list">
+        @for (cat of categories; track cat.path) {
+          <li class="categories__item">
+            <a [routerLink]="cat.path" class="categories__link">
+              <span
+                class="categories__icon"
+                [style.background-color]="cat.bg"
+                aria-hidden="true"
+              >{{ cat.emoji }}</span>
+              <span class="categories__label">{{ cat.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+  </div>
+</section>

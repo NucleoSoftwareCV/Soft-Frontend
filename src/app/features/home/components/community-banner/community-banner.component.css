@@ -1,0 +1,173 @@
+/* ============================================
+   Community Banner — tarjeta WhatsApp Oona
+   ============================================ */
+
+.cb-section {
+  padding-block: var(--space-16);
+  background-color: var(--color-bg);
+}
+
+/* Tarjeta centrada */
+.cb-card {
+  max-width: 680px;
+  margin-inline: auto;
+  background: linear-gradient(135deg, #1a4040 0%, #0d2e2e 60%, #163d28 100%);
+  border-radius: 20px;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  color: #fff;
+}
+
+/* Pill WhatsApp */
+.cb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #a8e6a3;
+  width: fit-content;
+}
+
+/* Headline */
+.cb-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.cb-headline em {
+  font-style: italic;
+  color: #a8e6a3;
+}
+
+/* Descripción */
+.cb-desc {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.72);
+  line-height: 1.65;
+  max-width: 520px;
+}
+
+/* Feature row */
+.cb-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  background-color: rgba(255,255,255,0.07);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+}
+
+.cb-feature__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background-color: rgba(168, 230, 163, 0.15);
+  color: #a8e6a3;
+  flex-shrink: 0;
+}
+
+.cb-feature__title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.15rem;
+}
+
+.cb-feature__sub {
+  font-size: var(--text-xs);
+  color: rgba(255,255,255,0.60);
+  line-height: 1.5;
+}
+
+/* Avatares + contador */
+.cb-members {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cb-members__avatars {
+  display: flex;
+  align-items: center;
+}
+
+.cb-members__avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1a4040;
+  margin-left: -8px;
+}
+
+.cb-members__avatar:first-child { margin-left: 0; }
+
+.cb-members__plus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background-color: #3a8a40;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border: 2px solid #1a4040;
+  margin-left: -8px;
+}
+
+.cb-members__label {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.72);
+}
+
+.cb-members__label strong {
+  color: #a8e6a3;
+  font-weight: 600;
+}
+
+/* Botón CTA */
+.cb-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 1rem var(--space-6);
+  background-color: #4caf50;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.cb-cta:hover {
+  background-color: #43a047;
+  transform: translateY(-1px);
+}
+
+/* Nota */
+.cb-note {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: rgba(255,255,255,0.40);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .cb-card { border-radius: var(--radius-lg); }
+}

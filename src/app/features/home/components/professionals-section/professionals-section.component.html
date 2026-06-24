@@ -1,0 +1,72 @@
+<section class="pros-section" aria-labelledby="pros-title">
+  <div class="container">
+    <header class="pros-section__header">
+      <div>
+        <p class="pros-section__eyebrow">Conecta con expertos</p>
+        <h2 id="pros-title" class="pros-section__title">Profesionales destacados</h2>
+      </div>
+      <a routerLink="/profesionales" class="btn-outline">Ver todos</a>
+    </header>
+
+    <ul class="pros-section__grid" role="list">
+      @for (pro of professionals; track pro.id) {
+        <li>
+          <article class="pro-card">
+            <a [routerLink]="['/profesionales', pro.id]" class="pro-card__img-wrap" aria-hidden="true" tabindex="-1">
+              <img
+                [src]="pro.image"
+                [alt]="pro.name"
+                class="pro-card__img"
+                loading="lazy"
+                width="300"
+                height="300"
+              />
+            </a>
+
+            <div class="pro-card__body">
+              <a [routerLink]="['/profesionales', pro.id]" class="pro-card__name-link">
+                <h3 class="pro-card__name">{{ pro.name }}</h3>
+              </a>
+              <p class="pro-card__specialty">{{ pro.specialty }}</p>
+
+              <!-- Rating -->
+              <div class="pro-card__rating" [attr.aria-label]="pro.rating + ' de 5 estrellas'">
+                <div class="pro-card__stars" aria-hidden="true">
+                  @for (star of getStars(pro.rating); track star) {
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      [attr.fill]="star <= pro.rating ? 'currentColor' : 'none'"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                </div>
+                <span class="pro-card__rating-text">{{ pro.rating }} ({{ pro.reviews }})</span>
+              </div>
+
+              <!-- Ubicación -->
+              <p class="pro-card__location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ pro.location }}
+              </p>
+
+              <!-- Tags -->
+              <ul class="pro-card__tags" aria-label="Especialidades">
+                @for (tag of pro.tags; track tag) {
+                  <li class="pro-card__tag">{{ tag }}</li>
+                }
+              </ul>
+            </div>
+          </article>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
