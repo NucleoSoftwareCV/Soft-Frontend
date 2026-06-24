@@ -1,0 +1,104 @@
+<div class="sesiones-page">
+  <div class="sesiones-contenido">
+  <div class="sesiones-header">
+    <h1>Sesiones 1:1</h1>
+    <p>Encuentra profesionales para sesiones personalizadas</p>
+  </div>
+
+  <div class="sesiones-filtros">
+    <div class="buscador-wrapper">
+      <svg class="icono-buscar" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="busqueda"
+        (input)="filtrar()"
+        placeholder="Buscar sesiones... psicología, quiropráctica, masajes"
+        class="buscador-input"
+      />
+      <button *ngIf="busqueda" class="btn-limpiar-input" (click)="busqueda=''; filtrar()">✕</button>
+    </div>
+
+    <div class="filtros-derecha">
+    <div class="dropdown-wrapper">
+      <button class="btn-filtro" (click)="toggleTemas()">
+        Temas
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dropdown-menu" *ngIf="mostrarDropdownTemas">
+        <div
+          *ngFor="let tema of temas"
+          class="dropdown-item"
+          [class.activo]="temaSeleccionado === tema"
+          (click)="seleccionarTema(tema)"
+        >
+          <span class="check-icon">
+            <svg *ngIf="temaSeleccionado === tema" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          {{ tema }}
+        </div>
+      </div>
+    </div>
+
+    <div class="dropdown-wrapper">
+      <button class="btn-filtro" (click)="toggleTipos()">
+        Tipos
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dropdown-menu" *ngIf="mostrarDropdownTipos">
+        <div
+          *ngFor="let tipo of tipos"
+          class="dropdown-item"
+          [class.activo]="tipoSeleccionado === tipo"
+          (click)="seleccionarTipo(tipo)"
+        >
+          <span class="check-icon">
+            <svg *ngIf="tipoSeleccionado === tipo" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          {{ tipo }}
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-limpiar" *ngIf="hayFiltrosActivos()" (click)="limpiarFiltros()">
+      ✕ Limpiar
+    </button>
+  </div>
+  </div>
+
+  <!-- Grid de sesiones -->
+  <div class="sesiones-grid" *ngIf="sesionesVisibles.length > 0">
+    <div class="sesion-card" *ngFor="let sesion of sesionesVisibles" 
+     (click)="verDetalle(sesion.id)">
+      <div class="card-imagen-wrapper">
+        <img [src]="sesion.imagen" [alt]="sesion.titulo" class="card-imagen" />
+        <span class="badge-sesion">Sesión 1:1</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-titulo">{{ sesion.titulo }}</h3>
+        <div class="card-profesional">
+          <div class="avatar">{{ sesion.profesional.charAt(0) }}</div>
+          <span>{{ sesion.profesional }}</span>
+        </div>
+        <p class="card-precio">
+          <span class="precio-valor" *ngIf="sesion.precio === 0">Gratis</span>
+          <span class="precio-valor" *ngIf="sesion.precio > 0">{{ sesion.precio }}€</span>
+          <span class="precio-duracion"> · {{ sesion.duracion }} min</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="estado-vacio" *ngIf="sesionesVisibles.length === 0">
+    <p>No se han encontrado sesiones con los filtros seleccionados.</p>
+    <button class="btn-limpiar-filtros" (click)="limpiarFiltros()">✕ Limpiar filtros</button>
+  </div>
+
+  <!-- Botón cargar más -->
+  <div class="cargar-mas-wrapper" *ngIf="sesionesVisibles.length < sesionesFiltradas.length">
+    <button class="btn-cargar-mas" (click)="cargarMas()">Cargar más sesiones</button>
+  </div>
+  </div>
+</div>
