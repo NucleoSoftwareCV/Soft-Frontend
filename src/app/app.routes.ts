@@ -1,11 +1,15 @@
 import { Routes } from '@angular/router';
 import { SesionesComponent } from './features/sesiones/sesiones';
 import { SesionDetalleComponent } from './features/sesion-detalle/sesion-detalle';
+import { Explorar } from './features/explorar/explorar';
+import { DetalleEvento } from './features/detalle-evento/detalle-evento';
 
 export const routes: Routes = [
+  /* ── Tus rutas de Sesiones ── */
   { path: 'sesiones', component: SesionesComponent },
   { path: 'sesiones/:id', component: SesionDetalleComponent },
 
+  /* ── Home ── */
   {
     path: '',
     loadComponent: () =>
@@ -13,6 +17,11 @@ export const routes: Routes = [
     title: 'Oona | Eventos y profesionales de bienestar cerca de ti',
   },
 
+  /* ── Explorar y Detalle (Vienen de main) ── */
+  { path: 'explorar', component: Explorar },
+  { path: 'detalle-evento', component: DetalleEvento },
+
+  /* ── Auth (sin header/footer, layout propio) ── */
   {
     path: 'auth',
     loadComponent: () =>
@@ -32,12 +41,14 @@ export const routes: Routes = [
     ],
   },
 
+  /* ── Alias corto /login → /auth/login ── */
   {
     path: 'login',
     redirectTo: 'auth/login',
     pathMatch: 'full',
   },
 
+  /* ── 404 (Siempre debe ir al final de todo) ── */
   {
     path: '**',
     redirectTo: '',
