@@ -22,6 +22,19 @@ export const routes: Routes = [
   { path: 'detalle-evento', component: DetalleEvento },
 
   /* ── Auth (sin header/footer, layout propio) ── */
+  /* ── Explorar ── */
+  {
+    path: 'explorar',
+    component: Explorar
+  },
+
+  /* ── Detalle Evento ── */
+  {
+    path: 'evento/:id',
+    component: DetalleEvento
+  },
+
+  /* ── Auth ── */
   {
     path: 'auth',
     loadComponent: () =>
@@ -41,7 +54,6 @@ export const routes: Routes = [
     ],
   },
 
-  /* ── Alias corto /login → /auth/login ── */
   {
     path: 'login',
     redirectTo: 'auth/login',
@@ -52,5 +64,16 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: '',
-  }
+  },
+  {
+    path: 'profesionales',
+    loadComponent: () =>
+      import('./features/profesionales/profesionales.component').then(m => m.ProfesionalesComponent),
+    title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
+  },
+
+  {
+    path: '**',
+    redirectTo: '',
+  },
 ];

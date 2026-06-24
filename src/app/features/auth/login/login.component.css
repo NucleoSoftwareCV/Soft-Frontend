@@ -1,14 +1,3 @@
-/* ============================================
-   Login Page
-   ============================================ */
-
-/*
- * La página de login ocupa el 100% del viewport y
- * NO muestra el header/footer de la app.
- * El layout es de 2 columnas: imagen | formulario.
- */
-
-/* Ocupa exactamente el viewport sin padding del shell */
 :host {
   display: contents;
 }
@@ -19,7 +8,6 @@
   min-height: 100svh;
 }
 
-/* ── Columna imagen (izquierda) ── */
 .login-image {
   position: relative;
   overflow: hidden;
@@ -100,8 +88,8 @@
   background: transparent;
   border: none;
   transition: background-color var(--transition-fast),
-              color var(--transition-fast),
-              box-shadow var(--transition-fast);
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -223,11 +211,13 @@
   padding-right: 3rem;
 }
 
-.login-field__input::placeholder { color: var(--color-muted); }
+.login-field__input::placeholder {
+  color: var(--color-muted);
+}
 
 .login-field__input:focus {
   border-color: var(--color-sage);
-  box-shadow: 0 0 0 3px rgba(45,106,106,0.10);
+  box-shadow: 0 0 0 3px rgba(45, 106, 106, 0.10);
 }
 
 .login-field__forgot {
@@ -237,7 +227,9 @@
   transition: color var(--transition-fast);
 }
 
-.login-field__forgot:hover { color: var(--color-sage-dark); }
+.login-field__forgot:hover {
+  color: var(--color-sage-dark);
+}
 
 /* Botón ojo contraseña */
 .login-field__eye {
@@ -255,7 +247,9 @@
   transition: color var(--transition-fast);
 }
 
-.login-field__eye:hover { color: var(--color-ink); }
+.login-field__eye:hover {
+  color: var(--color-ink);
+}
 
 /* ── Botón submit ── */
 .login-submit {
@@ -291,7 +285,7 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -299,7 +293,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Enlace de registro ── */
@@ -315,7 +311,9 @@
   transition: color var(--transition-fast);
 }
 
-.login-register__link:hover { color: var(--color-sage-dark); }
+.login-register__link:hover {
+  color: var(--color-sage-dark);
+}
 
 /* ── Social proof ── */
 .login-social-proof {
@@ -335,20 +333,24 @@
 }
 
 .login-social-proof__avatar {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--color-bg);
   margin-left: -7px;
 }
 
-.login-social-proof__avatar:first-child { margin-left: 0; }
+.login-social-proof__avatar:first-child {
+  margin-left: 0;
+}
 
 .login-social-proof__count {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--color-sage);
   color: #fff;

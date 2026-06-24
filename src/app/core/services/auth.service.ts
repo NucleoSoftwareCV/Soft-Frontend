@@ -1,8 +1,8 @@
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
-import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 import { environment } from '../../../environments/environment.development';
 import {
@@ -10,6 +10,7 @@ import {
   RegisterRequest,
   JwtResponse,
   UserDTO,
+  TokenRefreshResponse
 } from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
@@ -35,7 +36,36 @@ export class AuthService {
     );
   }
 
+  refreshToken(): Observable<TokenRefreshResponse> {
+    const currentSession = this.currentUser();
+    if (!currentSession?.refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    return this.http.post<TokenRefreshResponse>(`${this.BASE}/refresh-token`, {
+      refreshToken: currentSession.refreshToken
+    }).pipe(
+      tap(response => {
+        const updatedSession: JwtResponse = {
+          ...currentSession,
+          token: response.accessToken,
+          refreshToken: response.refreshToken,
+          type: response.tokenType
+        };
+        this.saveSession(updatedSession);
+      })
+    );
+  }
+
   logout(): void {
+    const currentSession = this.currentUser();
+    
+    if (currentSession?.refreshToken) {
+      this.http.post(`${this.BASE}/logout`, { refreshToken: currentSession.refreshToken })
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+    }
+
     if (this.isBrowser) {
       localStorage.removeItem('oona_session');
     }
