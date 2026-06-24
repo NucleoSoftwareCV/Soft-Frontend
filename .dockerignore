@@ -1,0 +1,55 @@
+# ── Dependencias (se reinstalan dentro del contenedor) ──
+node_modules/
+
+# ── Salida de compilación anterior (se regenera en el builder) ──
+dist/
+
+# ── Git ──
+.git/
+.gitignore
+.gitattributes
+
+# ── Variables de entorno locales sensibles (nunca van en la imagen) ──
+.env
+.env.*
+!.env.example
+
+# IMPORTANTE: los archivos src/environments/ SÍ deben entrar al build.
+# No los excluyas aquí. En su lugar, los valores sensibles de producción
+# (API keys, tokens) se pasan como variables de entorno en el servidor,
+# no se hardcodean en los archivos de environment.
+
+# ── Configuración de editores e IDEs ──
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ── Logs ──
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Sistema operativo ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Tests y cobertura ──
+coverage/
+.nyc_output/
+
+# ── Docs y archivos auxiliares ──
+README.md
+CHANGELOG.md
+*.md
+
+# ── Docker (evita copiar los propios archivos Docker al contexto) ──
+Dockerfile
+docker-compose*.yml
+.dockerignore
+nginx-container.conf
+nginx-droplet.conf

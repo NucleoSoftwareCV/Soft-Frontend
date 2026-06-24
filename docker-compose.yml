@@ -1,0 +1,54 @@
+# ============================================================
+# docker-compose.yml
+# Orquesta dos servicios:
+#   - angular : servidor Express con SSR (puerto 4000, interno)
+#   - nginx   : reverse proxy (puerto 80, público)
+# ============================================================
+
+services:
+
+  # ── Servicio Angular SSR ──
+  angular:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oona-frontend-ssr
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+    # El puerto 4000 NO se expone al host; solo es accesible desde nginx
+    expose:
+      - "4000"
+    networks:
+      - oona-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Servicio Nginx (reverse proxy) ──
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: oona-frontend-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-container.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      angular:
+        condition: service_healthy
+    networks:
+      - oona-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  oona-net:
+    driver: bridge
