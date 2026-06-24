@@ -1,0 +1,58 @@
+<section class="explorar-page">
+  <div class="container">
+    <h1 class="title">Experiencias y eventos de bienestar</h1>
+    <p class="subtitle">
+      Encuentra planes de yoga, meditación, breathwork, movimiento, retiros y talleres de bienestar.
+      Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
+    </p>
+
+    <div class="filters">
+      <button>☷ Filtros</button>
+      <button>Hoy</button>
+      <button>Este finde</button>
+      <button>Esta semana</button>
+      <button>Próxima semana</button>
+      <button>📅 Elegir fecha</button>
+    </div>
+
+    <div class="results-header">
+      <strong>{{ experiencias.length }} experiencias cerca de ti</strong>
+      <button>↕ Próximos</button>
+    </div>
+
+    <div class="cards-grid">
+      <article
+        class="card"
+        *ngFor="let item of experiencias"
+         [routerLink]="['/evento', item.id]"
+      >
+        <div class="image-box">
+          <img [src]="item.imagen" [alt]="item.titulo" />
+          <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
+            {{ item.favorito ? '♥' : '♡' }}
+          </button>
+          <span class="location">⌖ {{ item.lugar }}</span>
+        </div>
+
+        <div class="card-body">
+          <span class="tag">{{ item.categoria }}</span>
+
+          <div class="date-row">
+            <span>{{ item.fecha }}</span>
+            <span>↝ SEMANAL</span>
+          </div>
+
+          <h2>{{ item.titulo }}</h2>
+
+          <div class="card-author">
+            <div class="author">
+              <img [src]="item.avatar" alt="avatar" />
+              <span>{{ item.autor }}</span>
+            </div>
+              <span class="precio">{{ item.precio }}</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

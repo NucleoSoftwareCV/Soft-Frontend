@@ -1,1 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
 /* You can add global styles to this file, and also import other style files */
+*{
+    margin: 0px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
