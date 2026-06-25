@@ -1,0 +1,676 @@
+<div class="perfil-page">
+  <aside class="perfil-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">P</div>
+      <div><strong class="sidebar-nombre">Profesional</strong></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-link" [class.active]="seccionActiva() === 'perfil'" (click)="cambiarSeccion('perfil')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Mi Perfil
+      </button>
+      <button class="sidebar-link" [class.active]="seccionActiva() === 'eventos'" (click)="cambiarSeccion('eventos')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Experiencias
+      </button>
+      <button class="sidebar-link" [class.active]="seccionActiva() === 'dashboard'" (click)="cambiarSeccion('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+    </nav>
+  </aside>
+
+  <main class="perfil-main">
+    @if (seccionActiva() === 'perfil') {
+      <section class="perfil-section">
+        <h1 class="section-title">Mi Perfil Profesional</h1>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nombre">Nombre / Nombre del centro</label>
+            <input id="nombre" type="text" class="form-input" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" placeholder="Tu nombre o el de tu centro" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" class="form-input" [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="email@ejemplo.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" class="form-input" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" placeholder="+34 600 000 000" />
+          </div>
+          <div class="form-group">
+            <label for="ubicacion">Ubicación</label>
+            <select id="ubicacion" class="form-input" [ngModel]="ubicacion()" (ngModelChange)="ubicacion.set($event)">
+              <option value="">Selecciona una ciudad</option> @for (city of ubicaciones; track city) { <option [value]="city">{{ city }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="bio">Biografía / Descripción</label>
+          <textarea id="bio" class="form-input form-textarea" [ngModel]="bio()" (ngModelChange)="bio.set($event)" placeholder="Cuéntanos sobre ti, tu formación, tu enfoque..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Categorías</label>
+          <div class="chips-group"> @for (cat of categorias; track cat) { <button class="chip" [class.active]="categoriasSeleccionadas().includes(cat)" (click)="toggleCategoria(cat)" type="button">{{ cat }}</button> } </div>
+        </div>
+        <button class="btn-primary" (click)="guardarPerfil()">Guardar Perfil</button>
+      </section>
+    }
+
+    <!-- ════════════════ EVENTOS / EXPERIENCIAS ════════════════ -->
+    @if (seccionActiva() === 'eventos') {
+      <section class="perfil-section">
+        <div class="eventos-header">
+          <h1 class="section-title">Mis Experiencias</h1>
+          <button class="btn-primary" style="margin-left: auto;" (click)="abrirModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Nueva experiencia
+          </button>
+        </div>
+
+        @if (items().length === 0) {
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <p>Todavía no has creado ninguna experiencia.</p>
+            <p class="empty-hint">Crea tu primer evento o sesión 1:1</p>
+          </div>
+        }
+
+        @if (items().length > 0) {
+          <div class="items-list">
+            @for (item of items(); track item.id) {
+              <div class="item-card" [class.item-card--cancelado]="item.estado === 'cancelado'" [class.item-card--pausado]="item.estado === 'pausado'">
+                <div class="item-card-header">
+                  <div class="item-card-left">
+                    <span class="item-badge" [class.item-badge--sesion]="item.tipo === 'sesion'" [class.item-badge--evento]="item.tipo === 'evento'">{{ item.tipo === 'sesion' ? 'Sesión 1:1' : 'Evento' }}</span>
+                    @if (item.estado !== 'activo') {
+                      <span class="item-estado" [class.item-estado--pausado]="item.estado === 'pausado'" [class.item-estado--cancelado]="item.estado === 'cancelado'">{{ item.estado === 'pausado' ? 'Pausada' : 'Cancelada' }}</span>
+                    }
+                  </div>
+                  <button class="item-expand-btn" (click)="toggleExpandir(item.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </div>
+
+                <div class="item-body">
+                  @if (item.imagenes.length > 0) {
+                    <div class="item-thumb"><img [src]="item.imagenes[0]" alt="" /></div>
+                  }
+                  <div class="item-info">
+                    <h3 class="item-titulo">{{ item.titulo }}</h3>
+                    <p class="item-desc">{{ item.descripcion || 'Sin descripción' }}</p>
+                    <div class="item-meta">
+                      <span>📍 {{ item.ubicacion || 'Sin ubicación' }}</span>
+                      <span>💶 {{ item.precio > 0 ? item.precio + '€' : 'Gratis' }}</span>
+                      <span>📅 {{ item.cuando || (item.fecha | slice:0:10) }}</span>
+                      <span>👥 {{ item.plazasOcupadas }}/{{ item.plazas }} plazas</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acciones rápidas -->
+                <div class="item-actions">
+                  <button class="item-action-btn" (click)="editarItem(item)" title="Editar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="item-action-btn" (click)="togglePausar(item)" title="Pausar / Reanudar">
+                    @if (item.estado === 'pausado') {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    } @else {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    }
+                  </button>
+                  <button class="item-action-btn item-action-btn--danger" (click)="cancelarExperiencia(item.id)" title="Cancelar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                  <button class="item-action-btn" (click)="simularAsistente(item.id)" title="Simular asistente">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </button>
+                </div>
+
+                <!-- Expandido: detalle -->
+                @if (itemExpandido() === item.id) {
+                  <div class="item-detalle">
+                    @if (item.imagenes.length > 0) {
+                      <div class="detalle-imagenes">
+                        <strong>Imágenes ({{ item.imagenes.length }})</strong>
+                        <div class="detalle-imagenes-grid">
+                          @for (img of item.imagenes; track $index) {
+                            <img [src]="img" alt="" class="detalle-imagen" />
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (item.sesiones.length > 0) {
+                      <div class="detalle-sesiones">
+                        <strong>Sesiones ({{ item.sesiones.length }})</strong>
+                        <div class="sesiones-table">
+                          @for (s of item.sesiones; track $index) {
+                            <div class="sesion-row">
+                              <span>📅 {{ s.fecha || '—' }}</span>
+                              <span>🕐 {{ s.hora || '—' }}</span>
+                              <span>👥 {{ s.plazas }} plazas</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (item.asistentes.length > 0) {
+                      <div class="detalle-asistentes">
+                        <strong>Asistentes inscritos ({{ item.asistentes.length }})</strong>
+                        <div class="asistentes-table">
+                          @for (a of item.asistentes; track $index) {
+                            <div class="asistente-row">
+                              <span class="asistente-nombre">{{ a.nombre }}</span>
+                              <span class="asistente-email">{{ a.email }}</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (item.imagenes.length === 0 && item.sesiones.length === 0 && item.asistentes.length === 0) {
+                      <p class="detalle-vacio">Sin información adicional</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ════════════════ DASHBOARD ════════════════ -->
+    @if (seccionActiva() === 'dashboard') {
+      <section class="perfil-section">
+        <h1 class="section-title">Dashboard</h1>
+
+        <div class="dashboard-filtros">
+          <div class="form-row" style="max-width: 380px;">
+            <div class="form-group">
+              <label>Desde</label>
+              <input type="date" class="form-input" [ngModel]="fechaDesde()" (ngModelChange)="fechaDesde.set($event)" />
+            </div>
+            <div class="form-group">
+              <label>Hasta</label>
+              <input type="date" class="form-input" [ngModel]="fechaHasta()" (ngModelChange)="fechaHasta.set($event)" />
+            </div>
+          </div>
+          @if (fechaDesde() || fechaHasta()) {
+            <button class="btn-link" (click)="limpiarFiltros()">Limpiar filtros</button>
+          }
+        </div>
+
+        @if (items().length === 0) {
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            <p>Aún no hay datos para mostrar.</p>
+            <p class="empty-hint">Crea experiencias para ver estadísticas</p>
+          </div>
+        } @else {
+          <div class="dashboard-cards">
+            <div class="dash-card">
+              <span class="dash-card-num">{{ itemsFiltrados().length }}</span>
+              <span class="dash-card-label">Experiencias</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-card-num">{{ tipoCounts().sesiones }}</span>
+              <span class="dash-card-label">Sesiones</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-card-num">{{ tipoCounts().eventos }}</span>
+              <span class="dash-card-label">Eventos</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-card-num">{{ totalAsistentes() }}</span>
+              <span class="dash-card-label">Asistentes</span>
+            </div>
+          </div>
+
+          <div class="dashboard-charts">
+            <div class="dash-chart-card">
+              <h3 class="dash-chart-title">Por estado</h3>
+              <div class="dash-pie-wrap">
+                <div class="dash-pie" [style.background]="estadoPieGradient()"></div>
+              </div>
+              <div class="dash-legend">
+                <div class="dash-legend-item"><span class="dash-dot" style="background:#4c8c2a"></span>Activos: {{ estadoCounts().activos }}</div>
+                <div class="dash-legend-item"><span class="dash-dot" style="background:#f39c12"></span>Pausados: {{ estadoCounts().pausados }}</div>
+                <div class="dash-legend-item"><span class="dash-dot" style="background:#c0392b"></span>Cancelados: {{ estadoCounts().cancelados }}</div>
+              </div>
+            </div>
+            <div class="dash-chart-card">
+              <h3 class="dash-chart-title">Por tipo</h3>
+              <div class="dash-pie-wrap">
+                <div class="dash-pie" [style.background]="tipoPieGradient()"></div>
+              </div>
+              <div class="dash-legend">
+                <div class="dash-legend-item"><span class="dash-dot" style="background:#004257"></span>Sesiones: {{ tipoCounts().sesiones }}</div>
+                <div class="dash-legend-item"><span class="dash-dot" style="background:#3498db"></span>Eventos: {{ tipoCounts().eventos }}</div>
+              </div>
+            </div>
+            <div class="dash-chart-card">
+              <h3 class="dash-chart-title">Por categoría</h3>
+              <div class="dash-pie-wrap">
+                <div class="dash-pie" [style.background]="categoriaPieGradient()"></div>
+              </div>
+              <div class="dash-legend">
+                @for (c of topCategorias(); track c.label) {
+                  <div class="dash-legend-item"><span class="dash-dot" [style.background]="c.color"></span>{{ c.label }}: {{ c.value }}</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-asistentes">
+            <h3 class="dash-chart-title">Asistentes recientes</h3>
+            @if (todosAsistentes().length === 0) {
+              <p class="detalle-vacio">Sin asistentes aún</p>
+            } @else {
+              <div class="asistentes-table" style="margin-top:0;">
+                @for (a of todosAsistentes(); track $index) {
+                  <div class="asistente-row">
+                    <span class="asistente-nombre">{{ a.nombre }}</span>
+                    <span class="asistente-email">{{ a.email }}</span>
+                    <span style="color:#004257;font-size:0.78rem;">{{ a.experienciaTitulo }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  </main>
+
+  <!-- ════════════════ MODAL: elegir tipo ════════════════ -->
+  @if (mostrarModal() && modalStep() === 'tipo') {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ editandoId() ? 'Editar' : 'Nueva' }} experiencia</h2>
+          <button class="modal-close" (click)="cerrarModal()">✕</button>
+        </div>
+        <p class="modal-desc">¿Qué tipo de experiencia quieres {{ editandoId() ? 'editar' : 'crear' }}?</p>
+        <div class="modal-opciones">
+          <button class="modal-opcion" (click)="elegirTipo('sesion')">
+            <div class="modal-opcion-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <strong>Sesión 1:1</strong>
+            <span>Atención personalizada e individual</span>
+          </button>
+          <button class="modal-opcion" (click)="elegirTipo('evento')">
+            <div class="modal-opcion-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <strong>Evento</strong>
+            <span>Talleres, retiros, clases grupales</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════ MODAL: formulario SESIÓN ════════════════ -->
+  @if (mostrarModal() && modalStep() === 'sesion') {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal modal--form" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <button class="btn-volver-modal" (click)="volverATipo()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <h2 class="modal-title">{{ editandoId() ? 'Editar' : 'Nueva' }} Sesión 1:1</h2>
+          <button class="modal-close" (click)="cerrarModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Título de la sesión</label>
+            <input type="text" class="form-input" [ngModel]="sesionTitulo()" (ngModelChange)="sesionTitulo.set($event)" placeholder="Ej: Terapia de sonido individual" />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea class="form-input form-textarea" [ngModel]="sesionDescripcion()" (ngModelChange)="sesionDescripcion.set($event)" placeholder="Describe en qué consiste la sesión..." rows="3"></textarea>
+          </div>
+
+          <!-- Sección: imágenes -->
+          <div class="form-section">
+            <label>Imágenes de la experiencia</label>
+            <div class="upload-area">
+              <input type="file" accept="image/*" multiple (change)="subirImagen($event)" class="upload-input" id="upload-sesion" />
+              <label for="upload-sesion" class="upload-label">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                Subir imágenes
+              </label>
+            </div>
+            @if (imagenesSubidas().length > 0) {
+              <div class="upload-preview"> @for (img of imagenesSubidas(); track $index) { <div class="upload-preview-item"><img [src]="img" alt="" /><button class="upload-remove" (click)="eliminarImagen($index)">✕</button></div> } </div>
+            }
+          </div>
+
+          <!-- Precio + Duración -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio (€)</label>
+              <input type="number" class="form-input" [ngModel]="sesionPrecio()" (ngModelChange)="sesionPrecio.set($event)" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Duración (min)</label>
+              <input type="number" class="form-input" [ngModel]="sesionDuracion()" (ngModelChange)="sesionDuracion.set($event)" min="15" step="15" />
+            </div>
+          </div>
+
+          <!-- Rango de precio -->
+          <div class="form-group">
+            <label>Rango de precio</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'precio'" (click)="toggleDropdown('precio')" type="button">
+                <span class="select-bar-label">{{ rangoPrecioLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'precio') {
+                <div class="select-dropdown">
+                  @for (p of precioOptions; track p.value) {
+                    <button class="select-option" [class.selected]="rangoPrecio() === p.value" (click)="rangoPrecio.set(p.value); dropdownAbierto.set(null)" type="button">{{ p.label }}</button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Cuándo -->
+          <div class="form-group">
+            <label>Cuándo</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'cuando'" (click)="toggleDropdown('cuando')" type="button">
+                <span class="select-bar-label">{{ cuandoLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'cuando') {
+                <div class="select-dropdown">
+                  @for (opt of cuandoOptions; track opt) {
+                    <button class="select-option" [class.selected]="cuando() === opt" (click)="cuando.set(opt); dropdownAbierto.set(null)" type="button">{{ opt }}</button>
+                  }
+                  <button class="select-option" [class.selected]="cuando() === 'Elegir fecha'" (click)="cuando.set('Elegir fecha'); dropdownAbierto.set(null)" type="button">📅 Elegir fecha</button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Categoría -->
+          <div class="form-group">
+            <label>Categoría</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'categoria'" (click)="toggleDropdown('categoria')" type="button">
+                <span class="select-bar-label">{{ categoriasLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'categoria') {
+                <div class="select-dropdown select-dropdown--grid">
+                  @for (cat of categorias; track cat) {
+                    <label class="select-option select-option--multi" (click)="toggleCategoria(cat)">
+                      <span class="select-checkbox" [class.checked]="categoriasSeleccionadas().includes(cat)">
+                        @if (categoriasSeleccionadas().includes(cat)) {
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        }
+                      </span>
+                      {{ cat }}
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Tipo experiencia -->
+          <div class="form-group">
+            <label>Tipo de experiencia</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'tipo'" (click)="toggleDropdown('tipo')" type="button">
+                <span class="select-bar-label">{{ tipoExpLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'tipo') {
+                <div class="select-dropdown">
+                  @for (t of tiposExperiencia; track t) {
+                    <button class="select-option" [class.selected]="tipoExperiencia() === t" (click)="tipoExperiencia.set(t); dropdownAbierto.set(null)" type="button">{{ t }}</button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Hora del día -->
+          <div class="form-group">
+            <label>Hora del día</label>
+            <div class="hora-grid"> @for (h of horaOptions; track h.label) { <button class="hora-card" [class.active]="horaDia() === h.label" (click)="horaDia.set(h.label)" type="button"><span class="hora-label">{{ h.label }}</span><span class="hora-sub">{{ h.sub }}</span></button> } </div>
+          </div>
+
+          <!-- Modalidad + Recurrencia -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Modalidad</label>
+              <div class="chips-group"> @for (m of modalidadOptions; track m) { <button class="chip" [class.active]="modalidad() === m" (click)="modalidad.set(m)" type="button">{{ m }}</button> } </div>
+            </div>
+            <div class="form-group">
+              <label>Recurrencia</label>
+              <div class="chips-group"> @for (r of recurrenciaOptions; track r) { <button class="chip" [class.active]="recurrencia() === r" (click)="recurrencia.set(r)" type="button">{{ r }}</button> } </div>
+            </div>
+          </div>
+
+          <!-- Ubicación + Plazas -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ubicación</label>
+              <select class="form-input" [ngModel]="ubicacionEvento()" (ngModelChange)="ubicacionEvento.set($event)">
+                <option value="">Selecciona una ciudad</option> @for (city of ubicaciones; track city) { <option [value]="city">{{ city }}</option> }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Plazas disponibles</label>
+              <select class="form-input" [ngModel]="plazas()" (ngModelChange)="plazas.set($event)">
+                @for (p of plazasOptions; track p) { <option [value]="p">{{ p }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <!-- Configurar sesiones -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <label>Configurar sesiones</label>
+              <button type="button" class="btn-add-sesion" (click)="agregarSesion()">+ Añadir sesión</button>
+            </div>
+            @if (sesionesConfig().length > 0) {
+              <div class="sesiones-config"> @for (s of sesionesConfig(); track $index) { <div class="sesion-config-row"><input type="date" class="form-input sesion-config-input" [ngModel]="s.fecha" (ngModelChange)="s.fecha = $event" /><input type="time" class="form-input sesion-config-input" [ngModel]="s.hora" (ngModelChange)="s.hora = $event" /><select class="form-input sesion-config-input sesion-config-plazas" [ngModel]="s.plazas" (ngModelChange)="s.plazas = $event"> @for (p of plazasOptions; track p) { <option [value]="p">{{ p }}</option> } </select><button class="btn-remove-sesion" (click)="eliminarSesion($index)">✕</button></div> } </div>
+            }
+          </div>
+
+          <button class="btn-primary modal-submit" (click)="crearSesion()">{{ editandoId() ? 'Guardar cambios' : 'Publicar Sesión' }}</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════ MODAL: formulario EVENTO ════════════════ -->
+  @if (mostrarModal() && modalStep() === 'evento') {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal modal--form" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <button class="btn-volver-modal" (click)="volverATipo()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <h2 class="modal-title">{{ editandoId() ? 'Editar' : 'Nuevo' }} Evento</h2>
+          <button class="modal-close" (click)="cerrarModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Título del evento</label>
+            <input type="text" class="form-input" [ngModel]="eventoTitulo()" (ngModelChange)="eventoTitulo.set($event)" placeholder="Ej: Retiro de yoga en la naturaleza" />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea class="form-input form-textarea" [ngModel]="eventoDescripcion()" (ngModelChange)="eventoDescripcion.set($event)" placeholder="Describe el evento..." rows="3"></textarea>
+          </div>
+
+          <!-- Imágenes -->
+          <div class="form-section">
+            <label>Imágenes de la experiencia</label>
+            <div class="upload-area">
+              <input type="file" accept="image/*" multiple (change)="subirImagen($event)" class="upload-input" id="upload-evento" />
+              <label for="upload-evento" class="upload-label">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                Subir imágenes
+              </label>
+            </div>
+            @if (imagenesSubidas().length > 0) {
+              <div class="upload-preview"> @for (img of imagenesSubidas(); track $index) { <div class="upload-preview-item"><img [src]="img" alt="" /><button class="upload-remove" (click)="eliminarImagen($index)">✕</button></div> } </div>
+            }
+          </div>
+
+          <!-- Precio + Fecha -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio (€)</label>
+              <input type="number" class="form-input" [ngModel]="eventoPrecio()" (ngModelChange)="eventoPrecio.set($event)" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" class="form-input" [ngModel]="eventoFecha()" (ngModelChange)="eventoFecha.set($event)" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Hora</label>
+              <input type="time" class="form-input" [ngModel]="eventoHora()" (ngModelChange)="eventoHora.set($event)" />
+            </div>
+            <div class="form-group">
+              <label>Dirección</label>
+              <input type="text" class="form-input" [ngModel]="eventoDireccion()" (ngModelChange)="eventoDireccion.set($event)" placeholder="Calle, número..." />
+            </div>
+          </div>
+
+          <!-- Rango de precio -->
+          <div class="form-group">
+            <label>Rango de precio</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'precio'" (click)="toggleDropdown('precio')" type="button">
+                <span class="select-bar-label">{{ rangoPrecioLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'precio') {
+                <div class="select-dropdown">
+                  @for (p of precioOptions; track p.value) {
+                    <button class="select-option" [class.selected]="rangoPrecio() === p.value" (click)="rangoPrecio.set(p.value); dropdownAbierto.set(null)" type="button">{{ p.label }}</button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Cuándo -->
+          <div class="form-group">
+            <label>Cuándo</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'cuando'" (click)="toggleDropdown('cuando')" type="button">
+                <span class="select-bar-label">{{ cuandoLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'cuando') {
+                <div class="select-dropdown">
+                  @for (opt of cuandoOptions; track opt) {
+                    <button class="select-option" [class.selected]="cuando() === opt" (click)="cuando.set(opt); dropdownAbierto.set(null)" type="button">{{ opt }}</button>
+                  }
+                  <button class="select-option" [class.selected]="cuando() === 'Elegir fecha'" (click)="cuando.set('Elegir fecha'); dropdownAbierto.set(null)" type="button">📅 Elegir fecha</button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Categoría -->
+          <div class="form-group">
+            <label>Categoría</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'categoria'" (click)="toggleDropdown('categoria')" type="button">
+                <span class="select-bar-label">{{ categoriasLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'categoria') {
+                <div class="select-dropdown select-dropdown--grid">
+                  @for (cat of categorias; track cat) {
+                    <label class="select-option select-option--multi" (click)="toggleCategoria(cat)">
+                      <span class="select-checkbox" [class.checked]="categoriasSeleccionadas().includes(cat)">
+                        @if (categoriasSeleccionadas().includes(cat)) {
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        }
+                      </span>
+                      {{ cat }}
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Tipo experiencia -->
+          <div class="form-group">
+            <label>Tipo de experiencia</label>
+            <div class="select-wrapper">
+              <button class="select-bar" [class.is-open]="dropdownAbierto() === 'tipo'" (click)="toggleDropdown('tipo')" type="button">
+                <span class="select-bar-label">{{ tipoExpLabel() }}</span>
+                <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              @if (dropdownAbierto() === 'tipo') {
+                <div class="select-dropdown">
+                  @for (t of tiposExperiencia; track t) {
+                    <button class="select-option" [class.selected]="tipoExperiencia() === t" (click)="tipoExperiencia.set(t); dropdownAbierto.set(null)" type="button">{{ t }}</button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Hora del día -->
+          <div class="form-group">
+            <label>Hora del día</label>
+            <div class="hora-grid"> @for (h of horaOptions; track h.label) { <button class="hora-card" [class.active]="horaDia() === h.label" (click)="horaDia.set(h.label)" type="button"><span class="hora-label">{{ h.label }}</span><span class="hora-sub">{{ h.sub }}</span></button> } </div>
+          </div>
+
+          <!-- Modalidad + Recurrencia -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Modalidad</label>
+              <div class="chips-group"> @for (m of modalidadOptions; track m) { <button class="chip" [class.active]="modalidad() === m" (click)="modalidad.set(m)" type="button">{{ m }}</button> } </div>
+            </div>
+            <div class="form-group">
+              <label>Recurrencia</label>
+              <div class="chips-group"> @for (r of recurrenciaOptions; track r) { <button class="chip" [class.active]="recurrencia() === r" (click)="recurrencia.set(r)" type="button">{{ r }}</button> } </div>
+            </div>
+          </div>
+
+          <!-- Ubicación + Plazas -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ubicación</label>
+              <select class="form-input" [ngModel]="ubicacionEvento()" (ngModelChange)="ubicacionEvento.set($event)">
+                <option value="">Selecciona una ciudad</option> @for (city of ubicaciones; track city) { <option [value]="city">{{ city }}</option> }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Plazas disponibles</label>
+              <select class="form-input" [ngModel]="plazas()" (ngModelChange)="plazas.set($event)">
+                @for (p of plazasOptions; track p) { <option [value]="p">{{ p }}</option> }
+              </select>
+            </div>
+          </div>
+
+          <!-- Configurar sesiones -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <label>Configurar sesiones</label>
+              <button type="button" class="btn-add-sesion" (click)="agregarSesion()">+ Añadir sesión</button>
+            </div>
+            @if (sesionesConfig().length > 0) {
+              <div class="sesiones-config"> @for (s of sesionesConfig(); track $index) { <div class="sesion-config-row"><input type="date" class="form-input sesion-config-input" [ngModel]="s.fecha" (ngModelChange)="s.fecha = $event" /><input type="time" class="form-input sesion-config-input" [ngModel]="s.hora" (ngModelChange)="s.hora = $event" /><select class="form-input sesion-config-input sesion-config-plazas" [ngModel]="s.plazas" (ngModelChange)="s.plazas = $event"> @for (p of plazasOptions; track p) { <option [value]="p">{{ p }}</option> } </select><button class="btn-remove-sesion" (click)="eliminarSesion($index)">✕</button></div> } </div>
+            }
+          </div>
+
+          <button class="btn-primary modal-submit" (click)="crearEvento()">{{ editandoId() ? 'Guardar cambios' : 'Publicar Evento' }}</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

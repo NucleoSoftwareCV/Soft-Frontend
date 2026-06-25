@@ -60,16 +60,19 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
 
-  /* ── 404 (Siempre debe ir al final de todo) ── */
-  {
-    path: '**',
-    redirectTo: '',
-  },
   {
     path: 'profesionales',
     loadComponent: () =>
       import('./features/profesionales/profesionales.component').then(m => m.ProfesionalesComponent),
     title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
+  },
+
+  /* ── Perfil profesional ── */
+  {
+    path: 'perfil',
+    loadComponent: () =>
+      import('./features/perfil/perfil.component').then(m => m.PerfilComponent),
+    title: 'Mi Perfil — Oona',
   },
 
   {

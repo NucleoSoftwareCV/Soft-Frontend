@@ -5,7 +5,31 @@ import { AuthService } from '../../../core/services/auth.service';
 
 type AccountType = 'usuario' | 'profesional';
 type ViewType = 'login' | 'register';
-type RegisterStep = 'role-selection' | 'form' | 'professional-landing';
+type RegisterStep = 'role-selection' | 'form' | 'professional-landing' | 'professional-type' | 'professional-google' | 'professional-form';
+
+interface ProfessionalTypeOption {
+  value: string;
+  label: string;
+}
+
+const PROFESSIONAL_TYPES: ProfessionalTypeOption[] = [
+  { value: 'terapeuta', label: 'Terapeuta' },
+  { value: 'coach', label: 'Coach' },
+  { value: 'yoga', label: 'Profe de yoga' },
+  { value: 'acupunturista', label: 'Acupunturista' },
+  { value: 'constelaciones', label: 'Facilitador/a de constelaciones' },
+  { value: 'fisio', label: 'Fisioterapeuta' },
+  { value: 'arteterapeuta', label: 'Arteterapeuta' },
+  { value: 'respiracion', label: 'Respiración / Breathwork' },
+  { value: 'talleres', label: 'Talleres / Retiros' },
+  { value: 'masaje', label: 'Masajista / Terapeuta corporal' },
+  { value: 'nutricion', label: 'Nutricionista / Dietista' },
+  { value: 'meditacion', label: 'Meditación / Mindfulness' },
+  { value: 'sonido', label: 'Sound Healing / Baños de sonido' },
+  { value: 'psicoterapia', label: 'Psicoterapeuta' },
+  { value: 'espacio', label: 'Gestiono un espacio de bienestar' },
+  { value: 'otro', label: 'Otra disciplina de bienestar' },
+];
 
 @Component({
   selector: 'app-login',
@@ -18,6 +42,8 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  readonly professionalTypes = PROFESSIONAL_TYPES;
+
   activeTab = signal<AccountType>('usuario');
   currentView = signal<ViewType>('login');
   registerStep = signal<RegisterStep>('role-selection');
@@ -28,6 +54,8 @@ export class LoginComponent {
   firstName = signal('');
   lastName = signal('');
   city = signal('');
+  professionalType = signal<string | null>(null);
+  organizationName = signal('');
 
   showPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -49,6 +77,8 @@ export class LoginComponent {
     this.firstName.set('');
     this.lastName.set('');
     this.city.set('');
+    this.professionalType.set(null);
+    this.organizationName.set('');
   }
 
   handleRegisterNavigation(): void {
@@ -114,7 +144,8 @@ export class LoginComponent {
         }).subscribe({
           next: () => {
             this.isLoading.set(false);
-            this.router.navigate(['/']);
+            const target = this.professionalType() ? '/perfil' : '/';
+            this.router.navigate([target]);
           },
           error: (err) => {
             this.isLoading.set(false);
@@ -134,15 +165,43 @@ export class LoginComponent {
   onProfessionalLeadSubmit(): void {
     if (!this.firstName() || !this.city() || !this.email()) return;
 
-    console.info('Datos de captación de profesional:', {
-      nombre: this.firstName(),
-      ciudad: this.city(),
-      email: this.email()
-    });
-    this.router.navigate(['/']);
+    this.registerStep.set('professional-type');
+  }
+
+  professionalTypeLabel(): string {
+    const found = PROFESSIONAL_TYPES.find(t => t.value === this.professionalType());
+    return found ? found.label : '';
+  }
+
+  selectProfessionalType(type: string): void {
+    this.professionalType.set(type);
+    this.registerStep.set('professional-google');
   }
 
   onGoogleLogin(): void {
+    if (this.registerStep() === 'professional-google') {
+      this.registerStep.set('professional-form');
+      return;
+    }
     console.info('Google login — pendiente de integración');
+  }
+
+  onProfessionalFormSubmit(): void {
+    if (!this.firstName() || !this.lastName() || !this.email()) return;
+
+    this.isLoading.set(true);
+
+    console.info('Datos profesionales:', {
+      nombre: this.firstName(),
+      apellidos: this.lastName(),
+      email: this.email(),
+      disciplina: this.professionalType(),
+      organizacion: this.organizationName() || '(independiente)',
+    });
+
+    setTimeout(() => {
+      this.isLoading.set(false);
+      this.router.navigate(['/perfil']);
+    }, 500);
   }
 }

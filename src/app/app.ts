@@ -16,7 +16,7 @@ export class App {
   private readonly router = inject(Router);
 
   /** Prefijos de ruta que no deben mostrar el header/footer global */
-  private readonly AUTH_PREFIXES = ['/auth', '/login'];
+  private readonly AUTH_PREFIXES = ['/auth', '/login', '/perfil'];
 
   /** URL actual como señal reactiva */
   private readonly currentUrl = toSignal(
