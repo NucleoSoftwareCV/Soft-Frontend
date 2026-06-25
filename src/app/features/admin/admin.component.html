@@ -1,0 +1,258 @@
+<div class="perfil-page">
+  <aside class="perfil-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:#004257;">A</div>
+      <div><strong class="sidebar-nombre">Admin OONA</strong></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-link" [class.active]="seccion() === 'dashboard'" (click)="cambiarSeccion('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="sidebar-link" [class.active]="seccion() === 'profesionales'" (click)="cambiarSeccion('profesionales')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Profesionales
+        @if (totalPendientes() > 0) {
+          <span class="sidebar-badge">{{ totalPendientes() }}</span>
+        }
+      </button>
+      <button class="sidebar-link" [class.active]="seccion() === 'eventos'" (click)="cambiarSeccion('eventos')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Eventos
+      </button>
+      <button class="sidebar-link" [class.active]="seccion() === 'usuarios'" (click)="cambiarSeccion('usuarios')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </button>
+      <button class="sidebar-link" [class.active]="seccion() === 'config'" (click)="cambiarSeccion('config')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuración
+      </button>
+    </nav>
+
+    <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--color-divider, #e2e8f1);">
+      <a routerLink="/" class="sidebar-link" style="color: var(--color-muted, #8b9b8f); font-size: 0.85rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Volver al inicio
+      </a>
+    </div>
+  </aside>
+
+  <main class="perfil-main">
+    <!-- ═══════ DASHBOARD ═══════ -->
+    @if (seccion() === 'dashboard') {
+      <section class="perfil-section">
+        <h1 class="section-title">Panel de Administración</h1>
+
+        <div class="dashboard-cards">
+          <div class="dash-card"><span class="dash-card-num">{{ totalProfesionales() }}</span><span class="dash-card-label">Profesionales</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ totalActivos() }}</span><span class="dash-card-label">Activos</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ totalPendientes() }}</span><span class="dash-card-label">Pendientes</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ totalEventos() }}</span><span class="dash-card-label">Eventos</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ totalUsuarios() }}</span><span class="dash-card-label">Usuarios</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ asistentesTotales() }}</span><span class="dash-card-label">Asistentes</span></div>
+          <div class="dash-card"><span class="dash-card-num">{{ ingresosTotales() }}€</span><span class="dash-card-label">Ingresos totales</span></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+          <div class="admin-card">
+            <h3 class="admin-card-title">Próximos eventos</h3>
+            @for (e of eventosProximos(); track e.id) {
+              <div class="admin-row">
+                <div>
+                  <strong style="font-size:0.85rem;">{{ e.titulo }}</strong>
+                  <span style="display:block;font-size:0.75rem;color:var(--color-muted);">{{ e.fecha }} · {{ e.profesional }}</span>
+                </div>
+                <span style="font-size:0.8rem;font-weight:600;color:var(--color-sage-dark);">{{ e.plazasOcupadas }}/{{ e.plazas }}</span>
+              </div>
+            }
+          </div>
+          <div class="admin-card">
+            <h3 class="admin-card-title">Top profesionales por ingresos</h3>
+            @for (p of topProfesionales(); track p.id) {
+              <div class="admin-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img [src]="p.avatar" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />
+                  <div>
+                    <strong style="font-size:0.85rem;">{{ p.nombre }}</strong>
+                    <span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ p.disciplina }}</span>
+                  </div>
+                </div>
+                <span style="font-size:0.8rem;font-weight:600;color:#4c8c2a;">{{ p.ingresos }}€</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="admin-card" style="margin-top:24px;">
+          <h3 class="admin-card-title">Profesionales recientes</h3>
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <span>Nombre</span><span>Disciplina</span><span>Ciudad</span><span>Registro</span><span>Estado</span>
+            </div>
+            @for (p of profesionalesRecientes(); track p.id) {
+              <div class="admin-table-row">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <img [src]="p.avatar" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+                  {{ p.nombre }}
+                </span>
+                <span style="font-size:0.8rem;">{{ p.disciplina }}</span>
+                <span style="font-size:0.8rem;">{{ p.ciudad }}</span>
+                <span style="font-size:0.8rem;">{{ p.fechaRegistro }}</span>
+                <span>
+                  @if (p.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
+                  @else if (p.estado === 'pendiente') { <span class="admin-badge admin-badge--warn">Pendiente</span> }
+                  @else { <span class="admin-badge admin-badge--err">Suspendido</span> }
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ═══════ PROFESIONALES ═══════ -->
+    @if (seccion() === 'profesionales') {
+      <section class="perfil-section">
+        <h1 class="section-title">Gestionar Profesionales</h1>
+        <div class="admin-table">
+          <div class="admin-table-header">
+            <span>Profesional</span><span>Disciplina</span><span>Experiencias</span><span>Asistentes</span><span>Ingresos</span><span>Estado</span><span></span>
+          </div>
+          @for (p of profesionales(); track p.id) {
+            <div class="admin-table-row">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <img [src]="p.avatar" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                <div><strong style="font-size:0.85rem;">{{ p.nombre }}</strong><span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ p.email }}</span></div>
+              </span>
+              <span style="font-size:0.8rem;">{{ p.disciplina }}</span>
+              <span style="font-size:0.8rem;text-align:center;">{{ p.experiencias }}</span>
+              <span style="font-size:0.8rem;text-align:center;">{{ p.asistentesTotales }}</span>
+              <span style="font-size:0.8rem;font-weight:600;">{{ p.ingresos }}€</span>
+              <span>
+                @if (p.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
+                @else if (p.estado === 'pendiente') { <span class="admin-badge admin-badge--warn">Pendiente</span> }
+                @else { <span class="admin-badge admin-badge--err">Suspendido</span> }
+              </span>
+              <span style="display:flex;gap:4px;">
+                @if (p.estado === 'pendiente') {
+                  <button class="admin-action-btn" style="color:#4c8c2a;" (click)="aprobarProfesional(p.id)" title="Aprobar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                }
+                @if (p.estado === 'activo') {
+                  <button class="admin-action-btn" style="color:#c0392b;" (click)="suspenderProfesional(p.id)" title="Suspender">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  </button>
+                }
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ═══════ EVENTOS ═══════ -->
+    @if (seccion() === 'eventos') {
+      <section class="perfil-section">
+        <h1 class="section-title">Gestionar Eventos</h1>
+        <div class="admin-table">
+          <div class="admin-table-header">
+            <span>Evento</span><span>Profesional</span><span>Fecha</span><span>Plazas</span><span>Ingresos</span><span>Estado</span><span></span>
+          </div>
+          @for (e of eventos(); track e.id) {
+            <div class="admin-table-row">
+              <span><strong style="font-size:0.85rem;">{{ e.titulo }}</strong></span>
+              <span style="font-size:0.8rem;">{{ e.profesional }}</span>
+              <span style="font-size:0.8rem;">{{ e.fecha }}</span>
+              <span style="font-size:0.8rem;">{{ e.plazasOcupadas }}/{{ e.plazas }}</span>
+              <span style="font-size:0.8rem;font-weight:600;">{{ e.ingresos }}€</span>
+              <span>
+                @if (e.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
+                @else if (e.estado === 'pausado') { <span class="admin-badge admin-badge--warn">Pausado</span> }
+                @else { <span class="admin-badge admin-badge--err">Cancelado</span> }
+              </span>
+              <span style="display:flex;gap:4px;">
+                <button class="admin-action-btn" style="color:#f39c12;" (click)="cambiarEstadoEvento(e.id, 'pausado')" title="Pausar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+                <button class="admin-action-btn" style="color:#c0392b;" (click)="cambiarEstadoEvento(e.id, 'cancelado')" title="Cancelar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ═══════ USUARIOS ═══════ -->
+    @if (seccion() === 'usuarios') {
+      <section class="perfil-section">
+        <h1 class="section-title">Gestionar Usuarios</h1>
+        <div class="admin-table">
+          <div class="admin-table-header">
+            <span>Usuario</span><span>Tipo</span><span>Registro</span><span>Último acceso</span><span>Reservas</span><span>Estado</span><span></span>
+          </div>
+          @for (u of usuarios(); track u.id) {
+            <div class="admin-table-row">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-sage-dark);">{{ u.nombre.charAt(0) }}{{ u.nombre.split(' ')[1]?.charAt(0) || '' }}</div>
+                <div><strong style="font-size:0.85rem;">{{ u.nombre }}</strong><span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ u.email }}</span></div>
+              </span>
+              <span>
+                @if (u.tipo === 'profesional') { <span class="admin-badge admin-badge--pro">Profesional</span> }
+                @else { <span class="admin-badge admin-badge--user">Usuario</span> }
+              </span>
+              <span style="font-size:0.8rem;">{{ u.fechaRegistro }}</span>
+              <span style="font-size:0.8rem;">{{ u.ultimoAcceso }}</span>
+              <span style="font-size:0.8rem;text-align:center;">{{ u.reservas }}</span>
+              <span>
+                @if (u.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
+                @else if (u.estado === 'suspendido') { <span class="admin-badge admin-badge--err">Suspendido</span> }
+                @else { <span class="admin-badge admin-badge--err">Inactivo</span> }
+              </span>
+              <span>
+                <button class="admin-action-btn" [style.color]="u.estado === 'activo' ? '#c0392b' : '#4c8c2a'" (click)="toggleUsuarioEstado(u.id)" [title]="u.estado === 'activo' ? 'Desactivar' : 'Activar'">
+                  @if (u.estado === 'activo') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  }
+                </button>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ═══════ CONFIG ═══════ -->
+    @if (seccion() === 'config') {
+      <section class="perfil-section">
+        <h1 class="section-title">Configuración de la plataforma</h1>
+
+        <div style="display:grid;gap:20px;max-width:600px;">
+          <div class="admin-card">
+            <h3 class="admin-card-title">Información general</h3>
+            <div style="display:grid;gap:12px;">
+              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Nombre de la plataforma</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">OONA · Bienestar y Conexión</div></div>
+              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Email de contacto</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">hola&#64;oona.es</div></div>
+              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Comisión por reserva</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">10%</div></div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h3 class="admin-card-title">Estadísticas de plataforma</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalProfesionales() }}</span><span class="dash-card-label">Profesionales</span></div>
+              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalEventos() }}</span><span class="dash-card-label">Eventos creados</span></div>
+              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalUsuarios() }}</span><span class="dash-card-label">Usuarios registrados</span></div>
+              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ ingresosTotales() }}€</span><span class="dash-card-label">Ingresos generados</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>

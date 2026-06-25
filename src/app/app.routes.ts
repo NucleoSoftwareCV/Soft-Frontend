@@ -75,6 +75,14 @@ export const routes: Routes = [
     title: 'Mi Perfil — Oona',
   },
 
+  /* ── Admin ── */
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./features/admin/admin.component').then(m => m.AdminComponent),
+    title: 'Panel de Administración — Oona',
+  },
+
   {
     path: '**',
     redirectTo: '',
