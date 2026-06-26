@@ -6,53 +6,74 @@
       Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
     </p>
 
-    <div class="filters">
-      <button>☷ Filtros</button>
-      <button>Hoy</button>
-      <button>Este finde</button>
-      <button>Esta semana</button>
-      <button>Próxima semana</button>
-      <button>📅 Elegir fecha</button>
+    <div class="filters-row">
+      <div class="filters-scroll">
+        <button class="filter-btn" (click)="openHeaderFilter()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Filtros
+          @if (activeFilterCount > 0) {
+            <span class="filter-badge">{{ activeFilterCount }}</span>
+          }
+        </button>
+
+        <button class="filter-btn" [class.active]="filterWhen() === 'Hoy'" (click)="selectWhen('Hoy')">Hoy</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Este finde'" (click)="selectWhen('Este finde')">Este finde</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Esta semana'" (click)="selectWhen('Esta semana')">Esta semana</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Próxima semana'" (click)="selectWhen('Próxima semana')">Próxima semana</button>
+
+        @for (cat of categoriaOptions; track cat) {
+          <button class="filter-btn" [class.active]="filterCategories().includes(cat)" (click)="toggleCategoria(cat)">{{ cat }}</button>
+        }
+      </div>
     </div>
 
     <div class="results-header">
-      <strong>{{ experiencias.length }} experiencias cerca de ti</strong>
-      <button>↕ Próximos</button>
+      <strong>{{ experienciasFiltradas().length }} {{ experienciasFiltradas().length === 1 ? 'experiencia' : 'experiencias' }} cerca de ti</strong>
+      @if (activeFilterCount > 0) {
+        <button class="filter-clear-btn" (click)="clearFilters()">Limpiar filtros</button>
+      }
     </div>
 
-    <div class="cards-grid">
-      <article
-        class="card"
-        *ngFor="let item of experiencias"
-         [routerLink]="['/evento', item.id]"
-      >
-        <div class="image-box">
-          <img [src]="item.imagen" [alt]="item.titulo" />
-          <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
-            {{ item.favorito ? '♥' : '♡' }}
-          </button>
-          <span class="location">⌖ {{ item.lugar }}</span>
-        </div>
-
-        <div class="card-body">
-          <span class="tag">{{ item.categoria }}</span>
-
-          <div class="date-row">
-            <span>{{ item.fecha }}</span>
-            <span>↝ SEMANAL</span>
-          </div>
-
-          <h2>{{ item.titulo }}</h2>
-
-          <div class="card-author">
-            <div class="author">
-              <img [src]="item.avatar" alt="avatar" />
-              <span>{{ item.autor }}</span>
+    @if (experienciasFiltradas().length === 0) {
+      <div class="empty-state">
+        <p>No encontramos experiencias con esos filtros.</p>
+        <button class="btn-outline" (click)="clearFilters()">Ver todas las experiencias</button>
+      </div>
+    } @else {
+      <div class="cards-grid">
+        @for (item of experienciasFiltradas(); track item.id) {
+          <article class="card" [routerLink]="['/evento', item.id]">
+            <div class="image-box">
+              <img [src]="item.imagen" [alt]="item.titulo" loading="lazy" />
+              <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
+                {{ item.favorito ? '♥' : '♡' }}
+              </button>
+              <span class="location">⌖ {{ item.lugar || item.ubicacion }}</span>
             </div>
-              <span class="precio">{{ item.precio }}</span>
-          </div>
-        </div>
-      </article>
-    </div>
+
+            <div class="card-body">
+              <span class="tag">{{ item.categoria }}</span>
+
+              <div class="date-row">
+                <span>{{ item.fecha }}</span>
+                <span class="recurrence-badge">↝ SEMANAL</span>
+              </div>
+
+              <h2>{{ item.titulo }}</h2>
+
+              <div class="card-author">
+                <div class="author">
+                  <img [src]="item.avatar" alt="avatar" />
+                  <span>{{ item.autor }}</span>
+                </div>
+                <span class="precio">{{ item.precio }}{{ item.precio?.toString()?.includes('€') ? '' : ' €' }}</span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
   </div>
 </section>
