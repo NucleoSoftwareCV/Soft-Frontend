@@ -1,7 +1,7 @@
 
 export const environment = {
   production: true,
-  apiUrl: '',
+  apiUrl: '/api/v1',
   appName: 'Oona',
   enableDebugLogs: false,
   googleClientId: '',

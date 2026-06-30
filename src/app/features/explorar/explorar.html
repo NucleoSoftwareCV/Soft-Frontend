@@ -2,7 +2,7 @@
   <div class="container">
     <h1 class="title">Experiencias y eventos de bienestar</h1>
     <p class="subtitle">
-      Encuentra planes de yoga, meditación, breathwork, movimiento, retiros y talleres de bienestar.
+      Encuentra planes de yoga, meditacion, breathwork, movimiento, retiros y talleres de bienestar.
       Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
     </p>
 
@@ -21,54 +21,65 @@
         <button class="filter-btn" [class.active]="filterWhen() === 'Hoy'" (click)="selectWhen('Hoy')">Hoy</button>
         <button class="filter-btn" [class.active]="filterWhen() === 'Este finde'" (click)="selectWhen('Este finde')">Este finde</button>
         <button class="filter-btn" [class.active]="filterWhen() === 'Esta semana'" (click)="selectWhen('Esta semana')">Esta semana</button>
-        <button class="filter-btn" [class.active]="filterWhen() === 'Próxima semana'" (click)="selectWhen('Próxima semana')">Próxima semana</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Proxima semana' || filterWhen() === 'Próxima semana'" (click)="selectWhen('Próxima semana')">Proxima semana</button>
 
-        @for (cat of categoriaOptions; track cat) {
+        @for (cat of categoriaOptions(); track cat) {
           <button class="filter-btn" [class.active]="filterCategories().includes(cat)" (click)="toggleCategoria(cat)">{{ cat }}</button>
         }
       </div>
     </div>
 
     <div class="results-header">
-      <strong>{{ experienciasFiltradas().length }} {{ experienciasFiltradas().length === 1 ? 'experiencia' : 'experiencias' }} cerca de ti</strong>
+      <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'evento' : 'eventos' }} cerca de ti</strong>
       @if (activeFilterCount > 0) {
         <button class="filter-clear-btn" (click)="clearFilters()">Limpiar filtros</button>
       }
     </div>
 
-    @if (experienciasFiltradas().length === 0) {
+    @if (loading()) {
+      <div class="state-box">
+        <p>Cargando eventos...</p>
+      </div>
+    } @else if (error()) {
       <div class="empty-state">
-        <p>No encontramos experiencias con esos filtros.</p>
-        <button class="btn-outline" (click)="clearFilters()">Ver todas las experiencias</button>
+        <p>{{ error() }}</p>
+        <button class="btn-outline" (click)="clearFilters()">Reintentar</button>
+      </div>
+    } @else if (eventos().length === 0) {
+      <div class="empty-state">
+        <p>No encontramos eventos con esos filtros.</p>
+        <button class="btn-outline" (click)="clearFilters()">Ver todos los eventos</button>
       </div>
     } @else {
       <div class="cards-grid">
-        @for (item of experienciasFiltradas(); track item.id) {
+        @for (item of eventos(); track item.id) {
           <article class="card" [routerLink]="['/evento', item.id]">
             <div class="image-box">
-              <img [src]="item.imagen" [alt]="item.titulo" loading="lazy" />
+              <img [src]="fallbackImage" [alt]="item.title" loading="lazy" />
               <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
-                {{ item.favorito ? '♥' : '♡' }}
+                {{ isFavorito(item) ? '♥' : '♡' }}
               </button>
-              <span class="location">⌖ {{ item.lugar || item.ubicacion }}</span>
+              <span class="location">⌖ {{ item.cityName || item.modality }}</span>
             </div>
 
             <div class="card-body">
-              <span class="tag">{{ item.categoria }}</span>
+              <span class="tag">{{ item.categoryName || 'Evento' }}</span>
 
               <div class="date-row">
-                <span>{{ item.fecha }}</span>
-                <span class="recurrence-badge">↝ SEMANAL</span>
+                <span>{{ formatDate(item.startsAt) }}</span>
+                @if (item.isRecurring) {
+                  <span class="recurrence-badge">SEMANAL</span>
+                }
               </div>
 
-              <h2>{{ item.titulo }}</h2>
+              <h2>{{ item.title }}</h2>
 
               <div class="card-author">
                 <div class="author">
-                  <img [src]="item.avatar" alt="avatar" />
-                  <span>{{ item.autor }}</span>
+                  <img [src]="item.organizerPhotoUrl || fallbackImage" alt="avatar" />
+                  <span>{{ item.organizerName || 'Oona' }}</span>
                 </div>
-                <span class="precio">{{ item.precio }}{{ item.precio?.toString()?.includes('€') ? '' : ' €' }}</span>
+                <span class="precio">{{ formatPrice(item) }}</span>
               </div>
             </div>
           </article>
