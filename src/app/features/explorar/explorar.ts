@@ -1,8 +1,16 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ExperienciasService } from '../../services/experiencias';
+
+import { EventosService } from '../../services/eventos.service';
 import { FiltrosService } from '../../services/filtros.service';
+import {
+  CategoryResponse,
+  EventCardResponse,
+  EventFilterParams,
+  EventModality,
+  EventType,
+} from '../../shared/models/evento.model';
 
 @Component({
   selector: 'app-explorar',
@@ -12,10 +20,37 @@ import { FiltrosService } from '../../services/filtros.service';
   styleUrl: './explorar.css'
 })
 export class Explorar {
-  private experienciasService = inject(ExperienciasService);
-  private filtrosService = inject(FiltrosService);
+  private readonly eventosService = inject(EventosService);
+  private readonly filtrosService = inject(FiltrosService);
 
-  allExperiencias = this.experienciasService.getExperiencias();
+  eventos = signal<EventCardResponse[]>([]);
+  categorias = signal<CategoryResponse[]>([]);
+  totalEventos = signal(0);
+  loading = signal(false);
+  error = signal<string | null>(null);
+  favoritos = signal<Set<number>>(new Set());
+
+  readonly fallbackImage = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
+  private lastRequestKey = '';
+
+  constructor() {
+    this.loadCategorias();
+
+    effect(() => {
+      const criteria = {
+        categoryCatalog: this.categorias().map(category => category.id).join('|'),
+        when: this.filterWhen(),
+        categories: this.filterCategories().join('|'),
+        types: this.filterTypes().join('|'),
+        city: this.filterCity(),
+        timeOfDay: this.filterTimeOfDay(),
+        modality: this.filterModality(),
+        recurrence: this.filterRecurrence(),
+      };
+
+      queueMicrotask(() => this.loadEventos(criteria));
+    });
+  }
 
   get filterWhen()       { return this.filtrosService.filterWhen; }
   get filterCategories() { return this.filtrosService.filterCategories; }
@@ -26,78 +61,19 @@ export class Explorar {
   get filterRecurrence() { return this.filtrosService.filterRecurrence; }
   get activeFilterCount(): number { return this.filtrosService.activeFilterCount; }
 
-  get categoriaOptions(): string[] {
-    const cats = new Set(this.allExperiencias.map(e => e.categoria));
-    return Array.from(cats).filter(Boolean);
-  }
-
-  experienciasFiltradas = computed(() => {
-    let items = [...this.allExperiencias];
-
-    const when = this.filterWhen();
-    if (when) {
-      const lower = when.toLowerCase();
-      items = items.filter(e => {
-        const f = (e.fecha || '').toLowerCase();
-        if (lower === 'hoy') return f.includes('hoy');
-        if (lower === 'mañana') return f.includes('mañana');
-        if (lower === 'este finde') return f.includes('sábado') || f.includes('domingo');
-        if (lower === 'esta semana') return true;
-        if (lower === 'próxima semana' || lower === 'proxima semana') return true;
-        return true;
-      });
-    }
-
-    const cats = this.filterCategories();
-    if (cats.length > 0) {
-      items = items.filter(e => cats.includes(e.categoria));
-    }
-
-    const city = this.filterCity();
-    if (city && city !== 'Todas') {
-      items = items.filter(e =>
-        (e.ciudad || e.lugar || '').toLowerCase().includes(city.toLowerCase())
-      );
-    }
-
-    const time = this.filterTimeOfDay();
-    if (time) {
-      items = items.filter(e => {
-        const hora = (e.horaDetalle || e.fecha || '').toLowerCase();
-        if (time === 'Mañana') return /6h|7h|8h|9h|10h|11h|12h/.test(hora);
-        if (time === 'Mediodía') return /12h|13h|14h|15h|16h/.test(hora);
-        if (time === 'Tarde') return /16h|17h|18h|19h|20h/.test(hora);
-        if (time === 'Noche') return /20h|21h|22h|23h|24h/.test(hora);
-        return true;
-      });
-    }
-
-    const modality = this.filterModality();
-    if (modality) {
-      items = items.filter(e =>
-        (e.modalidad || '').toLowerCase() === modality.toLowerCase()
-      );
-    }
-
-    const recurrence = this.filterRecurrence();
-    if (recurrence) {
-      if (recurrence === 'Recurrente') {
-        items = items.filter(e => (e.fecha || '').toLowerCase().includes('semanal'));
-      } else {
-        items = items.filter(e => !(e.fecha || '').toLowerCase().includes('semanal'));
-      }
-    }
-
-    return items;
-  });
+  categoriaOptions = computed(() => this.categorias().map(categoria => categoria.name).filter(Boolean));
 
   openHeaderFilter() {
-    window.dispatchEvent(new CustomEvent('oona:open-filter'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('oona:open-filter'));
+    }
   }
 
   selectWhen(option: string) {
     this.filtrosService.selectWhen(option);
-    window.dispatchEvent(new CustomEvent('oona:select-when', { detail: option }));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('oona:select-when', { detail: option }));
+    }
   }
 
   toggleCategoria(cat: string) {
@@ -108,7 +84,149 @@ export class Explorar {
     this.filtrosService.clearFilters();
   }
 
-  toggleFavorito(item: any) {
-    item.favorito = !item.favorito;
+  toggleFavorito(item: EventCardResponse) {
+    this.favoritos.update(current => {
+      const next = new Set(current);
+      next.has(item.id) ? next.delete(item.id) : next.add(item.id);
+      return next;
+    });
+  }
+
+  isFavorito(item: EventCardResponse): boolean {
+    return this.favoritos().has(item.id);
+  }
+
+  formatDate(value: string | null): string {
+    if (!value) return 'Fecha por confirmar';
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  }
+
+  formatPrice(item: EventCardResponse): string {
+    if (item.priceFrom === null || item.priceFrom === undefined) return 'Gratis';
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: item.currency || 'EUR',
+      maximumFractionDigits: 0,
+    }).format(item.priceFrom);
+  }
+
+  private loadCategorias(): void {
+    this.eventosService.getCategorias().subscribe({
+      next: categorias => this.categorias.set(categorias.filter(categoria => categoria.active)),
+      error: () => this.categorias.set([]),
+    });
+  }
+
+  private loadEventos(criteria: Record<string, string | null>): void {
+    const requestKey = JSON.stringify(criteria);
+    if (requestKey === this.lastRequestKey) return;
+    this.lastRequestKey = requestKey;
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.eventosService.getEventos(this.buildFilters()).subscribe({
+      next: page => {
+        this.eventos.set(page.content ?? []);
+        this.totalEventos.set(page.totalElements ?? page.content?.length ?? 0);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.eventos.set([]);
+        this.totalEventos.set(0);
+        this.error.set('No pudimos cargar los eventos. Intentalo nuevamente.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private buildFilters(): EventFilterParams {
+    return {
+      size: 24,
+      ...this.dateRangeFor(this.filterWhen()),
+      ...this.timeRangeFor(this.filterTimeOfDay()),
+      categoryId: this.categoryIdFor(this.filterCategories()[0]),
+      eventType: this.eventTypeFor(this.filterTypes()[0]),
+      cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
+      modality: this.modalityFor(this.filterModality()),
+      isRecurring: this.recurrenceFor(this.filterRecurrence()),
+    };
+  }
+
+  private categoryIdFor(name: string | undefined): number | undefined {
+    return this.categorias().find(categoria => categoria.name === name)?.id;
+  }
+
+  private modalityFor(value: string | null): EventModality | undefined {
+    if (!value) return undefined;
+    if (value.toLowerCase() === 'online') return EventModality.ONLINE;
+    return EventModality.PRESENCIAL;
+  }
+
+  private recurrenceFor(value: string | null): boolean | undefined {
+    if (!value) return undefined;
+    return value === 'Recurrente';
+  }
+
+  private eventTypeFor(value: string | undefined): EventType | undefined {
+    const map: Record<string, EventType> = {
+      'Talleres': 'TALLER',
+      'Retiros': 'RETIRO',
+      'Clases': 'CLASE',
+      'Ceremonias': 'CEREMONIA',
+      'Encuentros Grupales': 'ENCUENTRO_GRUPAL',
+      'Formaciones': 'FORMACION',
+    };
+    return value ? map[value] : undefined;
+  }
+
+  private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {
+    const map: Record<string, Pick<EventFilterParams, 'hourFrom' | 'hourTo'>> = {
+      'Manana': { hourFrom: 6, hourTo: 12 },
+      'Mañana': { hourFrom: 6, hourTo: 12 },
+      'Mediodia': { hourFrom: 12, hourTo: 16 },
+      'Mediodía': { hourFrom: 12, hourTo: 16 },
+      'Tarde': { hourFrom: 16, hourTo: 20 },
+      'Noche': { hourFrom: 20, hourTo: 23 },
+    };
+    return value ? map[value] ?? {} : {};
+  }
+
+  private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {
+    if (!value) return {};
+
+    const today = new Date();
+    const start = new Date(today);
+    const end = new Date(today);
+
+    if (value === 'Mañana' || value === 'Manana') {
+      start.setDate(today.getDate() + 1);
+      end.setDate(today.getDate() + 1);
+    } else if (value === 'Este finde') {
+      const day = today.getDay();
+      const daysUntilSaturday = day === 6 ? 0 : day === 0 ? -1 : 6 - day;
+      start.setDate(today.getDate() + daysUntilSaturday);
+      end.setDate(start.getDate() + 1);
+    } else if (value === 'Esta semana') {
+      end.setDate(today.getDate() + 7);
+    } else if (value === 'Próxima semana' || value === 'Proxima semana') {
+      start.setDate(today.getDate() + 7);
+      end.setDate(today.getDate() + 14);
+    }
+
+    return {
+      dateFrom: this.toDateParam(start),
+      dateTo: this.toDateParam(end),
+    };
+  }
+
+  private toDateParam(date: Date): string {
+    return date.toISOString().slice(0, 10);
   }
 }
