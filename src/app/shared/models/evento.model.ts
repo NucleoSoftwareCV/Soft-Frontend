@@ -133,4 +133,5 @@ export interface EventFilterParams {
   isRecurring?: boolean;
   page?: number;
   size?: number;
+  sort?: string;
 }

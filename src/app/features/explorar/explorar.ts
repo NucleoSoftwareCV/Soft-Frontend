@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -11,6 +11,11 @@ import {
   EventModality,
   EventType,
 } from '../../shared/models/evento.model';
+
+interface EventSortOption {
+  label: string;
+  sort: string;
+}
 
 @Component({
   selector: 'app-explorar',
@@ -29,8 +34,21 @@ export class Explorar {
   loading = signal(false);
   error = signal<string | null>(null);
   favoritos = signal<Set<number>>(new Set());
+  showDatePicker = signal(false);
+  showSortMenu = signal(false);
+  expandedDescription = signal(false);
+  customDateFrom = signal(this.toDateParam(new Date()));
+  customDateTo = signal(this.toDateParam(new Date()));
 
+  readonly skeletonCards = Array.from({ length: 8 });
   readonly fallbackImage = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
+  readonly sortOptions: EventSortOption[] = [
+    { label: 'Fecha más próxima', sort: 'startsAt,asc' },
+    { label: 'Recién añadidos', sort: 'createdAt,desc' },
+    { label: 'Precio (de menor a mayor)', sort: 'priceFrom,asc' },
+    { label: 'Precio (de mayor a menor)', sort: 'priceFrom,desc' },
+  ];
+  selectedSort = signal<EventSortOption>(this.sortOptions[0]);
   private lastRequestKey = '';
 
   constructor() {
@@ -46,6 +64,7 @@ export class Explorar {
         timeOfDay: this.filterTimeOfDay(),
         modality: this.filterModality(),
         recurrence: this.filterRecurrence(),
+        sort: this.selectedSort().sort,
       };
 
       queueMicrotask(() => this.loadEventos(criteria));
@@ -61,8 +80,6 @@ export class Explorar {
   get filterRecurrence() { return this.filtrosService.filterRecurrence; }
   get activeFilterCount(): number { return this.filtrosService.activeFilterCount; }
 
-  categoriaOptions = computed(() => this.categorias().map(categoria => categoria.name).filter(Boolean));
-
   openHeaderFilter() {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('oona:open-filter'));
@@ -70,17 +87,62 @@ export class Explorar {
   }
 
   selectWhen(option: string) {
+    this.showDatePicker.set(false);
     this.filtrosService.selectWhen(option);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('oona:select-when', { detail: option }));
     }
   }
 
-  toggleCategoria(cat: string) {
-    this.filtrosService.toggleCategory(cat);
+  toggleDatePicker(): void {
+    this.showDatePicker.update(value => !value);
+  }
+
+  updateCustomDateFrom(event: Event): void {
+    this.customDateFrom.set((event.target as HTMLInputElement).value);
+  }
+
+  updateCustomDateTo(event: Event): void {
+    this.customDateTo.set((event.target as HTMLInputElement).value);
+  }
+
+  applyCustomDateRange(): void {
+    const from = this.customDateFrom();
+    const to = this.customDateTo() || from;
+    this.filtrosService.filterWhen.set(`RANGO:${from}:${to}`);
+    this.showDatePicker.set(false);
+  }
+
+  clearDateFilter(): void {
+    this.filtrosService.filterWhen.set(null);
+    this.showDatePicker.set(false);
+  }
+
+  toggleSortMenu(): void {
+    this.showSortMenu.update(value => !value);
+  }
+
+  selectSort(option: EventSortOption): void {
+    this.selectedSort.set(option);
+    this.showSortMenu.set(false);
+  }
+
+  toggleDescription(): void {
+    this.expandedDescription.update(value => !value);
+  }
+
+  isCustomDateActive(): boolean {
+    return this.filterWhen()?.startsWith('RANGO:') ?? false;
+  }
+
+  customDateLabel(): string {
+    if (!this.isCustomDateActive()) return 'Elegir fecha';
+    const [, from, to] = this.filterWhen()?.split(':') ?? [];
+    return from === to ? this.formatShortDate(from) : `${this.formatShortDate(from)} - ${this.formatShortDate(to)}`;
   }
 
   clearFilters() {
+    this.showDatePicker.set(false);
     this.filtrosService.clearFilters();
   }
 
@@ -140,7 +202,7 @@ export class Explorar {
       error: () => {
         this.eventos.set([]);
         this.totalEventos.set(0);
-        this.error.set('No pudimos cargar los eventos. Intentalo nuevamente.');
+        this.error.set('El backend no está disponible en este momento. No se pueden mostrar eventos reales.');
         this.loading.set(false);
       },
     });
@@ -156,6 +218,7 @@ export class Explorar {
       cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
       modality: this.modalityFor(this.filterModality()),
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
+      sort: this.selectedSort().sort,
     };
   }
 
@@ -200,6 +263,13 @@ export class Explorar {
 
   private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {
     if (!value) return {};
+    if (value.startsWith('RANGO:')) {
+      const [, dateFrom, dateTo] = value.split(':');
+      return {
+        dateFrom,
+        dateTo: dateTo || dateFrom,
+      };
+    }
 
     const today = new Date();
     const start = new Date(today);
@@ -228,5 +298,13 @@ export class Explorar {
 
   private toDateParam(date: Date): string {
     return date.toISOString().slice(0, 10);
+  }
+
+  private formatShortDate(value: string | undefined): string {
+    if (!value) return 'Fecha';
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+    }).format(new Date(`${value}T00:00:00`));
   }
 }

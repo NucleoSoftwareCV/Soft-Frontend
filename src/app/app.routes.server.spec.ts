@@ -9,4 +9,15 @@ describe('serverRoutes', () => {
       renderMode: RenderMode.Server,
     });
   });
+
+  it('renders one-to-one session routes on the client because they load live API data', () => {
+    expect(serverRoutes).toContainEqual({
+      path: 'sesiones',
+      renderMode: RenderMode.Client,
+    });
+    expect(serverRoutes).toContainEqual({
+      path: 'sesiones/:id',
+      renderMode: RenderMode.Client,
+    });
+  });
 });
