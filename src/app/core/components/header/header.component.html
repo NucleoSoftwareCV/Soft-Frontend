@@ -84,7 +84,7 @@
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          <span>{{ filterCity() === 'Todas' ? 'Valencia' : filterCity() }}</span>
+          <span>{{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}</span>
           <svg width="11" height="11" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
@@ -158,7 +158,7 @@
         <div>
           <h2 class="filter-modal__title">Filtrar</h2>
           <p class="filter-modal__subtitle">
-            {{ activeFilterCount === 0 ? 'Sin filtros aplicados' : activeFilterCount + ' filtros activos' }}
+            {{ pendingFilterCount === 0 ? 'Sin filtros aplicados' : pendingFilterCount + ' filtros seleccionados' }}
           </p>
         </div>
         <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar filtros" type="button">
@@ -172,8 +172,8 @@
           <h3 id="fw-when" class="filter-section__title">CUÁNDO</h3>
           <div class="filter-chips">
             @for (opt of whenOptions; track opt) {
-              <button class="filter-chip" [class.filter-chip--active]="filterWhen() === opt"
-                      (click)="selectWhen(opt)" type="button">{{ opt }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingWhen() === opt"
+                      (click)="pendingSelectWhen(opt)" type="button">{{ opt }}</button>
             }
             <button class="filter-chip filter-chip--date" type="button">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -188,8 +188,8 @@
           <h3 id="fw-cat" class="filter-section__title">CATEGORÍA</h3>
           <div class="filter-chips">
             @for (cat of categoryOptions; track cat) {
-              <button class="filter-chip" [class.filter-chip--active]="filterCategories().includes(cat)"
-                      (click)="toggleCategory(cat)" type="button">{{ cat }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingCategories().includes(cat)"
+                      (click)="pendingToggleCategory(cat)" type="button">{{ cat }}</button>
             }
           </div>
         </section>
@@ -198,8 +198,8 @@
           <h3 id="fw-type" class="filter-section__title">TIPO DE EXPERIENCIA</h3>
           <div class="filter-chips">
             @for (type of typeOptions; track type) {
-              <button class="filter-chip" [class.filter-chip--active]="filterTypes().includes(type)"
-                      (click)="toggleType(type)" type="button">{{ type }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingTypes().includes(type)"
+                      (click)="pendingToggleType(type)" type="button">{{ type }}</button>
             }
           </div>
         </section>
@@ -208,8 +208,8 @@
           <h3 id="fw-city" class="filter-section__title">UBICACIÓN</h3>
           <div class="filter-chips">
             @for (city of cityOptions; track city) {
-              <button class="filter-chip" [class.filter-chip--active]="filterCity() === city"
-                      (click)="selectCity(city)" type="button">{{ city }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingCity() === city"
+                      (click)="pendingSelectCity(city)" type="button">{{ city }}</button>
             }
             <button class="filter-chip" type="button">Ver más ↓</button>
           </div>
@@ -219,8 +219,8 @@
           <h3 id="fw-time" class="filter-section__title">HORA DEL DÍA</h3>
           <div class="filter-time-grid">
             @for (t of timeOptions; track t.label) {
-              <button class="filter-time-card" [class.filter-time-card--active]="filterTimeOfDay() === t.label"
-                      (click)="selectTimeOfDay(t.label)" type="button">
+              <button class="filter-time-card" [class.filter-time-card--active]="pendingTimeOfDay() === t.label"
+                      (click)="pendingSelectTimeOfDay(t.label)" type="button">
                 <span class="filter-time-card__label">{{ t.label }}</span>
                 <span class="filter-time-card__sub">{{ t.sub }}</span>
               </button>
@@ -232,8 +232,8 @@
           <h3 id="fw-mod" class="filter-section__title">MODALIDAD</h3>
           <div class="filter-chips">
             @for (m of modalityOptions; track m) {
-              <button class="filter-chip" [class.filter-chip--active]="filterModality() === m"
-                      (click)="selectModality(m)" type="button">{{ m }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingModality() === m"
+                      (click)="pendingSelectModality(m)" type="button">{{ m }}</button>
             }
           </div>
         </section>
@@ -242,21 +242,21 @@
           <h3 id="fw-rec" class="filter-section__title">RECURRENCIA</h3>
           <div class="filter-chips">
             @for (r of recurrenceOptions; track r) {
-              <button class="filter-chip" [class.filter-chip--active]="filterRecurrence() === r"
-                      (click)="selectRecurrence(r)" type="button">{{ r }}</button>
+              <button class="filter-chip" [class.filter-chip--active]="pendingRecurrence() === r"
+                      (click)="pendingSelectRecurrence(r)" type="button">{{ r }}</button>
             }
           </div>
         </section>
       </div>
       <div class="filter-modal__footer">
-        <button class="filter-modal__clear" (click)="clearFilters()"
-                [disabled]="activeFilterCount === 0" type="button">
+        <button class="filter-modal__clear" (click)="pendingClearFilters()"
+                [disabled]="pendingFilterCount === 0" type="button">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
           </svg>
           Quitar filtros
         </button>
-        <button class="filter-modal__apply btn-primary" (click)="closeFilter()" type="button">
+        <button class="filter-modal__apply btn-primary" (click)="applyFilters()" type="button">
           Ver eventos →
         </button>
       </div>
@@ -280,7 +280,7 @@
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
           <circle cx="12" cy="10" r="3"/>
         </svg>
-        {{ filterCity() === 'Todas' ? 'Valencia' : filterCity() }}
+        {{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}
       </span>
       <svg class="header__mobile-city-chevron" width="16" height="16" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">

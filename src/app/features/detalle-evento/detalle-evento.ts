@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ExperienciasService } from '../../services/experiencias';
-import { map, switchMap, Observable } from 'rxjs';
+
+import { EventosService } from '../../services/eventos.service';
+import { EventDetailResponse, EventOccurrenceResponse } from '../../shared/models/evento.model';
 
 @Component({
   selector: 'app-detalle-evento',
@@ -12,67 +13,102 @@ import { map, switchMap, Observable } from 'rxjs';
   styleUrl: './detalle-evento.css'
 })
 export class DetalleEvento {
-  evento$!: Observable<any>;
-  similares$!: Observable<any[]>;
+  private readonly route = inject(ActivatedRoute);
+  private readonly eventosService = inject(EventosService);
 
-  imagenesPlaceholder = [
-    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200',
-    'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800',
-    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800',
-    'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800',
-    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800',
+  evento = signal<EventDetailResponse | null>(null);
+  loading = signal(true);
+  error = signal<string | null>(null);
+  favorito = signal(false);
+
+  readonly fallbackImages = [
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
   ];
 
-  constructor(
-    private route: ActivatedRoute,
-    private experienciasService: ExperienciasService
-  ) {
-    this.evento$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        const id = Number(params.get('id'));
-
-        return this.experienciasService.getExperienciaById(id).pipe(
-          map(evento => ({
-            ...evento,
-            imagenes: this.imagenesPlaceholder,
-            favorito: false
-          }))
-        );
-      })
-    );
-
-    this.similares$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        const id = Number(params.get('id'));
-
-        return this.experienciasService.getExperiencias().pipe(
-          map(resp =>
-            resp.content
-              .filter((item: any) => item.id !== id)
-              .slice(0, 4)
-          )
-        );
-      })
-    );
+  constructor() {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadEvento(id);
   }
 
-  getGalleryCount(evento: any) {
-    return Math.min(evento?.imagenes?.length || 0, 5);
+  getGalleryCount(): number {
+    return this.fallbackImages.length;
   }
 
-  getImagenesGaleria(evento: any) {
-    return evento?.imagenes?.slice(0, 5) || [];
+  toggleFavorito(): void {
+    this.favorito.update(value => !value);
   }
 
-  getImagenesExtra(evento: any) {
-    return (evento?.imagenes?.length || 0) - 5;
+  formatPrice(): string {
+    const event = this.evento();
+    if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: event.currency || 'EUR',
+      maximumFractionDigits: 0,
+    }).format(event.priceFrom);
   }
 
-  hayImagenesExtra(evento: any) {
-    return (evento?.imagenes?.length || 0) > 5;
+  formatOccurrenceDate(occurrence: EventOccurrenceResponse | undefined): string {
+    if (!occurrence?.startsAt) return 'Fecha por confirmar';
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(occurrence.startsAt));
   }
 
-  toggleFavorito(evento: any) {
-    evento.favorito = !evento.favorito;
+  formatOccurrenceTime(occurrence: EventOccurrenceResponse | undefined): string {
+    if (!occurrence?.startsAt) return 'Hora por confirmar';
+    const start = new Date(occurrence.startsAt);
+    const end = occurrence.endsAt ? new Date(occurrence.endsAt) : null;
+    const formatter = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return end ? `${formatter.format(start)} - ${formatter.format(end)}` : formatter.format(start);
+  }
+
+  primaryOccurrence(): EventOccurrenceResponse | undefined {
+    return this.evento()?.occurrences?.[0];
+  }
+
+  locationLabel(): string {
+    const event = this.evento();
+    const occurrence = this.primaryOccurrence();
+    if (event?.modality === 'ONLINE') return 'Online';
+    return occurrence?.location?.name || occurrence?.location?.cityName || 'Ubicacion por confirmar';
+  }
+
+  cityLabel(): string {
+    return this.primaryOccurrence()?.location?.cityName || 'Ciudad por confirmar';
+  }
+
+  availableSpotsLabel(): string {
+    const occurrence = this.primaryOccurrence();
+    if (!occurrence) return 'Por confirmar';
+    if (occurrence.soldOut) return 'Agotado';
+    return `${occurrence.availableSpots} disponibles`;
+  }
+
+  private loadEvento(id: number): void {
+    if (!id) {
+      this.error.set('Evento no encontrado.');
+      this.loading.set(false);
+      return;
+    }
+
+    this.eventosService.getEvento(id).subscribe({
+      next: event => {
+        this.evento.set(event);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('No pudimos cargar este evento.');
+        this.loading.set(false);
+      },
+    });
   }
 }

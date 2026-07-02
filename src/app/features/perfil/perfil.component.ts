@@ -1,6 +1,8 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -39,6 +41,9 @@ interface ItemCreado {
   styleUrl: './perfil.component.css',
 })
 export class PerfilComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   seccionActiva = signal<Seccion>('perfil');
   mostrarModal = signal(false);
   modalStep = signal<ModalStep>('tipo');
@@ -638,5 +643,10 @@ export class PerfilComponent implements OnInit {
   limpiarFiltros(): void {
     this.fechaDesde.set('');
     this.fechaHasta.set('');
+  }
+
+  cerrarSesion(): void {
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }

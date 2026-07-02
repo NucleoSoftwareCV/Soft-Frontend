@@ -1,20 +1,39 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Sesiones } from './sesiones';
+import { SesionesComponent } from './sesiones';
 
 describe('Sesiones', () => {
-  let component: Sesiones;
-  let fixture: ComponentFixture<Sesiones>;
+  let component: SesionesComponent;
+  let fixture: ComponentFixture<SesionesComponent>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Sesiones]
+      imports: [SesionesComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Sesiones);
+    fixture = TestBed.createComponent(SesionesComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpMock.expectOne(req => req.url.endsWith('/one-to-one-services')).flush({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: 12,
+      number: 0,
+    });
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 
   it('should create', () => {

@@ -1,156 +1,170 @@
 <section class="explorar-page">
   <div class="container">
     <h1 class="title">Experiencias y eventos de bienestar</h1>
-
-    <p class="subtitle">
+    <div class="subtitle-row" [class.expanded]="expandedDescription()">
+      <p class="subtitle">
       Encuentra planes de yoga, meditación, breathwork, movimiento, retiros y talleres de bienestar.
       Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
-    </p>
-
-    <div class="filters">
-      <button (click)="mostrarFiltros = true">☷ Filtros</button>
-      <button>Hoy</button>
-      <button>Este finde</button>
-      <button>Esta semana</button>
-      <button>Próxima semana</button>
-      <button>📅 Elegir fecha</button>
-    </div>
-
-
-<div class="modal-overlay" *ngIf="mostrarFiltros" (click)="mostrarFiltros = false">
-
-  <div class="filter-modal" (click)="$event.stopPropagation()">
-
-    <!-- HEADER -->
-    <div class="modal-header">
-      <div>
-        <h2>Filtrar</h2>
-        <small>Sin filtros aplicados</small>
-      </div>
-
-      <button class="close-btn" (click)="mostrarFiltros = false">
-        ✕
+      </p>
+      <button class="subtitle-toggle" type="button" (click)="toggleDescription()">
+        {{ expandedDescription() ? 'Ver menos' : 'Ver más' }}
       </button>
     </div>
 
-    <!-- BODY -->
-    <div class="modal-body">
+    <div class="filters-row">
+      <div class="filters-scroll">
+        <button class="filter-btn" (click)="openHeaderFilter()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Filtros
+          @if (activeFilterCount > 0) {
+            <span class="filter-badge">{{ activeFilterCount }}</span>
+          }
+        </button>
 
-      <!-- CUANDO -->
-      <section class="filter-section">
-        <h3>CUÁNDO</h3>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Hoy'" (click)="selectWhen('Hoy')">Hoy</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Este finde'" (click)="selectWhen('Este finde')">Este finde</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Esta semana'" (click)="selectWhen('Esta semana')">Esta semana</button>
+        <button class="filter-btn" [class.active]="filterWhen() === 'Próxima semana' || filterWhen() === 'Proxima semana'" (click)="selectWhen('Próxima semana')">Próxima semana</button>
 
-        <div class="chips">
-          <button class="chip active">Hoy</button>
-          <button class="chip">Mañana</button>
-          <button class="chip">Este finde</button>
-          <button class="chip">Esta semana</button>
-        </div>
-      </section>
-
-      <!-- CATEGORIA -->
-      <section class="filter-section">
-        <h3>CATEGORÍA</h3>
-
-        <div class="chips">
-          <button class="chip">Yoga</button>
-          <button class="chip">Meditación</button>
-          <button class="chip">Breathwork</button>
-        </div>
-      </section>
-
-      <!-- TIPO -->
-      <section class="filter-section">
-        <h3>TIPO DE EXPERIENCIA</h3>
-
-        <div class="chips">
-          <button class="chip">Talleres</button>
-          <button class="chip">Clases</button>
-          <button class="chip">Retiros</button>
-        </div>
-      </section>
-
-      <!-- UBICACION -->
-      <section class="filter-section">
-        <h3>UBICACIÓN</h3>
-
-        <div class="chips">
-          <button class="chip active">Todas</button>
-          <button class="chip">Lima</button>
-          <button class="chip">Cusco</button>
-          <button class="chip">Arequipa</button>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- FOOTER -->
-    <div class="modal-footer">
-      <button class="clear-btn">
-        Quitar filtros
-      </button>
-
-      <button class="apply-btn">
-        Mostrar resultados →
-      </button>
-    </div>
-
-  </div>
-</div>
-
-
-    <div class="results-header">
-      <strong>{{ totalExperiencias }} experiencias cerca de ti</strong>
-      <button>↕ Próximos</button>
-    </div>
-
-    <div class="cards-grid">
-      <article
-        class="card"
-        *ngFor="let item of experiencias"
-        [routerLink]="['/evento', item.id]"
-      >
-        <div class="image-box">
-          <img [src]="item.imagen" [alt]="item.title" />
-
-          <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
-            {{ item.favorito ? '♥' : '♡' }}
+        <div class="date-filter-wrapper">
+          <button class="filter-btn" [class.active]="isCustomDateActive()" (click)="toggleDatePicker()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            {{ customDateLabel() }}
           </button>
 
-          <span class="location">⌖ {{ item.cityName || 'Online' }}</span>
+          @if (showDatePicker()) {
+            <div class="date-popover">
+              <div class="date-popover-header">
+                <h2>Fecha</h2>
+                <button class="date-close" (click)="toggleDatePicker()">×</button>
+              </div>
+
+              <div class="date-quick-row">
+                <button class="filter-btn" [class.active]="filterWhen() === 'Esta semana'" (click)="selectWhen('Esta semana')">Esta semana</button>
+                <button class="filter-btn" [class.active]="filterWhen() === 'Este finde'" (click)="selectWhen('Este finde')">Este finde</button>
+                <button class="filter-btn" [class.active]="filterWhen() === 'Próxima semana' || filterWhen() === 'Proxima semana'" (click)="selectWhen('Próxima semana')">Próxima semana</button>
+              </div>
+
+              <div class="date-range-fields">
+                <label>
+                  Desde
+                  <input type="date" [value]="customDateFrom()" (input)="updateCustomDateFrom($event)" />
+                </label>
+                <label>
+                  Hasta
+                  <input type="date" [value]="customDateTo()" (input)="updateCustomDateTo($event)" />
+                </label>
+              </div>
+
+              <div class="date-actions">
+                <button class="date-clear" (click)="clearDateFilter()">Borrar</button>
+                <button class="date-apply" (click)="applyCustomDateRange()">Mostrar experiencias</button>
+              </div>
+            </div>
+          }
         </div>
+      </div>
+    </div>
 
-        <div class="card-body">
-          <span class="tag">{{ item.categoryName }}</span>
+    <div class="results-header">
+      <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'evento' : 'eventos' }} cerca de ti</strong>
+      <div class="results-actions">
+        @if (activeFilterCount > 0) {
+          <button class="filter-clear-btn" (click)="clearFilters()">Limpiar filtros</button>
+        }
 
-          <div class="date-row">
-            <span>{{ item.startsAt | date:'EEE d MMM • HH:mm' }}</span>
-            <span *ngIf="item.isRecurring">↝ SEMANAL</span>
-          </div>
+        <div class="sort-wrapper">
+          <button class="sort-btn" type="button" (click)="toggleSortMenu()">
+            <span class="sort-icon">↕</span>
+            {{ selectedSort().label }}
+          </button>
 
-          <h2>{{ item.title }}</h2>
+          @if (showSortMenu()) {
+            <div class="sort-menu">
+              @for (option of sortOptions; track option.sort) {
+                <button
+                  type="button"
+                  class="sort-option"
+                  [class.active]="selectedSort().sort === option.sort"
+                  (click)="selectSort(option)">
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
 
-          <div class="card-author">
-            <div class="author">
-              <img
-                [src]="item.organizerPhotoUrl || 'https://i.pravatar.cc/100?img=1'"
-                alt="avatar"
-              />
-              <span>{{ item.organizerName }}</span>
+    @if (loading()) {
+      <div class="cards-grid skeleton-grid">
+        @for (item of skeletonCards; track $index) {
+          <article class="card skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="card-body">
+              <div class="skeleton-line skeleton-tag"></div>
+              <div class="skeleton-line skeleton-date"></div>
+              <div class="skeleton-line skeleton-title"></div>
+              <div class="skeleton-author">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-line skeleton-name"></div>
+                <div class="skeleton-line skeleton-price"></div>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="empty-state backend-state">
+        <h2>Eventos no disponibles</h2>
+        <p>{{ error() }}</p>
+        <span>No se muestran datos estáticos para evitar información inventada.</span>
+        <button class="btn-outline" (click)="clearFilters()">Reintentar</button>
+      </div>
+    } @else if (eventos().length === 0) {
+      <div class="empty-state">
+        <p>No encontramos eventos con esos filtros.</p>
+        <button class="btn-outline" (click)="clearFilters()">Ver todos los eventos</button>
+      </div>
+    } @else {
+      <div class="cards-grid">
+        @for (item of eventos(); track item.id) {
+          <article class="card" [routerLink]="['/evento', item.id]">
+            <div class="image-box">
+              <img [src]="fallbackImage" [alt]="item.title" loading="lazy" />
+              <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
+                {{ isFavorito(item) ? '♥' : '♡' }}
+              </button>
+              <span class="location">⌖ {{ item.cityName || item.modality }}</span>
             </div>
 
-            <span class="precio">
-              {{ item.priceFrom }}€
-            </span>
-          </div>
-        </div>
-      </article>
-    </div>
+            <div class="card-body">
+              <span class="tag">{{ item.categoryName || 'Evento' }}</span>
 
-    <div class="load-more" *ngIf="hayMas">
-      <button (click)="cargarMas()" [disabled]="cargando">
-        {{ cargando ? 'Cargando...' : 'Cargar más eventos' }}
-      </button>
-    </div>
+              <div class="date-row">
+                <span>{{ formatDate(item.startsAt) }}</span>
+                @if (item.isRecurring) {
+                  <span class="recurrence-badge">SEMANAL</span>
+                }
+              </div>
+
+              <h2>{{ item.title }}</h2>
+
+              <div class="card-author">
+                <div class="author">
+                  <img [src]="item.organizerPhotoUrl || fallbackImage" alt="avatar" />
+                  <span>{{ item.organizerName || 'Oona' }}</span>
+                </div>
+                <span class="precio">{{ formatPrice(item) }}</span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
   </div>
 </section>

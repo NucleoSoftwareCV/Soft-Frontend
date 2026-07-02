@@ -5,11 +5,9 @@ import { Explorar } from './features/explorar/explorar';
 import { DetalleEvento } from './features/detalle-evento/detalle-evento';
 
 export const routes: Routes = [
-  /* ── Tus rutas de Sesiones ── */
   { path: 'sesiones', component: SesionesComponent },
   { path: 'sesiones/:id', component: SesionDetalleComponent },
 
-  /* ── Home ── */
   {
     path: '',
     loadComponent: () =>
@@ -17,24 +15,9 @@ export const routes: Routes = [
     title: 'Oona | Eventos y profesionales de bienestar cerca de ti',
   },
 
-  /* ── Explorar y Detalle (Vienen de main) ── */
   { path: 'explorar', component: Explorar },
-  { path: 'detalle-evento', component: DetalleEvento },
+  { path: 'evento/:id', component: DetalleEvento },
 
-  /* ── Auth (sin header/footer, layout propio) ── */
-  /* ── Explorar ── */
-  {
-    path: 'explorar',
-    component: Explorar
-  },
-
-  /* ── Detalle Evento ── */
-  {
-    path: 'evento/:id',
-    component: DetalleEvento
-  },
-
-  /* ── Auth ── */
   {
     path: 'auth',
     loadComponent: () =>
@@ -44,7 +27,7 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () =>
           import('./features/auth/login/login.component').then(m => m.LoginComponent),
-        title: 'Iniciar sesión — Oona',
+        title: 'Iniciar sesion - Oona',
       },
       {
         path: '',
@@ -67,12 +50,18 @@ export const routes: Routes = [
     title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
   },
 
-  /* ── Perfil profesional ── */
   {
     path: 'perfil',
     loadComponent: () =>
       import('./features/perfil/perfil.component').then(m => m.PerfilComponent),
-    title: 'Mi Perfil — Oona',
+    title: 'Mi Perfil - Oona',
+  },
+
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./features/admin/admin.component').then(m => m.AdminComponent),
+    title: 'Panel de Administracion - Oona',
   },
 
   {
