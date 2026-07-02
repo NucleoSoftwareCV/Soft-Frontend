@@ -7,7 +7,7 @@
 .sesiones-page {
   background-color: #f2f4f0;
   min-height: 100vh;
-  padding: 68px 20px 40px;
+  padding: 92px 20px 40px;
   font-family: sans-serif;
 }
 
@@ -213,6 +213,61 @@
   color: #004257;
 }
 
+.skeleton-card {
+  cursor: default;
+  pointer-events: none;
+}
+
+.skeleton-image,
+.skeleton-line,
+.skeleton-avatar {
+  background: linear-gradient(90deg, #e5ebe2 25%, #f4f7f2 40%, #e5ebe2 60%);
+  background-size: 240% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-image {
+  height: 195px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 999px;
+}
+
+.skeleton-title {
+  width: 82%;
+  height: 16px;
+  margin-bottom: 14px;
+}
+
+.skeleton-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.skeleton-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-name {
+  width: 54%;
+}
+
+.skeleton-meta {
+  width: 36%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
 .sesiones-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -351,6 +406,37 @@
   font-size: 0.9rem;
 }
 
+.estado-panel {
+  text-align: center;
+  padding: 60px 20px;
+  color: #607456;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+}
+
+.estado-error {
+  max-width: 520px;
+  margin: 0 auto;
+  color: #8a2b2b;
+}
+
+.estado-error h2 {
+  color: #004257;
+  font-family: 'Georgia', serif;
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+
+.estado-error p {
+  margin-bottom: 8px;
+}
+
+.estado-error span {
+  display: block;
+  color: #607456;
+  margin-bottom: 18px;
+}
+
 .estado-vacio p {
   margin-bottom: 16px;
   font-size: 0.9rem;
@@ -399,8 +485,13 @@
   border-color: #e2e8f1;
 }
 
+.btn-cargar-mas:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 @media (max-width: 1300px) {
-  .sesiones-page { padding: 36px 20px; }
+  .sesiones-page { padding: 92px 20px 36px; }
 }
 
 @media (max-width: 1100px) {
@@ -409,7 +500,7 @@
 
 @media (max-width: 768px) {
   .sesiones-page {
-    padding: 24px 16px;
+    padding: 84px 16px 24px;
   }
 
   .sesiones-filtros {

@@ -307,6 +307,12 @@
   margin-bottom: 0;
 }
 
+.descripcion-vacia {
+  font-size: 0.9rem;
+  color: #607456;
+  line-height: 1.7;
+}
+
 /* Sub secciones */
 .sub-seccion {
   margin-top: 32px;
