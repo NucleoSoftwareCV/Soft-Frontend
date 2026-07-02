@@ -1,13 +1,14 @@
 <section class="explorar-page">
   <div class="container">
     <h1 class="title">Experiencias y eventos de bienestar</h1>
+
     <p class="subtitle">
       Encuentra planes de yoga, meditación, breathwork, movimiento, retiros y talleres de bienestar.
       Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
     </p>
 
     <div class="filters">
-      <button>☷ Filtros</button>
+      <button (click)="mostrarFiltros = true">☷ Filtros</button>
       <button>Hoy</button>
       <button>Este finde</button>
       <button>Esta semana</button>
@@ -15,8 +16,91 @@
       <button>📅 Elegir fecha</button>
     </div>
 
+
+<div class="modal-overlay" *ngIf="mostrarFiltros" (click)="mostrarFiltros = false">
+
+  <div class="filter-modal" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <div>
+        <h2>Filtrar</h2>
+        <small>Sin filtros aplicados</small>
+      </div>
+
+      <button class="close-btn" (click)="mostrarFiltros = false">
+        ✕
+      </button>
+    </div>
+
+    <!-- BODY -->
+    <div class="modal-body">
+
+      <!-- CUANDO -->
+      <section class="filter-section">
+        <h3>CUÁNDO</h3>
+
+        <div class="chips">
+          <button class="chip active">Hoy</button>
+          <button class="chip">Mañana</button>
+          <button class="chip">Este finde</button>
+          <button class="chip">Esta semana</button>
+        </div>
+      </section>
+
+      <!-- CATEGORIA -->
+      <section class="filter-section">
+        <h3>CATEGORÍA</h3>
+
+        <div class="chips">
+          <button class="chip">Yoga</button>
+          <button class="chip">Meditación</button>
+          <button class="chip">Breathwork</button>
+        </div>
+      </section>
+
+      <!-- TIPO -->
+      <section class="filter-section">
+        <h3>TIPO DE EXPERIENCIA</h3>
+
+        <div class="chips">
+          <button class="chip">Talleres</button>
+          <button class="chip">Clases</button>
+          <button class="chip">Retiros</button>
+        </div>
+      </section>
+
+      <!-- UBICACION -->
+      <section class="filter-section">
+        <h3>UBICACIÓN</h3>
+
+        <div class="chips">
+          <button class="chip active">Todas</button>
+          <button class="chip">Lima</button>
+          <button class="chip">Cusco</button>
+          <button class="chip">Arequipa</button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+      <button class="clear-btn">
+        Quitar filtros
+      </button>
+
+      <button class="apply-btn">
+        Mostrar resultados →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
     <div class="results-header">
-      <strong>{{ experiencias.length }} experiencias cerca de ti</strong>
+      <strong>{{ totalExperiencias }} experiencias cerca de ti</strong>
       <button>↕ Próximos</button>
     </div>
 
@@ -24,35 +108,49 @@
       <article
         class="card"
         *ngFor="let item of experiencias"
-         [routerLink]="['/evento', item.id]"
+        [routerLink]="['/evento', item.id]"
       >
         <div class="image-box">
-          <img [src]="item.imagen" [alt]="item.titulo" />
+          <img [src]="item.imagen" [alt]="item.title" />
+
           <button class="heart" (click)="toggleFavorito(item); $event.stopPropagation()">
             {{ item.favorito ? '♥' : '♡' }}
           </button>
-          <span class="location">⌖ {{ item.lugar }}</span>
+
+          <span class="location">⌖ {{ item.cityName || 'Online' }}</span>
         </div>
 
         <div class="card-body">
-          <span class="tag">{{ item.categoria }}</span>
+          <span class="tag">{{ item.categoryName }}</span>
 
           <div class="date-row">
-            <span>{{ item.fecha }}</span>
-            <span>↝ SEMANAL</span>
+            <span>{{ item.startsAt | date:'EEE d MMM • HH:mm' }}</span>
+            <span *ngIf="item.isRecurring">↝ SEMANAL</span>
           </div>
 
-          <h2>{{ item.titulo }}</h2>
+          <h2>{{ item.title }}</h2>
 
           <div class="card-author">
             <div class="author">
-              <img [src]="item.avatar" alt="avatar" />
-              <span>{{ item.autor }}</span>
+              <img
+                [src]="item.organizerPhotoUrl || 'https://i.pravatar.cc/100?img=1'"
+                alt="avatar"
+              />
+              <span>{{ item.organizerName }}</span>
             </div>
-              <span class="precio">{{ item.precio }}</span>
+
+            <span class="precio">
+              {{ item.priceFrom }}€
+            </span>
           </div>
         </div>
       </article>
+    </div>
+
+    <div class="load-more" *ngIf="hayMas">
+      <button (click)="cargarMas()" [disabled]="cargando">
+        {{ cargando ? 'Cargando...' : 'Cargar más eventos' }}
+      </button>
     </div>
   </div>
 </section>
