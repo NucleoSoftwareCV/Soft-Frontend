@@ -25,6 +25,10 @@ export class DetalleEvento {
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
+    
   ];
 
   constructor() {
@@ -32,8 +36,21 @@ export class DetalleEvento {
     this.loadEvento(id);
   }
 
+
   getGalleryCount(): number {
-    return this.fallbackImages.length;
+    return Math.min(this.fallbackImages.length, 5);
+  }
+
+  getImagenesGaleria(): string[] {
+    return this.fallbackImages.slice(0, 5);
+  }
+
+  getImagenesExtra(): number {
+    return this.fallbackImages.length - 5;
+  }
+
+  hayImagenesExtra(): boolean {
+    return this.fallbackImages.length > 5;
   }
 
   toggleFavorito(): void {
@@ -110,5 +127,48 @@ export class DetalleEvento {
         this.loading.set(false);
       },
     });
+  }
+
+  formatRecurringSchedule(): string {
+    const occurrences = this.evento()?.occurrences;
+
+    if (!occurrences?.length) {
+      return 'Por confirmar';
+    }
+
+    const formatter = new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return formatter.format(new Date(occurrences[0].startsAt));
+  }
+
+  getOccurrenceWeekday(occurrence: EventOccurrenceResponse): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long'
+    }).format(new Date(occurrence.startsAt));
+  }
+
+  getOccurrenceDay(occurrence: EventOccurrenceResponse): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric'
+    }).format(new Date(occurrence.startsAt));
+  }
+
+  getOccurrenceMonthHour(occurrence: EventOccurrenceResponse): string {
+    const date = new Date(occurrence.startsAt);
+
+    const month = new Intl.DateTimeFormat('es-ES', {
+      month: 'short'
+    }).format(date);
+
+    const hour = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+
+    return `${month} · ${hour}`;
   }
 }
