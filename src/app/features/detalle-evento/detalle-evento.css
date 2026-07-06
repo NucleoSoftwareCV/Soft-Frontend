@@ -371,7 +371,7 @@ h1 {
   grid-template-columns:  1fr auto;
   align-items: center;
   padding: 8px 0;
-  margin: 12px 0 0;
+  margin: 12px 0 24px 0px;
   color: hsl(100 15% 40%);
 }
 
@@ -394,7 +394,6 @@ h1 {
 .pay-btn {
   padding: 16px 0;
   border-top: 1px solid #edf0ea;
-  margin-top: 24px;
 }
 
 .wait-btn {
@@ -496,7 +495,7 @@ h1 {
 
 .session-picker{
   padding: 16px 0 4px;
-  border-bottom: 1px solid #edf0ea;
+  border-top: 1px solid #edf0ea;
 }
 
 .session-title{
