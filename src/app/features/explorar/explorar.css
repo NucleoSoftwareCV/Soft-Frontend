@@ -2,26 +2,12 @@
   box-sizing: border-box;
 }
 
-.explorar-page {
-  margin: 0 auto;
-  padding-top: 68px;
-  background: #f7f8f4;
-}
-
 .title{
   font-weight: 700;
   font-size: 2.25rem;
   letter-spacing: -.025em;
   color: #004257;
   font-family: Sunset, Georgia, serif;
-}
-
-.container {
-  max-width: 1280px;
-  width: 100%;
-  padding: 32px 16px;
-  margin: 0 auto;
-  box-sizing: border-box;
 }
 
 .subtitle-row {
@@ -425,16 +411,33 @@
 
 .heart {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
+  top: 8px;
+  right: 8px;
+
+  width: 32px;
+  height: 32px;
+
   border-radius: 50%;
   border: 1px solid #cfe3e6;
   background: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   color: #006274;
-  font-size: 24px;
   cursor: pointer;
+  padding: 0;
+}
+
+.heart svg{
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.heart.active{
+  color: #006274;
 }
 
 .location {

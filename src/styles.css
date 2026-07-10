@@ -76,6 +76,16 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+.container {
+  max-width: 1280px;
+  width: 100%;
+  padding: 32px 16px;
+  margin: 0px auto;
+  margin-top: 65px;
+  box-sizing: border-box;
+
+}
+
 body {
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -116,13 +126,6 @@ button {
   font-family: inherit;
   border: none;
   background: none;
-}
-
-.container {
-  width: 100%;
-  max-width: var(--layout-max);
-  margin-inline: auto;
-  padding-inline: var(--layout-pad);
 }
 
 /* Botones globales */
