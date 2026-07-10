@@ -15,12 +15,7 @@
 }
 
 .wellness-directory {
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 60px 24px;
-  background-color: var(--color-bg-light);
-  font-family: var(--font-sans);
-  min-height: 100vh;
+  padding: 32px;
 }
 
 .directory-hero {

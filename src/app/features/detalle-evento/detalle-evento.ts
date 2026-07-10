@@ -20,11 +20,17 @@ export class DetalleEvento {
   loading = signal(true);
   error = signal<string | null>(null);
   favorito = signal(false);
+  galleryOpen = signal(false);
+  selectedImageIndex = signal(0);
 
   readonly fallbackImages = [
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
+    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
+
   ];
 
   constructor() {
@@ -33,7 +39,23 @@ export class DetalleEvento {
   }
 
   getGalleryCount(): number {
-    return this.fallbackImages.length;
+    return Math.min(this.fallbackImages.length, 5);
+  }
+
+  getImagenesGaleria(): string[] {
+    return this.fallbackImages.slice(0, 5);
+  }
+
+  getTodasLasImagenes(): string[] {
+    return this.fallbackImages;
+  }
+
+  getImagenesExtra(): number {
+    return Math.max(this.fallbackImages.length - 5, 0);
+  }
+
+  hayImagenesExtra(): boolean {
+    return this.fallbackImages.length > 5;
   }
 
   toggleFavorito(): void {
@@ -111,4 +133,102 @@ export class DetalleEvento {
       },
     });
   }
+
+  formatRecurringSchedule(): string {
+    const occurrences = this.evento()?.occurrences;
+
+    if (!occurrences?.length) {
+      return 'Por confirmar';
+    }
+
+    const formatter = new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return formatter.format(new Date(occurrences[0].startsAt));
+  }
+
+  getOccurrenceWeekday(occurrence: EventOccurrenceResponse): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long'
+    }).format(new Date(occurrence.startsAt));
+  }
+
+  getOccurrenceDay(occurrence: EventOccurrenceResponse): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric'
+    }).format(new Date(occurrence.startsAt));
+  }
+
+  getOccurrenceMonthHour(occurrence: EventOccurrenceResponse): string {
+    const date = new Date(occurrence.startsAt);
+
+    const month = new Intl.DateTimeFormat('es-ES', {
+      month: 'short'
+    }).format(date);
+
+    const hour = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+
+    return `${month} · ${hour}`;
+  }
+
+  formatDuration(occurrence: EventOccurrenceResponse | undefined): string {
+    if (!occurrence?.startsAt || !occurrence?.endsAt) return '';
+
+    const inicio = new Date(occurrence.startsAt);
+    const fin = new Date(occurrence.endsAt);
+
+    const diffMs = fin.getTime() - inicio.getTime();
+    const minutos = Math.round(diffMs / 60000);
+
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+
+    if (horas > 0 && mins > 0) {
+      return `${horas} hora ${mins} min`;
+    }
+
+    if (horas > 0) {
+      return horas === 1 ? '1 hora' : `${horas} horas`;
+    }
+
+    return `${mins} min`;
+  }
+
+  openGallery(index: number): void {
+    this.selectedImageIndex.set(index);
+    this.galleryOpen.set(true);
+
+    // Bloquear scroll de la página
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeGallery(): void {
+    this.galleryOpen.set(false);
+
+    // Restaurar scroll
+    document.body.style.overflow = '';
+  }
+
+  nextImage(images: string[]): void {
+    const next = (this.selectedImageIndex() + 1) % images.length;
+    this.selectedImageIndex.set(next);
+  }
+
+  previousImage(images: string[]): void {
+    const previous =
+      (this.selectedImageIndex() - 1 + images.length) % images.length;
+
+    this.selectedImageIndex.set(previous);
+  }
+
+  currentImageLabel(images: string[]): string {
+    return `${this.selectedImageIndex() + 1} / ${images.length}`;
+  }
+
 }
