@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
-import { OneToOneServiceCardResponse } from '../../shared/models/one-to-one-service.model';
+import { OneToOneFilterOption, OneToOneServiceCardResponse } from '../../shared/models/one-to-one-service.model';
 
 @Component({
   selector: 'app-sesiones',
@@ -21,14 +21,24 @@ export class SesionesComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadingMore = signal(false);
   readonly error = signal<string | null>(null);
+  readonly filtersError = signal<string | null>(null);
+
+  readonly workTopics = signal<OneToOneFilterOption[]>([]);
+  readonly techniques = signal<OneToOneFilterOption[]>([]);
+  readonly selectedWorkTopicId = signal<number | null>(null);
+  readonly selectedTechniqueId = signal<number | null>(null);
+  readonly openDropdown = signal<'topics' | 'techniques' | null>(null);
+  readonly searchTerm = signal('');
 
   readonly pageSize = 12;
   readonly skeletonCards = Array.from({ length: 8 });
   readonly fallbackImage = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=700&auto=format&fit=crop&q=85';
   private currentPage = 0;
   private totalPages = 0;
+  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
+    this.loadFilterOptions();
     this.loadSesiones(0);
   }
 
@@ -43,6 +53,65 @@ export class SesionesComponent implements OnInit {
 
   reintentar(): void {
     this.loadSesiones(0);
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    if (this.searchDebounceId) {
+      clearTimeout(this.searchDebounceId);
+    }
+    this.searchDebounceId = setTimeout(() => this.loadSesiones(0), 300);
+  }
+
+  clearSearch(): void {
+    if (this.searchDebounceId) {
+      clearTimeout(this.searchDebounceId);
+      this.searchDebounceId = null;
+    }
+    this.searchTerm.set('');
+    this.loadSesiones(0);
+  }
+
+  toggleDropdown(dropdown: 'topics' | 'techniques'): void {
+    this.openDropdown.set(this.openDropdown() === dropdown ? null : dropdown);
+  }
+
+  selectWorkTopic(id: number | null): void {
+    this.selectedWorkTopicId.set(id);
+    this.openDropdown.set(null);
+    this.loadSesiones(0);
+  }
+
+  selectTechnique(id: number | null): void {
+    this.selectedTechniqueId.set(id);
+    this.openDropdown.set(null);
+    this.loadSesiones(0);
+  }
+
+  clearFilters(): void {
+    if (this.searchDebounceId) {
+      clearTimeout(this.searchDebounceId);
+      this.searchDebounceId = null;
+    }
+    this.searchTerm.set('');
+    this.selectedWorkTopicId.set(null);
+    this.selectedTechniqueId.set(null);
+    this.openDropdown.set(null);
+    this.loadSesiones(0);
+  }
+
+  hasActiveFilters(): boolean {
+    return this.selectedWorkTopicId() !== null || this.selectedTechniqueId() !== null || this.searchTerm().trim() !== '';
+  }
+
+  selectedWorkTopicLabel(): string {
+    const selectedId = this.selectedWorkTopicId();
+    return this.workTopics().find(topic => topic.id === selectedId)?.name ?? 'Temas';
+  }
+
+  selectedTechniqueLabel(): string {
+    const selectedId = this.selectedTechniqueId();
+    return this.techniques().find(technique => technique.id === selectedId)?.name ?? 'Tipos';
   }
 
   hasMorePages(): boolean {
@@ -70,7 +139,21 @@ export class SesionesComponent implements OnInit {
   }
 
   durationLabel(sesion: OneToOneServiceCardResponse): string {
-    return sesion.durationMinutes ? `${sesion.durationMinutes} min` : 'Duración por confirmar';
+    return sesion.durationMinutes ? `${sesion.durationMinutes} min` : 'Duracion por confirmar';
+  }
+
+  private loadFilterOptions(): void {
+    this.filtersError.set(null);
+
+    this.oneToOneServices.getActiveWorkTopics().subscribe({
+      next: topics => this.workTopics.set(topics),
+      error: () => this.filtersError.set('No se pudieron cargar los filtros de temas.'),
+    });
+
+    this.oneToOneServices.getActiveTechniques().subscribe({
+      next: techniques => this.techniques.set(techniques),
+      error: () => this.filtersError.set('No se pudieron cargar los filtros de tipos.'),
+    });
   }
 
   private loadSesiones(page: number, append = false): void {
@@ -81,6 +164,9 @@ export class SesionesComponent implements OnInit {
       page,
       size: this.pageSize,
       sort: 'createdAt,desc',
+      search: this.searchTerm().trim(),
+      workTopicId: this.selectedWorkTopicId(),
+      techniqueId: this.selectedTechniqueId(),
     }).subscribe({
       next: response => {
         const content = response.content ?? [];
@@ -96,7 +182,7 @@ export class SesionesComponent implements OnInit {
           this.sesiones.set([]);
           this.totalSesiones.set(0);
         }
-        this.error.set('El backend no está disponible en este momento. No se pueden mostrar sesiones reales.');
+        this.error.set('El backend no esta disponible en este momento. No se pueden mostrar sesiones reales.');
         this.loading.set(false);
         this.loadingMore.set(false);
       },

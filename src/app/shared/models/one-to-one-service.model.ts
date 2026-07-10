@@ -4,6 +4,15 @@ export interface SpringPage<T> {
   totalPages: number;
   size: number;
   number: number;
+  numberOfElements?: number;
+  first?: boolean;
+  last?: boolean;
+  empty?: boolean;
+}
+
+export interface OneToOneFilterOption {
+  id: number;
+  name: string;
 }
 
 export interface OneToOneServiceCardResponse {
@@ -38,4 +47,7 @@ export interface OneToOneServicePageParams {
   page?: number;
   size?: number;
   sort?: string;
+  search?: string;
+  workTopicId?: number | null;
+  techniqueId?: number | null;
 }

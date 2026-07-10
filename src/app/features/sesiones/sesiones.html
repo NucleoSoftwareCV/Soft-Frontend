@@ -5,6 +5,92 @@
       <p>Encuentra profesionales para sesiones personalizadas</p>
     </div>
 
+    <div class="sesiones-filtros">
+      <div class="buscador-wrapper" aria-label="Buscador de sesiones">
+        <svg class="icono-buscar" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input
+          class="buscador-input"
+          type="search"
+          placeholder="Buscar sesiones... psicologia, quiropractica, masajes"
+          [value]="searchTerm()"
+          (input)="onSearchChange($any($event.target).value)"
+        />
+        <button
+          class="btn-limpiar-input"
+          type="button"
+          *ngIf="searchTerm()"
+          (click)="clearSearch()"
+          aria-label="Limpiar busqueda"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="filtros-derecha">
+        <div class="dropdown-wrapper">
+          <button class="btn-filtro" type="button" (click)="toggleDropdown('topics')">
+            {{ selectedWorkTopicLabel() }}
+            <span>⌄</span>
+          </button>
+          <div class="dropdown-menu" *ngIf="openDropdown() === 'topics'">
+            <button
+              class="dropdown-item"
+              type="button"
+              [class.activo]="selectedWorkTopicId() === null"
+              (click)="selectWorkTopic(null)"
+            >
+              Todos los temas
+            </button>
+            <button
+              class="dropdown-item"
+              type="button"
+              *ngFor="let topic of workTopics()"
+              [class.activo]="selectedWorkTopicId() === topic.id"
+              (click)="selectWorkTopic(topic.id)"
+            >
+              {{ topic.name }}
+            </button>
+          </div>
+        </div>
+
+        <div class="dropdown-wrapper">
+          <button class="btn-filtro" type="button" (click)="toggleDropdown('techniques')">
+            {{ selectedTechniqueLabel() }}
+            <span>⌄</span>
+          </button>
+          <div class="dropdown-menu" *ngIf="openDropdown() === 'techniques'">
+            <button
+              class="dropdown-item"
+              type="button"
+              [class.activo]="selectedTechniqueId() === null"
+              (click)="selectTechnique(null)"
+            >
+              Todos los tipos
+            </button>
+            <button
+              class="dropdown-item"
+              type="button"
+              *ngFor="let technique of techniques()"
+              [class.activo]="selectedTechniqueId() === technique.id"
+              (click)="selectTechnique(technique.id)"
+            >
+              {{ technique.name }}
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-limpiar" type="button" *ngIf="hasActiveFilters()" (click)="clearFilters()">
+          Limpiar
+        </button>
+      </div>
+    </div>
+
+    <p class="filtros-aviso" *ngIf="filtersError()">{{ filtersError() }}</p>
+    <p class="sesiones-total" *ngIf="!loading() && !error()">{{ totalSesiones() }} sesiones encontradas</p>
+
     <div class="sesiones-grid skeleton-grid" *ngIf="loading()">
       <div class="sesion-card skeleton-card" *ngFor="let item of skeletonCards">
         <div class="skeleton-image"></div>

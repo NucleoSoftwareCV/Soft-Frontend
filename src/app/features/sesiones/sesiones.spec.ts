@@ -23,6 +23,8 @@ describe('Sesiones', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+    httpMock.expectOne(req => req.url.endsWith('/work-topics/active')).flush([]);
+    httpMock.expectOne(req => req.url.endsWith('/techniques/active')).flush([]);
     httpMock.expectOne(req => req.url.endsWith('/one-to-one-services')).flush({
       content: [],
       totalElements: 0,

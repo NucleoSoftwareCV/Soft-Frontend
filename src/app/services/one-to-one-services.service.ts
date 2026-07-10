@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
+  OneToOneFilterOption,
   OneToOneServiceCardResponse,
   OneToOneServiceDetailResponse,
   OneToOneServicePageParams,
@@ -14,6 +15,8 @@ import {
 export class OneToOneServicesService {
   private readonly http = inject(HttpClient);
   private readonly BASE = `${environment.apiUrl}/one-to-one-services`;
+  private readonly WORK_TOPICS = `${environment.apiUrl}/work-topics`;
+  private readonly TECHNIQUES = `${environment.apiUrl}/techniques`;
 
   getPublicServices(params: OneToOneServicePageParams = {}): Observable<SpringPage<OneToOneServiceCardResponse>> {
     let httpParams = new HttpParams();
@@ -28,5 +31,13 @@ export class OneToOneServicesService {
 
   getPublicService(id: number): Observable<OneToOneServiceDetailResponse> {
     return this.http.get<OneToOneServiceDetailResponse>(`${this.BASE}/${id}`);
+  }
+
+  getActiveWorkTopics(): Observable<OneToOneFilterOption[]> {
+    return this.http.get<OneToOneFilterOption[]>(`${this.WORK_TOPICS}/active`);
+  }
+
+  getActiveTechniques(): Observable<OneToOneFilterOption[]> {
+    return this.http.get<OneToOneFilterOption[]>(`${this.TECHNIQUES}/active`);
   }
 }
