@@ -605,8 +605,6 @@
   }
 
   .header__inner {
-    flex-wrap: wrap;
-    height: 124px;
     padding: 12px 18px;
     row-gap: 10px;
   }
@@ -614,17 +612,6 @@
   .header__logo {
     font-size: 2rem;
     margin-right: auto;
-  }
-
-  .header__search-wrap {
-    display: block;
-    flex: 0 0 100%;
-    max-width: none;
-    order: 3;
-  }
-
-  .header__search {
-    height: 40px;
   }
 
   .header__city-wrap {

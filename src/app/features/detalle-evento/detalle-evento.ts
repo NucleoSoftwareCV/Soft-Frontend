@@ -1,27 +1,32 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { EventosService } from '../../services/eventos.service';
 import { EventDetailResponse, EventOccurrenceResponse } from '../../shared/models/evento.model';
 
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './detalle-evento.html',
-  styleUrl: './detalle-evento.css'
+  styleUrl: './detalle-evento.css',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class DetalleEvento {
+export class DetalleEvento implements OnDestroy{
   private readonly route = inject(ActivatedRoute);
   private readonly eventosService = inject(EventosService);
+  private carouselInterval?: ReturnType<typeof setInterval>;
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
   favorito = signal(false);
   galleryOpen = signal(false);
+
   selectedImageIndex = signal(0);
+  currentSlide = signal(0);
 
   readonly fallbackImages = [
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
@@ -36,6 +41,12 @@ export class DetalleEvento {
   constructor() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loadEvento(id);
+  }
+
+  ngOnDestroy(): void {
+    if (this.carouselInterval) {
+      clearInterval(this.carouselInterval);
+    }
   }
 
   getGalleryCount(): number {
@@ -227,8 +238,17 @@ export class DetalleEvento {
     this.selectedImageIndex.set(previous);
   }
 
-  currentImageLabel(images: string[]): string {
+  counterImageLabel(images: string[]): string {
+    return `${this.currentSlide() + 1} / ${images.length}`;
+  }
+
+  counterImageModal(images: string[]): string {
     return `${this.selectedImageIndex() + 1} / ${images.length}`;
+  }
+
+
+  onSlideChange(event: any) {
+    this.currentSlide.set(event.target.swiper.realIndex);
   }
 
 }

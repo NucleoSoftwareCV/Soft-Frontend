@@ -2,6 +2,7 @@
   font-weight: 900;
 }
 
+
 .icon-box {
   width: 40px;
   height: 40px;
@@ -69,13 +70,6 @@
   font-size: 1.25rem;
   line-height: 1.75rem;
   font-family: Sunset, Georgia, serif;
-}
-
-.detalle-page {
-  min-height: 100vh;
-  background: #f4f6f1;
-  color: #004e59;
-  padding-bottom: 60px;
 }
 
 .gallery-caja {
@@ -211,7 +205,6 @@
   height: 2.5rem;
   border-radius: 50%;
   background: #004e590d;
-  color: #004e59;
   cursor: pointer;
   justify-content: center;
   align-items: center;
@@ -273,9 +266,6 @@
   transform:scale(1.05);
 }
 
-
-
-
 .extra-overlay {
   position: absolute;
   inset: 0;
@@ -288,9 +278,116 @@
   justify-content: center;
 }
 
+.gallery-desktop{
+  display:block;
+}
+
+.gallery-mobile{
+  display:none;
+}
+
+/* ========= GALERÍA MOBILE ========= */
+.gallery-mobile{
+  position:relative;
+  width:100%;
+  height:clamp(340px,75vw,564px);
+  overflow:hidden;
+  width: calc(100% + 32px);
+  margin-inline: -16px;
+  margin-top: -32px;
+}
+
+.gallery-swiper{
+  width:100%;
+  height:100%;
+}
+
+swiper-slide{
+  width:100%;
+  height:100%;
+}
+
+.hero-image{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+.hero-btn{
+  border: none;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 4px 15px rgba(0,0,0,.12);
+  transition: .25s;
+
+}
+
+.hero-btn:hover{
+  transform: scale(1.05);
+}
+
+.hero-back{
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.hero-actions{
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.hero-counter{
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  color: white;
+  background: #0000008c;
+  border-radius: 12px;
+  font-size: 12px;
+  width: max-content;
+  height: 24px;
+  padding: 4px 8px;
+  gap: .5rem;
+}
+
+.hero-dots{
+    position:absolute;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    display:flex;
+    gap:8px;
+    z-index:10;
+}
+
+.gallery-swiper::part(bullet){
+    width:6px;
+    height:6px;
+    background: rgb(255 255 255);
+    opacity:.5;
+}
+
+.gallery-swiper::part(bullet-active){
+    width:20px;
+    height: 6px;
+    border-radius:50px;
+    background:white;
+    opacity:1;
+}
+
 /* TÍTULO */
 .title-row {
   margin-top: 20px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   gap: 20px;
@@ -310,7 +407,6 @@
   border-radius: 50%;
   border: 1px solid #e1e8e1;
   background: white;
-  color: #004e59;
   cursor: pointer;
 }
 
@@ -405,7 +501,6 @@
 .similar-events h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #004e59;
 }
 
 .info-card h3 {
@@ -415,7 +510,6 @@
 }
 
 .info-card h6{
-  color: #004e59;
   font-weight: 500;
   font-size: 1rem;
 }
@@ -462,21 +556,16 @@
   padding: 8px 0;
   margin: 12px 0 0;
   border-bottom: 1px solid #edf0ea;
-  color: hsl(100 15% 40%);
-}
-
-.row-2{
-  display: grid;
-  grid-template-columns:  1fr auto;
-  align-items: center;
-  padding: 8px 0;
-  margin: 12px 0 24px 0px;
-  color: hsl(100 15% 40%);
-}
-
-.row strong,
-.row-2 strong {
   color: #004e59;
+}
+
+.row span{
+  color: hsl(100 15% 40%);
+}
+
+.row.ciudad{
+  border: none;
+  margin-bottom: 12px;
 }
 
 .status {
@@ -583,21 +672,6 @@
   line-height: 1.5;
 }
 
-
-
-
-.gallery-desktop{
-    display:block;
-}
-
-.gallery-mobile{
-    display:none;
-}
-
-
-
-
-
 .session-picker{
   padding: 16px 0 4px;
   border-top: 1px solid #edf0ea;
@@ -617,6 +691,8 @@
   gap:12px;
   overflow-x:auto;
   padding-bottom:8px;
+  scrollbar-width: none; 
+
 }
 
 .session-card{
@@ -633,18 +709,11 @@
   transition: .2s;
 }
 
-
-.session-card.active{
-  background:#075766;
-  color:white;
-  border:none;
-}
-
 .session-card .day{
   font-size:12px;
   font-weight:600;
   text-transform:capitalize;
-  color: #ffffffbf;
+  color: hsl(100 15% 40%);
 }
 
 .session-card .date{
@@ -652,17 +721,31 @@
   font-weight:700;
   line-height:1;
   margin:6px 0;
-  color: white;
 }
 
 .session-card .time{
   font-size: 12px;
   opacity:.9;
+  color: hsl(100 15% 40%);
+}
+
+/*CARD ACTIVADA*/
+.session-card.active{
+  background:#075766;
+  border:none;
+}
+
+.session-card.active .day{
   color: #ffffffbf;
 }
 
+.session-card.active .date{
+  color: white;
+}
 
-
+.session-card.active .time{
+  color: #ffffffbf;
+}
 
 
 
@@ -697,7 +780,6 @@
   background: #F3F4F0;
   border-radius: 1rem;
   padding: 12px 16px;
-  color: #004e59;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -829,107 +911,6 @@
   width: 42px;
 }
 
-
-
-
-
-
-
-
-/* ========= GALERÍA MOBILE ========= */
-
-.gallery-mobile{
-    position: relative;
-    display: none;
-    width: 100%;
-    aspect-ratio: 4 / 4.5;
-    overflow: hidden;
-    background: #f5f5f5;
-}
-
-.hero-image{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.hero-btn{
-    width: 44px;
-    height: 44px;
-
-    border: none;
-    border-radius: 50%;
-
-    background: rgba(255,255,255,.95);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    cursor: pointer;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,.12);
-
-    transition: .25s;
-}
-
-.hero-btn:hover{
-    transform: scale(1.05);
-}
-
-.hero-back{
-    position: absolute;
-
-    top: 16px;
-    left: 16px;
-
-    z-index: 10;
-}
-
-.hero-actions{
-    position: absolute;
-
-    top: 16px;
-    right: 16px;
-
-    display: flex;
-    gap: 10px;
-
-    z-index: 10;
-}
-
-.hero-arrow{
-    position: absolute;
-
-    top: 50%;
-    transform: translateY(-50%);
-
-    width: 42px;
-    height: 42px;
-
-    border: none;
-    border-radius: 50%;
-
-    background: rgba(255,255,255,.85);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    cursor: pointer;
-
-    z-index: 10;
-}
-
-.hero-arrow.prev{
-    left: 12px;
-}
-
-.hero-arrow.next{
-    right: 12px;
-}
-
 @media (max-width: 1023px) {
   .gallery {
     height: 320px;
@@ -940,7 +921,7 @@
   }
 
   .content-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 100% ;
     gap: 28px;
   }
 }
@@ -949,6 +930,10 @@
   
   .gallery-desktop{
     display:none;
+  }
+
+  h1{
+    font-size: 28px;
   }
 
   .gallery-mobile{
