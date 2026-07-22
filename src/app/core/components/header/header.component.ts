@@ -1,8 +1,9 @@
 import { Component, HostListener, signal, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FiltrosService } from '../../../services/filtros.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -15,19 +16,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser  = isPlatformBrowser(this.platformId);
   readonly filtrosService = inject(FiltrosService);
+  readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
   isSearchFocused  = signal(false);
   isFilterOpen     = signal(false);
   isCityOpen       = signal(false);
+  isProfilePopoverOpen = signal(false);
+  showLogoutConfirm = signal(false);
   searchQuery      = signal('');
 
   navLinks = [
     { label: 'Explorar',      path: '/explorar'      },
     { label: 'Sesiones 1:1',  path: '/sesiones'      },
     { label: 'Profesionales', path: '/profesionales' },
-    { label: 'Conocer gente', path: '/conocer-gente' },
+    { label: 'Conocer gente', path: '/match-bienestar' },
   ];
 
   inspirationTags = [
@@ -95,6 +100,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isCityOpen.set(false);
     this.isMobileMenuOpen.set(false);
     this.isSearchFocused.set(false);
+    this.isProfilePopoverOpen.set(false);
+    this.showLogoutConfirm.set(false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: Event): void {
+    if (this.isProfilePopoverOpen()) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.header__profile-container')) {
+        this.isProfilePopoverOpen.set(false);
+      }
+    }
   }
 
   toggleMobileMenu(): void { this.isMobileMenuOpen.update(v => !v); }
@@ -103,6 +120,41 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeCity():        void { this.isCityOpen.set(false); }
   onSearchFocus():    void { this.isSearchFocused.set(true); }
   onSearchBlur():     void { setTimeout(() => this.isSearchFocused.set(false), 160); }
+
+  toggleProfilePopover(): void {
+    this.isProfilePopoverOpen.update(v => !v);
+  }
+
+  closeProfilePopover(): void {
+    this.isProfilePopoverOpen.set(false);
+  }
+
+  openLogoutConfirm(): void {
+    this.showLogoutConfirm.set(true);
+    this.isProfilePopoverOpen.set(false);
+  }
+
+  getUserInitial(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'U';
+    const name = user.username || user.email || 'U';
+    return name.charAt(0).toUpperCase();
+  }
+
+  getUsername(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'Usuario';
+    if (user.username) return user.username;
+    if (user.email) return user.email.split('@')[0];
+    return 'Usuario';
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.showLogoutConfirm.set(false);
+    this.isProfilePopoverOpen.set(false);
+    this.router.navigate(['/']);
+  }
 
   selectInspiration(tag: string): void {
     this.searchQuery.set(tag);

@@ -41,10 +41,13 @@ interface ItemCreado {
   styleUrl: './perfil.component.css',
 })
 export class PerfilComponent implements OnInit {
-  private readonly authService = inject(AuthService);
+  readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   seccionActiva = signal<Seccion>('perfil');
+  readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
+  readonly isProfessional = computed(() => this.authService.roles.includes('PROFESSIONAL') || this.authService.roles.includes('ADMIN'));
+
   mostrarModal = signal(false);
   modalStep = signal<ModalStep>('tipo');
   editandoId = signal<number | null>(null);
@@ -115,6 +118,23 @@ export class PerfilComponent implements OnInit {
   sesionesConfig = signal<{ fecha: string; hora: string; plazas: number }[]>([]);
 
   items = signal<ItemCreado[]>([]);
+
+  cambiarSeccionCliente(tab: 'reservas' | 'guardados' | 'siguiendo'): void {
+    this.seccionCliente.set(tab);
+  }
+
+  getUsername(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'Usuario';
+    return user.username || user.email.split('@')[0] || 'Usuario';
+  }
+
+  getUserInitial(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'U';
+    const name = user.username || user.email || 'U';
+    return name.charAt(0).toUpperCase();
+  }
 
   ngOnInit(): void {
     this.items.set([...this.buildSampleData()]);

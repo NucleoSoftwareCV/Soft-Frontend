@@ -1,0 +1,263 @@
+<div class="match-page">
+  <!-- Cabecera de Banner Forestal -->
+  <div class="match-banner">
+    <div class="match-banner__overlay"></div>
+    <div class="match-banner__content">
+      <span class="match-banner__pill">✨ Match de bienestar</span>
+      <h1 class="match-banner__title">¿Quieres que te hagamos match con personas afines para planes de bienestar?</h1>
+      <p class="match-banner__subtitle">
+        Dinos qué te gusta, cuándo tienes tiempo y dónde estás. Nosotros te conectamos con planes de bienestar organizados por profesionales. 🌿
+      </p>
+    </div>
+  </div>
+
+  <!-- Contenedor del Formulario -->
+  <div class="match-container">
+    <div class="match-card">
+      
+      <!-- CASO: NO LOGUEADO -->
+      @if (!authService.isLoggedIn) {
+        <div class="match-auth-gate">
+          <div class="match-auth-gate__icon">🔒</div>
+          <h2 class="match-auth-gate__title">Inicia sesión para participar</h2>
+          <p class="match-auth-gate__text">
+            Para registrar tu solicitud y permitirnos encontrar personas y planes de bienestar afines a ti en tu zona, necesitas iniciar sesión o registrarte en Oona.
+          </p>
+          <a routerLink="/auth/login" class="btn-primary match-auth-gate__btn">
+            Iniciar sesión / Registrarse
+          </a>
+        </div>
+      }
+      
+      <!-- CASO: LOGUEADO Y ÉXITO -->
+      @else if (submitSuccess()) {
+        <div class="match-success">
+          <div class="match-success__icon">✨</div>
+          <h2 class="match-success__title">¡Todo listo!</h2>
+          <p class="match-success__text">{{ successMessage() }}</p>
+          <button (click)="goToHome()" class="btn-primary match-success__btn">
+            Volver a inicio
+          </button>
+        </div>
+      }
+      
+      <!-- CASO: LOGUEADO Y FORMULARIO -->
+      @else {
+        <form (ngSubmit)="onSubmit()" #matchForm="ngForm" class="match-form">
+          <div class="match-form__section-head">
+            <span class="match-form__section-icon">✨</span>
+            <h2 class="match-form__section-title">Tus datos</h2>
+          </div>
+
+          <!-- Campos de Entrada en Grid -->
+          <div class="match-form__grid">
+            <div class="match-form__group">
+              <label for="name" class="match-form__label">Nombre *</label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                [(ngModel)]="name" 
+                required 
+                placeholder="Tu nombre"
+                class="match-form__input"
+              />
+            </div>
+
+            <div class="match-form__group">
+              <label for="age" class="match-form__label">Edad *</label>
+              <input 
+                type="number" 
+                id="age" 
+                name="age" 
+                [(ngModel)]="age" 
+                required 
+                min="18" 
+                max="120" 
+                placeholder="28"
+                class="match-form__input"
+              />
+            </div>
+
+            <div class="match-form__group">
+              <label for="email" class="match-form__label">Email *</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                [(ngModel)]="email" 
+                required 
+                placeholder="tu@email.com"
+                class="match-form__input"
+              />
+            </div>
+
+            <div class="match-form__group">
+              <label for="whatsapp" class="match-form__label">WhatsApp *</label>
+              <input 
+                type="text" 
+                id="whatsapp" 
+                name="whatsapp" 
+                [(ngModel)]="whatsapp" 
+                required 
+                placeholder="+34 600 000 000"
+                class="match-form__input"
+              />
+            </div>
+          </div>
+
+          <!-- Ciudad/Zona -->
+          <div class="match-form__group match-form__group--full">
+            <label for="exactZone" class="match-form__label">Ciudad / zona exacta *</label>
+            <input 
+              type="text" 
+              id="exactZone" 
+              name="exactZone" 
+              [(ngModel)]="exactZone" 
+              required 
+              placeholder="Ej: Valencia, Sagunto, Denia, El Carmen, Alboraya..."
+              class="match-form__input"
+            />
+          </div>
+
+          <!-- Género -->
+          <div class="match-form__group match-form__group--full">
+            <span class="match-form__label">¿Con qué género te identificas? *</span>
+            <div class="match-form__chips">
+              @for (opt of genderOptions; track opt.value) {
+                <button 
+                  type="button" 
+                  (click)="selectGender(opt.value)"
+                  class="match-chip" 
+                  [class.match-chip--selected]="selectedGender() === opt.value"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Idiomas -->
+          <div class="match-form__group match-form__group--full">
+            <span class="match-form__label">¿En qué idiomas prefieres comunicarte? *</span>
+            <div class="match-form__chips">
+              @for (opt of languageOptions; track opt.value) {
+                <button 
+                  type="button" 
+                  (click)="toggleLanguage(opt.value)"
+                  class="match-chip" 
+                  [class.match-chip--selected]="selectedLanguages().has(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Temáticas (Categorías) -->
+          <div class="match-form__group match-form__group--full">
+            <span class="match-form__label">¿Qué temáticas te interesan? * <small>(máx. 3)</small></span>
+            
+            @if (loadingCategories()) {
+              <div class="match-form__loading-cats">Cargando temáticas...</div>
+            } @else {
+              <div class="match-categories-grid">
+                @for (cat of categories(); track cat.id) {
+                  <button 
+                    type="button" 
+                    (click)="toggleCategory(cat.id)"
+                    class="match-cat-card"
+                    [class.match-cat-card--selected]="selectedCategories().has(cat.id)"
+                    [disabled]="!selectedCategories().has(cat.id) && selectedCategories().size >= 3"
+                  >
+                    <span class="match-cat-card__icon">{{ getCategoryIcon(cat.name) }}</span>
+                    <span class="match-cat-card__name">{{ cat.name }}</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Días de disponibilidad -->
+          <div class="match-form__group match-form__group--full">
+            <span class="match-form__label">¿Qué días te vienen mejor? *</span>
+            <div class="match-form__chips">
+              @for (day of dayOptions; track day.value) {
+                <button 
+                  type="button" 
+                  (click)="toggleDay(day.value)"
+                  class="match-chip" 
+                  [class.match-chip--selected]="selectedDays().has(day.value)"
+                >
+                  {{ day.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Expectativas -->
+          <div class="match-form__group match-form__group--full">
+            <label for="expectations" class="match-form__label">¿Qué buscas de este encuentro? Cuéntanos tus expectativas *</label>
+            <textarea 
+              id="expectations" 
+              name="expectations" 
+              [(ngModel)]="expectations" 
+              required
+              maxlength="2000"
+              placeholder="Ej: Conocer gente para hacer yoga al aire libre, desconectar de la rutina..."
+              class="match-form__textarea"
+            ></textarea>
+            <div class="match-form__char-count">
+              {{ expectations().length }} / 2000
+            </div>
+          </div>
+
+          <!-- Descriptores (Opcionales) -->
+          <div class="match-form__group match-form__group--full">
+            <span class="match-form__label">¿Alguno de estos te describe? <small>(opcional)</small></span>
+            <div class="match-form__chips">
+              @for (desc of descriptorOptions; track desc.value) {
+                <button 
+                  type="button" 
+                  (click)="toggleDescriptor(desc.value)"
+                  class="match-chip match-chip--with-icon" 
+                  [class.match-chip--selected]="selectedDescriptors().has(desc.value)"
+                >
+                  <span class="match-chip__icon">{{ desc.icon }}</span>
+                  {{ desc.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Mensaje de error general -->
+          @if (submitError()) {
+            <div class="match-form__error">
+              ⚠️ {{ submitError() }}
+            </div>
+          }
+
+          <!-- Botón de Envío -->
+          <div class="match-form__footer">
+            <button 
+              type="submit" 
+              [disabled]="!isFormValid() || loadingSubmit()"
+              class="match-submit-btn"
+            >
+              @if (loadingSubmit()) {
+                Buscando afinidades...
+              } @else {
+                Quiero hacer match ✨
+              }
+            </button>
+            <p class="match-form__disclaimer">
+              Usaremos tus datos solo para conectarte con planes de bienestar afines a ti.
+            </p>
+          </div>
+
+        </form>
+      }
+
+    </div>
+  </div>
+</div>

@@ -1,3 +1,4 @@
+@if (isProfessional()) {
 <div class="perfil-page">
   <aside class="perfil-sidebar">
     <div class="sidebar-user">
@@ -681,3 +682,246 @@
     </div>
   }
 </div>
+} @else {
+  <!-- VISTA CLIENTE: MI ESPACIO -->
+  <div class="mi-espacio">
+    
+    <!-- Enlace Volver -->
+    <div class="mi-espacio__back-wrap">
+      <a routerLink="/explorar" class="mi-espacio__back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Ver eventos
+      </a>
+    </div>
+
+    <!-- Cabecera de Bienvenida -->
+    <div class="mi-espacio__header">
+      <div class="mi-espacio__header-left">
+        <span class="mi-espacio__subtitle-tag">MI ESPACIO</span>
+        <h1 class="mi-espacio__title">Hola, {{ getUsername() }}</h1>
+        <p class="mi-espacio__subtitle-desc">Tus reservas, guardados y profesionales en un solo lugar.</p>
+      </div>
+      <div class="mi-espacio__header-right">
+        <button class="mi-espacio__preferences-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          Mis preferencias
+        </button>
+      </div>
+    </div>
+
+    <!-- Micro Tarjetas Informativas -->
+    <div class="mi-espacio__info-grid">
+      <div class="mi-espacio__info-card">
+        <div class="mi-espacio__info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <span class="mi-espacio__info-text">Próxima sesión <strong>—</strong></span>
+      </div>
+      <div class="mi-espacio__info-card">
+        <div class="mi-espacio__info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <span class="mi-espacio__info-text">Reservas activas <strong>0</strong></span>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <div class="mi-espacio__tabs-container">
+      <div class="mi-espacio__tabs">
+        <button (click)="cambiarSeccionCliente('reservas')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'reservas'" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          Reservas (0)
+        </button>
+        <button (click)="cambiarSeccionCliente('guardados')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'guardados'" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          Guardados (7)
+        </button>
+        <button (click)="cambiarSeccionCliente('siguiendo')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'siguiendo'" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          Siguiendo (1)
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido Activo -->
+    <div class="mi-espacio__tab-content">
+      
+      <!-- Pestaña Reservas (Vacío) -->
+      @if (seccionCliente() === 'reservas') {
+        <div class="mi-espacio__empty-state">
+          <div class="mi-espacio__empty-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+              <path d="M9 16l2 2 4-4"></path>
+            </svg>
+          </div>
+          <h2 class="mi-espacio__empty-title">Aún no tienes reservas</h2>
+          <p class="mi-espacio__empty-text">
+            Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
+          </p>
+          <a routerLink="/explorar" class="btn-primary mi-espacio__empty-btn">
+            Explorar eventos
+          </a>
+        </div>
+      }
+
+      <!-- Pestaña Guardados -->
+      @if (seccionCliente() === 'guardados') {
+        <div class="mi-espacio__guardados-grid">
+          <!-- Card 1 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">YOGA</span>
+              <h3 class="saved-card__title">Retiro de Yoga y Meditación en la Naturaleza</h3>
+              <div class="saved-card__meta">
+                <span>📍 Valencia</span>
+                <span>💶 Desde 250€</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 2 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">MEDITACIÓN</span>
+              <h3 class="saved-card__title">Taller de Mindfulness y Calma Mental</h3>
+              <div class="saved-card__meta">
+                <span>📍 Valencia</span>
+                <span>💶 Desde 15€</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 3 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">SONIDO Y VIBRACIÓN</span>
+              <h3 class="saved-card__title">Baño de Sonido Vibracional con Gong</h3>
+              <div class="saved-card__meta">
+                <span>📍 Valencia</span>
+                <span>💶 Desde 25€</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 4 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">SESIONES 1:1</span>
+              <h3 class="saved-card__title">Consulta Personalizada de Nutrición</h3>
+              <div class="saved-card__meta">
+                <span>📍 Online / Presencial</span>
+                <span>💶 Desde 60€</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 5 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">AUTOESTIMA</span>
+              <h3 class="saved-card__title">Taller del Niño Interior y Autoestima</h3>
+              <div class="saved-card__meta">
+                <span>📍 Valencia</span>
+                <span>💶 Gratis</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 6 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">PILATES</span>
+              <h3 class="saved-card__title">Clase Especial de Pilates Alignment</h3>
+              <div class="saved-card__meta">
+                <span>📍 Valencia</span>
+                <span>💶 Desde 12€</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 7 -->
+          <div class="saved-card">
+            <div class="saved-card__img-wrap">
+              <img src="https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400" alt="" class="saved-card__img" />
+            </div>
+            <div class="saved-card__body">
+              <span class="saved-card__category">RETIROS</span>
+              <h3 class="saved-card__title">Escapada de Fin de Semana Consciente</h3>
+              <div class="saved-card__meta">
+                <span>📍 Alicante</span>
+                <span>💶 Desde 340€</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Pestaña Siguiendo -->
+      @if (seccionCliente() === 'siguiendo') {
+        <div class="mi-espacio__siguiendo-list">
+          <div class="following-card">
+            <div class="following-card__avatar">AG</div>
+            <div class="following-card__info">
+              <h3 class="following-card__name">Ana Gómez</h3>
+              <p class="following-card__role">Instructora de Hatha Yoga y Meditación</p>
+              <p class="following-card__bio">Especialista en restaurar la calma a través de movimientos conscientes y control mental.</p>
+            </div>
+            <a routerLink="/profesionales" class="btn-outline following-card__btn">
+              Ver perfil
+            </a>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}

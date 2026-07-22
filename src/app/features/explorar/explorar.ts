@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -22,7 +22,8 @@ interface EventSortOption {
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './explorar.html',
-  styleUrl: './explorar.css'
+  styleUrl: './explorar.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Explorar {
   private readonly eventosService = inject(EventosService);
