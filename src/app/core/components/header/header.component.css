@@ -737,28 +737,26 @@
 }
 
 .profile-popover__user-card {
-  border: 1.5px solid #1a1a1a;
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 8px 0 16px 0;
+  border-bottom: 1px solid #f0f4f7;
 }
 
 .profile-popover__avatar-circle {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background-color: #e2eeea;
-  color: var(--color-sage-dark);
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
+  background-color: #eef2f5;
+  color: #004e59;
+  font-family: var(--font-body, sans-serif);
+  font-size: 1rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-sage-light);
+  border: none;
 }
 
 .profile-popover__user-info {
@@ -831,8 +829,13 @@
 }
 
 .profile-popover__item-icon {
-  font-size: 1.2rem;
-  line-height: 1;
+  color: #004e59;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .profile-popover__item-text {
@@ -911,15 +914,22 @@
 }
 
 .profile-popover__whatsapp-btn {
-  background-color: #25d366;
+  background-color: #22c55e;
   color: #ffffff;
   font-size: 0.65rem;
   font-weight: 800;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  border-radius: var(--radius-full, 9999px);
   text-transform: uppercase;
   flex-shrink: 0;
   text-align: center;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45); /* Subtle neon glow */
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-popover__whatsapp-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.65);
 }
 
 .profile-popover__logout-wrap {
@@ -1035,5 +1045,17 @@
 .logout-modal__btn-confirm:hover {
   background-color: #991b1b;
   border-color: #991b1b;
+}
+
+.popover-backdrop {
+  position: fixed;
+  top: 64px; /* Start exactly below the header height */
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 64px);
+  background-color: rgba(0, 78, 89, 0.04); /* very subtle dark teal color overlay */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 199; /* Below the header (z-index 200) and below the popover (z-index 1000) */
 }
 

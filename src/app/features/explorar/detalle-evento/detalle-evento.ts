@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy} from '@angular/core';
+import { Component, inject, signal, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -6,6 +6,7 @@ import { EventosService } from '../../../services/eventos.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
 import { EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { FavoritesService } from '../../../services/favorites.service';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
@@ -22,12 +23,16 @@ export class DetalleEvento implements OnDestroy{
   private readonly eventosService = inject(EventosService);
   private readonly followService = inject(ProfessionalFollowService);
   private readonly authService = inject(AuthService);
+  private readonly favoritesService = inject(FavoritesService);
   private carouselInterval?: ReturnType<typeof setInterval>;
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
-  favorito = signal(false);
+  favorito = computed(() => {
+    const eventId = this.evento()?.id;
+    return eventId ? this.favoritesService.favoritedEventIds().has(eventId) : false;
+  });
   galleryOpen = signal(false);
   following = signal(false);
   followLoading = signal(false);
@@ -78,7 +83,19 @@ export class DetalleEvento implements OnDestroy{
   }
 
   toggleFavorito(): void {
-    this.favorito.update(value => !value);
+    const eventId = this.evento()?.id;
+    if (!eventId) return;
+
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.favoritesService.toggleFavorite('EVENTO', eventId).subscribe({
+      error: err => {
+        console.error('Error toggling favorite', err);
+      }
+    });
   }
 
   toggleFollow(): void {

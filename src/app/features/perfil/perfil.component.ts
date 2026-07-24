@@ -1,10 +1,12 @@
 import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfessionalFollowService } from '../../services/professional-follow.service';
 import { FollowedProfessionalResponse } from '../../shared/models/professional-follow.model';
+import { FavoritesService } from '../../services/favorites.service';
+import { FavoriteResponse } from '../../shared/models/favorites.model';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -45,7 +47,13 @@ interface ItemCreado {
 export class PerfilComponent implements OnInit {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly followService = inject(ProfessionalFollowService);
+  readonly favoritesService = inject(FavoritesService);
+
+  readonly favoritesDetails = signal<FavoriteResponse[]>([]);
+  readonly favoritesLoading = signal(false);
+  readonly favoritesError = signal<string | null>(null);
 
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
@@ -134,6 +142,52 @@ export class PerfilComponent implements OnInit {
     if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
       this.loadFollowedProfessionals(0);
     }
+    if (tab === 'guardados') {
+      this.loadFavoritesDetails();
+    }
+  }
+
+  loadFavoritesDetails(): void {
+    if (!this.authService.isLoggedIn) return;
+
+    this.favoritesLoading.set(true);
+    this.favoritesError.set(null);
+    this.favoritesService.getFavorites().subscribe({
+      next: data => {
+        this.favoritesDetails.set(data);
+        this.favoritesLoading.set(false);
+      },
+      error: () => {
+        this.favoritesError.set('No pudimos cargar tus favoritos.');
+        this.favoritesLoading.set(false);
+      }
+    });
+  }
+
+  removeFavorite(fav: FavoriteResponse, event: Event): void {
+    event.stopPropagation();
+    this.favoritesService.toggleFavorite(fav.entityType, fav.entityId).subscribe({
+      next: () => {
+        this.favoritesDetails.update(list => list.filter(item => !(item.entityType === fav.entityType && item.entityId === fav.entityId)));
+      }
+    });
+  }
+
+  formatDateTime(isoString?: string): string {
+    if (!isoString) return '';
+    try {
+      const d = new Date(isoString);
+      const formatted = new Intl.DateTimeFormat('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(d).replace(',', ' •');
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    } catch {
+      return '';
+    }
   }
 
   loadFollowedProfessionals(page: number): void {
@@ -186,6 +240,16 @@ export class PerfilComponent implements OnInit {
   ngOnInit(): void {
     this.items.set([...this.buildSampleData()]);
     this.loadFollowedProfessionals(0);
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'];
+      if (tab === 'guardados') {
+        this.cambiarSeccionCliente('guardados');
+      } else if (tab === 'siguiendo') {
+        this.cambiarSeccionCliente('siguiendo');
+      } else if (tab === 'reservas') {
+        this.cambiarSeccionCliente('reservas');
+      }
+    });
   }
 
   private buildSampleData(): ItemCreado[] {
