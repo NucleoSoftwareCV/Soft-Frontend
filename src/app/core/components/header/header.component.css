@@ -6,14 +6,16 @@
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  background-color: #f7f8f4;
-  border-bottom: 1px solid rgba(214, 229, 232, 0.65);
+  background-color: rgba(243, 244, 240, 0.85);
+  border-bottom: 1px solid rgba(238, 244, 235, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .header--scrolled {
-  border-bottom-color: var(--color-divider);
-  box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+  border-bottom-color: rgba(238, 244, 235, 0.75);
+  box-shadow: none;
 }
 
 .header__inner {
@@ -23,20 +25,23 @@
   max-width: 1280px;
   padding: 0 32px;
   margin-inline: auto;
-  gap: 1.6rem;
+  gap: 24px;
   
 }
 
 /* ── Logo ── */
 .header__logo {
   flex-shrink: 0;
-  font-family: var(--font-display);
-  font-size: 2.35rem;
-  font-weight: 700;
-  color: #004257;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+  margin-right: 0;
+}
+
+.header__logo-image {
+  display: block;
+  width: auto;
+  height: 28px;
+  object-fit: contain;
 }
 
 /* ── Nav desktop ── */
@@ -45,17 +50,20 @@
 .header__nav-list {
   display: flex;
   align-items: center;
-  gap: 1.65rem;
+  gap: 4px;
 }
 
 .header__nav-link {
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 70px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1f6470;
+  height: 36px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.35px;
+  color: rgba(0, 66, 87, 0.75);
   white-space: nowrap;
   transition: color var(--transition-fast);
 }
@@ -68,7 +76,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 13px;
+  bottom: -1px;
   height: 2px;
   background: #4c8c2a;
 }
@@ -77,7 +85,7 @@
 .header__search-wrap {
   flex: 1 1 420px;
   position: relative;
-  max-width: none;
+  max-width: 430.6px;
   min-width: 0;
   margin-left: 0;
 }
@@ -197,9 +205,9 @@
 .header__actions {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 8px;
   flex-shrink: 0;
-  margin-left: 0;
+  margin-left: -16px;
 }
 
 /* Ciudad (solo desktop) */
@@ -208,13 +216,14 @@
 .header__city-btn {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 6px;
+  height: 40px;
   font-size: 0.875rem;
   color: #1f6470;
-  padding: 0.45rem 0.35rem;
+  padding: 0 16px;
   border-radius: var(--radius-full);
-  border: none;
-  background: transparent;
+  border: 1px solid rgba(238, 244, 235, 1);
+  background: rgba(243, 244, 240, 0.6);
   white-space: nowrap;
   transition: border-color var(--transition-fast);
 }
@@ -253,7 +262,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px; height: 30px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   color: #1f6470;
   border: none;
@@ -267,7 +276,7 @@
 
 .header__actions > a.header__icon-btn {
   position: relative;
-  border: 1px solid #cfe0e4;
+  border: none;
   color: #004257;
   font-weight: 700;
 }
@@ -553,9 +562,10 @@
   }
 
   .header__logo {
-    font-size: 2rem;
     margin-right: 0.25rem;
   }
+
+  .header__logo-image { height: 26px; }
 
   .header__nav-list {
     gap: 1rem;
@@ -605,13 +615,19 @@
   }
 
   .header__inner {
-    padding: 12px 18px;
-    row-gap: 10px;
+    height: 57px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   .header__logo {
-    font-size: 2rem;
     margin-right: auto;
+  }
+
+  .header__logo-image { height: 24px; }
+
+  .header__search-wrap {
+    display: none;
   }
 
   .header__city-wrap {
@@ -619,7 +635,7 @@
   }
 
   .header__actions {
-    gap: 0.7rem;
+    gap: 2px;
     margin-left: 0;
   }
 
@@ -629,16 +645,21 @@
   }
 
   .header__icon-btn--mobile-only {
-    display: none;
+    display: inline-flex;
   }
 
   .header__icon-btn {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .header__burger {
+    width: 40px;
+    height: 40px;
   }
 
   .header__mobile {
-    top: 124px;
+    top: 57px;
   }
 }
 
@@ -662,15 +683,15 @@
 }
 
 .header__avatar-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background-color: #e2eeea;
+  background-color: transparent;
   color: var(--color-sage-dark);
-  border: 1.5px solid var(--color-sage-light);
+  border: 1px solid rgba(0, 66, 87, 0.4);
   font-family: var(--font-body);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -682,20 +703,8 @@
 }
 
 .header__avatar-btn:hover {
-  transform: scale(1.05);
-  border-color: var(--color-sage);
-  background-color: #d1e5e0;
-}
-
-.header__avatar-badge {
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 9px;
-  height: 9px;
-  background-color: #22c55e;
-  border: 1.5px solid #ffffff;
-  border-radius: 50%;
+  border-color: rgba(0, 66, 87, 0.7);
+  background-color: rgba(0, 66, 87, 0.05);
 }
 
 .profile-popover {

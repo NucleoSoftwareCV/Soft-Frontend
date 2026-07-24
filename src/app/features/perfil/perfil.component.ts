@@ -1,8 +1,10 @@
 import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ProfessionalFollowService } from '../../services/professional-follow.service';
+import { FollowedProfessionalResponse } from '../../shared/models/professional-follow.model';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -36,17 +38,25 @@ interface ItemCreado {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
 export class PerfilComponent implements OnInit {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly followService = inject(ProfessionalFollowService);
 
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
   readonly isProfessional = computed(() => this.authService.roles.includes('PROFESSIONAL') || this.authService.roles.includes('ADMIN'));
+  readonly followedProfessionals = signal<FollowedProfessionalResponse[]>([]);
+  readonly followingLoading = signal(false);
+  readonly followingError = signal<string | null>(null);
+  readonly followingPage = signal(0);
+  readonly followingTotalPages = signal(0);
+  readonly followingTotalElements = signal(0);
+  readonly followingPageSize = 5;
 
   mostrarModal = signal(false);
   modalStep = signal<ModalStep>('tipo');
@@ -121,6 +131,43 @@ export class PerfilComponent implements OnInit {
 
   cambiarSeccionCliente(tab: 'reservas' | 'guardados' | 'siguiendo'): void {
     this.seccionCliente.set(tab);
+    if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
+      this.loadFollowedProfessionals(0);
+    }
+  }
+
+  loadFollowedProfessionals(page: number): void {
+    if (!this.authService.isLoggedIn || page < 0 || this.followingLoading()) return;
+
+    this.followingLoading.set(true);
+    this.followingError.set(null);
+    this.followService.getFollowedProfessionals(page, this.followingPageSize).subscribe({
+      next: response => {
+        this.followedProfessionals.set(response.content);
+        this.followingPage.set(response.number);
+        this.followingTotalPages.set(response.totalPages);
+        this.followingTotalElements.set(response.totalElements);
+        this.followingLoading.set(false);
+      },
+      error: () => {
+        this.followingError.set('No pudimos cargar los profesionales que sigues.');
+        this.followingLoading.set(false);
+      },
+    });
+  }
+
+  followingInitials(professional: FollowedProfessionalResponse): string {
+    return professional.publicName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('');
+  }
+
+  profileCategoryLabel(category: string): string {
+    const normalized = category.replaceAll('_', ' ').toLocaleLowerCase('es-ES');
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   }
 
   getUsername(): string {
@@ -138,6 +185,7 @@ export class PerfilComponent implements OnInit {
 
   ngOnInit(): void {
     this.items.set([...this.buildSampleData()]);
+    this.loadFollowedProfessionals(0);
   }
 
   private buildSampleData(): ItemCreado[] {

@@ -29,7 +29,16 @@
         <div class="profesional-row">
           <div class="avatar-grande">{{ specialistInitial() }}</div>
           <span class="profesional-nombre">{{ current.specialistName }}</span>
+          <button
+            class="btn-seguir"
+            type="button"
+            [class.btn-seguir--active]="following()"
+            [disabled]="followLoading()"
+            (click)="toggleFollow()">
+            {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
+          </button>
         </div>
+        <p class="follow-error" *ngIf="followError()">{{ followError() }}</p>
 
         <div class="meta-row">
           <div class="meta-item">

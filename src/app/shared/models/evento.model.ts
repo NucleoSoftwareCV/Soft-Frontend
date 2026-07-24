@@ -80,6 +80,7 @@ export interface EventOrganizerResponse {
   publicName: string;
   biography: string | null;
   photoUrl: string | null;
+  whatsappPhone: string | null;
 }
 
 export interface MeetingLinkResponse {
