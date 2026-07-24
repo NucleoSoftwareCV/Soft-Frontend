@@ -1,8 +1,11 @@
 import { Routes } from '@angular/router';
 import { SesionesComponent } from './features/sesiones/sesiones';
 import { SesionDetalleComponent } from './features/sesion-detalle/sesion-detalle';
-import { Explorar } from './features/explorar/explorar';
-import { DetalleEvento } from './features/detalle-evento/detalle-evento';
+import { Eventos } from './features/explorar/eventos/eventos';
+import { DetalleEvento } from './features/explorar/detalle-evento/detalle-evento';
+import { Directorio } from './features/profesionales/directorio/directorio';
+import { PerfilProfesional } from './features/profesionales/perfil-profesional/perfil-profesional';
+
 
 export const routes: Routes = [
   { path: 'sesiones', component: SesionesComponent },
@@ -15,9 +18,15 @@ export const routes: Routes = [
     title: 'Oona | Eventos y profesionales de bienestar cerca de ti',
   },
 
-  { path: 'explorar', component: Explorar },
+  { path: 'explorar', component: Eventos },
   { path: 'evento/:id', component: DetalleEvento },
+  
+  { path: 'profesionales', component: Directorio },
+  { path: 'profesionales/:slug', component: PerfilProfesional },
 
+  
+
+  
   {
     path: 'auth',
     loadComponent: () =>
@@ -41,13 +50,6 @@ export const routes: Routes = [
     path: 'login',
     redirectTo: 'auth/login',
     pathMatch: 'full',
-  },
-
-  {
-    path: 'profesionales',
-    loadComponent: () =>
-      import('./features/profesionales/profesionales.component').then(m => m.ProfesionalesComponent),
-    title: 'Oona | Descubre a Nuestros Profesionales de Bienestar',
   },
 
   {

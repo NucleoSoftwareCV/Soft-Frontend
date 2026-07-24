@@ -43,13 +43,6 @@
   color: #b7791f;
 }
 
-.icon-inline {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  gap: .5rem;
-}
-
 .icon-inline svg {
   width: 18px;
   height: 18px;
@@ -561,6 +554,10 @@ swiper-slide{
 
 .row span{
   color: hsl(100 15% 40%);
+}
+
+.row svg{
+  color: hsl(100 53% 36%);
 }
 
 .row.ciudad{

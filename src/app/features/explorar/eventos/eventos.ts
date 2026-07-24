@@ -2,15 +2,15 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
-import { EventosService } from '../../services/eventos.service';
-import { FiltrosService } from '../../services/filtros.service';
+import { EventosService } from '../../../services/eventos.service';
+import { FiltrosService } from '../../../services/filtros.service';
 import {
   CategoryResponse,
   EventCardResponse,
   EventFilterParams,
   EventModality,
   EventType,
-} from '../../shared/models/evento.model';
+} from '../../../shared/models/evento.model';
 
 interface EventSortOption {
   label: string;
@@ -18,13 +18,13 @@ interface EventSortOption {
 }
 
 @Component({
-  selector: 'app-explorar',
+  selector: 'app-eventos',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './explorar.html',
-  styleUrl: './explorar.css'
+  templateUrl: './eventos.html',
+  styleUrl: './eventos.css'
 })
-export class Explorar {
+export class Eventos {
   private readonly eventosService = inject(EventosService);
   private readonly filtrosService = inject(FiltrosService);
 
