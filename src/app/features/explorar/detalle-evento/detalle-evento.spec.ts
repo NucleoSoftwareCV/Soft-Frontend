@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { DetalleEvento } from './detalle-evento';
 import { EventosService } from '../../../services/eventos.service';
+import { ProfessionalFollowService } from '../../../services/professional-follow.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('DetalleEvento', () => {
   let component: DetalleEvento;
@@ -18,19 +20,30 @@ describe('DetalleEvento', () => {
       modality: 'PRESENCIAL',
       priceFrom: 20,
       currency: 'EUR',
-      organizer: { publicName: 'Oona' },
+      organizer: { id: 3, publicName: 'Oona', whatsappPhone: '+34600111222' },
       occurrences: [],
     })),
   };
+  const followService = {
+    getStatus: vi.fn(() => of({ professionalId: 3, following: false })),
+    follow: vi.fn(() => of({ professionalId: 3, following: true })),
+    unfollow: vi.fn(() => of({ professionalId: 3, following: false })),
+  };
+  const authService = { isLoggedIn: false };
+  const router = { url: '/evento/7', navigate: vi.fn() };
 
   beforeEach(async () => {
     eventosService.getEvento.mockClear();
+    router.navigate.mockClear();
 
     await TestBed.configureTestingModule({
       imports: [DetalleEvento],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: new Map([['id', '7']]) } } },
         { provide: EventosService, useValue: eventosService },
+        { provide: ProfessionalFollowService, useValue: followService },
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
       ],
     }).compileComponents();
 
@@ -45,5 +58,18 @@ describe('DetalleEvento', () => {
 
   it('loads the public event detail from the backend service', () => {
     expect(eventosService.getEvento).toHaveBeenCalledWith(7);
+  });
+
+  it('redirects unauthenticated users to login when following', () => {
+    component.toggleFollow();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/auth/login'], {
+      queryParams: { returnUrl: '/evento/7' },
+    });
+    expect(followService.follow).not.toHaveBeenCalled();
+  });
+
+  it('builds the organizer WhatsApp link from backend data', () => {
+    expect(component.whatsappUrl()).toContain('https://wa.me/34600111222');
   });
 });

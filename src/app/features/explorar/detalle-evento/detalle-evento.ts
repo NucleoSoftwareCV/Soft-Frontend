@@ -1,9 +1,11 @@
 import { Component, inject, signal, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { EventosService } from '../../../services/eventos.service';
+import { ProfessionalFollowService } from '../../../services/professional-follow.service';
 import { EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
@@ -16,7 +18,10 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 })
 export class DetalleEvento implements OnDestroy{
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly eventosService = inject(EventosService);
+  private readonly followService = inject(ProfessionalFollowService);
+  private readonly authService = inject(AuthService);
   private carouselInterval?: ReturnType<typeof setInterval>;
 
   evento = signal<EventDetailResponse | null>(null);
@@ -24,6 +29,9 @@ export class DetalleEvento implements OnDestroy{
   error = signal<string | null>(null);
   favorito = signal(false);
   galleryOpen = signal(false);
+  following = signal(false);
+  followLoading = signal(false);
+  followError = signal<string | null>(null);
 
   selectedImageIndex = signal(0);
   currentSlide = signal(0);
@@ -71,6 +79,42 @@ export class DetalleEvento implements OnDestroy{
 
   toggleFavorito(): void {
     this.favorito.update(value => !value);
+  }
+
+  toggleFollow(): void {
+    const professionalId = this.evento()?.organizer?.id;
+    if (!professionalId || this.followLoading()) return;
+
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    this.followLoading.set(true);
+    this.followError.set(null);
+    const request = this.following()
+      ? this.followService.unfollow(professionalId)
+      : this.followService.follow(professionalId);
+
+    request.subscribe({
+      next: response => {
+        this.following.set(response.following);
+        this.followLoading.set(false);
+      },
+      error: () => {
+        this.followError.set('No pudimos actualizar el seguimiento. Intentalo de nuevo.');
+        this.followLoading.set(false);
+      },
+    });
+  }
+
+  whatsappUrl(): string | null {
+    const phone = this.evento()?.organizer?.whatsappPhone;
+    const digits = phone?.replace(/\D/g, '');
+    if (!digits) return null;
+
+    const message = `Hola, tengo una consulta sobre el evento ${this.evento()?.title ?? ''}.`;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
   }
 
   formatPrice(): string {
@@ -137,11 +181,21 @@ export class DetalleEvento implements OnDestroy{
       next: event => {
         this.evento.set(event);
         this.loading.set(false);
+        this.loadFollowStatus(event.organizer?.id);
       },
       error: () => {
         this.error.set('No pudimos cargar este evento.');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadFollowStatus(professionalId: number | undefined): void {
+    if (!professionalId || !this.authService.isLoggedIn) return;
+
+    this.followService.getStatus(professionalId).subscribe({
+      next: response => this.following.set(response.following),
+      error: () => this.following.set(false),
     });
   }
 

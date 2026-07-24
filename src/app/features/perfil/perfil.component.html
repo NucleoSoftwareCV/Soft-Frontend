@@ -771,7 +771,7 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          Siguiendo (1)
+          Siguiendo ({{ followingTotalElements() }})
         </button>
       </div>
     </div>
@@ -907,19 +907,56 @@
 
       <!-- Pestaña Siguiendo -->
       @if (seccionCliente() === 'siguiendo') {
-        <div class="mi-espacio__siguiendo-list">
-          <div class="following-card">
-            <div class="following-card__avatar">AG</div>
-            <div class="following-card__info">
-              <h3 class="following-card__name">Ana Gómez</h3>
-              <p class="following-card__role">Instructora de Hatha Yoga y Meditación</p>
-              <p class="following-card__bio">Especialista en restaurar la calma a través de movimientos conscientes y control mental.</p>
-            </div>
-            <a routerLink="/profesionales" class="btn-outline following-card__btn">
-              Ver perfil
-            </a>
+        @if (followingLoading()) {
+          <div class="following-state" aria-live="polite">Cargando profesionales...</div>
+        } @else if (followingError()) {
+          <div class="following-state following-state--error">
+            <p>{{ followingError() }}</p>
+            <button class="btn-outline" type="button" (click)="loadFollowedProfessionals(followingPage())">Reintentar</button>
           </div>
-        </div>
+        } @else if (followedProfessionals().length === 0) {
+          <div class="following-state">
+            <p>Aún no sigues a ningún profesional.</p>
+            <a routerLink="/profesionales" class="btn-outline">Descubrir profesionales</a>
+          </div>
+        } @else {
+          <div class="mi-espacio__siguiendo-list">
+            @for (professional of followedProfessionals(); track professional.id) {
+              <div class="following-card">
+                @if (professional.photoUrl) {
+                  <img class="following-card__avatar following-card__avatar--image" [src]="professional.photoUrl" [alt]="professional.publicName" />
+                } @else {
+                  <div class="following-card__avatar">{{ followingInitials(professional) }}</div>
+                }
+                <div class="following-card__info">
+                  <h3 class="following-card__name">{{ professional.publicName }}</h3>
+                  <p class="following-card__role">{{ profileCategoryLabel(professional.profileCategory) }}</p>
+                </div>
+                <a routerLink="/profesionales" class="btn-outline following-card__btn">Ver perfil</a>
+              </div>
+            }
+          </div>
+
+          @if (followingTotalPages() > 1) {
+            <nav class="following-pagination" aria-label="Paginación de profesionales seguidos">
+              <button
+                type="button"
+                class="btn-outline"
+                [disabled]="followingPage() === 0"
+                (click)="loadFollowedProfessionals(followingPage() - 1)">
+                Anterior
+              </button>
+              <span>Página {{ followingPage() + 1 }} de {{ followingTotalPages() }}</span>
+              <button
+                type="button"
+                class="btn-outline"
+                [disabled]="followingPage() + 1 >= followingTotalPages()"
+                (click)="loadFollowedProfessionals(followingPage() + 1)">
+                Siguiente
+              </button>
+            </nav>
+          }
+        }
       }
 
     </div>

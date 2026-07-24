@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
+import { ProfessionalFollowService } from '../../services/professional-follow.service';
 import { OneToOneServiceDetailResponse } from '../../shared/models/one-to-one-service.model';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-sesion-detalle',
@@ -16,10 +18,15 @@ export class SesionDetalleComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly oneToOneServices = inject(OneToOneServicesService);
+  private readonly followService = inject(ProfessionalFollowService);
+  private readonly authService = inject(AuthService);
 
   readonly sesion = signal<OneToOneServiceDetailResponse | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly following = signal(false);
+  readonly followLoading = signal(false);
+  readonly followError = signal<string | null>(null);
   readonly fallbackImage = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1200&auto=format&fit=crop&q=85';
 
   ngOnInit(): void {
@@ -29,6 +36,33 @@ export class SesionDetalleComponent implements OnInit {
 
   volver(): void {
     this.router.navigate(['/sesiones']);
+  }
+
+  toggleFollow(): void {
+    const professionalId = this.sesion()?.specialistId;
+    if (!professionalId || this.followLoading()) return;
+
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    this.followLoading.set(true);
+    this.followError.set(null);
+    const request = this.following()
+      ? this.followService.unfollow(professionalId)
+      : this.followService.follow(professionalId);
+
+    request.subscribe({
+      next: response => {
+        this.following.set(response.following);
+        this.followLoading.set(false);
+      },
+      error: () => {
+        this.followError.set('No pudimos actualizar el seguimiento. Intentalo de nuevo.');
+        this.followLoading.set(false);
+      },
+    });
   }
 
   formatPrice(): string {
@@ -78,11 +112,21 @@ export class SesionDetalleComponent implements OnInit {
       next: response => {
         this.sesion.set(response);
         this.loading.set(false);
+        this.loadFollowStatus(response.specialistId);
       },
       error: () => {
         this.error.set('No pudimos cargar esta sesión.');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadFollowStatus(professionalId: number): void {
+    if (!professionalId || !this.authService.isLoggedIn) return;
+
+    this.followService.getStatus(professionalId).subscribe({
+      next: response => this.following.set(response.following),
+      error: () => this.following.set(false),
     });
   }
 }

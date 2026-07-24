@@ -482,6 +482,23 @@ swiper-slide{
   transition-duration: .2s;
 }
 
+.follow-btn--active {
+  background: #e2eeea;
+  color: #004e59;
+}
+
+.follow-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.follow-error {
+  color: #a83232;
+  font-size: 0.8rem;
+  margin: -8px 0 12px;
+  text-align: right;
+}
+
 /* CARDS DE INFORMACIÓN */
 .info-card {
   padding: 22px;
@@ -796,6 +813,22 @@ swiper-slide{
   padding: 18px;
   font-size: 13px;
   display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.question-box:hover {
+  background: #e9f0e5;
+}
+
+.question-box--disabled {
+  border-left-color: #aab4a5;
+  cursor: default;
+}
+
+.question-box--disabled:hover {
+  background: #f4f6f1;
 }
 
 .question-box small {
