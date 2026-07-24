@@ -130,14 +130,125 @@
         </svg>
       </button>
 
-      <!-- Perfil -->
-      <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión">
-        <svg width="17" height="17" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-      </a>
+      <!-- Perfil / Usuario -->
+      <div class="header__profile-container">
+        @if (!authService.isLoggedIn) {
+          <!-- Enlace normal a login si no está logueado -->
+          <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión">
+            <svg width="17" height="17" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </a>
+        } @else {
+          <!-- Botón de Avatar si está logueado -->
+          <button (click)="toggleProfilePopover()" class="header__avatar-btn" aria-label="Mi cuenta" type="button">
+            <span class="header__avatar-initial">{{ getUserInitial() }}</span>
+            <span class="header__avatar-badge"></span>
+          </button>
+          
+          <!-- Popover Dropdown -->
+          @if (isProfilePopoverOpen()) {
+            <div class="profile-popover">
+              
+              <!-- Tarjeta de Usuario -->
+              <div class="profile-popover__user-card">
+                <div class="profile-popover__avatar-circle">
+                  {{ getUserInitial() }}
+                </div>
+                <div class="profile-popover__user-info">
+                  <span class="profile-popover__username">Hola, {{ getUsername() }}</span>
+                  <span class="profile-popover__usersub">Tu espacio personal</span>
+                </div>
+                <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__view-profile-link">
+                  Ver perfil
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </a>
+              </div>
+
+              <!-- Enlaces del Menú -->
+              <ul class="profile-popover__menu">
+                <li>
+                  <a routerLink="/explorar" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">🧭</span>
+                    <span class="profile-popover__item-text">Explorar</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+                <li>
+                  <a routerLink="/sesiones" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">✦</span>
+                    <span class="profile-popover__item-text">Sesiones 1:1</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+                <li>
+                  <a routerLink="/profesionales" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">👥</span>
+                    <span class="profile-popover__item-text">Profesionales</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+                <li>
+                  <a routerLink="/match-bienestar" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">🤝</span>
+                    <span class="profile-popover__item-text">Conocer gente</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+              </ul>
+
+              <div class="profile-popover__divider"></div>
+              
+              <!-- Sección Tu Espacio -->
+              <div class="profile-popover__section-title">TU ESPACIO</div>
+              <ul class="profile-popover__menu">
+                <li>
+                  <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">✨</span>
+                    <span class="profile-popover__item-text">Completar preferencias</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+                <li>
+                  <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">💙</span>
+                    <span class="profile-popover__item-text">Mi espacio</span>
+                    <span class="profile-popover__item-arrow">›</span>
+                  </a>
+                </li>
+              </ul>
+
+              <!-- Banner de WhatsApp -->
+              <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" class="profile-popover__whatsapp-banner">
+                <div class="profile-popover__whatsapp-icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.483 1.966 14.022 1.96 12.01 1.96c-5.44 0-9.866 4.372-9.87 9.802 0 1.714.47 3.387 1.357 4.881l-.994 3.63 3.771-.98-.227-.129z"/>
+                  </svg>
+                </div>
+                <div class="profile-popover__whatsapp-text">
+                  <span class="profile-popover__whatsapp-title">Comunidad Oona en WhatsApp</span>
+                  <span class="profile-popover__whatsapp-sub">+1.000 personas</span>
+                </div>
+                <span class="profile-popover__whatsapp-btn">Entrar</span>
+              </a>
+
+              <div class="profile-popover__logout-wrap">
+                <button (click)="openLogoutConfirm()" class="profile-popover__logout-btn" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                  </svg>
+                  Cerrar sesión
+                </button>
+              </div>
+
+            </div>
+          }
+        }
+      </div>
 
       <!-- Burger / X -->
       <button class="header__burger" [class.header__burger--open]="isMobileMenuOpen()"
@@ -309,6 +420,27 @@
     <div class="header__mobile-actions">
       <a routerLink="/auth/login" class="btn-outline" (click)="closeMobileMenu()">Entrar</a>
       <a routerLink="/registro"   class="btn-primary" (click)="closeMobileMenu()">Publicar evento</a>
+    </div>
+  </div>
+}
+
+<!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+@if (showLogoutConfirm()) {
+  <div class="logout-overlay" (click)="showLogoutConfirm.set(false)" role="dialog" aria-modal="true" aria-label="Confirmar cierre de sesión">
+    <div class="logout-modal" (click)="$event.stopPropagation()">
+      <div class="logout-modal__icon">⚠️</div>
+      <h3 class="logout-modal__title">¿Cerrar sesión?</h3>
+      <p class="logout-modal__text">
+        ¿Estás seguro de que deseas salir? Tendrás que iniciar sesión de nuevo para acceder a tu perfil y participar en los matches de bienestar.
+      </p>
+      <div class="logout-modal__actions">
+        <button (click)="showLogoutConfirm.set(false)" class="btn-outline logout-modal__btn-cancel" type="button">
+          Cancelar
+        </button>
+        <button (click)="logout()" class="btn-primary logout-modal__btn-confirm" type="button">
+          Cerrar sesión
+        </button>
+      </div>
     </div>
   </div>
 }

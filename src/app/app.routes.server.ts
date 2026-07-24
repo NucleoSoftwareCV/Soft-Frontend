@@ -27,6 +27,14 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'match-bienestar',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'conocer-gente',
+    renderMode: RenderMode.Client
+  },
+  {
     path: '**',
     renderMode: RenderMode.Prerender
   }

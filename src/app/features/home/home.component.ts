@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { HeroComponent }              from './components/hero/hero.component';
 import { CategoriesComponent }        from './components/categories/categories.component';
 import { EventRowComponent, EventItem } from './components/event-row/event-row.component';
@@ -46,6 +46,7 @@ const av = (n: number) => `https://i.pravatar.cc/40?img=${n}`;
   ],
   templateUrl: './home.component.html',
   styleUrl:    './home.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
 

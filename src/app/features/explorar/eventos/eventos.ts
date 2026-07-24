@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -21,8 +21,11 @@ interface EventSortOption {
   selector: 'app-eventos',
   standalone: true,
   imports: [CommonModule, RouterLink],
+  
   templateUrl: './eventos.html',
-  styleUrl: './eventos.css'
+  styleUrl: './eventos.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
+
 })
 export class Eventos {
   private readonly eventosService = inject(EventosService);

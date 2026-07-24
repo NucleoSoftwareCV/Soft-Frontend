@@ -19,7 +19,7 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser  = isPlatformBrowser(this.platformId);
 
-  private readonly BASE = `${environment.apiUrl}/auth`;
+  private readonly BASE = `${environment.apiUrl.replace('/v1', '')}/auth`;
   readonly currentUser = signal<JwtResponse | null>(this.loadUserFromStorage());
 
   get isLoggedIn(): boolean  { return this.currentUser() !== null; }
