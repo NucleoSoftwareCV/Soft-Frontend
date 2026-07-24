@@ -2,8 +2,8 @@ import { Component, inject, signal, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { EventosService } from '../../services/eventos.service';
-import { EventDetailResponse, EventOccurrenceResponse } from '../../shared/models/evento.model';
+import { EventosService } from '../../../services/eventos.service';
+import { EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({

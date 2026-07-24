@@ -1,0 +1,225 @@
+@if (perfil) {
+<div class="container">
+
+  <!-- Breadcrumb -->
+  <nav class="profile-breadcrumb">
+
+    <span routerLink="/inicio">
+      Inicio
+    </span>
+
+    <span>/</span>
+
+    <span routerLink="/profesionales">
+      Profesionales
+    </span>
+
+    <span>/</span>
+
+    <span class="active">
+      {{ perfil.nombre }}
+    </span>
+
+  </nav>
+
+  <!-- Botón volver -->
+  <button
+    class="profile-back-btn"
+    routerLink="/profesionales">
+
+    ← Volver
+
+  </button>
+
+  <div class="profile-banner">
+
+    <img
+      [src]="perfil.bannerUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'"
+      [alt]="'Banner de ' + perfil.nombre"
+      class="profile-banner__img">
+
+  </div>
+
+  <div class="profile-body">
+    <div class="profile-header">
+      <img
+        [src]="perfil.imagenUrl"
+        [alt]="perfil.nombre"
+        class="profile-avatar">
+
+      <div class="profile-name-block">
+        <div class="profile-name-row">
+          <h1 class="profile-name">
+            {{ perfil.nombre }}
+          </h1>
+
+          <span class="profile-role-badge">
+            Profesional de bienestar
+          </span>
+        </div>
+
+        <button class="profile-follow-btn">
+            🔔 Seguir
+        </button>
+
+        <div class="profile-quote">
+          "{{ perfil.cita }}"
+        </div>
+
+        <p class="profile-bio">
+          {{ perfil.bio || perfil.cita }}
+        </p>
+      </div>
+    </div>
+
+    <div class="caja-contacto">
+      <div class="contacto">
+
+        <h5>CONTACTO</h5>
+
+        <button> 
+          <a href="">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+              Enviar mensaje
+          </a>
+        </button>
+
+        <button>
+          <a href="">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+              Contactar Whatsapp
+          </a>
+        </button>
+
+        <button>
+          <a href="">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+              Llamar
+          </a>
+        </button>
+
+        <button>
+          <a href="">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+              Eniviar DM en Instagram
+          </a>
+        </button>
+
+        <button>
+          <a href="">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+              Visitar Web
+          </a>
+        </button>
+    
+      </div>
+      
+      <div class="ubicacion">
+
+        <h5>UBICACION</h5>
+
+        <span class="icon-inline">
+          <app-icon
+            name="map-pin"
+            [size]="16">              
+          </app-icon>
+          {{ perfil.ubicacion }}
+        </span>
+      </div>
+
+      <div class="idiomas">
+        <h5>IDIOMAS</h5>
+        <div idioma-card>
+          <span>{{ perfil.ubicacion }}</span>
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="topics">
+    @if (perfil.temas && perfil.temas.length > 0) {
+
+      <div class="profile-section">
+
+        <h3 class="topics_title">
+          Temas que trabajo
+        </h3>
+
+        <div class="profile-tags">
+
+          @for (tema of perfil.temas; track tema) {
+
+            <span class="profile-tag">
+              {{ tema }}
+            </span>
+
+          }
+
+        </div>
+      </div>
+    }
+
+    @if (perfil.tecnicas && perfil.tecnicas.length > 0) {
+
+      <div class="profile-section">
+
+        
+          <h3 class="topics_title">
+            Técnicas que ofrezco
+          </h3>
+      
+
+        <div class="profile-tags">
+
+          @for (tecnica of perfil.tecnicas; track tecnica) {
+
+            <span class="profile-tag">
+              {{ tecnica }}
+            </span>
+
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+
+      <!-- Aquí mantienes tu calendario -->
+      <div class="profile-calendar">
+
+        <!-- Tu calendario actual -->
+
+      </div>
+    
+
+    <div class="profile-sidebar">
+
+      <!-- Tu sidebar de contacto actual -->
+
+    </div>
+</div>
+
+} @else {
+
+<div class="loading">
+  Cargando perfil...
+</div>
+
+}

@@ -1,0 +1,229 @@
+
+<div class="container">
+  <main class="wellness-directory">
+
+    <!-- Hero -->
+    <section class="directory-hero">
+      <h1 class="directory-hero__title">
+        Descubre a Nuestros Profesionales
+      </h1>
+
+      <p class="directory-hero__subtitle">
+        Explora perfiles de guías y centros especializados en bienestar
+      </p>
+    </section>
+
+    <!-- Controles -->
+    <div class="directory-controls__wrapper">
+
+      <div class="directory-search">
+        <svg class="directory-search__icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2">
+
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+
+        <input
+          type="text"
+          class="directory-search__input"
+          placeholder="Buscar por nombre, técnica, ubicación o temas..."
+          (input)="actualizarBusqueda($event)"
+        >
+      </div>
+
+      <div class="directory-select-wrapper">
+        <select
+          class="directory-select"
+          (change)="actualizarCategoria($any($event.target).value)">
+
+          <option value="todos">Todos</option>
+          <option value="profesionales">Profesionales</option>
+          <option value="centros">Centros</option>
+          <option value="organizadores">
+            Organizadores de eventos
+          </option>
+
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Tabs -->
+    <div class="directory-tabs">
+
+      <button
+        class="directory-tab"
+        [class.directory-tab--active]="categoriaActiva() === 'todos'"
+        (click)="actualizarCategoria('todos')">
+
+        <app-icon
+          name="users"
+          [size]="16">
+        </app-icon>
+        Todos
+
+      </button>
+
+      <button
+        class="directory-tab"
+        [class.directory-tab--active]="categoriaActiva() === 'profesionales'"
+        (click)="actualizarCategoria('profesionales')">
+
+        <app-icon
+          name="user"
+          [size]="16">
+        </app-icon>
+        Profesionales
+
+      </button>
+
+      <button
+        class="directory-tab"
+        [class.directory-tab--active]="categoriaActiva() === 'centros'"
+        (click)="actualizarCategoria('centros')">
+
+       <app-icon
+          name="users"
+          [size]="16">
+        </app-icon>
+        Centros
+
+      </button>
+
+      <button
+        class="directory-tab"
+        [class.directory-tab--active]="categoriaActiva() === 'organizadores'"
+        (click)="actualizarCategoria('organizadores')">
+
+        <app-icon
+          name="user"
+          [size]="16">
+        </app-icon>
+        Organizadores de eventos
+
+      </button>
+    </div>
+
+    <!-- Tarjetas -->
+    <section class="directory-grid">
+
+      @for (perfil of perfilesFiltrados(); track perfil.id) {
+
+<article
+  class="card-item"
+  (click)="verPerfil(perfil)">
+
+  <div
+    class="card-item__image-container"
+    [class.card-item__image-container--logo]="perfil.isLogoStyle">
+
+    @if (perfil.isLogoStyle) {
+
+      <div class="card-item__logo-placeholder">
+
+        <span class="logo-text-brand">
+          {{ perfil.logoMarca }}
+        </span>
+
+        <span class="logo-text-sub">
+          {{ perfil.logoSub }}
+        </span>
+
+      </div>
+
+    } @else {
+
+      <img
+        [src]="perfil.imagenUrl"
+        [alt]="perfil.nombre"
+        class="card-item__img">
+
+    }
+
+    <span class="card-item__badge">
+
+      <app-icon
+        [name]="getIconName(perfil.tipo)"
+        [size]="12">
+      </app-icon>
+
+      {{ perfil.tipo }}
+
+    </span>
+
+  </div>
+
+  <div class="card-item__content">
+
+    <h2 class="card-item__title">
+      {{ perfil.nombre }}
+    </h2>
+
+    <div class="card-item__location">
+      <app-icon
+        name="map-pin"
+        [size]="16">
+      </app-icon>
+      {{ perfil.ubicacion }}
+    </div>
+
+    <p class="card-item__quote">
+      "{{ perfil.cita }}"
+    </p>
+
+    <div class="card-item__tags">
+
+      @for (tag of perfil.tags; track tag) {
+
+        <span
+          class="card-item__tag"
+          [class.card-item__tag--more]="tag.startsWith('+')">
+
+          {{ tag }}
+
+        </span>
+
+      }
+
+    </div>
+
+    <button
+      class="card-item__link"
+      (click)="verPerfil(perfil); $event.stopPropagation()">
+
+      Ver perfil →
+
+    </button>
+
+  </div>
+
+</article>
+
+      }
+
+      @if (perfilesFiltrados().length === 0) {
+
+        <div class="directory-empty">
+          <p>
+            No se encontraron perfiles con esos criterios.
+          </p>
+        </div>
+
+      }
+
+    </section>
+
+    <div class="directory-actions">
+      <button class="btn-load-more">
+        Cargar más perfiles
+      </button>
+    </div>
+
+  </main>
+</div>

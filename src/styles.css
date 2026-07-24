@@ -16,7 +16,9 @@
   --color-ink-light:  #4a4a4a;
   --color-muted:      #888888;
   --color-divider:    #dddede;
-  --primary: 100 53% 36;  
+  --principal: #004e59; 
+  --primary: hsl(100 53% 36%);  
+  --secundary: hsl(100 15% 40%);
 
   /* Tipografía */
   --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -176,6 +178,13 @@ button {
   background-color: var(--color-sage);
   color: #fff;
   transform: translateY(-1px);
+}
+
+.icon-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: .5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { DetalleEvento } from './detalle-evento';
-import { EventosService } from '../../services/eventos.service';
+import { EventosService } from '../../../services/eventos.service';
 
 describe('DetalleEvento', () => {
   let component: DetalleEvento;
