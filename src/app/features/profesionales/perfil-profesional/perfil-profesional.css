@@ -148,7 +148,7 @@
   color: var(--secundary);
 }
 
-.contacto button {
+.contacto button {  
   width: 100%;
   margin-top: 12px;
   border-radius: 1rem;
@@ -157,15 +157,6 @@
 .contacto button:hover{
   background: #EFF3EC;
   transition-duration: .15s;
-}
-
-a {
-  display: flex;
-  align-items: center;
-  font-size: .875rem;
-  line-height: 1.25rem;
-  gap: .5rem;
-  padding: 8px;
 }
 
 .contacto{

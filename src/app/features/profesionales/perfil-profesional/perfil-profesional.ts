@@ -1,14 +1,15 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import {
-  SpecialistProfileService,
-  SpecialistProfileResponse
-} from '../../../services/profesionales.service';
+import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
 
 import { TarjetaDirectorio } from '../directorio/directorio';
-import { AppIcon, IconName } from '../../../shared/components/icon/icon';
+import { AppIcon } from '../../../shared/components/icon/icon';
+
+import {EventosService} from '../../../services/eventos.service';
+
+import {EventCardResponse} from '../../../shared/models/evento.model';
 
 @Component({
   selector: 'app-perfil-profesional',
@@ -31,7 +32,12 @@ export class PerfilProfesional implements OnInit {
   private readonly specialistProfileService =
     inject(SpecialistProfileService);
 
-  perfil: TarjetaDirectorio | null = null;
+  perfil = signal<TarjetaDirectorio | null>(null);
+
+  private readonly eventosService =
+    inject(EventosService);
+
+  eventos: EventCardResponse[] = [];
 
   ngOnInit(): void {
 
@@ -57,13 +63,16 @@ export class PerfilProfesional implements OnInit {
 
         next: (perfilBackend) => {
 
-          this.perfil =
-            this.convertirPerfil(perfilBackend);
+          this.perfil.set(
+            this.convertirPerfil(perfilBackend)
+          );
 
+          this.cargarEventos(
+            perfilBackend.id
+          );
         },
 
         error: (error) => {
-
           console.error(
             'Error al cargar el perfil:',
             error
@@ -72,11 +81,37 @@ export class PerfilProfesional implements OnInit {
           this.router.navigate([
             '/profesionales'
           ]);
-
         }
-
       });
+  }
 
+  cargarEventos(
+    organizerId: number
+  ): void {
+
+    this.eventosService
+      .getEventosPorOrganizador(
+        organizerId
+      )
+      .subscribe({
+
+        next: (response) => {
+          this.eventos =
+            response.content;
+
+          console.log(
+            'Eventos cargados:',
+            this.eventos
+          );
+        },
+
+        error: (error) => {
+          console.error(
+            'Error al cargar eventos:',
+            error
+          );
+        }
+      });
   }
 
   private convertirPerfil(
