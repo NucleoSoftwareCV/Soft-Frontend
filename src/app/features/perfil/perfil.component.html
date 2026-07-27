@@ -913,7 +913,7 @@
           </div>
         } @else {
           <div class="mi-espacio__siguiendo-list">
-            @for (professional of followedProfessionals(); track professional.id) {
+            @for (professional of followedProfessionals(); track professional.professionalId) {
               <div class="following-card">
                 @if (professional.photoUrl) {
                   <img class="following-card__avatar following-card__avatar--image" [src]="professional.photoUrl" [alt]="professional.publicName" />
@@ -924,7 +924,7 @@
                   <h3 class="following-card__name">{{ professional.publicName }}</h3>
                   <p class="following-card__role">{{ profileCategoryLabel(professional.profileCategory) }}</p>
                 </div>
-                <a routerLink="/profesionales" class="btn-outline following-card__btn">Ver perfil</a>
+                <a [routerLink]="['/profesionales', professional.slug]" class="btn-outline following-card__btn">Ver perfil</a>
               </div>
             }
           </div>

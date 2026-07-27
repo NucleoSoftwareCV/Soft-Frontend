@@ -4,7 +4,7 @@ export interface ProfessionalFollowStatusResponse {
 }
 
 export interface FollowedProfessionalResponse {
-  id: number;
+  professionalId: number;
   slug: string;
   publicName: string;
   profileCategory: string;

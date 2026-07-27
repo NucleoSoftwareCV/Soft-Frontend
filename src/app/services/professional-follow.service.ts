@@ -11,7 +11,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ProfessionalFollowService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/professional-follows`;
+  private readonly baseUrl = `${environment.apiUrl}/interactions/me/professional-follows`;
 
   follow(professionalId: number): Observable<ProfessionalFollowStatusResponse> {
     return this.http.put<ProfessionalFollowStatusResponse>(`${this.baseUrl}/${professionalId}`, {});
@@ -22,7 +22,7 @@ export class ProfessionalFollowService {
   }
 
   getStatus(professionalId: number): Observable<ProfessionalFollowStatusResponse> {
-    return this.http.get<ProfessionalFollowStatusResponse>(`${this.baseUrl}/${professionalId}`);
+    return this.http.get<ProfessionalFollowStatusResponse>(`${this.baseUrl}/${professionalId}/status`);
   }
 
   getFollowedProfessionals(page = 0, size = 5): Observable<FollowedProfessionalPageResponse> {
