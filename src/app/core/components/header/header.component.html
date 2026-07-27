@@ -3,7 +3,7 @@
 
     <!-- Logo -->
     <a routerLink="/" class="header__logo" (click)="closeMobileMenu()" aria-label="Oona – Inicio">
-      oona.
+      <img src="/assets/oona-logo.webp" alt="Oona" class="header__logo-image">
     </a>
 
     <!-- Nav principal (desktop) -->
@@ -46,11 +46,13 @@
           [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '')"
           type="button"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <line x1="4" y1="6"  x2="20" y2="6"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
-            <line x1="11" y1="18" x2="13" y2="18"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/>
+            <line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/>
+            <line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/>
+            <line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/>
+            <line x1="16" x2="16" y1="18" y2="22"/>
           </svg>
           @if (activeFilterCount > 0) {
             <span class="header__filter-badge">{{ activeFilterCount }}</span>
@@ -79,9 +81,9 @@
       <div class="header__city-wrap">
         <button class="header__city-btn" (click)="toggleCity()"
                 [attr.aria-expanded]="isCityOpen()" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
           <span>{{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}</span>
@@ -113,57 +115,57 @@
       <!-- Pin ciudad (solo móvil horizontal 480–767px) -->
       <button class="header__icon-btn header__icon-btn--mobile-only"
               aria-label="Ciudad" type="button" (click)="toggleCity()">
-        <svg width="17" height="17" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
           <circle cx="12" cy="10" r="3"/>
         </svg>
       </button>
 
       <!-- Favoritos -->
-      <button class="header__icon-btn" aria-label="Mis favoritos" type="button">
-        <svg width="17" height="17" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
-                   a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                   1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <a routerLink="/perfil" [queryParams]="{ tab: 'guardados' }" class="header__icon-btn" aria-label="Mis favoritos">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
         </svg>
-      </button>
+      </a>
 
       <!-- Perfil / Usuario -->
       <div class="header__profile-container">
         @if (!authService.isLoggedIn) {
           <!-- Enlace normal a login si no está logueado -->
           <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión">
-            <svg width="17" height="17" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/>
+              <circle cx="12" cy="12" r="10"/>
             </svg>
           </a>
         } @else {
           <!-- Botón de Avatar si está logueado -->
           <button (click)="toggleProfilePopover()" class="header__avatar-btn" aria-label="Mi cuenta" type="button">
             <span class="header__avatar-initial">{{ getUserInitial() }}</span>
-            <span class="header__avatar-badge"></span>
           </button>
           
           <!-- Popover Dropdown -->
           @if (isProfilePopoverOpen()) {
+            <div class="popover-backdrop" (click)="closeProfilePopover()"></div>
             <div class="profile-popover">
               
               <!-- Tarjeta de Usuario -->
               <div class="profile-popover__user-card">
-                <div class="profile-popover__avatar-circle">
-                  {{ getUserInitial() }}
-                </div>
-                <div class="profile-popover__user-info">
-                  <span class="profile-popover__username">Hola, {{ getUsername() }}</span>
-                  <span class="profile-popover__usersub">Tu espacio personal</span>
+                <div class="profile-popover__user-left" style="display: flex; align-items: center; gap: 12px;">
+                  <div class="profile-popover__avatar-circle">
+                    {{ getUserInitial() }}
+                  </div>
+                  <div class="profile-popover__user-info" style="display: flex; flex-direction: column;">
+                    <span class="profile-popover__username">Hola, {{ getUsername() }}</span>
+                    <span class="profile-popover__usersub">Tu espacio personal</span>
+                  </div>
                 </div>
                 <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__view-profile-link">
                   Ver perfil
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
                 </a>
@@ -173,28 +175,51 @@
               <ul class="profile-popover__menu">
                 <li>
                   <a routerLink="/explorar" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">🧭</span>
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                      </svg>
+                    </span>
                     <span class="profile-popover__item-text">Explorar</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
                 </li>
                 <li>
                   <a routerLink="/sesiones" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">✦</span>
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                      </svg>
+                    </span>
                     <span class="profile-popover__item-text">Sesiones 1:1</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
                 </li>
                 <li>
                   <a routerLink="/profesionales" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">👥</span>
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </span>
                     <span class="profile-popover__item-text">Profesionales</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
                 </li>
                 <li>
                   <a routerLink="/match-bienestar" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">🤝</span>
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <line x1="19" y1="8" x2="19" y2="14"/>
+                        <line x1="22" y1="11" x2="16" y2="11"/>
+                      </svg>
+                    </span>
                     <span class="profile-popover__item-text">Conocer gente</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
@@ -207,16 +232,32 @@
               <div class="profile-popover__section-title">TU ESPACIO</div>
               <ul class="profile-popover__menu">
                 <li>
-                  <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">✨</span>
-                    <span class="profile-popover__item-text">Completar preferencias</span>
+                  <a routerLink="/perfil" [queryParams]="{ tab: 'guardados' }" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                      </svg>
+                    </span>
+                    <span class="profile-popover__item-text">Mi espacio</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
                 </li>
                 <li>
-                  <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">💙</span>
-                    <span class="profile-popover__item-text">Mi espacio</span>
+                  <a routerLink="/perfil" [queryParams]="{ tab: 'perfil' }" (click)="closeProfilePopover()" class="profile-popover__item">
+                    <span class="profile-popover__item-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <line x1="4" y1="21" x2="4" y2="14"/>
+                        <line x1="4" y1="10" x2="4" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12" y2="3"/>
+                        <line x1="20" y1="21" x2="20" y2="16"/>
+                        <line x1="20" y1="12" x2="20" y2="3"/>
+                        <line x1="1" y1="14" x2="7" y2="14"/>
+                        <line x1="9" y1="8" x2="15" y2="8"/>
+                        <line x1="17" y1="16" x2="23" y2="16"/>
+                      </svg>
+                    </span>
+                    <span class="profile-popover__item-text">Mis preferencias</span>
                     <span class="profile-popover__item-arrow">›</span>
                   </a>
                 </li>
@@ -225,13 +266,13 @@
               <!-- Banner de WhatsApp -->
               <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" class="profile-popover__whatsapp-banner">
                 <div class="profile-popover__whatsapp-icon-wrap">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.483 1.966 14.022 1.96 12.01 1.96c-5.44 0-9.866 4.372-9.87 9.802 0 1.714.47 3.387 1.357 4.881l-.994 3.63 3.771-.98-.227-.129z"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.003 5.324 5.328 0 11.859 0c3.161.001 6.132 1.233 8.369 3.472 2.236 2.239 3.466 5.213 3.465 8.376-.003 6.536-5.328 11.86-11.859 11.86-2.007-.001-3.98-.51-5.727-1.479L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.725 1.45 5.535 0 10.04-4.502 10.04-10.038.002-2.679-1.04-5.197-2.934-7.093C16.538 1.577 14.024.536 11.352.536 5.817.536 1.312 5.04 1.31 10.576c0 1.702.49 3.328 1.479 4.76L1.734 21.05l5.913-1.896zm12.39-4.9c-.3-.15-1.77-.875-2.04-.975-.27-.1-.47-.15-.67.15-.2.3-.77.975-.94 1.175-.17.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.49-.895-.8-1.5-1.785-1.675-2.085-.175-.3-.02-.46.13-.61.135-.13.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.67-1.62-.92-2.2-.24-.58-.49-.5-.67-.51-.18-.01-.38-.015-.58-.015s-.52.075-.79.37c-.27.295-1.03 1.005-1.03 2.455s1.055 2.855 1.2 3.05c.145.2 2.08 3.175 5.035 4.455.7.3 1.25.485 1.675.62.705.225 1.345.195 1.85.12.565-.085 1.77-.725 2.02-1.42.25-.695.25-1.295.175-1.42-.075-.13-.275-.205-.575-.355z"/>
                   </svg>
                 </div>
                 <div class="profile-popover__whatsapp-text">
                   <span class="profile-popover__whatsapp-title">Comunidad Oona en WhatsApp</span>
-                  <span class="profile-popover__whatsapp-sub">+1.000 personas</span>
+                  <span class="profile-popover__whatsapp-sub" style="color: #fbd38d !important; font-weight: 600;">+1.000 personas</span>
                 </div>
                 <span class="profile-popover__whatsapp-btn">Entrar</span>
               </a>

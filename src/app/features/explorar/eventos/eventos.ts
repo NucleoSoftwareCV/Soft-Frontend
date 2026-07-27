@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { EventosService } from '../../../services/eventos.service';
 import { FiltrosService } from '../../../services/filtros.service';
+import { FavoritesService } from '../../../services/favorites.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   CategoryResponse,
   EventCardResponse,
@@ -30,13 +32,18 @@ interface EventSortOption {
 export class Eventos {
   private readonly eventosService = inject(EventosService);
   private readonly filtrosService = inject(FiltrosService);
+  private readonly router = inject(Router);
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
   totalEventos = signal(0);
   loading = signal(false);
   error = signal<string | null>(null);
-  favoritos = signal<Set<number>>(new Set());
+  
+  readonly favoritesService = inject(FavoritesService);
+  readonly authService = inject(AuthService);
+  readonly favoritos = this.favoritesService.favoritedEventIds;
+
   showDatePicker = signal(false);
   showSortMenu = signal(false);
   expandedDescription = signal(false);
@@ -150,10 +157,14 @@ export class Eventos {
   }
 
   toggleFavorito(item: EventCardResponse) {
-    this.favoritos.update(current => {
-      const next = new Set(current);
-      next.has(item.id) ? next.delete(item.id) : next.add(item.id);
-      return next;
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.favoritesService.toggleFavorite('EVENTO', item.id).subscribe({
+      error: err => {
+        console.error('Error toggling favorite', err);
+      }
     });
   }
 

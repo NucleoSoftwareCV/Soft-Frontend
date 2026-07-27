@@ -118,6 +118,7 @@
 
           <button
             class="hero-btn acciones"
+            [class.active-heart]="favorito()"
             (click)="toggleFavorito()">
 
             {{ favorito() ? '♥' : '♡' }}
@@ -136,7 +137,7 @@
     <div class="title-row">
       <h1>{{ event.title }}</h1>
       <div class="actions">
-        <button><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share h-4 w-4"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg></button>            <button (click)="toggleFavorito()">
+        <button><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share h-4 w-4"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg></button>            <button [class.active-heart]="favorito()" (click)="toggleFavorito()">
           {{ favorito() ? '♥' : '♡' }}
           </button>
       </div>
@@ -154,11 +155,17 @@
               </div>
             </div>
 
-            <button class="follow-btn">
+            <button
+              class="follow-btn"
+              type="button"
+              [class.follow-btn--active]="following()"
+              [disabled]="followLoading()"
+              (click)="toggleFollow()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> 
-              Seguir
+              {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
             </button>
           </article>
+          <p class="follow-error" *ngIf="followError()">{{ followError() }}</p>
 
           <article class="info-card">
             <div class="section-title">
@@ -329,7 +336,12 @@
             <svg _ngcontent-ng-c2669232257="" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path _ngcontent-ng-c2669232257="" d="M5 12h14"></path><path _ngcontent-ng-c2669232257="" d="m12 5 7 7-7 7"></path></svg>
           </button>
           
-          <div class="question-box">
+          <a
+            *ngIf="whatsappUrl() as contactUrl; else contactoNoDisponible"
+            class="question-box"
+            [href]="contactUrl"
+            target="_blank"
+            rel="noopener noreferrer">
             <div class="question-icon">
               <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle h-5 w-5 text-primary"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
             </div>
@@ -338,7 +350,18 @@
               <p>¿Tienes alguna pregunta para el organizador?</p>
               <small>Contactar por WhatsApp</small>
             </div>
-          </div>
+          </a>
+          <ng-template #contactoNoDisponible>
+            <div class="question-box question-box--disabled">
+              <div class="question-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
+              </div>
+              <div class="question-text">
+                <p>Contacto no disponible</p>
+                <small>El organizador no ha publicado su WhatsApp.</small>
+              </div>
+            </div>
+          </ng-template>
         </div>
       </section>
 
