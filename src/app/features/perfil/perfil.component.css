@@ -1100,17 +1100,17 @@
 }
 
 .mi-espacio {
-  max-width: 1024px;
+  max-width: 1142px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 72px 24px 36px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   animation: fadeIn 0.3s ease-out;
 }
 
 .mi-espacio__back-wrap {
-  margin-bottom: -10px;
+  margin-bottom: 0;
 }
 
 .mi-espacio__back-link {
@@ -1130,12 +1130,12 @@
 
 .mi-espacio__header-card {
   background-color: #ffffff;
-  border-radius: 1.5rem;
-  padding: 36px 40px;
+  border-radius: 18px;
+  padding: 17px 26px;
   box-shadow: 0 2px 12px rgba(0, 78, 89, 0.06);
   display: flex;
   flex-direction: column;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .mi-espacio__header {
@@ -1152,12 +1152,12 @@
   color: #789972;
   letter-spacing: 0.1em;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .mi-espacio__title {
   font-family: var(--font-display, serif);
-  font-size: 2.2rem;
+  font-size: 1.85rem;
   font-weight: 700;
   color: #004e59;
   margin: 0 0 6px 0;
@@ -1174,7 +1174,7 @@
   background-color: #ffffff;
   border: 1px solid #004e59;
   border-radius: 9999px;
-  padding: 10px 20px;
+  padding: 8px 16px;
   font-family: var(--font-body, sans-serif);
   font-size: 0.78rem;
   font-weight: 600;
@@ -1196,7 +1196,7 @@
   display: flex;
   flex-direction: row;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 16px;
   flex-wrap: wrap;
 }
 
@@ -1205,7 +1205,7 @@
   border: 1px solid rgba(0, 78, 89, 0.08);
   box-shadow: 0 1px 3px rgba(0, 78, 89, 0.02);
   border-radius: 9999px; /* Pill shape */
-  padding: 8px 18px;
+  padding: 6px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1234,23 +1234,23 @@
   background-color: #ffffff;
   border-radius: 9999px;
   border: 1px solid #eef2f5;
-  padding: 6px;
+  padding: 3px;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 6px;
   box-shadow: 0 2px 12px rgba(0, 78, 89, 0.04);
 }
 
 .mi-espacio__tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .mi-espacio__tab-btn {
   background: none;
   border: none;
-  padding: 10px 16px;
+  padding: 7px 16px;
   font-family: var(--font-body, sans-serif);
   font-size: var(--text-sm, 0.88rem);
   font-weight: 600;
@@ -1283,7 +1283,7 @@
 }
 
 .mi-espacio__tab-content {
-  padding: 24px 0;
+  padding: 14px 0;
 }
 
 /* ── Pestaña Reservas (Vacío) ── */
@@ -1293,26 +1293,26 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 60px 24px;
+  padding: 42px 24px;
   background-color: transparent;
   border: none;
 }
 
 .mi-espacio__empty-icon-wrap {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background-color: #dbeae6;
   color: #004e59;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .mi-espacio__empty-title {
   font-family: var(--font-display, serif);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #004e59;
   margin: 0 0 10px 0;
@@ -1323,13 +1323,67 @@
   color: #555;
   max-width: 440px;
   line-height: 1.6;
-  margin: 0 0 24px 0;
+  margin: 0 0 18px 0;
 }
 
 .mi-espacio__empty-btn {
-  padding: 12px 32px;
+  padding: 10px 22px;
   text-decoration: none;
   font-weight: 700;
+}
+
+@media (max-width: 899px) {
+  .mi-espacio {
+    padding: 32px 18px;
+  }
+
+  .mi-espacio__header-card {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 639px) {
+  .mi-espacio {
+    padding: 22px 14px 32px;
+    gap: 14px;
+  }
+
+  .mi-espacio__header-card {
+    padding: 20px 18px;
+  }
+
+  .mi-espacio__header {
+    gap: 18px;
+  }
+
+  .mi-espacio__header-right,
+  .mi-espacio__preferences-btn {
+    width: 100%;
+  }
+
+  .mi-espacio__preferences-btn {
+    justify-content: center;
+  }
+
+  .mi-espacio__title {
+    font-size: 1.7rem;
+  }
+
+  .mi-espacio__tabs-container {
+    border-radius: 14px;
+  }
+
+  .mi-espacio__tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .mi-espacio__tab-btn {
+    min-height: 38px;
+  }
+
+  .mi-espacio__empty-state {
+    padding: 30px 14px;
+  }
 }
 
 /* ── Pestaña Guardados (Horizontal Layout matching oona.es) ── */

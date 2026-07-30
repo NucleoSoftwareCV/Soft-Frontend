@@ -26,7 +26,7 @@ export class FooterComponent {
       title: 'Para profesionales',
       links: [
         { label: 'Publicar evento', path: '/publicar' },
-        { label: 'Crear perfil',    path: '/registro-profesional' },
+        { label: 'Circulo Oona',    path: '/circulo-oona' },
         { label: 'Cómo funciona',   path: '/como-funciona' },
         { label: 'Tarifas',         path: '/tarifas' },
       ],

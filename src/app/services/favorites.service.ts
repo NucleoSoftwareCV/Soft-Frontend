@@ -1,27 +1,46 @@
-import { inject, Injectable, signal, effect } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, Observable, tap, throwError } from 'rxjs';
+
 import { environment } from '../../environments/environment';
-import { FavoriteEntityType, FavoriteIdsResponse, FavoriteResponse } from '../shared/models/favorites.model';
+import {
+  FavoriteEntityType,
+  FavoriteResponse,
+} from '../shared/models/favorites.model';
 import { AuthService } from '../core/services/auth.service';
+
+interface EventFavoriteApiResponse {
+  id: number;
+  eventId: number;
+  title: string;
+  summary: string;
+  categoryName: string;
+  modality: string;
+  eventType: string;
+  priceFrom: number;
+  currency: string;
+  savedAt: string;
+}
+
+interface EventFavoriteStatusApiResponse {
+  eventId: number;
+  favorite: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class FavoritesService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
-  private readonly BASE = `${environment.apiUrl}`;
+  private readonly eventFavoritesUrl =
+    `${environment.apiUrl}/interactions/me/event-favorites`;
 
-  // Signals reactivas para el estado global de favoritos
   readonly favoritedEventIds = signal<Set<number>>(new Set());
   readonly favoritedServiceIds = signal<Set<number>>(new Set());
   readonly favoritedProfessionalIds = signal<Set<number>>(new Set());
 
   constructor() {
-    // Escuchar cambios en la sesión de usuario de forma reactiva
     effect(() => {
-      const user = this.authService.currentUser();
-      if (user) {
+      if (this.authService.currentUser()) {
         this.loadFavoriteIds();
       } else {
         this.clearFavorites();
@@ -29,53 +48,75 @@ export class FavoritesService {
     });
   }
 
-  private clearFavorites(): void {
-    this.favoritedEventIds.set(new Set());
-    this.favoritedServiceIds.set(new Set());
-    this.favoritedProfessionalIds.set(new Set());
-  }
-
   loadFavoriteIds(): void {
     if (!this.authService.isLoggedIn) return;
-    this.http.get<FavoriteIdsResponse>(`${this.BASE}/favorites/ids`).subscribe({
-      next: res => {
-        this.favoritedEventIds.set(new Set(res.eventIds));
-        this.favoritedServiceIds.set(new Set(res.serviceIds));
-        this.favoritedProfessionalIds.set(new Set(res.professionalIds));
+
+    this.getFavoriteEvents().subscribe({
+      next: favorites => {
+        this.favoritedEventIds.set(
+          new Set(favorites.map(favorite => favorite.eventId))
+        );
       },
-      error: err => {
-        console.error('Error al cargar IDs de favoritos', err);
-      }
+      error: error => {
+        console.error('Error al cargar eventos favoritos', error);
+      },
     });
   }
 
-  toggleFavorite(entityType: FavoriteEntityType, entityId: number): Observable<{ favorited: boolean }> {
-    return this.http.post<{ favorited: boolean }>(`${this.BASE}/favorites/toggle`, { entityType, entityId }).pipe(
-      tap(res => {
-        if (entityType === 'EVENTO') {
-          this.favoritedEventIds.update(set => {
-            const next = new Set(set);
-            res.favorited ? next.add(entityId) : next.delete(entityId);
-            return next;
-          });
-        } else if (entityType === 'SERVICIO') {
-          this.favoritedServiceIds.update(set => {
-            const next = new Set(set);
-            res.favorited ? next.add(entityId) : next.delete(entityId);
-            return next;
-          });
-        } else if (entityType === 'PROFESIONAL') {
-          this.favoritedProfessionalIds.update(set => {
-            const next = new Set(set);
-            res.favorited ? next.add(entityId) : next.delete(entityId);
-            return next;
-          });
-        }
+  toggleFavorite(
+    entityType: FavoriteEntityType,
+    entityId: number
+  ): Observable<{ favorited: boolean }> {
+    if (entityType !== 'EVENTO') {
+      return throwError(
+        () => new Error('El backend actual solo admite favoritos de eventos.')
+      );
+    }
+
+    const isFavorite = this.favoritedEventIds().has(entityId);
+    const request = isFavorite
+      ? this.http.delete<EventFavoriteStatusApiResponse>(
+          `${this.eventFavoritesUrl}/${entityId}`
+        )
+      : this.http.put<EventFavoriteStatusApiResponse>(
+          `${this.eventFavoritesUrl}/${entityId}`,
+          {}
+        );
+
+    return request.pipe(
+      map(response => ({ favorited: response.favorite })),
+      tap(response => {
+        this.favoritedEventIds.update(current => {
+          const next = new Set(current);
+          response.favorited ? next.add(entityId) : next.delete(entityId);
+          return next;
+        });
       })
     );
   }
 
   getFavorites(): Observable<FavoriteResponse[]> {
-    return this.http.get<FavoriteResponse[]>(`${this.BASE}/favorites`);
+    return this.getFavoriteEvents().pipe(
+      map(favorites =>
+        favorites.map(favorite => ({
+          entityType: 'EVENTO' as const,
+          entityId: favorite.eventId,
+          title: favorite.title,
+          categoryName: favorite.categoryName,
+          price: favorite.priceFrom,
+          currency: favorite.currency,
+        }))
+      )
+    );
+  }
+
+  private getFavoriteEvents(): Observable<EventFavoriteApiResponse[]> {
+    return this.http.get<EventFavoriteApiResponse[]>(this.eventFavoritesUrl);
+  }
+
+  private clearFavorites(): void {
+    this.favoritedEventIds.set(new Set());
+    this.favoritedServiceIds.set(new Set());
+    this.favoritedProfessionalIds.set(new Set());
   }
 }

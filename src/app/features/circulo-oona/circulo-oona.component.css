@@ -1,0 +1,258 @@
+.circle-page {
+  min-height: calc(100vh - 72px);
+  color: #004257;
+  background: #f7f8f4;
+}
+
+.circle-hero {
+  min-height: 330px;
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(0, 45, 55, 0.86), rgba(0, 45, 55, 0.22)),
+    url('https://oona.es/circulo-oona/info-hero.jpg') center 40% / cover;
+}
+
+.circle-hero__content,
+.circle-content {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.circle-hero__content {
+  color: #fff;
+}
+
+.circle-hero .circle-hero__content h1,
+.circle-hero .circle-hero__content p {
+  color: #fff;
+}
+
+.circle-eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.circle-hero h1 {
+  max-width: 680px;
+  margin: 0;
+  font-family: var(--font-display, serif);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.circle-hero p:last-child {
+  max-width: 580px;
+  margin: 18px 0 0;
+  line-height: 1.6;
+}
+
+.circle-content {
+  padding: 48px 0 72px;
+}
+
+.circle-state,
+.circle-form-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #dce5df;
+  border-radius: 8px;
+  padding: clamp(24px, 5vw, 48px);
+}
+
+.circle-state {
+  text-align: center;
+}
+
+.circle-state h2,
+.circle-form-heading h2 {
+  margin: 10px 0;
+  font-family: var(--font-display, serif);
+  font-size: 1.8rem;
+  letter-spacing: 0;
+}
+
+.circle-state p,
+.circle-form-heading p {
+  color: #567067;
+  line-height: 1.55;
+}
+
+.circle-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.circle-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #12615d;
+  border-radius: 6px;
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.circle-button--primary {
+  color: #fff;
+  background: #12615d;
+}
+
+.circle-button--secondary {
+  color: #12615d;
+  background: #fff;
+}
+
+.circle-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.circle-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #2e6f30;
+  background: #e8f4e5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.circle-status--pending {
+  color: #8a5a16;
+  background: #fff0d5;
+}
+
+.circle-status--rejected {
+  color: #9a342d;
+  background: #fce5e2;
+}
+
+.circle-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.circle-form label:not(.circle-check) {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #234f4b;
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.circle-form input,
+.circle-form select,
+.circle-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c9d8d2;
+  border-radius: 6px;
+  padding: 11px 12px;
+  color: #163f3c;
+  background: #fff;
+  font: inherit;
+}
+
+.circle-form input:focus,
+.circle-form select:focus,
+.circle-form textarea:focus {
+  outline: 2px solid rgba(18, 97, 93, 0.18);
+  border-color: #12615d;
+}
+
+.circle-form input[readonly] {
+  color: #657b75;
+  background: #f1f4f1;
+}
+
+.circle-form small {
+  align-self: flex-end;
+  color: #758983;
+  font-weight: 400;
+}
+
+.circle-form__wide {
+  grid-column: 1 / -1;
+}
+
+.circle-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #45635d;
+  font-size: 0.86rem;
+}
+
+.circle-check input {
+  width: 17px;
+  flex: 0 0 17px;
+  margin-top: 2px;
+}
+
+.circle-message {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+
+.circle-message--error {
+  color: #8e2f2a;
+  background: #fce9e7;
+}
+
+.circle-message--success {
+  color: #2e6f30;
+  background: #e8f4e5;
+}
+
+.circle-spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border: 3px solid #d6e2dd;
+  border-top-color: #12615d;
+  border-radius: 50%;
+  animation: circle-spin 0.8s linear infinite;
+}
+
+@keyframes circle-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .circle-hero {
+    min-height: 280px;
+  }
+
+  .circle-hero__content,
+  .circle-content {
+    width: min(100% - 28px, 1120px);
+  }
+
+  .circle-form {
+    grid-template-columns: 1fr;
+  }
+
+  .circle-form__wide {
+    grid-column: auto;
+  }
+
+  .circle-actions {
+    flex-direction: column;
+  }
+}

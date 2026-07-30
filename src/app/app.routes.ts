@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -77,6 +78,14 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
 
+  {
+    path: 'circulo-oona',
+    loadComponent: () =>
+      import('./features/circulo-oona/circulo-oona.component')
+        .then(m => m.CirculoOonaComponent),
+    title: 'Circulo Oona | Solicitud profesional',
+  },
+
   // =========================
   // AUTENTICACIÓN
   // =========================
@@ -130,6 +139,7 @@ export const routes: Routes = [
 
   {
     path: 'admin',
+    canActivate: [roleGuard('ADMIN')],
     loadComponent: () =>
       import('./features/admin/admin.component')
         .then(m => m.AdminComponent),

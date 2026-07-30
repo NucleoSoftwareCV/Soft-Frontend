@@ -112,7 +112,7 @@
     }
 
     <!-- ═══════ PROFESIONALES ═══════ -->
-    @if (seccion() === 'profesionales') {
+    @if (false) {
       <section class="perfil-section">
         <h1 class="section-title">Gestionar Profesionales</h1>
         <div class="admin-table">
@@ -153,6 +153,83 @@
     }
 
     <!-- ═══════ EVENTOS ═══════ -->
+    @if (seccion() === 'profesionales') {
+      <section class="perfil-section">
+        <div class="admin-section-heading">
+          <h1 class="section-title">Solicitudes profesionales</h1>
+          <select
+            class="admin-filter"
+            [ngModel]="solicitudesStatus()"
+            (ngModelChange)="filtrarSolicitudes($event)"
+            aria-label="Filtrar solicitudes por estado"
+          >
+            <option [ngValue]="null">Todas</option>
+            <option value="PENDIENTE">Pendientes</option>
+            <option value="APROBADO">Aprobadas</option>
+            <option value="RECHAZADO">Rechazadas</option>
+          </select>
+        </div>
+
+        @if (solicitudesError()) {
+          <p class="admin-feedback admin-feedback--error">{{ solicitudesError() }}</p>
+        }
+
+        @if (solicitudesLoading()) {
+          <p class="admin-feedback">Cargando solicitudes...</p>
+        } @else {
+          <div class="admin-table">
+            <div class="admin-table-header admin-table-header--applications">
+              <span>Solicitante</span><span>Tipo</span><span>Ciudad</span><span>WhatsApp</span><span>Estado</span><span>Acciones</span>
+            </div>
+            @for (application of solicitudes(); track application.id) {
+              <div class="admin-table-row admin-table-row--applications">
+                <span>
+                  <strong>{{ application.fullName }}</strong>
+                  <small>{{ application.email }}</small>
+                </span>
+                <span>{{ application.professionalType }}</span>
+                <span>{{ application.cityName }}</span>
+                <span>{{ application.whatsappPhone }}</span>
+                <span>
+                  @if (application.status === 'APROBADO') {
+                    <span class="admin-badge admin-badge--ok">Aprobada</span>
+                  } @else if (application.status === 'PENDIENTE') {
+                    <span class="admin-badge admin-badge--warn">Pendiente</span>
+                  } @else {
+                    <span class="admin-badge admin-badge--err">Rechazada</span>
+                  }
+                </span>
+                <span class="admin-row-actions">
+                  @if (application.status === 'PENDIENTE') {
+                    <button class="admin-action-btn admin-action-btn--approve" (click)="aprobarSolicitud(application.id)">Aprobar</button>
+                    <button class="admin-action-btn admin-action-btn--reject" (click)="iniciarRechazo(application.id)">Rechazar</button>
+                  }
+                </span>
+                <p class="admin-application-motivation">{{ application.motivation }}</p>
+                @if (rejectingId() === application.id) {
+                  <div class="admin-rejection">
+                    <textarea [(ngModel)]="rejectionReason" maxlength="500" rows="3" placeholder="Motivo del rechazo"></textarea>
+                    <button class="admin-action-btn admin-action-btn--reject" (click)="confirmarRechazo(application.id)">Confirmar</button>
+                    <button class="admin-action-btn" (click)="cancelarRechazo()">Cancelar</button>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <p class="admin-feedback">No hay solicitudes con este estado.</p>
+            }
+          </div>
+
+          @if (solicitudesTotalPages() > 1) {
+            <nav class="admin-pagination" aria-label="Paginacion de solicitudes">
+              <button class="admin-action-btn" [disabled]="solicitudesPage() === 0" (click)="cargarSolicitudes(solicitudesPage() - 1)">Anterior</button>
+              <span>Pagina {{ solicitudesPage() + 1 }} de {{ solicitudesTotalPages() }}</span>
+              <button class="admin-action-btn" [disabled]="solicitudesPage() + 1 >= solicitudesTotalPages()" (click)="cargarSolicitudes(solicitudesPage() + 1)">Siguiente</button>
+            </nav>
+          }
+        }
+      </section>
+    }
+
     @if (seccion() === 'eventos') {
       <section class="perfil-section">
         <h1 class="section-title">Gestionar Eventos</h1>

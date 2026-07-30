@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   height: 64px;
-  max-width: 1280px;
+  max-width: 1160px;
   padding: 0 32px;
   margin-inline: auto;
   gap: 24px;
@@ -34,13 +34,13 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  margin-right: 0;
+  margin-right: 12px;
 }
 
 .header__logo-image {
   display: block;
   width: auto;
-  height: 28px;
+  height: 24px;
   object-fit: contain;
 }
 
@@ -50,7 +50,7 @@
 .header__nav-list {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 16px;
 }
 
 .header__nav-link {
@@ -58,7 +58,7 @@
   display: inline-flex;
   align-items: center;
   height: 36px;
-  padding: 8px 12px;
+  padding: 8px 0;
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
@@ -711,17 +711,17 @@
   position: absolute;
   right: 0;
   top: 100%;
-  margin-top: 12px;
-  width: 320px;
+  margin-top: 8px;
+  width: 360px;
   background-color: #ffffff;
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   border: 1px solid var(--color-divider);
   box-shadow: var(--shadow-lg);
-  padding: 24px;
+  padding: 14px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
   animation: popoverFadeIn 0.2s ease-out;
 }
 
@@ -740,13 +740,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0 16px 0;
+  min-height: 86px;
+  padding: 10px 8px 16px;
   border-bottom: 1px solid #f0f4f7;
 }
 
 .profile-popover__avatar-circle {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: #eef2f5;
   color: #004e59;
@@ -756,7 +757,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1px solid #c8dce1;
 }
 
 .profile-popover__user-info {
@@ -780,17 +781,24 @@
 }
 
 .profile-popover__view-profile-link {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-top: 1.5px solid #e2e8f1;
-  margin-top: var(--space-2);
-  padding-top: 12px;
+  justify-content: flex-end;
+  gap: 7px;
+  border-top: 0;
+  margin: 0;
+  padding: 0;
   font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-sage);
   transition: color var(--transition-fast);
+}
+
+.profile-popover__view-profile-link::before {
+  content: "";
+  width: 38px;
+  height: 1px;
+  background-color: #e2eaec;
 }
 
 .profile-popover__view-profile-link:hover {
@@ -811,14 +819,16 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
+  padding: 8px 0;
 }
 
 .profile-popover__item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 8px 12px;
+  gap: 12px;
+  min-height: 52px;
+  padding: 7px 8px;
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast);
   text-decoration: none;
@@ -834,8 +844,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d2e1e4;
+  border-radius: 50%;
 }
 
 .profile-popover__item-text {
@@ -854,7 +866,7 @@
 .profile-popover__divider {
   height: 1px;
   background-color: var(--color-divider);
-  margin: 2px 0;
+  margin: 0 8px;
 }
 
 .profile-popover__section-title {
@@ -862,14 +874,15 @@
   font-weight: 600;
   color: var(--color-muted);
   letter-spacing: 0.08em;
-  padding-left: 12px;
-  margin-bottom: 2px;
+  padding: 15px 8px 3px;
+  margin: 0;
 }
 
 .profile-popover__whatsapp-banner {
   background: linear-gradient(135deg, #0b3a32 0%, #1e4d4d 100%);
-  border-radius: var(--radius-md);
-  padding: 14px 12px;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 4px 0 14px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -934,7 +947,7 @@
 
 .profile-popover__logout-wrap {
   border-top: 1px solid var(--color-divider);
-  padding-top: 14px;
+  padding: 14px 0 4px;
   display: flex;
   justify-content: center;
 }
@@ -1053,9 +1066,21 @@
   left: 0;
   width: 100vw;
   height: calc(100vh - 64px);
-  background-color: rgba(0, 78, 89, 0.04); /* very subtle dark teal color overlay */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(181, 207, 209, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 199; /* Below the header (z-index 200) and below the popover (z-index 1000) */
+}
+
+@media (max-width: 639px) {
+  .profile-popover {
+    position: fixed;
+    top: 64px;
+    right: 10px;
+    width: min(360px, calc(100vw - 20px));
+    max-height: calc(100vh - 74px);
+    margin-top: 0;
+    overflow-y: auto;
+  }
 }
 

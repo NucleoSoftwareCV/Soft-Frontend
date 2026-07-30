@@ -1,0 +1,145 @@
+<main class="circle-page">
+  <section class="circle-hero">
+    <div class="circle-hero__content">
+      <p class="circle-eyebrow">Circulo Oona</p>
+      <h1>Comparte tu bienestar con la comunidad</h1>
+      <p>
+        Envia tu solicitud para acceder a las herramientas profesionales de Oona.
+        La revision se realiza dentro de la plataforma.
+      </p>
+    </div>
+  </section>
+
+  <section class="circle-content">
+    @if (!currentUser()) {
+      <div class="circle-state">
+        <h2>Accede para enviar tu solicitud</h2>
+        <p>Necesitas una cuenta de usuario para consultar y conservar el estado del proceso.</p>
+        <div class="circle-actions">
+          <a routerLink="/auth/login" class="circle-button circle-button--primary">Iniciar sesion</a>
+          <a routerLink="/auth/login" class="circle-button circle-button--secondary">Crear cuenta</a>
+        </div>
+      </div>
+    } @else if (loading()) {
+      <div class="circle-state" aria-live="polite">
+        <div class="circle-spinner"></div>
+        <p>Consultando tu solicitud...</p>
+      </div>
+    } @else if (application()?.status === 'APROBADO') {
+      <div class="circle-state circle-state--approved">
+        <span class="circle-status">Solicitud aprobada</span>
+        <h2>Ya formas parte del Circulo Oona</h2>
+        <p>Actualiza tu sesion para activar el acceso y completar tu perfil profesional.</p>
+        @if (error()) {
+          <p class="circle-message circle-message--error">{{ error() }}</p>
+        }
+        <button
+          type="button"
+          class="circle-button circle-button--primary"
+          [disabled]="submitting()"
+          (click)="activateProfessionalAccess()"
+        >
+          {{ submitting() ? 'Actualizando...' : 'Acceder a mi perfil profesional' }}
+        </button>
+      </div>
+    } @else {
+      <div class="circle-form-wrap">
+        <div class="circle-form-heading">
+          @if (application()?.status === 'PENDIENTE') {
+            <span class="circle-status circle-status--pending">Revision pendiente</span>
+            <h2>Tu solicitud esta en revision</h2>
+            <p>Puedes actualizarla mientras el equipo de Oona la revisa.</p>
+          } @else if (application()?.status === 'RECHAZADO') {
+            <span class="circle-status circle-status--rejected">Necesita correcciones</span>
+            <h2>Corrige y reenvia tu solicitud</h2>
+            <p>{{ application()?.rejectionReason }}</p>
+          } @else {
+            <h2>Solicitud profesional</h2>
+            <p>Cuentanos brevemente sobre tu actividad. El email procede de tu cuenta.</p>
+          }
+        </div>
+
+        <form class="circle-form" (ngSubmit)="submit()" novalidate>
+          <label>
+            <span>Nombre completo</span>
+            <input type="text" name="fullName" [(ngModel)]="fullName" maxlength="120" required />
+          </label>
+
+          <label>
+            <span>Email</span>
+            <input type="email" [value]="currentUser()?.email" readonly />
+          </label>
+
+          <label>
+            <span>Ciudad</span>
+            <select name="cityId" [(ngModel)]="cityId" required>
+              <option [ngValue]="null" disabled>Selecciona una ciudad</option>
+              @for (city of cities(); track city.id) {
+                <option [ngValue]="city.id">{{ city.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Tipo profesional</span>
+            <select name="professionalType" [(ngModel)]="professionalType" required>
+              <option [ngValue]="null" disabled>Selecciona una opcion</option>
+              @for (type of professionalTypes; track type.value) {
+                <option [ngValue]="type.value">{{ type.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="circle-form__wide">
+            <span>WhatsApp</span>
+            <input
+              type="tel"
+              name="whatsappPhone"
+              [(ngModel)]="whatsappPhone"
+              placeholder="+34 600 000 000"
+              maxlength="20"
+              required
+            />
+          </label>
+
+          <label class="circle-form__wide">
+            <span>Motivacion o experiencia</span>
+            <textarea
+              name="motivation"
+              [(ngModel)]="motivation"
+              maxlength="500"
+              rows="5"
+              required
+            ></textarea>
+            <small>{{ motivation.length }}/500</small>
+          </label>
+
+          <label class="circle-check circle-form__wide">
+            <input
+              type="checkbox"
+              name="privacyAccepted"
+              [(ngModel)]="privacyAccepted"
+              required
+            />
+            <span>Acepto la politica de privacidad y el tratamiento de estos datos.</span>
+          </label>
+
+          @if (error()) {
+            <p class="circle-message circle-message--error circle-form__wide">{{ error() }}</p>
+          }
+          @if (success()) {
+            <p class="circle-message circle-message--success circle-form__wide">{{ success() }}</p>
+          }
+
+          <button
+            type="submit"
+            class="circle-button circle-button--primary circle-form__wide"
+            [disabled]="submitting()"
+          >
+            {{ submitting() ? 'Guardando...' : (application()?.status === 'RECHAZADO' ? 'Reenviar solicitud' : 'Guardar solicitud') }}
+          </button>
+        </form>
+      </div>
+    }
+  </section>
+</main>

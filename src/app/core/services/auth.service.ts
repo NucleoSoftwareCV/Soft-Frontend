@@ -50,7 +50,8 @@ export class AuthService {
           ...currentSession,
           token: response.accessToken,
           refreshToken: response.refreshToken,
-          type: response.tokenType
+          type: response.tokenType,
+          roles: response.roles
         };
         this.saveSession(updatedSession);
       })

@@ -1,6 +1,12 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ProfessionalApplicationService } from '../../services/professional-application.service';
+import {
+  ProfessionalApplicationResponse,
+  ProfessionalApplicationStatus,
+} from '../../shared/models/professional-application.model';
 
 type AdminSection = 'dashboard' | 'profesionales' | 'eventos' | 'usuarios' | 'config';
 
@@ -44,15 +50,25 @@ interface UsuarioItem {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
 export class AdminComponent {
+  private readonly applicationService = inject(ProfessionalApplicationService);
+
   seccion = signal<AdminSection>('dashboard');
   profesionales = signal<ProfesionalItem[]>([]);
   eventos = signal<EventoItem[]>([]);
   usuarios = signal<UsuarioItem[]>([]);
+  solicitudes = signal<ProfessionalApplicationResponse[]>([]);
+  solicitudesLoading = signal(false);
+  solicitudesError = signal<string | null>(null);
+  solicitudesPage = signal(0);
+  solicitudesTotalPages = signal(0);
+  solicitudesStatus = signal<ProfessionalApplicationStatus | null>('PENDIENTE');
+  rejectingId = signal<number | null>(null);
+  rejectionReason = '';
 
   constructor() {
     this.cargarDatosDemo();
@@ -97,7 +113,67 @@ export class AdminComponent {
     ]);
   }
 
-  cambiarSeccion(s: AdminSection): void { this.seccion.set(s); }
+  cambiarSeccion(s: AdminSection): void {
+    this.seccion.set(s);
+    if (s === 'profesionales') this.cargarSolicitudes(0);
+  }
+
+  cargarSolicitudes(page = this.solicitudesPage()): void {
+    this.solicitudesLoading.set(true);
+    this.solicitudesError.set(null);
+    this.applicationService.getForAdmin(this.solicitudesStatus(), page, 10).subscribe({
+      next: response => {
+        this.solicitudes.set(response.content);
+        this.solicitudesPage.set(response.number);
+        this.solicitudesTotalPages.set(response.totalPages);
+        this.solicitudesLoading.set(false);
+      },
+      error: () => {
+        this.solicitudesError.set('No se pudieron cargar las solicitudes.');
+        this.solicitudesLoading.set(false);
+      },
+    });
+  }
+
+  filtrarSolicitudes(status: ProfessionalApplicationStatus | null): void {
+    this.solicitudesStatus.set(status);
+    this.cargarSolicitudes(0);
+  }
+
+  aprobarSolicitud(id: number): void {
+    this.applicationService.decide(id, { status: 'APROBADO' }).subscribe({
+      next: () => this.cargarSolicitudes(),
+      error: () => this.solicitudesError.set('No se pudo aprobar la solicitud.'),
+    });
+  }
+
+  iniciarRechazo(id: number): void {
+    this.rejectingId.set(id);
+    this.rejectionReason = '';
+  }
+
+  cancelarRechazo(): void {
+    this.rejectingId.set(null);
+    this.rejectionReason = '';
+  }
+
+  confirmarRechazo(id: number): void {
+    const rejectionReason = this.rejectionReason.trim();
+    if (!rejectionReason) {
+      this.solicitudesError.set('Indica el motivo del rechazo.');
+      return;
+    }
+
+    this.applicationService
+      .decide(id, { status: 'RECHAZADO', rejectionReason })
+      .subscribe({
+        next: () => {
+          this.cancelarRechazo();
+          this.cargarSolicitudes();
+        },
+        error: () => this.solicitudesError.set('No se pudo rechazar la solicitud.'),
+      });
+  }
 
   // ── Dashboard computed ──
   totalProfesionales = computed(() => this.profesionales().length);

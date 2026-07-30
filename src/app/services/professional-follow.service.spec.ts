@@ -8,7 +8,7 @@ import { ProfessionalFollowService } from './professional-follow.service';
 describe('ProfessionalFollowService', () => {
   let service: ProfessionalFollowService;
   let http: HttpTestingController;
-  const baseUrl = `${environment.apiUrl}/professional-follows`;
+  const baseUrl = `${environment.apiUrl}/interactions/me/professional-follows`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({

@@ -83,7 +83,7 @@ export class LoginComponent {
 
   handleRegisterNavigation(): void {
     if (this.activeTab() === 'profesional') {
-      this.registerStep.set('professional-landing');
+      this.router.navigate(['/circulo-oona']);
     } else {
       this.registerStep.set('form');
     }
@@ -144,8 +144,7 @@ export class LoginComponent {
         }).subscribe({
           next: () => {
             this.isLoading.set(false);
-            const target = this.professionalType() ? '/perfil' : '/';
-            this.router.navigate([target]);
+            this.router.navigate(['/']);
           },
           error: (err) => {
             this.isLoading.set(false);
@@ -163,9 +162,7 @@ export class LoginComponent {
   }
 
   onProfessionalLeadSubmit(): void {
-    if (!this.firstName() || !this.city() || !this.email()) return;
-
-    this.registerStep.set('professional-type');
+    this.router.navigate(['/circulo-oona']);
   }
 
   professionalTypeLabel(): string {
@@ -175,10 +172,13 @@ export class LoginComponent {
 
   selectProfessionalType(type: string): void {
     this.professionalType.set(type);
-    this.registerStep.set('professional-google');
+    this.router.navigate(['/circulo-oona']);
   }
 
   onGoogleLogin(): void {
+    this.router.navigate(['/circulo-oona']);
+    return;
+
     if (this.registerStep() === 'professional-google') {
       this.registerStep.set('professional-form');
       return;
@@ -187,21 +187,6 @@ export class LoginComponent {
   }
 
   onProfessionalFormSubmit(): void {
-    if (!this.firstName() || !this.lastName() || !this.email()) return;
-
-    this.isLoading.set(true);
-
-    console.info('Datos profesionales:', {
-      nombre: this.firstName(),
-      apellidos: this.lastName(),
-      email: this.email(),
-      disciplina: this.professionalType(),
-      organizacion: this.organizationName() || '(independiente)',
-    });
-
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.router.navigate(['/perfil']);
-    }, 500);
+    this.router.navigate(['/circulo-oona']);
   }
 }

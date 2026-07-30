@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -29,7 +30,7 @@ describe('DetalleEvento', () => {
     follow: vi.fn(() => of({ professionalId: 3, following: true })),
     unfollow: vi.fn(() => of({ professionalId: 3, following: false })),
   };
-  const authService = { isLoggedIn: false };
+  const authService = { isLoggedIn: false, currentUser: signal(null) };
   const router = { url: '/evento/7', navigate: vi.fn() };
 
   beforeEach(async () => {
