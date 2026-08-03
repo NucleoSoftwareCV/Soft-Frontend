@@ -21,6 +21,7 @@ describe('PerfilProfesional', () => {
         {
           provide: SpecialistProfileService,
           useValue: {
+            resolveAssetUrl: vi.fn((url?: string | null) => url ?? ''),
             getPublicProfileBySlug: vi.fn(() => of({
               id: 1,
               slug: 'ana-yoga',

@@ -112,6 +112,23 @@
   background: #fde047;
 }
 
+.profile-follow-btn--active {
+  border-color: #1f6b56;
+  color: #fff;
+  background: #1f6b56;
+}
+
+.profile-follow-btn:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.profile-follow-error {
+  margin: 8px 0 0;
+  color: #a33a34;
+  font-size: .78rem;
+}
+
 /* Quote destacada */
 .profile-quote {
   border-left: 4px solid var(--primary);

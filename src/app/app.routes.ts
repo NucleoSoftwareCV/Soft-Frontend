@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -91,6 +92,14 @@ export const routes: Routes = [
   // =========================
 
   {
+    path: 'auth/erp/login',
+    loadComponent: () =>
+      import('./features/auth/admin-login/admin-login.component')
+        .then(m => m.AdminLoginComponent),
+    title: 'Acceso ERP - Oona',
+  },
+
+  {
     path: 'auth',
     loadComponent: () =>
       import('./features/auth/auth-shell/auth-shell.component')
@@ -126,6 +135,7 @@ export const routes: Routes = [
 
   {
     path: 'perfil',
+    canActivate: [roleGuard('USER')],
     loadComponent: () =>
       import('./features/perfil/perfil.component')
         .then(m => m.PerfilComponent),
@@ -139,12 +149,21 @@ export const routes: Routes = [
 
   {
     path: 'admin',
-    canActivate: [roleGuard('ADMIN')],
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./features/admin/admin.component')
         .then(m => m.AdminComponent),
 
     title: 'Panel de Administracion - Oona',
+  },
+
+  {
+    path: 'profesional',
+    canActivate: [roleGuard('PROFESSIONAL')],
+    loadComponent: () =>
+      import('./features/professional-portal/professional-portal.component')
+        .then(m => m.ProfessionalPortalComponent),
+    title: 'Panel profesional - Oona',
   },
 
   {

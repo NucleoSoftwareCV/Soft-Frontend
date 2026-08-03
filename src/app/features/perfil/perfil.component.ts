@@ -57,7 +57,8 @@ export class PerfilComponent implements OnInit {
 
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
-  readonly isProfessional = computed(() => this.authService.roles.includes('PROFESSIONAL') || this.authService.roles.includes('ADMIN'));
+  // La gestion profesional vive en /profesional; /perfil siempre es el espacio personal.
+  readonly isProfessional = computed(() => false);
   readonly followedProfessionals = signal<FollowedProfessionalResponse[]>([]);
   readonly followingLoading = signal(false);
   readonly followingError = signal<string | null>(null);

@@ -1,4 +1,36 @@
-@if (currentView() === 'register') {
+@if (roleChoice()) {
+<div class="login-layout">
+  <div class="login-image" aria-hidden="true">
+    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85" alt=""
+      class="login-image__img" width="900" height="1200" />
+  </div>
+  <main class="login-panel" aria-labelledby="login-title" style="justify-content: center; text-align: center;">
+    <a routerLink="/" class="login-panel__logo" aria-label="Oona — Volver al inicio">
+      oona.
+    </a>
+    <h1 class="login-panel__title" id="login-title">
+      ¡Bienvenido de vuelta!<br>
+      <em>¿A dónde quieres ir?</em>
+    </h1>
+    <div class="login-form-wrap" style="gap: var(--space-3);">
+      <button type="button" class="login-submit" (click)="goToProfessionalPanel()">
+        Ir a mi panel profesional
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+      <button type="button" class="login-submit"
+        style="background-color: var(--color-bg-card); color: var(--color-sage-dark); border: 1.5px solid var(--color-divider);"
+        (click)="goToPublicSite()">
+        Ver sitio público
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  </main>
+</div>
+} @else if (currentView() === 'register') {
   @if (registerStep() === 'professional-landing') {
   <div class="pro-landing-container" style="max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem; text-align: center;">
 
@@ -212,8 +244,19 @@
       </div>
 
       @if (errorMessage()) {
-      <div class="login-error-message" style="color: var(--color-ink, #ea4335); margin-bottom: var(--space-4); font-size: var(--text-sm); text-align: center;">
-        {{ errorMessage() }}
+      <div class="login-error-message" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="login-error-message__close" aria-label="Cerrar" (click)="dismissError()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
       }
 
@@ -251,9 +294,19 @@
       </a>
 
       @if (errorMessage()) {
-      <div class="login-error-message"
-        style="color: var(--color-ink, #ea4335); margin-bottom: var(--space-4); font-size: var(--text-sm); text-align: center; width: 100%; max-width: 380px;">
-        {{ errorMessage() }}
+      <div class="login-error-message" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="login-error-message__close" aria-label="Cerrar" (click)="dismissError()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
       }
 
@@ -659,9 +712,19 @@
     </a>
 
     @if (errorMessage()) {
-    <div class="login-error-message"
-      style="color: var(--color-ink, #ea4335); margin-bottom: var(--space-4); font-size: var(--text-sm); text-align: center; width: 100%; max-width: 380px;">
-      {{ errorMessage() }}
+    <div class="login-error-message" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="login-error-message__close" aria-label="Cerrar" (click)="dismissError()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
     </div>
     }
 

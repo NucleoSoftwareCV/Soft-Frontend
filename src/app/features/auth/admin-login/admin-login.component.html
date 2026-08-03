@@ -1,0 +1,59 @@
+<main class="erp-login">
+  <section class="erp-login__context" aria-label="Acceso Oona ERP">
+    <a class="erp-login__brand" href="/">oona.</a>
+    <div class="erp-login__context-copy">
+      <span class="erp-login__badge">
+        <svg lucideShieldCheck aria-hidden="true"></svg>
+        Entorno administrativo
+      </span>
+      <h1>Gestion interna,<br>sin distracciones.</h1>
+      <p>Revisa solicitudes profesionales y administra el acceso operativo desde un espacio separado.</p>
+    </div>
+    <small>Acceso restringido a personal autorizado.</small>
+  </section>
+
+  <section class="erp-login__access">
+    <form (ngSubmit)="submit()" class="erp-login__panel" aria-labelledby="erp-title">
+      <div class="erp-login__lock"><svg lucideLockKeyhole aria-hidden="true"></svg></div>
+      <div class="erp-login__heading">
+        <span>Acceso interno</span>
+        <h2 id="erp-title">Iniciar sesion en ERP</h2>
+        <p>Usa tus credenciales administrativas.</p>
+      </div>
+
+      <label>
+        Email o usuario
+        <span class="field">
+          <svg lucideUserRound aria-hidden="true"></svg>
+          <input
+            name="username"
+            type="text"
+            autocomplete="username"
+            [(ngModel)]="username"
+            required>
+        </span>
+      </label>
+      <label>
+        Contrasena
+        <span class="field">
+          <svg lucideKeyRound aria-hidden="true"></svg>
+          <input
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            [(ngModel)]="password"
+            required>
+        </span>
+      </label>
+
+      @if (error()) {
+        <p class="erp-login__error" role="alert">{{ error() }}</p>
+      }
+
+      <button class="erp-login__submit" type="submit" [disabled]="loading()">
+        <span>{{ loading() ? 'Verificando...' : 'Entrar al ERP' }}</span>
+        <svg lucideArrowRight aria-hidden="true"></svg>
+      </button>
+    </form>
+  </section>
+</main>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -9,6 +9,8 @@ import {
 
 import { TarjetaDirectorio } from '../directorio/directorio';
 import { AppIcon, IconName } from '../../../shared/components/icon/icon';
+import { AuthService } from '../../../core/services/auth.service';
+import { ProfessionalFollowService } from '../../../services/professional-follow.service';
 
 @Component({
   selector: 'app-perfil-profesional',
@@ -31,7 +33,18 @@ export class PerfilProfesional implements OnInit {
   private readonly specialistProfileService =
     inject(SpecialistProfileService);
 
-  perfil: TarjetaDirectorio | null = null;
+  private readonly authService = inject(AuthService);
+  private readonly followService = inject(ProfessionalFollowService);
+
+  readonly perfil = signal<TarjetaDirectorio | null>(null);
+  readonly following = signal(false);
+  readonly followLoading = signal(false);
+  readonly followError = signal<string | null>(null);
+  readonly isOwnProfile = computed(() => {
+    const currentProfile = this.perfil();
+    const currentUser = this.authService.currentUser();
+    return Boolean(currentProfile && currentUser && currentProfile.userId === currentUser.id);
+  });
 
   ngOnInit(): void {
 
@@ -57,8 +70,12 @@ export class PerfilProfesional implements OnInit {
 
         next: (perfilBackend) => {
 
-          this.perfil =
-            this.convertirPerfil(perfilBackend);
+          this.perfil.set(
+            this.convertirPerfil(perfilBackend)
+          );
+          if (this.authService.isLoggedIn && perfilBackend.userId !== this.authService.currentUser()?.id) {
+            this.loadFollowStatus(perfilBackend.id);
+          }
 
         },
 
@@ -92,6 +109,7 @@ export class PerfilProfesional implements OnInit {
     return {
 
       id: perfil.id,
+      userId: perfil.userId,
 
       tipo: this.convertirTipo(
         perfil.profileCategory
@@ -116,10 +134,10 @@ export class PerfilProfesional implements OnInit {
       ],
 
       imagenUrl:
-        perfil.photoUrl,
+        this.specialistProfileService.resolveAssetUrl(perfil.photoUrl),
 
       bannerUrl:
-        perfil.bannerUrl,
+        this.specialistProfileService.resolveAssetUrl(perfil.bannerUrl),
 
       temas,
 
@@ -182,6 +200,42 @@ export class PerfilProfesional implements OnInit {
       '/profesionales'
     ]);
 
+  }
+
+  toggleFollow(): void {
+    const currentProfile = this.perfil();
+    if (!currentProfile || this.isOwnProfile() || this.followLoading()) return;
+
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: this.router.url }
+      });
+      return;
+    }
+
+    this.followLoading.set(true);
+    this.followError.set(null);
+    const request = this.following()
+      ? this.followService.unfollow(currentProfile.id)
+      : this.followService.follow(currentProfile.id);
+
+    request.subscribe({
+      next: response => {
+        this.following.set(response.following);
+        this.followLoading.set(false);
+      },
+      error: () => {
+        this.followError.set('No pudimos actualizar el seguimiento. Inténtalo nuevamente.');
+        this.followLoading.set(false);
+      }
+    });
+  }
+
+  private loadFollowStatus(professionalId: number): void {
+    this.followService.getStatus(professionalId).subscribe({
+      next: response => this.following.set(response.following),
+      error: () => this.following.set(false)
+    });
   }
 
 }

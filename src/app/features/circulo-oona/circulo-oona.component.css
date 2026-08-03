@@ -203,21 +203,99 @@
   margin-top: 2px;
 }
 
-.circle-message {
-  margin: 0;
-  padding: 11px 13px;
-  border-radius: 6px;
+.circle-button--success {
+  background: var(--color-success, #1f7a45);
+  border-color: var(--color-success, #1f7a45);
+  gap: 8px;
+}
+
+/* ── Toast flotante (errores y confirmaciones) ── */
+.circle-toast {
+  position: fixed;
+  top: var(--space-6, 24px);
+  right: var(--space-6, 24px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  width: min(360px, calc(100vw - 32px));
+  padding: var(--space-4, 16px);
+  background: #fff;
+  border: 1px solid var(--color-divider, #dddede);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.15));
   font-size: 0.88rem;
+  line-height: 1.4;
+  animation: circleToastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.circle-message--error {
-  color: #8e2f2a;
-  background: #fce9e7;
+.circle-toast span {
+  flex: 1;
+  padding-top: 1px;
 }
 
-.circle-message--success {
-  color: #2e6f30;
-  background: #e8f4e5;
+.circle-toast svg:first-child {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.circle-toast--error {
+  border-left: 3px solid var(--color-danger, #a93d3d);
+  color: var(--color-danger-dark, #8c3431);
+}
+
+.circle-toast--error svg:first-child {
+  color: var(--color-danger, #a93d3d);
+}
+
+.circle-toast--success {
+  border-left: 3px solid var(--color-success, #1f7a45);
+  color: var(--color-success-dark, #185c34);
+}
+
+.circle-toast--success svg:first-child {
+  color: var(--color-success, #1f7a45);
+}
+
+.circle-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #9aa5a1;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.circle-toast__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #234f4b;
+}
+
+@keyframes circleToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .circle-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
 }
 
 .circle-spinner {
