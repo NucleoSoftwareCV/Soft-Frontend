@@ -10,7 +10,7 @@
     </div>
   </section>
 
-  <section class="circle-content">
+  <section id="form" class="circle-content">
     @if (!currentUser()) {
       <div class="circle-state">
         <h2>Accede para enviar tu solicitud</h2>
@@ -30,9 +30,6 @@
         <span class="circle-status">Solicitud aprobada</span>
         <h2>Ya formas parte del Circulo Oona</h2>
         <p>Actualiza tu sesion para activar el acceso y completar tu perfil profesional.</p>
-        @if (error()) {
-          <p class="circle-message circle-message--error">{{ error() }}</p>
-        }
         <button
           type="button"
           class="circle-button circle-button--primary"
@@ -94,10 +91,12 @@
             <span>WhatsApp</span>
             <input
               type="tel"
+              inputmode="tel"
               name="whatsappPhone"
-              [(ngModel)]="whatsappPhone"
+              [ngModel]="whatsappPhone"
+              (ngModelChange)="onWhatsappChange($event)"
               placeholder="+34 600 000 000"
-              maxlength="20"
+              maxlength="16"
               required
             />
           </label>
@@ -124,22 +123,57 @@
             <span>Acepto la politica de privacidad y el tratamiento de estos datos.</span>
           </label>
 
-          @if (error()) {
-            <p class="circle-message circle-message--error circle-form__wide">{{ error() }}</p>
-          }
-          @if (success()) {
-            <p class="circle-message circle-message--success circle-form__wide">{{ success() }}</p>
-          }
-
           <button
             type="submit"
             class="circle-button circle-button--primary circle-form__wide"
+            [class.circle-button--success]="justSaved()"
             [disabled]="submitting()"
           >
-            {{ submitting() ? 'Guardando...' : (application()?.status === 'RECHAZADO' ? 'Reenviar solicitud' : 'Guardar solicitud') }}
+            @if (submitting()) {
+              Guardando...
+            } @else if (justSaved()) {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              ¡Solicitud guardada!
+            } @else {
+              {{ application()?.status === 'RECHAZADO' ? 'Reenviar solicitud' : 'Guardar solicitud' }}
+            }
           </button>
         </form>
       </div>
     }
   </section>
+
+  @if (error()) {
+    <div class="circle-toast circle-toast--error" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="circle-toast__close" aria-label="Cerrar" (click)="dismissError()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  }
+  @if (success()) {
+    <div class="circle-toast circle-toast--success" role="status">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="9 12 11 14 15 10" />
+      </svg>
+      <span>{{ success() }}</span>
+      <button type="button" class="circle-toast__close" aria-label="Cerrar" (click)="dismissSuccess()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  }
 </main>

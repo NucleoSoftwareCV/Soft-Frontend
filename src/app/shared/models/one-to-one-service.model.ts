@@ -41,6 +41,8 @@ export interface OneToOneServiceDetailResponse {
   status: 'BORRADOR' | 'PUBLICADO' | 'OCULTO';
   createdAt: string;
   updatedAt: string;
+  workTopics: string[];
+  techniques: string[];
 }
 
 export interface OneToOneServicePageParams {
@@ -50,4 +52,18 @@ export interface OneToOneServicePageParams {
   search?: string;
   workTopicId?: number | null;
   techniqueId?: number | null;
+}
+
+export interface OneToOneServiceRequest {
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  durationMinutes: number;
+  modality: 'ONLINE' | 'PRESENCIAL' | 'AMBAS';
+  locationId?: number | null;
+  price: number;
+  currency: string;
+  status?: 'BORRADOR' | 'PUBLICADO' | 'OCULTO';
+  workTopics: number[];
+  techniques: number[];
 }

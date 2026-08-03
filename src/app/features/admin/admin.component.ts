@@ -1,219 +1,321 @@
-import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ProfessionalApplicationService } from '../../services/professional-application.service';
+import { Router } from '@angular/router';
 import {
+  LucideClipboardList,
+  LucideLayoutDashboard,
+  LucideLogOut,
+  LucideMapPin,
+  LucidePanelLeftClose,
+  LucidePanelLeftOpen,
+  LucidePencil,
+  LucidePlus,
+  LucideShieldCheck,
+  LucideTrash2,
+} from '@lucide/angular';
+
+import { AuthService } from '../../core/services/auth.service';
+import { ProfessionalApplicationService } from '../../services/professional-application.service';
+import { CityService } from '../../services/city.service';
+import { CityResponse } from '../../shared/models/evento.model';
+import {
+  PROFESSIONAL_TYPE_OPTIONS,
   ProfessionalApplicationResponse,
   ProfessionalApplicationStatus,
+  ProfessionalType,
 } from '../../shared/models/professional-application.model';
-
-type AdminSection = 'dashboard' | 'profesionales' | 'eventos' | 'usuarios' | 'config';
-
-interface ProfesionalItem {
-  id: number;
-  nombre: string;
-  email: string;
-  disciplina: string;
-  ciudad: string;
-  experiencias: number;
-  asistentesTotales: number;
-  ingresos: number;
-  fechaRegistro: string;
-  estado: 'activo' | 'pendiente' | 'suspendido';
-  avatar: string;
-}
-
-interface EventoItem {
-  id: number;
-  titulo: string;
-  profesional: string;
-  fecha: string;
-  precio: number;
-  plazas: number;
-  plazasOcupadas: number;
-  ingresos: number;
-  estado: 'activo' | 'pausado' | 'cancelado';
-}
-
-interface UsuarioItem {
-  id: number;
-  nombre: string;
-  email: string;
-  tipo: 'usuario' | 'profesional';
-  fechaRegistro: string;
-  ultimoAcceso: string;
-  reservas: number;
-  estado: 'activo' | 'inactivo' | 'suspendido';
-}
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideClipboardList,
+    LucideLayoutDashboard,
+    LucideLogOut,
+    LucideMapPin,
+    LucidePanelLeftClose,
+    LucidePanelLeftOpen,
+    LucidePencil,
+    LucidePlus,
+    LucideShieldCheck,
+    LucideTrash2,
+  ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
 export class AdminComponent {
-  private readonly applicationService = inject(ProfessionalApplicationService);
+  private readonly applicationsApi = inject(ProfessionalApplicationService);
+  private readonly cityService = inject(CityService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  seccion = signal<AdminSection>('dashboard');
-  profesionales = signal<ProfesionalItem[]>([]);
-  eventos = signal<EventoItem[]>([]);
-  usuarios = signal<UsuarioItem[]>([]);
-  solicitudes = signal<ProfessionalApplicationResponse[]>([]);
-  solicitudesLoading = signal(false);
-  solicitudesError = signal<string | null>(null);
-  solicitudesPage = signal(0);
-  solicitudesTotalPages = signal(0);
-  solicitudesStatus = signal<ProfessionalApplicationStatus | null>('PENDIENTE');
-  rejectingId = signal<number | null>(null);
+  readonly currentUser = this.auth.currentUser;
+
+  section = signal<'summary' | 'applications' | 'cities'>('summary');
+  applications = signal<ProfessionalApplicationResponse[]>([]);
+  selected = signal<ProfessionalApplicationResponse | null>(null);
+  loading = signal(false);
+  deciding = signal(false);
+  error = signal<string | null>(null);
+  status = signal<ProfessionalApplicationStatus | null>('PENDIENTE');
+  page = signal(0);
+  totalPages = signal(0);
+  totalElements = signal(0);
+  approvePending = signal(false);
+  rejectMode = signal(false);
   rejectionReason = '';
+  sidebarCollapsed = signal(false);
+  logoutConfirm = signal(false);
+
+  // Avatar interactivo
+  avatarMenuOpen = signal(false);
+
+  // CRUD Ciudades
+  cities = signal<CityResponse[]>([]);
+  selectedCity = signal<CityResponse | null>(null);
+  cityFormOpen = signal(false);
+  cityForm = {
+    id: null as number | null,
+    name: '',
+    province: '',
+    countryCode: 'ES',
+    active: true,
+  };
+  cityDeleteConfirm = signal<CityResponse | null>(null);
+
+  pendingOnPage = computed(
+    () => this.applications().filter(item => item.status === 'PENDIENTE').length
+  );
 
   constructor() {
-    this.cargarDatosDemo();
+    this.load(0);
   }
 
-  private cargarDatosDemo(): void {
-    this.profesionales.set([
-      { id: 1, nombre: 'María García López', email: 'maria.garcia@email.com', disciplina: 'Yoga & Meditación', ciudad: 'Valencia', experiencias: 8, asistentesTotales: 142, ingresos: 8400, fechaRegistro: '2025-11-15', estado: 'activo', avatar: 'https://i.pravatar.cc/40?img=1' },
-      { id: 2, nombre: 'Carlos Ruiz Molina', email: 'carlos.ruiz@email.com', disciplina: 'Breathwork & Sonido', ciudad: 'Barcelona', experiencias: 5, asistentesTotales: 89, ingresos: 5200, fechaRegistro: '2026-01-20', estado: 'activo', avatar: 'https://i.pravatar.cc/40?img=3' },
-      { id: 3, nombre: 'Ana Belén Martínez', email: 'ana.martinez@email.com', disciplina: 'Constelaciones Familiares', ciudad: 'Madrid', experiencias: 12, asistentesTotales: 67, ingresos: 12400, fechaRegistro: '2025-09-03', estado: 'activo', avatar: 'https://i.pravatar.cc/40?img=5' },
-      { id: 4, nombre: 'Laura Sánchez Pérez', email: 'laura.sanchez@email.com', disciplina: 'Nutrición & Cocina', ciudad: 'Castellón', experiencias: 3, asistentesTotales: 34, ingresos: 2100, fechaRegistro: '2026-03-10', estado: 'pendiente', avatar: 'https://i.pravatar.cc/40?img=9' },
-      { id: 5, nombre: 'Javier Fernández Soto', email: 'javier.fernandez@email.com', disciplina: 'Psicoterapia', ciudad: 'Alicante', experiencias: 6, asistentesTotales: 51, ingresos: 7200, fechaRegistro: '2025-12-01', estado: 'activo', avatar: 'https://i.pravatar.cc/40?img=11' },
-      { id: 6, nombre: 'Sofía Hernández Crespo', email: 'sofia.hernandez@email.com', disciplina: 'Arte & Creatividad', ciudad: 'Valencia', experiencias: 4, asistentesTotales: 28, ingresos: 1800, fechaRegistro: '2026-05-22', estado: 'pendiente', avatar: 'https://i.pravatar.cc/40?img=13' },
-      { id: 7, nombre: 'Diego Romero Navarro', email: 'diego.romero@email.com', disciplina: 'Yoga & Movimiento', ciudad: 'Barcelona', experiencias: 9, asistentesTotales: 115, ingresos: 6800, fechaRegistro: '2025-08-14', estado: 'activo', avatar: 'https://i.pravatar.cc/40?img=15' },
-      { id: 8, nombre: 'Elena Torres Aguilar', email: 'elena.torres@email.com', disciplina: 'Masaje & Terapia Corporal', ciudad: 'Madrid', experiencias: 2, asistentesTotales: 12, ingresos: 2400, fechaRegistro: '2026-06-01', estado: 'suspendido', avatar: 'https://i.pravatar.cc/40?img=17' },
-    ]);
+  show(section: 'summary' | 'applications' | 'cities'): void {
+    this.section.set(section);
+    this.selected.set(null);
+    this.selectedCity.set(null);
+    this.cityFormOpen.set(false);
+    this.error.set(null);
 
-    this.eventos.set([
-      { id: 1, titulo: 'Retiro de Yoga y Meditación', profesional: 'María García López', fecha: '2026-07-15', precio: 250, plazas: 20, plazasOcupadas: 14, ingresos: 3500, estado: 'activo' },
-      { id: 2, titulo: 'Taller de Breathwork', profesional: 'Carlos Ruiz Molina', fecha: '2026-07-22', precio: 25, plazas: 15, plazasOcupadas: 9, ingresos: 225, estado: 'activo' },
-      { id: 3, titulo: 'Círculo de Mujeres Luna Llena', profesional: 'María García López', fecha: '2026-07-28', precio: 15, plazas: 30, plazasOcupadas: 22, ingresos: 330, estado: 'activo' },
-      { id: 4, titulo: 'Masterclass de Cocina Nutritiva', profesional: 'Laura Sánchez Pérez', fecha: '2026-08-05', precio: 35, plazas: 12, plazasOcupadas: 7, ingresos: 245, estado: 'activo' },
-      { id: 5, titulo: 'Yoga para Embarazadas', profesional: 'María García López', fecha: '2026-07-12', precio: 0, plazas: 10, plazasOcupadas: 8, ingresos: 0, estado: 'pausado' },
-      { id: 6, titulo: 'Jornada Puertas Abiertas OONA', profesional: 'Administrador', fecha: '2026-08-01', precio: 0, plazas: 50, plazasOcupadas: 8, ingresos: 0, estado: 'cancelado' },
-      { id: 7, titulo: 'Constelación Familiar Avanzada', profesional: 'Ana Belén Martínez', fecha: '2026-07-30', precio: 150, plazas: 1, plazasOcupadas: 1, ingresos: 150, estado: 'activo' },
-      { id: 8, titulo: 'Sesión de Terapia de Sonido', profesional: 'Carlos Ruiz Molina', fecha: '2026-07-17', precio: 65, plazas: 1, plazasOcupadas: 1, ingresos: 65, estado: 'activo' },
-    ]);
-
-    this.usuarios.set([
-      { id: 1, nombre: 'Marta García López', email: 'marta.garcia@email.com', tipo: 'profesional', fechaRegistro: '2025-11-15', ultimoAcceso: '2026-07-10', reservas: 12, estado: 'activo' },
-      { id: 2, nombre: 'Carlos Ruiz Molina', email: 'carlos.ruiz@email.com', tipo: 'profesional', fechaRegistro: '2026-01-20', ultimoAcceso: '2026-07-09', reservas: 8, estado: 'activo' },
-      { id: 3, nombre: 'Pablo Morales Vega', email: 'pablo.morales@email.com', tipo: 'usuario', fechaRegistro: '2026-06-10', ultimoAcceso: '2026-07-08', reservas: 3, estado: 'activo' },
-      { id: 4, nombre: 'Laura Sánchez Pérez', email: 'laura.sanchez@email.com', tipo: 'profesional', fechaRegistro: '2026-03-10', ultimoAcceso: '2026-07-05', reservas: 2, estado: 'activo' },
-      { id: 5, nombre: 'Carmen Ortega Díaz', email: 'carmen.ortega@email.com', tipo: 'usuario', fechaRegistro: '2026-06-20', ultimoAcceso: '2026-07-10', reservas: 5, estado: 'activo' },
-      { id: 6, nombre: 'Sergio Delgado Pastor', email: 'sergio.delgado@email.com', tipo: 'usuario', fechaRegistro: '2026-07-01', ultimoAcceso: '2026-07-07', reservas: 1, estado: 'activo' },
-      { id: 7, nombre: 'Elena Torres Aguilar', email: 'elena.torres@email.com', tipo: 'profesional', fechaRegistro: '2026-06-01', ultimoAcceso: '2026-07-03', reservas: 1, estado: 'suspendido' },
-      { id: 8, nombre: 'Raúl Castro Medina', email: 'raul.castro@email.com', tipo: 'usuario', fechaRegistro: '2026-06-15', ultimoAcceso: '2026-07-09', reservas: 2, estado: 'activo' },
-      { id: 9, nombre: 'Isabel Romero Pascual', email: 'isabel.romero@email.com', tipo: 'usuario', fechaRegistro: '2026-06-25', ultimoAcceso: '2026-07-10', reservas: 4, estado: 'activo' },
-      { id: 10, nombre: 'Sofía Hernández Crespo', email: 'sofia.hernandez@email.com', tipo: 'profesional', fechaRegistro: '2026-05-22', ultimoAcceso: '2026-07-06', reservas: 2, estado: 'activo' },
-      { id: 11, nombre: 'Alberto Jiménez Ruiz', email: 'alberto.jimenez@email.com', tipo: 'usuario', fechaRegistro: '2026-07-02', ultimoAcceso: '2026-07-08', reservas: 1, estado: 'activo' },
-      { id: 12, nombre: 'Diego Romero Navarro', email: 'diego.romero@email.com', tipo: 'profesional', fechaRegistro: '2025-08-14', ultimoAcceso: '2026-07-10', reservas: 15, estado: 'activo' },
-    ]);
+    if (section === 'cities') {
+      this.loadCities();
+    }
   }
 
-  cambiarSeccion(s: AdminSection): void {
-    this.seccion.set(s);
-    if (s === 'profesionales') this.cargarSolicitudes(0);
-  }
-
-  cargarSolicitudes(page = this.solicitudesPage()): void {
-    this.solicitudesLoading.set(true);
-    this.solicitudesError.set(null);
-    this.applicationService.getForAdmin(this.solicitudesStatus(), page, 10).subscribe({
+  load(page = this.page()): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.applicationsApi.getForAdmin(this.status(), page, 10).subscribe({
       next: response => {
-        this.solicitudes.set(response.content);
-        this.solicitudesPage.set(response.number);
-        this.solicitudesTotalPages.set(response.totalPages);
-        this.solicitudesLoading.set(false);
+        this.applications.set(response.content);
+        this.page.set(response.number);
+        this.totalPages.set(response.totalPages);
+        this.totalElements.set(response.totalElements);
+        this.loading.set(false);
       },
       error: () => {
-        this.solicitudesError.set('No se pudieron cargar las solicitudes.');
-        this.solicitudesLoading.set(false);
+        this.error.set('No se pudieron cargar las solicitudes.');
+        this.loading.set(false);
       },
     });
   }
 
-  filtrarSolicitudes(status: ProfessionalApplicationStatus | null): void {
-    this.solicitudesStatus.set(status);
-    this.cargarSolicitudes(0);
+  filter(status: ProfessionalApplicationStatus | null): void {
+    this.status.set(status);
+    this.selected.set(null);
+    this.load(0);
   }
 
-  aprobarSolicitud(id: number): void {
-    this.applicationService.decide(id, { status: 'APROBADO' }).subscribe({
-      next: () => this.cargarSolicitudes(),
-      error: () => this.solicitudesError.set('No se pudo aprobar la solicitud.'),
+  select(item: ProfessionalApplicationResponse): void {
+    this.selected.set(item);
+    this.rejectMode.set(false);
+    this.approvePending.set(false);
+    this.rejectionReason = '';
+  }
+
+  closeDetail(): void {
+    this.selected.set(null);
+  }
+
+  approve(): void {
+    const item = this.selected();
+    if (!item) return;
+    this.deciding.set(true);
+    this.applicationsApi.decide(item.id, { status: 'APROBADO' }).subscribe({
+      next: () => this.finishDecision(),
+      error: () => this.decisionFailed(),
     });
   }
 
-  iniciarRechazo(id: number): void {
-    this.rejectingId.set(id);
-    this.rejectionReason = '';
+  reject(): void {
+    const item = this.selected();
+    const reason = this.rejectionReason.trim();
+    if (!item || !reason) {
+      this.error.set('El motivo de rechazo es obligatorio.');
+      return;
+    }
+    this.deciding.set(true);
+    this.applicationsApi.decide(item.id, {
+      status: 'RECHAZADO',
+      rejectionReason: reason,
+    }).subscribe({
+      next: () => this.finishDecision(),
+      error: () => this.decisionFailed(),
+    });
   }
 
-  cancelarRechazo(): void {
-    this.rejectingId.set(null);
-    this.rejectionReason = '';
+  professionalTypeLabel(type: ProfessionalType): string {
+    return PROFESSIONAL_TYPE_OPTIONS.find(option => option.value === type)?.label ?? type;
   }
 
-  confirmarRechazo(id: number): void {
-    const rejectionReason = this.rejectionReason.trim();
-    if (!rejectionReason) {
-      this.solicitudesError.set('Indica el motivo del rechazo.');
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/auth/erp/login']);
+  }
+
+  getInitials(): string {
+    const user = this.currentUser();
+    if (!user || !user.username) return 'AD';
+    const parts = user.username.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return user.username.slice(0, 2).toUpperCase();
+  }
+
+  // --- MÉTODOS CRUD CIUDADES ---
+
+  loadCities(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.cityService.getCitiesForAdmin().subscribe({
+      next: data => {
+        this.cities.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudieron cargar las ciudades.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  openNewCity(): void {
+    this.cityForm = {
+      id: null,
+      name: '',
+      province: '',
+      countryCode: 'ES',
+      active: true,
+    };
+    this.selectedCity.set(null);
+    this.cityFormOpen.set(true);
+  }
+
+  openEditCity(city: CityResponse): void {
+    this.selectedCity.set(city);
+    this.cityForm = {
+      id: city.id,
+      name: city.name,
+      province: city.province,
+      countryCode: city.countryCode,
+      active: city.active,
+    };
+    this.cityFormOpen.set(true);
+  }
+
+  closeCityForm(): void {
+    this.cityFormOpen.set(false);
+    this.selectedCity.set(null);
+  }
+
+  saveCity(): void {
+    if (!this.cityForm.name.trim()) {
+      this.error.set('El nombre de la ciudad es obligatorio.');
       return;
     }
 
-    this.applicationService
-      .decide(id, { status: 'RECHAZADO', rejectionReason })
-      .subscribe({
-        next: () => {
-          this.cancelarRechazo();
-          this.cargarSolicitudes();
-        },
-        error: () => this.solicitudesError.set('No se pudo rechazar la solicitud.'),
-      });
+    const payload: Partial<CityResponse> = {
+      name: this.cityForm.name.trim(),
+      province: this.cityForm.province.trim() || undefined,
+      countryCode: this.cityForm.countryCode.trim().toUpperCase(),
+      active: this.cityForm.active,
+    };
+
+    this.deciding.set(true);
+    this.error.set(null);
+
+    const req = this.cityForm.id
+      ? this.cityService.updateCity(this.cityForm.id, payload)
+      : this.cityService.createCity(payload);
+
+    req.subscribe({
+      next: () => {
+        this.deciding.set(false);
+        this.cityFormOpen.set(false);
+        this.selectedCity.set(null);
+        this.loadCities();
+      },
+      error: (err) => {
+        this.deciding.set(false);
+        this.error.set(err?.error?.message ?? 'No se pudo guardar la ciudad.');
+      },
+    });
   }
 
-  // ── Dashboard computed ──
-  totalProfesionales = computed(() => this.profesionales().length);
-  totalActivos = computed(() => this.profesionales().filter(p => p.estado === 'activo').length);
-  totalPendientes = computed(() => this.profesionales().filter(p => p.estado === 'pendiente').length);
-  totalEventos = computed(() => this.eventos().length);
-  totalUsuarios = computed(() => this.usuarios().length);
-  ingresosTotales = computed(() => this.eventos().reduce((s, e) => s + e.ingresos, 0));
-  asistentesTotales = computed(() => this.eventos().reduce((s, e) => s + e.plazasOcupadas, 0));
-
-  profesionalesRecientes = computed(() =>
-    [...this.profesionales()].sort((a, b) => new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime()).slice(0, 5)
-  );
-
-  eventosProximos = computed(() =>
-    [...this.eventos()].filter(e => e.estado === 'activo').sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-  );
-
-  topProfesionales = computed(() =>
-    [...this.profesionales()].sort((a, b) => b.ingresos - a.ingresos).slice(0, 5)
-  );
-
-  // ── Acciones ──
-  aprobarProfesional(id: number): void {
-    this.profesionales.update(arr => arr.map(p => p.id === id ? { ...p, estado: 'activo' as const } : p));
+  confirmDeleteCity(city: CityResponse): void {
+    this.cityDeleteConfirm.set(city);
   }
 
-  suspenderProfesional(id: number): void {
-    this.profesionales.update(arr => arr.map(p => p.id === id ? { ...p, estado: 'suspendido' as const } : p));
+  deleteCity(): void {
+    const city = this.cityDeleteConfirm();
+    if (!city) return;
+
+    this.deciding.set(true);
+    this.error.set(null);
+
+    this.cityService.deleteCity(city.id).subscribe({
+      next: () => {
+        this.deciding.set(false);
+        this.cityDeleteConfirm.set(null);
+        this.loadCities();
+      },
+      error: (err) => {
+        this.deciding.set(false);
+        this.cityDeleteConfirm.set(null);
+        this.error.set(err?.error?.message ?? 'No se pudo eliminar la ciudad. Puede estar siendo utilizada por una ubicación.');
+      },
+    });
   }
 
-  cambiarEstadoEvento(id: number, estado: 'activo' | 'pausado' | 'cancelado'): void {
-    this.eventos.update(arr => arr.map(e => e.id === id ? { ...e, estado } : e));
+  toggleCityActive(city: CityResponse): void {
+    const payload: Partial<CityResponse> = {
+      ...city,
+      active: !city.active,
+    };
+
+    this.cityService.updateCity(city.id, payload).subscribe({
+      next: () => this.loadCities(),
+      error: (err) => {
+        this.error.set(err?.error?.message ?? 'No se pudo cambiar el estado de la ciudad.');
+      },
+    });
   }
 
-  toggleUsuarioEstado(id: number): void {
-    this.usuarios.update(arr => arr.map(u => {
-      if (u.id !== id) return u;
-      const next: UsuarioItem['estado'] = u.estado === 'activo' ? 'inactivo' : 'activo';
-      return { ...u, estado: next };
-    }));
+  private finishDecision(): void {
+    this.deciding.set(false);
+    this.selected.set(null);
+    this.rejectMode.set(false);
+    this.approvePending.set(false);
+    this.load(this.page());
+  }
+
+  private decisionFailed(): void {
+    this.deciding.set(false);
+    this.error.set('No se pudo registrar la decisión.');
   }
 }

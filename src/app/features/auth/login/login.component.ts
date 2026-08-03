@@ -61,6 +61,20 @@ export class LoginComponent {
   showConfirmPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
+  roleChoice = signal(false);
+
+  private errorTimeout?: ReturnType<typeof setTimeout>;
+
+  private showError(message: string): void {
+    clearTimeout(this.errorTimeout);
+    this.errorMessage.set(message);
+    this.errorTimeout = setTimeout(() => this.errorMessage.set(null), 5000);
+  }
+
+  dismissError(): void {
+    clearTimeout(this.errorTimeout);
+    this.errorMessage.set(null);
+  }
 
   selectTab(tab: AccountType): void {
     this.activeTab.set(tab);
@@ -98,7 +112,10 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
-    if (!this.email() || !this.password()) return;
+    if (!this.email() || !this.password()) {
+      this.showError('Completa tu email y contraseña para continuar.');
+      return;
+    }
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
@@ -109,21 +126,38 @@ export class LoginComponent {
     }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/']);
+        if (this.authService.roles.includes('PROFESSIONAL')) {
+          this.roleChoice.set(true);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Credenciales incorrectas o error en el servidor');
+        this.showError('Credenciales incorrectas o error en el servidor');
         console.error(err);
       }
     });
   }
 
+  goToPublicSite(): void {
+    this.roleChoice.set(false);
+    this.router.navigate(['/']);
+  }
+
+  goToProfessionalPanel(): void {
+    this.roleChoice.set(false);
+    this.router.navigate(['/profesional']);
+  }
+
   onRegisterSubmit(): void {
-    if (!this.firstName() || !this.email() || !this.password() || !this.confirmPassword()) return;
+    if (!this.firstName() || !this.email() || !this.password() || !this.confirmPassword()) {
+      this.showError('Completa todos los campos obligatorios para crear tu cuenta.');
+      return;
+    }
 
     if (this.password() !== this.confirmPassword()) {
-      this.errorMessage.set('Las contraseñas no coinciden');
+      this.showError('Las contraseñas no coinciden');
       return;
     }
 
@@ -155,10 +189,29 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Error al registrar la cuenta. El email ya está en uso.');
+        this.showError(this.parseRegisterError(err));
         console.error(err);
       }
     });
+  }
+
+  private parseRegisterError(err: any): string {
+    const body = err?.error;
+    const fieldErrors: { field: string; message: string }[] = body?.errors ?? [];
+
+    if (fieldErrors.some(e => e.field === 'password')) {
+      return 'La contraseña debe tener entre 8 y 72 caracteres.';
+    }
+    if (fieldErrors.some(e => e.field === 'username')) {
+      return 'El nombre de usuario no es válido: usa letras, números, puntos o guiones (3 a 20 caracteres).';
+    }
+    if (fieldErrors.some(e => e.field === 'email')) {
+      return 'Introduce un email válido.';
+    }
+    if (body?.detail) {
+      return body.detail;
+    }
+    return 'Error al registrar la cuenta. Inténtalo de nuevo.';
   }
 
   onProfessionalLeadSubmit(): void {

@@ -1,4 +1,4 @@
-@if (perfil) {
+@if (perfil(); as perfil) {
 <div class="container">
 
   <!-- Breadcrumb -->
@@ -25,7 +25,8 @@
   <!-- Botón volver -->
   <button
     class="profile-back-btn"
-    routerLink="/profesionales">
+    type="button"
+    (click)="volverAlDirectorio()">
 
     ← Volver
 
@@ -58,9 +59,18 @@
           </span>
         </div>
 
-        <button class="profile-follow-btn">
-            🔔 Seguir
-        </button>
+        @if (!isOwnProfile()) {
+          <button
+            class="profile-follow-btn"
+            [class.profile-follow-btn--active]="following()"
+            [disabled]="followLoading()"
+            (click)="toggleFollow()">
+            {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
+          </button>
+          @if (followError()) {
+            <p class="profile-follow-error" role="alert">{{ followError() }}</p>
+          }
+        }
 
         <div class="profile-quote">
           "{{ perfil.cita }}"

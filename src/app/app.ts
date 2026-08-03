@@ -15,8 +15,8 @@ import { filter, map, startWith } from 'rxjs/operators';
 export class App {
   private readonly router = inject(Router);
 
-  /** Prefijos de ruta que no deben mostrar el header/footer global */
-  private readonly AUTH_PREFIXES = ['/auth', '/login', '/admin'];
+  /** Rutas operativas que no deben mostrar el header/footer global. */
+  private readonly SHELLLESS_ROUTES = ['/admin', '/profesional'];
 
   /** URL actual como señal reactiva */
   private readonly currentUrl = toSignal(
@@ -30,6 +30,10 @@ export class App {
 
   /** true cuando estamos en una página de autenticación */
   readonly isAuthRoute = computed(() =>
-    this.AUTH_PREFIXES.some(prefix => this.currentUrl().startsWith(prefix))
+    this.currentUrl().startsWith('/auth')
+      || this.currentUrl().startsWith('/login')
+      || this.SHELLLESS_ROUTES.some(route =>
+        this.currentUrl() === route || this.currentUrl().startsWith(`${route}/`)
+      )
   );
 }

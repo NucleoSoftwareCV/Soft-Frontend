@@ -36,6 +36,13 @@ export class AuthService {
     );
   }
 
+  adminLogin(request: LoginRequest): Observable<JwtResponse> {
+    return this.http.post<JwtResponse>(
+      `${environment.apiUrl}/auth/admin/login`,
+      request
+    ).pipe(tap(response => this.saveSession(response)));
+  }
+
   refreshToken(): Observable<TokenRefreshResponse> {
     const currentSession = this.currentUser();
     if (!currentSession?.refreshToken) {

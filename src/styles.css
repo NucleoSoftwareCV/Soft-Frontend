@@ -16,9 +16,31 @@
   --color-ink-light:  #4a4a4a;
   --color-muted:      #888888;
   --color-divider:    #dddede;
-  --principal: #004e59; 
-  --primary: hsl(100 53% 36%);  
+  --principal: #004e59;
+  --primary: hsl(100 53% 36%);
   --secundary: hsl(100 15% 40%);
+
+  /* Colores semánticos de estado */
+  --color-success:        #1f7a45;
+  --color-success-dark:   #185c34;
+  --color-success-bg:     #dff0e4;
+  --color-success-border: #bfe0cb;
+  --color-warning:        #8a6d1f;
+  --color-warning-dark:   #6b5518;
+  --color-warning-bg:     #fdf3d6;
+  --color-warning-border: #efdca0;
+  --color-danger:         #a93d3d;
+  --color-danger-dark:    #8c3431;
+  --color-danger-bg:      #f8dfdd;
+  --color-danger-border:  #edc4c1;
+
+  /* Superficies auxiliares */
+  --color-bg-hover:  #eef0ec;
+  --color-sage-tint: #e6f0ef;
+
+  /* Foco accesible estilo shadcn (ring) */
+  --shadow-focus-ring:        0 0 0 3px rgba(45,106,106,0.28);
+  --shadow-focus-ring-danger: 0 0 0 3px rgba(169,61,61,0.28);
 
   /* Tipografía */
   --font-display: 'Cormorant Garamond', Georgia, serif;

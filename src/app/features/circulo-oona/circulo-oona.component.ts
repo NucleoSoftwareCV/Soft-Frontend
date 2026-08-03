@@ -36,6 +36,11 @@ export class CirculoOonaComponent implements OnInit {
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly justSaved = signal(false);
+
+  private errorTimeout?: ReturnType<typeof setTimeout>;
+  private successTimeout?: ReturnType<typeof setTimeout>;
+  private justSavedTimeout?: ReturnType<typeof setTimeout>;
 
   fullName = '';
   cityId: number | null = null;
@@ -61,7 +66,7 @@ export class CirculoOonaComponent implements OnInit {
       !this.motivation.trim() ||
       !this.privacyAccepted
     ) {
-      this.error.set('Completa todos los campos y acepta la politica de privacidad.');
+      this.showError('Completa todos los campos y acepta la politica de privacidad.');
       return;
     }
 
@@ -75,32 +80,66 @@ export class CirculoOonaComponent implements OnInit {
     };
 
     this.submitting.set(true);
-    this.error.set(null);
-    this.success.set(null);
+    this.dismissError();
+    this.dismissSuccess();
     this.applicationService.saveMine(request).subscribe({
       next: application => {
         this.application.set(application);
         this.populateForm(application);
-        this.success.set('Tu solicitud se ha enviado correctamente.');
+        this.showSuccess('Tu solicitud se ha enviado correctamente.');
         this.submitting.set(false);
+
+        this.justSaved.set(true);
+        clearTimeout(this.justSavedTimeout);
+        this.justSavedTimeout = setTimeout(() => this.justSaved.set(false), 2200);
       },
       error: error => {
-        this.error.set(this.readError(error, 'No se pudo guardar la solicitud.'));
+        this.showError(this.readError(error, 'No se pudo guardar la solicitud.'));
         this.submitting.set(false);
       },
     });
   }
 
+  /** Deja escribir solo digitos (y un "+" inicial opcional), limitando a 15 digitos (formato E.164). */
+  onWhatsappChange(value: string): void {
+    const raw = value ?? '';
+    const hasPlus = raw.trim().startsWith('+');
+    const digits = raw.replace(/\D/g, '').slice(0, 15);
+    this.whatsappPhone = (hasPlus ? '+' : '') + digits;
+  }
+
+  private showError(message: string): void {
+    clearTimeout(this.errorTimeout);
+    this.error.set(message);
+    this.errorTimeout = setTimeout(() => this.error.set(null), 5000);
+  }
+
+  private showSuccess(message: string): void {
+    clearTimeout(this.successTimeout);
+    this.success.set(message);
+    this.successTimeout = setTimeout(() => this.success.set(null), 4000);
+  }
+
+  dismissError(): void {
+    clearTimeout(this.errorTimeout);
+    this.error.set(null);
+  }
+
+  dismissSuccess(): void {
+    clearTimeout(this.successTimeout);
+    this.success.set(null);
+  }
+
   activateProfessionalAccess(): void {
     this.submitting.set(true);
-    this.error.set(null);
+    this.dismissError();
     this.authService.refreshToken().subscribe({
       next: () => {
         this.submitting.set(false);
         this.router.navigate(['/perfil']);
       },
       error: error => {
-        this.error.set(this.readError(error, 'No se pudo actualizar tu sesion.'));
+        this.showError(this.readError(error, 'No se pudo actualizar tu sesion.'));
         this.submitting.set(false);
       },
     });

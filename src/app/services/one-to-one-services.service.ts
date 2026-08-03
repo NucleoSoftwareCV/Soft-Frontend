@@ -9,6 +9,7 @@ import {
   OneToOneServiceDetailResponse,
   OneToOneServicePageParams,
   SpringPage,
+  OneToOneServiceRequest,
 } from '../shared/models/one-to-one-service.model';
 
 @Injectable({ providedIn: 'root' })
@@ -39,5 +40,28 @@ export class OneToOneServicesService {
 
   getActiveTechniques(): Observable<OneToOneFilterOption[]> {
     return this.http.get<OneToOneFilterOption[]>(`${this.TECHNIQUES}/active`);
+  }
+
+  getMyServices(): Observable<OneToOneServiceDetailResponse[]> {
+    return this.http.get<OneToOneServiceDetailResponse[]>(`${this.BASE}/my-services`);
+  }
+
+  createService(request: OneToOneServiceRequest): Observable<OneToOneServiceDetailResponse> {
+    return this.http.post<OneToOneServiceDetailResponse>(this.BASE, request);
+  }
+
+  updateService(id: number, request: OneToOneServiceRequest): Observable<OneToOneServiceDetailResponse> {
+    return this.http.put<OneToOneServiceDetailResponse>(`${this.BASE}/${id}`, request);
+  }
+
+  updateStatus(
+    id: number,
+    status: 'BORRADOR' | 'PUBLICADO' | 'OCULTO'
+  ): Observable<OneToOneServiceDetailResponse> {
+    return this.http.patch<OneToOneServiceDetailResponse>(
+      `${this.BASE}/${id}/status`,
+      null,
+      { params: { status } }
+    );
   }
 }

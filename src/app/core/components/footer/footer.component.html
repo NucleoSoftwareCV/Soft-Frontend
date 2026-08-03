@@ -55,7 +55,7 @@
             <ul class="footer__nav-list">
               @for (link of group.links; track link.path) {
                 <li>
-                  <a [routerLink]="link.path" class="footer__nav-link">{{ link.label }}</a>
+                  <a [routerLink]="link.path" [fragment]="link.fragment" class="footer__nav-link">{{ link.label }}</a>
                 </li>
               }
             </ul>

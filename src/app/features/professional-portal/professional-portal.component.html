@@ -1,0 +1,459 @@
+<div class="portal" [class.portal--collapsed]="sidebarCollapsed()">
+  <aside class="portal__sidebar">
+    <div class="portal__sidebar-header">
+      <div class="portal__brand">
+        <span class="nav-label"><strong>oona.</strong><small>PRO</small></span>
+      </div>
+      <button
+        class="portal__collapse"
+        type="button"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expandir menu' : 'Contraer menu'"
+        (click)="sidebarCollapsed.update(value => !value)">
+        @if (sidebarCollapsed()) {
+          <svg lucidePanelLeftOpen aria-hidden="true"></svg>
+        } @else {
+          <svg lucidePanelLeftClose aria-hidden="true"></svg>
+        }
+      </button>
+    </div>
+    <div class="portal__identity">
+      <div>{{ (profile()?.publicName || 'P').charAt(0) }}</div>
+      <span class="nav-label"><strong>{{ profile()?.publicName || 'Profesional' }}</strong>{{ profile()?.publicationStatus || 'CARGANDO' }}</span>
+    </div>
+    <nav aria-label="Panel profesional">
+      <button title="Resumen" [class.active]="section() === 'summary'" (click)="show('summary')">
+        <svg lucideLayoutDashboard aria-hidden="true"></svg><span class="nav-label">Resumen</span>
+      </button>
+      <button title="Mi perfil" [class.active]="section() === 'profile'" (click)="show('profile')">
+        <svg lucideUserRound aria-hidden="true"></svg><span class="nav-label">Mi perfil</span>
+      </button>
+      <button title="Mis eventos" [class.active]="section() === 'events'" (click)="show('events')">
+        <svg lucideCalendarDays aria-hidden="true"></svg><span class="nav-label">Mis eventos</span>
+      </button>
+      <button title="Sesiones 1:1" [class.active]="section() === 'sessions'" (click)="show('sessions')">
+        <svg lucideBriefcaseBusiness aria-hidden="true"></svg><span class="nav-label">Sesiones 1:1</span>
+      </button>
+    </nav>
+    <div class="portal__sidebar-footer">
+      <a href="/" title="Ver sitio publico">
+        <svg lucideExternalLink aria-hidden="true"></svg><span class="nav-label">Ver sitio publico</span>
+      </a>
+      <button title="Cerrar sesion" (click)="logoutConfirm.set(true)">
+        <svg lucideLogOut aria-hidden="true"></svg><span class="nav-label">Cerrar sesion</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="portal__main">
+    <header class="portal__topbar">
+      <div><span>Espacio profesional</span><strong>{{ profile()?.publicName || 'Panel de gestión' }}</strong></div>
+      <span class="profile-state" [attr.data-state]="profile()?.publicationStatus">
+        {{ profile()?.publicationStatus || 'SIN PERFIL' }}
+      </span>
+    </header>
+
+    @if (loading()) {
+      <section class="portal__content"><div class="loading-block"></div><div class="loading-block"></div></section>
+    } @else if (section() === 'summary') {
+      <section class="portal__content">
+        <div class="page-heading">
+          <div><span>Hoy</span><h1>Resumen profesional</h1><p>Gestiona tu presencia y tu oferta desde un solo lugar.</p></div>
+        </div>
+        <div class="summary-grid">
+          <article><span>Estado del perfil</span><strong>{{ profile()?.publicationStatus }}</strong><button (click)="show('profile')">Gestionar perfil</button></article>
+          <article><span>Eventos</span><strong>{{ events().length }}</strong><small>{{ publishedEvents() }} publicados</small><button (click)="show('events')">Ver eventos</button></article>
+          <article><span>Sesiones 1:1</span><strong>{{ sessions().length }}</strong><small>{{ publishedSessions() }} publicadas</small><button (click)="show('sessions')">Ver sesiones</button></article>
+        </div>
+        <section class="quick-actions">
+          <h2>Acciones rápidas</h2>
+          <div>
+            <button class="primary" (click)="show('events'); openNewEvent()">Crear evento</button>
+            <button (click)="show('sessions'); openNewSession()">Crear sesión 1:1</button>
+            <button (click)="show('profile')">Editar perfil</button>
+          </div>
+        </section>
+      </section>
+    } @else if (section() === 'profile') {
+      <section class="portal__content">
+        <div class="page-heading">
+          <div><span>Presencia pública</span><h1>Mi perfil</h1><p>Así se presenta tu trabajo ante la comunidad.</p></div>
+          <div class="heading-actions">
+            @if (profile()?.publicationStatus === 'PUBLICADO') {
+              <a class="button" [href]="'/profesionales/' + profile()?.slug" target="_blank"><svg lucideEye aria-hidden="true"></svg>Vista pública</a>
+            }
+            <button class="button" (click)="openProfileEditor()"><svg lucidePencil aria-hidden="true"></svg>Editar información</button>
+            <button class="primary" [disabled]="saving()" (click)="toggleProfilePublication()">{{ profile()?.publicationStatus === 'PUBLICADO' ? 'Ocultar perfil' : 'Publicar perfil' }}</button>
+          </div>
+        </div>
+
+        @if (profile()?.publicationStatus !== 'PUBLICADO' && missingProfileRequirements().length) {
+          <section class="publication-readiness" role="status">
+            <div><strong>Tu perfil todavía no está listo para publicarse</strong><p>Completa estos datos para que pueda aparecer en el directorio público.</p></div>
+            <ul>@for (requirement of missingProfileRequirements(); track requirement.label) { <li>{{ requirement.label }}</li> }</ul>
+            <button class="button" (click)="openProfileEditor()"><svg lucidePencil aria-hidden="true"></svg>Completar perfil</button>
+          </section>
+        }
+
+        <section class="profile-sheet">
+          <div class="profile-sheet__identity profile-banner-control"
+               [class.profile-sheet__identity--with-banner]="profile()?.bannerUrl"
+               [style.background-image]="profile()?.bannerUrl ? 'linear-gradient(90deg, rgba(9,39,41,.78), rgba(9,39,41,.3)), url(' + profileAssetUrl(profile()?.bannerUrl) + ')' : null"
+               (dragover)="allowAssetDrop($event)"
+               (drop)="dropProfileAsset($event, 'banner')">
+            <label class="profile-avatar profile-avatar-control" (dragover)="allowAssetDrop($event)" (drop)="$event.stopPropagation(); dropProfileAsset($event, 'photo')">
+              @if (profile()?.photoUrl) { <img [src]="profileAssetUrl(profile()?.photoUrl)" alt="Foto de {{ profile()?.publicName }}"> } @else { {{ (profile()?.publicName || 'P').charAt(0) }} }
+              <span class="profile-image-overlay"><svg lucideUpload aria-hidden="true"></svg>{{ profile()?.photoUrl ? 'Cambiar foto' : 'Agregar foto' }}</span>
+              <input type="file" accept="image/*" [disabled]="saving()" (change)="selectProfileAsset($event, 'photo')">
+            </label>
+            <div>
+              <span class="profile-kicker">{{ profile()?.profileCategory === 'CENTRO' ? 'Centro de bienestar' : profile()?.profileCategory === 'ORGANIZADOR' ? 'Organizador' : 'Profesional' }}</span>
+              <h2>{{ profile()?.publicName }}</h2>
+              <p>{{ profile()?.biography || 'Añade una biografía breve para explicar tu enfoque profesional.' }}</p>
+            </div>
+            <span class="profile-state" [attr.data-state]="profile()?.publicationStatus">{{ profile()?.publicationStatus }}</span>
+            <label class="banner-image-action"><svg lucideUpload aria-hidden="true"></svg><span>{{ profile()?.bannerUrl ? 'Cambiar banner' : 'Agregar banner' }}</span><input type="file" accept="image/*" [disabled]="saving()" (change)="selectProfileAsset($event, 'banner')"></label>
+          </div>
+
+          <div class="profile-sheet__body">
+            <article class="profile-narrative"><span class="section-label">Sobre mi trabajo</span><p>{{ profile()?.description || 'Todavía no has añadido una descripción completa. Aquí podrás contar tu experiencia, método y cómo acompañas a tus clientes.' }}</p></article>
+            <aside class="contact-list">
+              <span class="section-label">Contacto público</span>
+              <div><svg lucideUserRound aria-hidden="true"></svg><span>WhatsApp<strong>{{ profile()?.whatsappPhone || 'Sin informar' }}</strong></span></div>
+              <div><svg lucideLink2 aria-hidden="true"></svg><span>Email<strong>{{ profile()?.publicEmail || 'Sin informar' }}</strong></span></div>
+              <div><svg lucideGlobe2 aria-hidden="true"></svg><span>Sitio web<strong>{{ profile()?.website || 'Sin informar' }}</strong></span></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="expertise-grid">
+          <div><span class="section-label">Temas de trabajo</span><div class="tag-list tag-list--plain">@for (topic of profile()?.workTopics || []; track topic) { <span>{{ topic }}</span> } @empty { <small>Sin temas seleccionados.</small> }</div></div>
+          <div><span class="section-label">Técnicas</span><div class="tag-list tag-list--plain">@for (technique of profile()?.techniques || []; track technique) { <span>{{ technique }}</span> } @empty { <small>Sin técnicas seleccionadas.</small> }</div></div>
+        </section>
+
+        <div class="profile-extras">
+          <section class="compact-section">
+            <header><div><svg lucideLanguages aria-hidden="true"></svg><span><strong>Idiomas</strong><small>Idiomas en los que puedes atender</small></span></div><button class="icon-action" title="Añadir idioma" (click)="showLanguageForm.set(true)"><svg lucidePlus></svg></button></header>
+            <div class="tag-list tag-list--plain">
+              @for (language of profile()?.languages || []; track language.id) {
+                <span>{{ language.languageName }} <button type="button" (click)="deleteLanguage(language.id)" aria-label="Eliminar idioma">×</button></span>
+              } @empty { <small>No hay idiomas registrados.</small> }
+            </div>
+          </section>
+          <section class="compact-section">
+            <header><div><svg lucideLink2 aria-hidden="true"></svg><span><strong>Redes sociales</strong><small>Canales visibles en tu perfil</small></span></div><button class="icon-action" title="Añadir red social" (click)="showSocialForm.set(true)"><svg lucidePlus></svg></button></header>
+            <div class="tag-list tag-list--plain">
+              @for (link of profile()?.socialLinks || []; track link.id) {
+                <span>{{ link.platform }} <button type="button" (click)="deleteSocialLink(link.platform)" aria-label="Eliminar red social">×</button></span>
+              } @empty { <small>No hay redes registradas.</small> }
+            </div>
+          </section>
+        </div>
+      </section>
+    } @else if (section() === 'events') {
+      <section class="portal__content">
+        <div class="page-heading">
+          <div><span>Programación</span><h1>Mis eventos</h1><p>Controla el estado, las fechas y la disponibilidad de tu agenda.</p></div>
+          <button class="primary" (click)="openNewEvent()"><svg lucidePlus aria-hidden="true"></svg>Nuevo evento</button>
+        </div>
+        <div class="resource-summary"><span><strong>{{ events().length }}</strong>Total</span><span><strong>{{ publishedEvents() }}</strong>Publicados</span><span><strong>{{ events().length - publishedEvents() }}</strong>Sin publicar</span></div>
+        <div class="resource-list">
+          @for (item of events(); track item.event.id) {
+            <article class="resource-row">
+              <div class="resource-row__marker"><svg lucideCalendarDays aria-hidden="true"></svg></div>
+              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.event.categoryName }}</span></div><h2>{{ item.event.title }}</h2><p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : (item.event.priceFrom | currency:item.event.currency) }}</p></div>
+              <div class="resource-row__meta"><strong>{{ item.occurrences.length }}</strong><span>{{ item.occurrences.length === 1 ? 'fecha' : 'fechas' }}</span></div>
+              <div class="resource-actions">
+                <button (click)="openEditEvent(item)">Editar</button>
+                <button (click)="openOccurrence(item)">Añadir fecha</button>
+                @if (item.status !== 'PUBLICADO') { <button (click)="changeEventStatus(item, 'PUBLICADO')">Publicar</button> }
+                @if (item.status === 'PUBLICADO') { <button (click)="changeEventStatus(item, 'CANCELADO')">Cancelar</button> }
+              </div>
+              @if (item.occurrences.length) {
+                <div class="occurrences">
+                  @for (occurrence of item.occurrences; track occurrence.id) {
+                    <span>{{ occurrence.startsAt | date:'dd/MM/yyyy HH:mm' }} · {{ occurrence.status }}
+                      <button (click)="openEditOccurrence(item, occurrence)">Editar</button>
+                      @if (occurrence.status === 'PROGRAMADA') { <button (click)="cancelOccurrence(occurrence.id)">Cancelar</button> }
+                    </span>
+                  }
+                </div>
+              }
+            </article>
+          } @empty {
+            <div class="empty-state"><h2>Aún no tienes eventos</h2><p>Usa el botón “Nuevo evento” para empezar a organizar tu programación.</p></div>
+          }
+        </div>
+      </section>
+    } @else {
+      <section class="portal__content">
+        <div class="page-heading">
+          <div><span>Oferta individual</span><h1>Sesiones 1:1</h1><p>Presenta y administra tus servicios personalizados.</p></div>
+          <button class="primary" (click)="openNewSession()"><svg lucidePlus aria-hidden="true"></svg>Nueva sesión</button>
+        </div>
+        <div class="resource-summary"><span><strong>{{ sessions().length }}</strong>Total</span><span><strong>{{ publishedSessions() }}</strong>Publicadas</span><span><strong>{{ sessions().length - publishedSessions() }}</strong>Sin publicar</span></div>
+        <div class="resource-list">
+          @for (item of sessions(); track item.id) {
+            <article class="resource-row">
+              <div class="resource-row__marker"><svg lucideBriefcaseBusiness aria-hidden="true"></svg></div>
+              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.modality === 'AMBAS' ? 'Online y presencial' : item.modality }}</span></div><h2>{{ item.title }}</h2><p><svg lucideClock3 aria-hidden="true"></svg>{{ item.durationMinutes }} min · {{ item.price === 0 ? 'Gratis' : (item.price | currency:item.currency) }}</p></div>
+              <div class="resource-actions">
+                <button (click)="openEditSession(item)">Editar</button>
+                @if (item.status !== 'PUBLICADO') { <button (click)="changeSessionStatus(item, 'PUBLICADO')">Publicar</button> }
+                @if (item.status === 'PUBLICADO') { <button (click)="changeSessionStatus(item, 'OCULTO')">Ocultar</button> }
+              </div>
+            </article>
+          } @empty {
+            <div class="empty-state"><h2>Aún no tienes sesiones</h2><p>Usa el botón “Nueva sesión” para publicar tu primera sesión individual.</p></div>
+          }
+        </div>
+      </section>
+    }
+  </main>
+
+  <div class="toast-viewport" aria-live="polite" aria-atomic="true">
+    @if (error()) {
+      <article class="toast toast--error" role="alert">
+        <span class="toast__icon"><svg lucideTriangleAlert aria-hidden="true"></svg></span>
+        <div><strong>No se pudo completar</strong><p>{{ error() }}</p></div>
+        <button type="button" aria-label="Cerrar mensaje" (click)="dismissError()"><svg lucideX aria-hidden="true"></svg></button>
+      </article>
+    }
+    @if (notice()) {
+      <article class="toast toast--success" role="status">
+        <span class="toast__icon"><svg lucideCircleCheck aria-hidden="true"></svg></span>
+        <div><strong>Cambios guardados</strong><p>{{ notice() }}</p></div>
+        <button type="button" aria-label="Cerrar mensaje" (click)="dismissNotice()"><svg lucideX aria-hidden="true"></svg></button>
+      </article>
+    }
+  </div>
+
+  @if (showProfileForm()) {
+    <button class="modal-backdrop" aria-label="Cerrar edición" (click)="showProfileForm.set(false)"></button>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-editor-title">
+      <header>
+        <div><span>Perfil público</span><h2 id="profile-editor-title">Editar información</h2><p>Actualiza los datos que verá tu comunidad.</p></div>
+        <button type="button" aria-label="Cerrar" (click)="showProfileForm.set(false)"><svg lucideX aria-hidden="true"></svg></button>
+      </header>
+      <form class="modal__form" (ngSubmit)="saveProfile()">
+        <div class="form-grid">
+          <label>Nombre público<input name="publicName" [(ngModel)]="profileForm.publicName" required maxlength="150"></label>
+          <label>Tipo de perfil<select name="profileCategory" [(ngModel)]="profileForm.profileCategory"><option value="PROFESIONALES">Profesional</option><option value="CENTRO">Centro</option><option value="ORGANIZADOR">Organizador</option></select></label>
+          <label class="wide">Biografía corta<textarea name="biography" [(ngModel)]="profileForm.biography" rows="3" maxlength="255"></textarea><small>{{ profileForm.biography.length }}/255</small></label>
+          <label class="wide">Descripción<textarea name="description" [(ngModel)]="profileForm.description" rows="5" maxlength="5000"></textarea></label>
+          <label>WhatsApp<input name="whatsappPhone" [ngModel]="profileForm.whatsappPhone" (input)="sanitizeWhatsapp($event)" inputmode="tel" maxlength="13" pattern="^\+[0-9]{2} ?[0-9]{9}$" placeholder="+51 928037195" required><small>Prefijo internacional y 9 dígitos</small></label>
+          <label>Teléfono <small>(opcional)</small><input name="phoneNumber" [ngModel]="profileForm.phoneNumber" (input)="sanitizePhone($event)" inputmode="numeric" maxlength="9" pattern="[0-9]{9}"></label>
+          <label>Email público <small>(opcional)</small><input name="publicEmail" type="email" [(ngModel)]="profileForm.publicEmail"></label>
+          <label>Sitio web <small>(opcional)</small><input name="website" type="url" [(ngModel)]="profileForm.website" placeholder="https://"></label>
+          <fieldset class="wide"><legend>Temas de trabajo</legend>@for (option of workTopics(); track option.id) { <label><input type="checkbox" [checked]="profileForm.workTopicIds.includes(option.id)" (change)="toggleSelection(profileForm.workTopicIds, option.id)"> {{ option.name }}</label> }</fieldset>
+          <fieldset class="wide"><legend>Técnicas</legend>@for (option of techniques(); track option.id) { <label><input type="checkbox" [checked]="profileForm.techniqueIds.includes(option.id)" (change)="toggleSelection(profileForm.techniqueIds, option.id)"> {{ option.name }}</label> }</fieldset>
+        </div>
+        <footer><span>La aprobación no cambia al editar estos datos.</span><button type="button" (click)="showProfileForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button></footer>
+      </form>
+    </section>
+  }
+
+  @if (cropAsset()) {
+    <button class="modal-backdrop crop-backdrop" aria-label="Cancelar recorte" (click)="closeImageCropper()"></button>
+    <section class="modal crop-modal" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+      <header>
+        <div><span>Imagen del perfil</span><h2 id="crop-title">Recortar {{ cropAsset() === 'photo' ? 'foto' : 'banner' }}</h2></div>
+        <button type="button" aria-label="Cerrar" (click)="closeImageCropper()">×</button>
+      </header>
+      <div class="crop-workspace">
+        <image-cropper
+          [imageFile]="cropImageFile() || undefined"
+          [imageURL]="cropImageUrl() || ''"
+          [maintainAspectRatio]="true"
+          [aspectRatio]="cropAspectRatio()"
+          [resizeToWidth]="cropWidth()"
+          [resizeToHeight]="cropHeight()"
+          [roundCropper]="cropAsset() === 'photo'"
+          [allowMoveImage]="true"
+          [transform]="cropTransform"
+          [backgroundColor]="'#ffffff'"
+          [imageQuality]="90"
+          format="jpeg"
+          output="blob"
+          imageAltText="Imagen seleccionada para recortar"
+          cropperFrameAriaLabel="Área visible de la imagen"
+          (imageCropped)="imageCropped($event)"
+          (loadImageFailed)="cropImageLoadFailed()"
+        ></image-cropper>
+        <div class="crop-controls">
+          <label><svg lucideZoomIn aria-hidden="true"></svg><span>Zoom</span><input type="range" min="1" max="3" step="0.05" [value]="cropTransform.scale || 1" (input)="updateCropZoom($event)"></label>
+          <button class="icon-action" type="button" title="Girar imagen" aria-label="Girar imagen" (click)="rotateCropImage()"><svg lucideRotateCw aria-hidden="true"></svg></button>
+        </div>
+      </div>
+      <footer><span>El archivo final tendrá {{ cropWidth() }} × {{ cropHeight() }} px.</span><button type="button" (click)="closeImageCropper()">Cancelar</button><button class="primary" type="button" [disabled]="saving() || !croppedImage" (click)="confirmImageCrop()">Usar imagen</button></footer>
+    </section>
+  }
+
+  @if (showLanguageForm()) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="showLanguageForm.set(false)"></button>
+    <section class="modal modal--compact" role="dialog" aria-modal="true" aria-labelledby="language-editor-title">
+      <header><div><span>Comunicación</span><h2 id="language-editor-title">Añadir idioma</h2></div><button type="button" aria-label="Cerrar" (click)="showLanguageForm.set(false)">×</button></header>
+      <form (ngSubmit)="saveLanguage()"><div class="form-grid form-grid--single"><label>Idioma<input name="languageName" [(ngModel)]="languageName" maxlength="80" placeholder="Ej. Español" required autofocus></label></div><footer><button type="button" (click)="showLanguageForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">Añadir idioma</button></footer></form>
+    </section>
+  }
+
+  @if (showSocialForm()) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="showSocialForm.set(false)"></button>
+    <section class="modal modal--compact" role="dialog" aria-modal="true" aria-labelledby="social-editor-title">
+      <header><div><span>Presencia digital</span><h2 id="social-editor-title">Añadir red social</h2></div><button type="button" aria-label="Cerrar" (click)="showSocialForm.set(false)">×</button></header>
+      <form (ngSubmit)="saveSocialLink()"><div class="form-grid form-grid--single"><label>Plataforma<select name="socialPlatform" [(ngModel)]="socialPlatform"><option value="INSTAGRAM">Instagram</option><option value="YOUTUBE">YouTube</option><option value="FACEBOOK">Facebook</option><option value="TIKTOK">TikTok</option></select></label><label>Enlace<input name="socialUrl" type="url" [(ngModel)]="socialUrl" placeholder="https://..." required></label></div><footer><button type="button" (click)="showSocialForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">Guardar red</button></footer></form>
+    </section>
+  }
+
+  @if (showEventForm()) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="showEventForm.set(false)"></button>
+    <section class="modal modal--editor" role="dialog" aria-modal="true" aria-labelledby="event-editor-title">
+      <header>
+        <div>
+          <span>Programación</span>
+          <h2 id="event-editor-title">{{ eventForm.id ? 'Editar evento' : 'Crear evento' }}</h2>
+          <p>Completa la información que verá el público y programa su primera fecha.</p>
+        </div>
+        <button type="button" aria-label="Cerrar" (click)="showEventForm.set(false)"><svg lucideX aria-hidden="true"></svg></button>
+      </header>
+      <form (ngSubmit)="saveEvent()">
+        <div class="editor-scroll">
+          <section class="form-section">
+            <div class="form-section__heading"><strong>Información principal</strong><small>Lo esencial para reconocer el evento.</small></div>
+            <div class="form-grid form-grid--section">
+              <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
+              <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
+              <label>Visibilidad<select name="eventStatus" [(ngModel)]="eventForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option></select><small class="field-help">Publicado aparecerá en Explorar cuando tenga una fecha futura.</small></label>
+              <label class="wide">Resumen<input name="eventSummary" [(ngModel)]="eventForm.summary" maxlength="300" placeholder="Una frase breve para la tarjeta"></label>
+              <label class="wide">Descripción<textarea name="eventDescription" [(ngModel)]="eventForm.description" rows="4" required placeholder="Explica qué vivirán las personas durante el evento"></textarea></label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="form-section__heading"><strong>Formato y precio</strong><small>Define cómo se realizará y cuánto cuesta.</small></div>
+            <div class="form-grid form-grid--section">
+              <div class="form-control wide">
+                <span class="form-label">Modalidad</span>
+                <div class="segmented-control" aria-label="Modalidad del evento">
+                  <button type="button" [class.active]="eventForm.modality === 'ONLINE'" (click)="setEventModality('ONLINE')">Online</button>
+                  <button type="button" [class.active]="eventForm.modality === 'PRESENCIAL'" (click)="setEventModality('PRESENCIAL')">Presencial</button>
+                </div>
+              </div>
+              <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+              <label>Edad mínima<input name="eventAge" type="number" min="0" max="120" [(ngModel)]="eventForm.minimumAge"><small class="field-help">Usa 0 si es apto para todas las edades.</small></label>
+            </div>
+          </section>
+
+          @if (!eventForm.id) {
+            <section class="form-section">
+              <div class="form-section__heading"><strong>Primera fecha</strong><small>Podrás añadir más fechas después de crear el evento.</small></div>
+              <div class="form-grid form-grid--section">
+                <label>Empieza<input name="eventStarts" type="datetime-local" [min]="minimumDateTime()" [(ngModel)]="eventForm.startsAt" (change)="syncEventEndTime()" required></label>
+                <label>Termina<input name="eventEnds" type="datetime-local" [min]="eventForm.startsAt" [(ngModel)]="eventForm.endsAt" required><small class="field-help" [class.field-help--error]="eventDurationLabel().startsWith('La hora')">{{ eventDurationLabel() }}</small></label>
+                <label>Capacidad<input name="eventCapacity" type="number" min="1" step="1" [(ngModel)]="eventForm.capacity" required><small class="field-help">Número total de plazas.</small></label>
+                @if (eventForm.modality === 'ONLINE') {
+                  <label>Enlace de reunión<input name="eventMeeting" type="url" [(ngModel)]="eventForm.meetingUrl" placeholder="https://meet.google.com/..." required></label>
+                } @else {
+                  <label>Ciudad<select name="eventCity" [(ngModel)]="eventForm.cityId" required><option [ngValue]="null" disabled>Selecciona una ciudad</option>@for (city of cities(); track city.id) { <option [ngValue]="city.id">{{ city.name }}</option> }</select></label>
+                  <label>Nombre del lugar<input name="eventLocation" [(ngModel)]="eventForm.locationName" placeholder="Ej. Centro Oona" required></label>
+                  <label class="wide">Dirección<input name="eventAddress" [(ngModel)]="eventForm.addressLine1" placeholder="Calle, número y referencia" required></label>
+                }
+              </div>
+            </section>
+          }
+
+          <section class="form-section form-section--optional">
+            <div class="form-section__heading"><strong>Detalles opcionales</strong><small>Se mostrarán en el detalle del evento.</small></div>
+            <div class="form-grid form-grid--section">
+              <label class="wide">Lo que incluye<input name="eventIncludes" [(ngModel)]="eventForm.includes" placeholder="Material, bebida, acceso... (separado por comas)"></label>
+              <label class="wide">Puntos destacados<input name="eventHighlights" [(ngModel)]="eventForm.highlights" placeholder="Beneficios principales (separados por comas)"></label>
+              <label class="wide">Qué traer<input name="eventBring" [(ngModel)]="eventForm.whatToBring" placeholder="Ropa cómoda, esterilla... (separado por comas)"></label>
+            </div>
+          </section>
+        </div>
+        <footer><span>{{ eventForm.status === 'PUBLICADO' ? 'Se mostrará públicamente si la fecha es futura.' : 'Podrás publicarlo más adelante.' }}</span><button type="button" (click)="showEventForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : eventForm.id ? 'Guardar cambios' : 'Crear evento' }}</button></footer>
+      </form>
+    </section>
+  }
+
+  @if (occurrenceEvent(); as item) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="occurrenceEvent.set(null)"></button>
+    <section class="modal modal--small">
+      <header><div><span>{{ occurrenceForm.id ? 'Editar fecha' : 'Nueva fecha' }}</span><h2>{{ item.event.title }}</h2></div><button (click)="occurrenceEvent.set(null)">×</button></header>
+      <form (ngSubmit)="saveOccurrence()">
+        <div class="form-grid">
+          <label>Empieza<input name="occStarts" type="datetime-local" [(ngModel)]="occurrenceForm.startsAt" required></label>
+          <label>Termina<input name="occEnds" type="datetime-local" [(ngModel)]="occurrenceForm.endsAt" required></label>
+          <label>Capacidad<input name="occCapacity" type="number" min="1" [(ngModel)]="occurrenceForm.capacity" required></label>
+          @if (item.event.modality === 'ONLINE') { <label>Enlace<input name="occMeeting" type="url" [(ngModel)]="occurrenceForm.meetingUrl" required></label> }
+          @if (item.event.modality === 'PRESENCIAL') {
+            <label>Nombre del lugar<input name="occLocation" [(ngModel)]="occurrenceForm.locationName" required></label>
+            <label>Dirección<input name="occAddress" [(ngModel)]="occurrenceForm.address" required></label>
+            <label>Ciudad<select name="occCity" [(ngModel)]="occurrenceForm.cityId" required><option [ngValue]="null">Selecciona</option>@for (city of cities(); track city.id) { <option [ngValue]="city.id">{{ city.name }}</option> }</select></label>
+          }
+        </div>
+        <footer><button type="button" (click)="occurrenceEvent.set(null)">Cancelar</button><button class="primary" type="submit">{{ occurrenceForm.id ? 'Guardar fecha' : 'Añadir fecha' }}</button></footer>
+      </form>
+    </section>
+  }
+
+  @if (showSessionForm()) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="showSessionForm.set(false)"></button>
+    <section class="modal modal--editor" role="dialog" aria-modal="true" aria-labelledby="session-editor-title">
+      <header>
+        <div><span>Oferta individual</span><h2 id="session-editor-title">{{ sessionForm.id ? 'Editar sesión 1:1' : 'Crear sesión 1:1' }}</h2><p>Define una propuesta clara para que las personas sepan qué reservar.</p></div>
+        <button type="button" aria-label="Cerrar" (click)="showSessionForm.set(false)"><svg lucideX aria-hidden="true"></svg></button>
+      </header>
+      <form (ngSubmit)="saveSession()">
+        <div class="editor-scroll">
+          <section class="form-section">
+            <div class="form-section__heading"><strong>Información principal</strong><small>Así se mostrará la sesión en el catálogo.</small></div>
+            <div class="form-grid form-grid--section">
+              <label class="wide">Título<input name="sessionTitle" [(ngModel)]="sessionForm.title" required maxlength="180" placeholder="Ej. Sesión de claridad y bienestar emocional"></label>
+              <label class="wide">Descripción<textarea name="sessionDescription" [(ngModel)]="sessionForm.description" rows="5" required placeholder="Explica el enfoque, qué incluye y para quién es esta sesión"></textarea></label>
+              <label class="wide">Imagen de portada<input name="sessionImage" type="url" [(ngModel)]="sessionForm.imageUrl" placeholder="https://..."><small class="field-help">Opcional. Debe ser una URL pública de imagen.</small></label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="form-section__heading"><strong>Formato y publicación</strong><small>Configura la duración, modalidad y visibilidad.</small></div>
+            <div class="form-grid form-grid--section">
+              <label>Duración<div class="input-suffix"><input name="sessionDuration" type="number" min="15" step="15" [(ngModel)]="sessionForm.durationMinutes" required><span>min</span></div><small class="field-help">En intervalos de 15 minutos.</small></label>
+              <label>Modalidad<select name="sessionModality" [(ngModel)]="sessionForm.modality"><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="AMBAS">Online y presencial</option></select></label>
+              <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+              <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
+            </div>
+          </section>
+
+          <section class="form-section form-section--optional">
+            <div class="form-section__heading"><strong>Especialidad</strong><small>Ayuda a encontrar esta sesión por tema y técnica.</small></div>
+            <div class="form-grid form-grid--section">
+              <fieldset class="wide option-grid"><legend>Temas</legend>@for (option of workTopics(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.workTopics.includes(option.id)" (change)="toggleSelection(sessionForm.workTopics, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
+              <fieldset class="wide option-grid"><legend>Técnicas</legend>@for (option of techniques(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.techniques.includes(option.id)" (change)="toggleSelection(sessionForm.techniques, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
+            </div>
+          </section>
+        </div>
+        <footer><span>{{ sessionForm.status === 'PUBLICADO' ? 'Se mostrará en el catálogo público.' : 'No será visible públicamente.' }}</span><button type="button" (click)="showSessionForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : sessionForm.id ? 'Guardar cambios' : 'Crear sesión' }}</button></footer>
+      </form>
+    </section>
+  }
+
+  @if (logoutConfirm()) {
+    <button
+      class="confirm-backdrop"
+      aria-label="Cancelar cierre de sesion"
+      (click)="logoutConfirm.set(false)"></button>
+    <section
+      class="confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="professional-logout-title">
+      <div class="confirm-dialog__icon"><svg lucideLogOut aria-hidden="true"></svg></div>
+      <h2 id="professional-logout-title">Cerrar sesion</h2>
+      <p>¿Estas seguro de que deseas salir de tu panel profesional?</p>
+      <footer>
+        <button (click)="logoutConfirm.set(false)">Cancelar</button>
+        <button class="primary" (click)="logout()">Cerrar sesion</button>
+      </footer>
+    </section>
+  }
+</div>

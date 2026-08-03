@@ -1,335 +1,368 @@
-<div class="perfil-page">
-  <aside class="perfil-sidebar">
-    <div class="sidebar-user">
-      <div class="sidebar-avatar" style="background:#004257;">A</div>
-      <div><strong class="sidebar-nombre">Admin OONA</strong></div>
-    </div>
-    <nav class="sidebar-nav">
-      <button class="sidebar-link" [class.active]="seccion() === 'dashboard'" (click)="cambiarSeccion('dashboard')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
-      </button>
-      <button class="sidebar-link" [class.active]="seccion() === 'profesionales'" (click)="cambiarSeccion('profesionales')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Profesionales
-        @if (totalPendientes() > 0) {
-          <span class="sidebar-badge">{{ totalPendientes() }}</span>
+<div class="erp" [class.erp--collapsed]="sidebarCollapsed()">
+  <aside class="erp__sidebar">
+    <div class="erp__sidebar-header">
+      <div class="erp__brand">
+        <svg lucideShieldCheck aria-hidden="true"></svg>
+        <span class="nav-label"><strong>oona.</strong><small>ERP</small></span>
+      </div>
+      <button
+        class="erp__collapse"
+        type="button"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expandir menu' : 'Contraer menu'"
+        (click)="sidebarCollapsed.update(value => !value)">
+        @if (sidebarCollapsed()) {
+          <svg lucidePanelLeftOpen aria-hidden="true"></svg>
+        } @else {
+          <svg lucidePanelLeftClose aria-hidden="true"></svg>
         }
       </button>
-      <button class="sidebar-link" [class.active]="seccion() === 'eventos'" (click)="cambiarSeccion('eventos')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        Eventos
+    </div>
+    <nav aria-label="Administración">
+      <button title="Resumen" [class.active]="section() === 'summary'" (click)="show('summary')">
+        <svg lucideLayoutDashboard aria-hidden="true"></svg>
+        <span class="nav-label">Resumen</span>
       </button>
-      <button class="sidebar-link" [class.active]="seccion() === 'usuarios'" (click)="cambiarSeccion('usuarios')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        Usuarios
+      <button title="Solicitudes" [class.active]="section() === 'applications'" (click)="show('applications')">
+        <svg lucideClipboardList aria-hidden="true"></svg>
+        <span class="nav-label">Solicitudes</span>
+        @if (pendingOnPage()) { <b>{{ pendingOnPage() }}</b> }
       </button>
-      <button class="sidebar-link" [class.active]="seccion() === 'config'" (click)="cambiarSeccion('config')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Configuración
+      <button title="Ciudades" [class.active]="section() === 'cities'" (click)="show('cities')">
+        <svg lucideMapPin aria-hidden="true"></svg>
+        <span class="nav-label">Ciudades</span>
       </button>
     </nav>
-
-    <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--color-divider, #e2e8f1);">
-      <a routerLink="/" class="sidebar-link" style="color: var(--color-muted, #8b9b8f); font-size: 0.85rem;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Volver al inicio
-      </a>
-    </div>
+    <button class="erp__logout" title="Cerrar sesion" (click)="logoutConfirm.set(true)">
+      <svg lucideLogOut aria-hidden="true"></svg>
+      <span class="nav-label">Cerrar sesion</span>
+    </button>
   </aside>
 
-  <main class="perfil-main">
-    <!-- ═══════ DASHBOARD ═══════ -->
-    @if (seccion() === 'dashboard') {
-      <section class="perfil-section">
-        <h1 class="section-title">Panel de Administración</h1>
-
-        <div class="dashboard-cards">
-          <div class="dash-card"><span class="dash-card-num">{{ totalProfesionales() }}</span><span class="dash-card-label">Profesionales</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ totalActivos() }}</span><span class="dash-card-label">Activos</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ totalPendientes() }}</span><span class="dash-card-label">Pendientes</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ totalEventos() }}</span><span class="dash-card-label">Eventos</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ totalUsuarios() }}</span><span class="dash-card-label">Usuarios</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ asistentesTotales() }}</span><span class="dash-card-label">Asistentes</span></div>
-          <div class="dash-card"><span class="dash-card-num">{{ ingresosTotales() }}€</span><span class="dash-card-label">Ingresos totales</span></div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
-          <div class="admin-card">
-            <h3 class="admin-card-title">Próximos eventos</h3>
-            @for (e of eventosProximos(); track e.id) {
-              <div class="admin-row">
-                <div>
-                  <strong style="font-size:0.85rem;">{{ e.titulo }}</strong>
-                  <span style="display:block;font-size:0.75rem;color:var(--color-muted);">{{ e.fecha }} · {{ e.profesional }}</span>
-                </div>
-                <span style="font-size:0.8rem;font-weight:600;color:var(--color-sage-dark);">{{ e.plazasOcupadas }}/{{ e.plazas }}</span>
-              </div>
-            }
-          </div>
-          <div class="admin-card">
-            <h3 class="admin-card-title">Top profesionales por ingresos</h3>
-            @for (p of topProfesionales(); track p.id) {
-              <div class="admin-row">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img [src]="p.avatar" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />
-                  <div>
-                    <strong style="font-size:0.85rem;">{{ p.nombre }}</strong>
-                    <span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ p.disciplina }}</span>
-                  </div>
-                </div>
-                <span style="font-size:0.8rem;font-weight:600;color:#4c8c2a;">{{ p.ingresos }}€</span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="admin-card" style="margin-top:24px;">
-          <h3 class="admin-card-title">Profesionales recientes</h3>
-          <div class="admin-table">
-            <div class="admin-table-header">
-              <span>Nombre</span><span>Disciplina</span><span>Ciudad</span><span>Registro</span><span>Estado</span>
+  <main class="erp__main">
+    <header class="erp__topbar">
+      <div>
+        <span>Administración</span>
+        <strong>{{ section() === 'summary' ? 'Resumen operativo' : section() === 'cities' ? 'Catálogo de Ciudades' : 'Solicitudes profesionales' }}</strong>
+      </div>
+      <div class="erp__operator-container">
+        <button class="erp__operator" (click)="avatarMenuOpen.update(v => !v)">
+          {{ getInitials() }}
+        </button>
+        @if (avatarMenuOpen()) {
+          <div class="erp__operator-dropdown">
+            <div class="dropdown-header">
+              <strong>{{ currentUser()?.username }}</strong>
+              <small>{{ currentUser()?.email }}</small>
             </div>
-            @for (p of profesionalesRecientes(); track p.id) {
-              <div class="admin-table-row">
-                <span style="display:flex;align-items:center;gap:6px;">
-                  <img [src]="p.avatar" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
-                  {{ p.nombre }}
-                </span>
-                <span style="font-size:0.8rem;">{{ p.disciplina }}</span>
-                <span style="font-size:0.8rem;">{{ p.ciudad }}</span>
-                <span style="font-size:0.8rem;">{{ p.fechaRegistro }}</span>
-                <span>
-                  @if (p.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
-                  @else if (p.estado === 'pendiente') { <span class="admin-badge admin-badge--warn">Pendiente</span> }
-                  @else { <span class="admin-badge admin-badge--err">Suspendido</span> }
-                </span>
-              </div>
-            }
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" (click)="logoutConfirm.set(true); avatarMenuOpen.set(false)">
+              <svg lucideLogOut aria-hidden="true"></svg>
+              Cerrar sesión
+            </button>
           </div>
-        </div>
-      </section>
-    }
-
-    <!-- ═══════ PROFESIONALES ═══════ -->
-    @if (false) {
-      <section class="perfil-section">
-        <h1 class="section-title">Gestionar Profesionales</h1>
-        <div class="admin-table">
-          <div class="admin-table-header">
-            <span>Profesional</span><span>Disciplina</span><span>Experiencias</span><span>Asistentes</span><span>Ingresos</span><span>Estado</span><span></span>
-          </div>
-          @for (p of profesionales(); track p.id) {
-            <div class="admin-table-row">
-              <span style="display:flex;align-items:center;gap:8px;">
-                <img [src]="p.avatar" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
-                <div><strong style="font-size:0.85rem;">{{ p.nombre }}</strong><span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ p.email }}</span></div>
-              </span>
-              <span style="font-size:0.8rem;">{{ p.disciplina }}</span>
-              <span style="font-size:0.8rem;text-align:center;">{{ p.experiencias }}</span>
-              <span style="font-size:0.8rem;text-align:center;">{{ p.asistentesTotales }}</span>
-              <span style="font-size:0.8rem;font-weight:600;">{{ p.ingresos }}€</span>
-              <span>
-                @if (p.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
-                @else if (p.estado === 'pendiente') { <span class="admin-badge admin-badge--warn">Pendiente</span> }
-                @else { <span class="admin-badge admin-badge--err">Suspendido</span> }
-              </span>
-              <span style="display:flex;gap:4px;">
-                @if (p.estado === 'pendiente') {
-                  <button class="admin-action-btn" style="color:#4c8c2a;" (click)="aprobarProfesional(p.id)" title="Aprobar">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  </button>
-                }
-                @if (p.estado === 'activo') {
-                  <button class="admin-action-btn" style="color:#c0392b;" (click)="suspenderProfesional(p.id)" title="Suspender">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                  </button>
-                }
-              </span>
-            </div>
-          }
-        </div>
-      </section>
-    }
-
-    <!-- ═══════ EVENTOS ═══════ -->
-    @if (seccion() === 'profesionales') {
-      <section class="perfil-section">
-        <div class="admin-section-heading">
-          <h1 class="section-title">Solicitudes profesionales</h1>
-          <select
-            class="admin-filter"
-            [ngModel]="solicitudesStatus()"
-            (ngModelChange)="filtrarSolicitudes($event)"
-            aria-label="Filtrar solicitudes por estado"
-          >
-            <option [ngValue]="null">Todas</option>
-            <option value="PENDIENTE">Pendientes</option>
-            <option value="APROBADO">Aprobadas</option>
-            <option value="RECHAZADO">Rechazadas</option>
-          </select>
-        </div>
-
-        @if (solicitudesError()) {
-          <p class="admin-feedback admin-feedback--error">{{ solicitudesError() }}</p>
         }
+      </div>
+    </header>
 
-        @if (solicitudesLoading()) {
-          <p class="admin-feedback">Cargando solicitudes...</p>
-        } @else {
-          <div class="admin-table">
-            <div class="admin-table-header admin-table-header--applications">
-              <span>Solicitante</span><span>Tipo</span><span>Ciudad</span><span>WhatsApp</span><span>Estado</span><span>Acciones</span>
-            </div>
-            @for (application of solicitudes(); track application.id) {
-              <div class="admin-table-row admin-table-row--applications">
-                <span>
-                  <strong>{{ application.fullName }}</strong>
-                  <small>{{ application.email }}</small>
-                </span>
-                <span>{{ application.professionalType }}</span>
-                <span>{{ application.cityName }}</span>
-                <span>{{ application.whatsappPhone }}</span>
-                <span>
-                  @if (application.status === 'APROBADO') {
-                    <span class="admin-badge admin-badge--ok">Aprobada</span>
-                  } @else if (application.status === 'PENDIENTE') {
-                    <span class="admin-badge admin-badge--warn">Pendiente</span>
-                  } @else {
-                    <span class="admin-badge admin-badge--err">Rechazada</span>
-                  }
-                </span>
-                <span class="admin-row-actions">
-                  @if (application.status === 'PENDIENTE') {
-                    <button class="admin-action-btn admin-action-btn--approve" (click)="aprobarSolicitud(application.id)">Aprobar</button>
-                    <button class="admin-action-btn admin-action-btn--reject" (click)="iniciarRechazo(application.id)">Rechazar</button>
-                  }
-                </span>
-                <p class="admin-application-motivation">{{ application.motivation }}</p>
-                @if (rejectingId() === application.id) {
-                  <div class="admin-rejection">
-                    <textarea [(ngModel)]="rejectionReason" maxlength="500" rows="3" placeholder="Motivo del rechazo"></textarea>
-                    <button class="admin-action-btn admin-action-btn--reject" (click)="confirmarRechazo(application.id)">Confirmar</button>
-                    <button class="admin-action-btn" (click)="cancelarRechazo()">Cancelar</button>
-                  </div>
-                }
-              </div>
-            } @empty {
-              <p class="admin-feedback">No hay solicitudes con este estado.</p>
+    @if (error()) {
+      <div class="erp__alert" role="alert">{{ error() }}</div>
+    }
+
+    @if (section() === 'summary') {
+      <section class="erp__content">
+        <div class="erp__heading">
+          <div>
+            <h1>Resumen</h1>
+            <p>Estado actual del proceso de incorporación profesional.</p>
+          </div>
+          <button class="primary" (click)="show('applications')">Revisar solicitudes</button>
+        </div>
+
+        <div class="metric-grid">
+          <article>
+            <span>Solicitudes en la vista</span>
+            <strong>{{ totalElements() }}</strong>
+          </article>
+          <article>
+            <span>Pendientes en página</span>
+            <strong>{{ pendingOnPage() }}</strong>
+          </article>
+          <article>
+            <span>Filtro activo</span>
+            <strong class="metric-grid__text">{{ status() || 'TODAS' }}</strong>
+          </article>
+        </div>
+
+        <section class="queue-preview">
+          <div>
+            <h2>Revisión pendiente</h2>
+            <p>Solicitudes ordenadas por fecha de envío más reciente.</p>
+          </div>
+          @if (loading()) {
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+          } @else if (!applications().length) {
+            <p class="empty">No hay solicitudes con el filtro actual.</p>
+          } @else {
+            @for (item of applications().slice(0, 5); track item.id) {
+              <button class="preview-row" (click)="show('applications'); select(item)">
+                <span><strong>{{ item.fullName }}</strong>{{ professionalTypeLabel(item.professionalType) }}</span>
+                <time>{{ item.createdAt | date:'dd/MM/yyyy' }}</time>
+              </button>
             }
-          </div>
-
-          @if (solicitudesTotalPages() > 1) {
-            <nav class="admin-pagination" aria-label="Paginacion de solicitudes">
-              <button class="admin-action-btn" [disabled]="solicitudesPage() === 0" (click)="cargarSolicitudes(solicitudesPage() - 1)">Anterior</button>
-              <span>Pagina {{ solicitudesPage() + 1 }} de {{ solicitudesTotalPages() }}</span>
-              <button class="admin-action-btn" [disabled]="solicitudesPage() + 1 >= solicitudesTotalPages()" (click)="cargarSolicitudes(solicitudesPage() + 1)">Siguiente</button>
-            </nav>
           }
-        }
+        </section>
       </section>
-    }
-
-    @if (seccion() === 'eventos') {
-      <section class="perfil-section">
-        <h1 class="section-title">Gestionar Eventos</h1>
-        <div class="admin-table">
-          <div class="admin-table-header">
-            <span>Evento</span><span>Profesional</span><span>Fecha</span><span>Plazas</span><span>Ingresos</span><span>Estado</span><span></span>
+    } @else if (section() === 'applications') {
+      <section class="erp__content">
+        <div class="erp__heading">
+          <div>
+            <h1>Solicitudes profesionales</h1>
+            <p>Consulta la información declarada y registra una decisión.</p>
           </div>
-          @for (e of eventos(); track e.id) {
-            <div class="admin-table-row">
-              <span><strong style="font-size:0.85rem;">{{ e.titulo }}</strong></span>
-              <span style="font-size:0.8rem;">{{ e.profesional }}</span>
-              <span style="font-size:0.8rem;">{{ e.fecha }}</span>
-              <span style="font-size:0.8rem;">{{ e.plazasOcupadas }}/{{ e.plazas }}</span>
-              <span style="font-size:0.8rem;font-weight:600;">{{ e.ingresos }}€</span>
-              <span>
-                @if (e.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
-                @else if (e.estado === 'pausado') { <span class="admin-badge admin-badge--warn">Pausado</span> }
-                @else { <span class="admin-badge admin-badge--err">Cancelado</span> }
-              </span>
-              <span style="display:flex;gap:4px;">
-                <button class="admin-action-btn" style="color:#f39c12;" (click)="cambiarEstadoEvento(e.id, 'pausado')" title="Pausar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                </button>
-                <button class="admin-action-btn" style="color:#c0392b;" (click)="cambiarEstadoEvento(e.id, 'cancelado')" title="Cancelar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </span>
-            </div>
+        </div>
+
+        <div class="toolbar">
+          @for (option of [
+            { value: null, label: 'Todas' },
+            { value: 'PENDIENTE', label: 'Pendientes' },
+            { value: 'APROBADO', label: 'Aprobadas' },
+            { value: 'RECHAZADO', label: 'Rechazadas' }
+          ]; track option.label) {
+            <button
+              [class.active]="status() === option.value"
+              (click)="filter($any(option.value))">
+              {{ option.label }}
+            </button>
           }
         </div>
-      </section>
-    }
 
-    <!-- ═══════ USUARIOS ═══════ -->
-    @if (seccion() === 'usuarios') {
-      <section class="perfil-section">
-        <h1 class="section-title">Gestionar Usuarios</h1>
-        <div class="admin-table">
-          <div class="admin-table-header">
-            <span>Usuario</span><span>Tipo</span><span>Registro</span><span>Último acceso</span><span>Reservas</span><span>Estado</span><span></span>
-          </div>
-          @for (u of usuarios(); track u.id) {
-            <div class="admin-table-row">
-              <span style="display:flex;align-items:center;gap:8px;">
-                <div style="width:32px;height:32px;border-radius:50%;background:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-sage-dark);">{{ u.nombre.charAt(0) }}{{ u.nombre.split(' ')[1]?.charAt(0) || '' }}</div>
-                <div><strong style="font-size:0.85rem;">{{ u.nombre }}</strong><span style="display:block;font-size:0.7rem;color:var(--color-muted);">{{ u.email }}</span></div>
-              </span>
-              <span>
-                @if (u.tipo === 'profesional') { <span class="admin-badge admin-badge--pro">Profesional</span> }
-                @else { <span class="admin-badge admin-badge--user">Usuario</span> }
-              </span>
-              <span style="font-size:0.8rem;">{{ u.fechaRegistro }}</span>
-              <span style="font-size:0.8rem;">{{ u.ultimoAcceso }}</span>
-              <span style="font-size:0.8rem;text-align:center;">{{ u.reservas }}</span>
-              <span>
-                @if (u.estado === 'activo') { <span class="admin-badge admin-badge--ok">Activo</span> }
-                @else if (u.estado === 'suspendido') { <span class="admin-badge admin-badge--err">Suspendido</span> }
-                @else { <span class="admin-badge admin-badge--err">Inactivo</span> }
-              </span>
-              <span>
-                <button class="admin-action-btn" [style.color]="u.estado === 'activo' ? '#c0392b' : '#4c8c2a'" (click)="toggleUsuarioEstado(u.id)" [title]="u.estado === 'activo' ? 'Desactivar' : 'Activar'">
-                  @if (u.estado === 'activo') {
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  } @else {
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  }
-                </button>
-              </span>
-            </div>
-          }
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Solicitante</th>
+                <th>Tipo</th>
+                <th>Ciudad</th>
+                <th>Enviada</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (_ of [1,2,3,4]; track $index) {
+                  <tr><td colspan="6"><div class="skeleton-row"></div></td></tr>
+                }
+              } @else {
+                @for (item of applications(); track item.id) {
+                  <tr>
+                    <td><strong>{{ item.fullName }}</strong><small>{{ item.email }}</small></td>
+                    <td>{{ professionalTypeLabel(item.professionalType) }}</td>
+                    <td>{{ item.cityName }}</td>
+                    <td>{{ item.createdAt | date:'dd/MM/yyyy' }}</td>
+                    <td><span class="status" [attr.data-status]="item.status">{{ item.status }}</span></td>
+                    <td><button class="table-action" (click)="select(item)">Revisar</button></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="empty">No hay solicitudes con estos criterios.</td></tr>
+                }
+              }
+            </tbody>
+          </table>
         </div>
+
+        <footer class="pagination">
+          <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
+          <div>
+            <button [disabled]="page() === 0" (click)="load(page() - 1)">Anterior</button>
+            <button [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
+          </div>
+        </footer>
       </section>
-    }
-
-    <!-- ═══════ CONFIG ═══════ -->
-    @if (seccion() === 'config') {
-      <section class="perfil-section">
-        <h1 class="section-title">Configuración de la plataforma</h1>
-
-        <div style="display:grid;gap:20px;max-width:600px;">
-          <div class="admin-card">
-            <h3 class="admin-card-title">Información general</h3>
-            <div style="display:grid;gap:12px;">
-              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Nombre de la plataforma</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">OONA · Bienestar y Conexión</div></div>
-              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Email de contacto</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">hola&#64;oona.es</div></div>
-              <div><label style="display:block;font-size:0.75rem;font-weight:600;color:var(--color-muted);margin-bottom:4px;">Comisión por reserva</label><div class="form-input" style="background:#fff;padding:10px 14px;border-radius:8px;border:1px solid var(--color-divider);font-size:0.9rem;">10%</div></div>
-            </div>
+    } @else if (section() === 'cities') {
+      <section class="erp__content">
+        <div class="erp__heading">
+          <div>
+            <h1>Catálogo de ciudades</h1>
+            <p>Gestiona las ciudades activas disponibles para ubicar los eventos y sesiones.</p>
           </div>
+          <button class="primary icon-inline" (click)="openNewCity()">
+            <svg lucidePlus aria-hidden="true" class="icon-md"></svg>
+            Nueva ciudad
+          </button>
+        </div>
 
-          <div class="admin-card">
-            <h3 class="admin-card-title">Estadísticas de plataforma</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalProfesionales() }}</span><span class="dash-card-label">Profesionales</span></div>
-              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalEventos() }}</span><span class="dash-card-label">Eventos creados</span></div>
-              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ totalUsuarios() }}</span><span class="dash-card-label">Usuarios registrados</span></div>
-              <div class="dash-card" style="padding:16px;"><span class="dash-card-num" style="font-size:1.3rem;">{{ ingresosTotales() }}€</span><span class="dash-card-label">Ingresos generados</span></div>
-            </div>
-          </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Ciudad</th>
+                <th>Provincia / Región</th>
+                <th>Código de País</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (_ of [1,2,3]; track $index) {
+                  <tr><td colspan="5"><div class="skeleton-row"></div></td></tr>
+                }
+              } @else {
+                @for (city of cities(); track city.id) {
+                  <tr>
+                    <td><strong>{{ city.name }}</strong></td>
+                    <td>{{ city.province || '-' }}</td>
+                    <td><span class="code-chip">{{ city.countryCode }}</span></td>
+                    <td>
+                      <button
+                        type="button"
+                        class="status status--toggle"
+                        [attr.data-status]="city.active ? 'APROBADO' : 'RECHAZADO'"
+                        (click)="toggleCityActive(city)"
+                        title="Haga clic para cambiar el estado">
+                        {{ city.active ? 'ACTIVA' : 'INACTIVA' }}
+                      </button>
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="table-action table-action--square" (click)="openEditCity(city)" title="Editar">
+                          <svg lucidePencil aria-hidden="true" class="icon-sm"></svg>
+                        </button>
+                        <button class="table-action table-action--square table-action--danger" (click)="confirmDeleteCity(city)" title="Eliminar">
+                          <svg lucideTrash2 aria-hidden="true" class="icon-sm"></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="empty">No hay ciudades registradas.</td></tr>
+                }
+              }
+            </tbody>
+          </table>
         </div>
       </section>
     }
   </main>
+
+  @if (selected(); as item) {
+    <button class="drawer-backdrop" aria-label="Cerrar detalle" (click)="closeDetail()"></button>
+    <aside class="drawer" aria-label="Detalle de solicitud">
+      <header>
+        <div><span>Solicitud #{{ item.id }}</span><h2>{{ item.fullName }}</h2></div>
+        <button aria-label="Cerrar" (click)="closeDetail()">×</button>
+      </header>
+      <dl>
+        <div><dt>Email</dt><dd>{{ item.email }}</dd></div>
+        <div><dt>Ciudad</dt><dd>{{ item.cityName }}</dd></div>
+        <div><dt>Tipo profesional</dt><dd>{{ professionalTypeLabel(item.professionalType) }}</dd></div>
+        <div><dt>WhatsApp</dt><dd>{{ item.whatsappPhone }}</dd></div>
+        <div class="wide"><dt>Motivación y experiencia</dt><dd>{{ item.motivation }}</dd></div>
+        <div><dt>Creada</dt><dd>{{ item.createdAt | date:'medium' }}</dd></div>
+        <div><dt>Actualizada</dt><dd>{{ item.updatedAt | date:'medium' }}</dd></div>
+      </dl>
+
+      @if (item.status === 'PENDIENTE') {
+        <div class="drawer__actions">
+          @if (rejectMode()) {
+            <label>Motivo del rechazo
+              <textarea [(ngModel)]="rejectionReason" maxlength="500" rows="4"></textarea>
+            </label>
+            <div>
+              <button (click)="rejectMode.set(false)">Cancelar</button>
+              <button class="danger" [disabled]="deciding()" (click)="reject()">Confirmar rechazo</button>
+            </div>
+          } @else if (approvePending()) {
+            <p>¿Confirmas que esta persona puede acceder al portal profesional?</p>
+            <div>
+              <button (click)="approvePending.set(false)">Cancelar</button>
+              <button class="primary" [disabled]="deciding()" (click)="approve()">Confirmar aprobación</button>
+            </div>
+          } @else {
+            <button class="danger-outline" (click)="rejectMode.set(true)">Rechazar</button>
+            <button class="primary" (click)="approvePending.set(true)">Aprobar</button>
+          }
+        </div>
+      } @else {
+        <p class="decision-note">Esta solicitud ya fue {{ item.status.toLowerCase() }}.</p>
+      }
+    </aside>
+  }
+
+  @if (cityFormOpen()) {
+    <button class="drawer-backdrop" aria-label="Cerrar formulario" (click)="closeCityForm()"></button>
+    <aside class="drawer" aria-label="Formulario de ciudad">
+      <header>
+        <div>
+          <span>{{ selectedCity() ? 'Editar Ciudad #' + selectedCity()?.id : 'Nueva Ciudad' }}</span>
+          <h2>{{ selectedCity() ? 'Modificar datos' : 'Agregar ciudad al catálogo' }}</h2>
+        </div>
+        <button aria-label="Cerrar" (click)="closeCityForm()">×</button>
+      </header>
+
+      <form (ngSubmit)="saveCity()" class="city-form">
+        <label class="field">
+          <span>Nombre de la ciudad *</span>
+          <input type="text" name="name" [(ngModel)]="cityForm.name" required maxlength="100" />
+        </label>
+
+        <label class="field">
+          <span>Provincia / Región</span>
+          <input type="text" name="province" [(ngModel)]="cityForm.province" maxlength="100" />
+        </label>
+
+        <label class="field">
+          <span>Código de País</span>
+          <input type="text" name="countryCode" [(ngModel)]="cityForm.countryCode" maxlength="2" />
+        </label>
+
+        <label class="field--checkbox">
+          <input type="checkbox" name="active" [(ngModel)]="cityForm.active" />
+          <span>Ciudad activa y disponible para usuarios</span>
+        </label>
+
+        <div class="drawer__actions">
+          <button type="button" (click)="closeCityForm()">Cancelar</button>
+          <button type="submit" class="primary" [disabled]="deciding()">
+            {{ deciding() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  }
+
+  @if (cityDeleteConfirm(); as city) {
+    <button class="confirm-backdrop" aria-label="Cancelar eliminación" (click)="cityDeleteConfirm.set(null)"></button>
+    <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="city-delete-title">
+      <div class="confirm-dialog__icon confirm-dialog__icon--danger"><svg lucideTrash2 aria-hidden="true"></svg></div>
+      <h2 id="city-delete-title">Eliminar ciudad</h2>
+      <p>¿Estás seguro de que deseas eliminar <strong>{{ city.name }}</strong>? Esta acción no se puede deshacer y fallará si la ciudad está asociada a ubicaciones.</p>
+      <footer>
+        <button class="cancel" (click)="cityDeleteConfirm.set(null)">Cancelar</button>
+        <button class="primary" [disabled]="deciding()" (click)="deleteCity()">Eliminar</button>
+      </footer>
+    </section>
+  }
+
+  @if (logoutConfirm()) {
+    <button
+      class="confirm-backdrop"
+      aria-label="Cancelar cierre de sesion"
+      (click)="logoutConfirm.set(false)"></button>
+    <section
+      class="confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="admin-logout-title">
+      <div class="confirm-dialog__icon"><svg lucideLogOut aria-hidden="true"></svg></div>
+      <h2 id="admin-logout-title">Cerrar sesión</h2>
+      <p>¿Estás seguro de que deseas salir del panel administrativo?</p>
+      <footer>
+        <button class="cancel" (click)="logoutConfirm.set(false)">Cancelar</button>
+        <button class="primary" (click)="logout()">Cerrar sesión</button>
+      </footer>
+    </section>
+  }
 </div>

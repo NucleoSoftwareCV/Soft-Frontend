@@ -8,6 +8,7 @@ import { AppIcon, IconName } from '../../../shared/components/icon/icon';
 export interface TarjetaDirectorio {
 
   id: number;
+  userId: number;
 
   tipo:
     | 'Profesional'
@@ -136,6 +137,7 @@ export class Directorio implements OnInit {
     return {
 
       id: perfil.id,
+      userId: perfil.userId,
 
       tipo: this.convertirTipo(
         perfil.profileCategory
@@ -159,9 +161,9 @@ export class Directorio implements OnInit {
 
       ].slice(0, 5),
 
-      imagenUrl: perfil.photoUrl,
+      imagenUrl: this.specialistProfileService.resolveAssetUrl(perfil.photoUrl),
 
-      bannerUrl: perfil.bannerUrl,
+      bannerUrl: this.specialistProfileService.resolveAssetUrl(perfil.bannerUrl),
 
       temas,
 

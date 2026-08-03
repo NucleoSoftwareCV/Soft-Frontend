@@ -149,6 +149,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return 'Usuario';
   }
 
+  get isProfessional(): boolean {
+    return this.authService.roles.includes('PROFESSIONAL');
+  }
+
   logout(): void {
     this.authService.logout();
     this.showLogoutConfirm.set(false);
