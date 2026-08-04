@@ -134,6 +134,11 @@ export class DetalleEvento implements OnDestroy{
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
   }
 
+  organizerPhotoUrl(): string {
+    return this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl)
+      ?? this.fallbackImages[0];
+  }
+
   formatPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';

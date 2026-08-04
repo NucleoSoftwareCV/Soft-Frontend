@@ -135,7 +135,7 @@
         @for (item of eventos(); track item.id) {
           <article class="card" [routerLink]="['/evento', item.id]">
             <div class="image-box">
-              <img [src]="fallbackImage" [alt]="item.title" loading="lazy" />
+              <img [src]="assetUrl(item.coverImageUrl)" [alt]="item.title" loading="lazy" />
                 <button
                   class="heart"
                   [class.active]="isFavorito(item)"
@@ -171,7 +171,7 @@
 
               <div class="card-author">
                 <div class="author">
-                  <img [src]="item.organizerPhotoUrl || fallbackImage" alt="avatar" />
+                  <img [src]="assetUrl(item.organizerPhotoUrl)" [alt]="item.organizerName || 'Organizador'" />
                   <span>{{ item.organizerName || 'Oona' }}</span>
                 </div>
                 <span class="precio">{{ formatPrice(item) }}</span>

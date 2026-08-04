@@ -39,4 +39,13 @@ export class EventosService {
   getEvento(id: number): Observable<EventDetailResponse> {
     return this.http.get<EventDetailResponse>(`${this.BASE}/events/${id}`);
   }
+
+  resolveAssetUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (/^(https?:|data:|blob:)/i.test(url)) return url;
+    if (!environment.apiUrl.startsWith('http')) return url;
+
+    const apiOrigin = new URL(environment.apiUrl).origin;
+    return `${apiOrigin}${url.startsWith('/') ? url : `/${url}`}`;
+  }
 }

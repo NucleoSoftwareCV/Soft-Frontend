@@ -68,6 +68,7 @@ export interface EventCardResponse {
   organizerId: number | null;
   organizerName: string | null;
   organizerPhotoUrl: string | null;
+  coverImageUrl: string | null;
   startsAt: string | null;
   endsAt: string | null;
   cityName: string | null;
@@ -93,6 +94,9 @@ export interface EventDetailResponse {
   title: string;
   summary: string | null;
   description: string | null;
+  includes: string[];
+  highlights: string[];
+  whatToBring: string[];
   modality: EventModality;
   priceFrom: number | null;
   currency: string;

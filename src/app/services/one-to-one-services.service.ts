@@ -11,6 +11,7 @@ import {
   SpringPage,
   OneToOneServiceRequest,
 } from '../shared/models/one-to-one-service.model';
+import { LocationResponse } from '../shared/models/evento.model';
 
 @Injectable({ providedIn: 'root' })
 export class OneToOneServicesService {
@@ -18,6 +19,7 @@ export class OneToOneServicesService {
   private readonly BASE = `${environment.apiUrl}/one-to-one-services`;
   private readonly WORK_TOPICS = `${environment.apiUrl}/work-topics`;
   private readonly TECHNIQUES = `${environment.apiUrl}/techniques`;
+  private readonly LOCATIONS = `${environment.apiUrl}/locations`;
 
   getPublicServices(params: OneToOneServicePageParams = {}): Observable<SpringPage<OneToOneServiceCardResponse>> {
     let httpParams = new HttpParams();
@@ -40,6 +42,19 @@ export class OneToOneServicesService {
 
   getActiveTechniques(): Observable<OneToOneFilterOption[]> {
     return this.http.get<OneToOneFilterOption[]>(`${this.TECHNIQUES}/active`);
+  }
+
+  getActiveLocations(): Observable<LocationResponse[]> {
+    return this.http.get<LocationResponse[]>(this.LOCATIONS);
+  }
+
+  resolveAssetUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (/^(https?:|data:|blob:)/i.test(url)) return url;
+    if (!environment.apiUrl.startsWith('http')) return url;
+
+    const apiOrigin = new URL(environment.apiUrl).origin;
+    return `${apiOrigin}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   getMyServices(): Observable<OneToOneServiceDetailResponse[]> {

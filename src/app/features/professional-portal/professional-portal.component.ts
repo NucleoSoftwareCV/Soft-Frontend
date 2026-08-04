@@ -10,16 +10,20 @@ import {
   ImageTransform,
 } from 'ngx-image-cropper';
 import {
+  LucideBan,
   LucideBriefcaseBusiness,
+  LucideCalendarClock,
   LucideCalendarDays,
   LucideCircleCheck,
   LucideClock3,
+  LucideEllipsis,
   LucideEye,
   LucideExternalLink,
   LucideGlobe2,
   LucideLanguages,
   LucideLayoutDashboard,
   LucideLink2,
+  LucideMapPin,
   LucideLogOut,
   LucidePanelLeftClose,
   LucidePanelLeftOpen,
@@ -29,6 +33,7 @@ import {
   LucideTriangleAlert,
   LucideUpload,
   LucideUserRound,
+  LucideUsersRound,
   LucideZoomIn,
   LucideX,
 } from '@lucide/angular';
@@ -43,7 +48,6 @@ import {
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import {
   EventManagementResponse,
-  EventOccurrenceManagement,
   EventOccurrenceRequest,
   EventStatus,
   EventUpsertRequest,
@@ -51,6 +55,7 @@ import {
 import {
   CategoryResponse,
   CityResponse,
+  LocationResponse,
 } from '../../shared/models/evento.model';
 import {
   OneToOneFilterOption,
@@ -74,6 +79,7 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
+  occurrenceId: number | null;
   startsAt: string;
   endsAt: string;
   capacity: number;
@@ -99,17 +105,6 @@ interface SessionForm {
   techniques: number[];
 }
 
-interface OccurrenceForm {
-  id: number | null;
-  startsAt: string;
-  endsAt: string;
-  capacity: number;
-  meetingUrl: string;
-  locationName: string;
-  address: string;
-  cityId: number | null;
-}
-
 @Component({
   selector: 'app-professional-portal',
   standalone: true,
@@ -117,16 +112,20 @@ interface OccurrenceForm {
     CommonModule,
     FormsModule,
     ImageCropperComponent,
+    LucideBan,
     LucideBriefcaseBusiness,
+    LucideCalendarClock,
     LucideCalendarDays,
     LucideCircleCheck,
     LucideClock3,
+    LucideEllipsis,
     LucideEye,
     LucideExternalLink,
     LucideGlobe2,
     LucideLanguages,
     LucideLayoutDashboard,
     LucideLink2,
+    LucideMapPin,
     LucideLogOut,
     LucidePanelLeftClose,
     LucidePanelLeftOpen,
@@ -136,6 +135,7 @@ interface OccurrenceForm {
     LucideTriangleAlert,
     LucideUpload,
     LucideUserRound,
+    LucideUsersRound,
     LucideZoomIn,
     LucideX,
   ],
@@ -158,6 +158,7 @@ export class ProfessionalPortalComponent {
   cities = signal<CityResponse[]>([]);
   workTopics = signal<OneToOneFilterOption[]>([]);
   techniques = signal<OneToOneFilterOption[]>([]);
+  locations = signal<LocationResponse[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal<string | null>(null);
@@ -167,7 +168,9 @@ export class ProfessionalPortalComponent {
   showProfileForm = signal(false);
   showLanguageForm = signal(false);
   showSocialForm = signal(false);
-  occurrenceEvent = signal<EventManagementResponse | null>(null);
+  eventMenuId = signal<number | null>(null);
+  cancelEventTarget = signal<EventManagementResponse | null>(null);
+  eventActionId = signal<number | null>(null);
   sidebarCollapsed = signal(false);
   logoutConfirm = signal(false);
   cropAsset = signal<'photo' | 'banner' | null>(null);
@@ -195,7 +198,6 @@ export class ProfessionalPortalComponent {
 
   eventForm: EventForm = this.emptyEventForm();
   sessionForm: SessionForm = this.emptySessionForm();
-  occurrenceForm: OccurrenceForm = this.emptyOccurrenceForm();
 
   publishedEvents = computed(
     () => this.events().filter(item => item.status === 'PUBLICADO').length
@@ -247,6 +249,10 @@ export class ProfessionalPortalComponent {
         this.techniques.set(techniques);
         this.hydrateProfileSelections();
       },
+    });
+    this.sessionsApi.getActiveLocations().subscribe({
+      next: locations => this.locations.set(locations),
+      error: () => this.failed('No se pudieron cargar las ubicaciones disponibles.'),
     });
   }
 
@@ -479,6 +485,7 @@ export class ProfessionalPortalComponent {
 
   openEditEvent(item: EventManagementResponse): void {
     const event = item.event;
+    const occurrence = item.occurrences[0];
     this.eventForm = {
       id: event.id,
       title: event.title,
@@ -492,13 +499,14 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
-      startsAt: this.localDateTime(2),
-      endsAt: this.localDateTime(2, 2),
-      capacity: 12,
-      meetingUrl: 'https://meet.google.com/',
-      locationName: '',
-      addressLine1: '',
-      cityId: null,
+      occurrenceId: occurrence?.id ?? null,
+      startsAt: occurrence ? this.toLocalInput(occurrence.startsAt) : this.localDateTime(2),
+      endsAt: occurrence ? this.toLocalInput(occurrence.endsAt) : this.localDateTime(2, 2),
+      capacity: occurrence?.capacity ?? 12,
+      meetingUrl: occurrence?.meetingLink?.meetingUrl ?? 'https://meet.google.com/',
+      locationName: occurrence?.location?.name ?? '',
+      addressLine1: occurrence?.location?.address ?? '',
+      cityId: this.cities().find(city => city.name === occurrence?.location?.cityName)?.id ?? null,
       status: item.status === 'PUBLICADO' ? 'PUBLICADO' : 'BORRADOR',
     };
     this.showEventForm.set(true);
@@ -510,14 +518,20 @@ export class ProfessionalPortalComponent {
       this.failed('Selecciona una categoria antes de guardar el evento.');
       return;
     }
-    if (!this.eventForm.id && !this.validateEventOccurrence()) return;
+    if (!this.validateEventOccurrence()) return;
 
     this.saving.set(true);
     this.clearMessages();
     const event = this.eventRequest(profile.id);
     const editingId = this.eventForm.id;
+    const occurrence = this.eventOccurrenceRequest();
     const operation = editingId
-      ? this.eventsApi.update(editingId, event).pipe(map(() => editingId))
+      ? this.eventsApi.update(editingId, event).pipe(
+          switchMap(() => this.eventForm.occurrenceId
+            ? this.eventsApi.updateOccurrence(this.eventForm.occurrenceId, occurrence)
+            : this.eventsApi.addOccurrence(editingId, occurrence)),
+          map(() => editingId)
+        )
       : this.eventsApi.create({ event, occurrence: this.eventOccurrenceRequest() })
           .pipe(map(response => response.event.id));
     const currentStatus = editingId
@@ -573,69 +587,43 @@ export class ProfessionalPortalComponent {
   }
 
   changeEventStatus(item: EventManagementResponse, status: EventStatus): void {
+    this.eventActionId.set(item.event.id);
+    this.eventMenuId.set(null);
     this.eventsApi.updateStatus(item.event.id, status).subscribe({
-      next: () => this.loadEvents(),
-      error: () => this.failed('No se pudo cambiar el estado del evento.'),
-    });
-  }
-
-  openOccurrence(item: EventManagementResponse): void {
-    this.occurrenceEvent.set(item);
-    this.occurrenceForm = this.emptyOccurrenceForm();
-  }
-
-  openEditOccurrence(item: EventManagementResponse, occurrence: EventOccurrenceManagement): void {
-    this.occurrenceEvent.set(item);
-    this.occurrenceForm = {
-      id: occurrence.id,
-      startsAt: this.toLocalInput(occurrence.startsAt),
-      endsAt: this.toLocalInput(occurrence.endsAt),
-      capacity: occurrence.capacity,
-      meetingUrl: occurrence.meetingLink?.meetingUrl ?? '',
-      locationName: occurrence.location?.name ?? '',
-      address: occurrence.location?.address ?? '',
-      cityId: this.cities().find(city => city.name === occurrence.location?.cityName)?.id ?? null,
-    };
-  }
-
-  saveOccurrence(): void {
-    const item = this.occurrenceEvent();
-    if (!item) return;
-    const request: EventOccurrenceRequest = {
-      startsAt: new Date(this.occurrenceForm.startsAt).toISOString(),
-      endsAt: new Date(this.occurrenceForm.endsAt).toISOString(),
-      capacity: this.occurrenceForm.capacity,
-      meetingLink: item.event.modality === 'ONLINE'
-        ? {
-            platform: 'MEET',
-            meetingUrl: this.occurrenceForm.meetingUrl,
-          }
-        : null,
-      location: item.event.modality === 'PRESENCIAL'
-        ? {
-            name: this.occurrenceForm.locationName,
-            address: this.occurrenceForm.address,
-            cityId: this.occurrenceForm.cityId!,
-          }
-        : null,
-    };
-    const operation = this.occurrenceForm.id
-      ? this.eventsApi.updateOccurrence(this.occurrenceForm.id, request)
-      : this.eventsApi.addOccurrence(item.event.id, request);
-    operation.subscribe({
       next: () => {
-        this.occurrenceEvent.set(null);
+        this.eventActionId.set(null);
+        this.succeeded(status === 'CANCELADO'
+          ? 'Evento cancelado correctamente.'
+          : 'Estado del evento actualizado.');
         this.loadEvents();
       },
-      error: () => this.failed('No se pudo agregar la fecha.'),
+      error: () => {
+        this.eventActionId.set(null);
+        this.failed('No se pudo cambiar el estado del evento.');
+      },
     });
   }
 
-  cancelOccurrence(id: number): void {
-    this.eventsApi.updateOccurrenceStatus(id, 'CANCELADA').subscribe({
-      next: () => this.loadEvents(),
-      error: () => this.failed('No se pudo cancelar la fecha.'),
-    });
+  toggleEventMenu(eventId: number): void {
+    this.eventMenuId.update(current => current === eventId ? null : eventId);
+  }
+
+  requestEventCancellation(item: EventManagementResponse): void {
+    this.eventMenuId.set(null);
+    this.cancelEventTarget.set(item);
+  }
+
+  confirmEventCancellation(): void {
+    const item = this.cancelEventTarget();
+    if (!item) return;
+    this.cancelEventTarget.set(null);
+    this.changeEventStatus(item, 'CANCELADO');
+  }
+
+  eventLocation(item: EventManagementResponse): string {
+    const occurrence = item.occurrences[0];
+    if (item.event.modality === 'ONLINE') return 'Online';
+    return occurrence?.location?.name || occurrence?.location?.cityName || 'Lugar por confirmar';
   }
 
   openNewSession(): void {
@@ -648,7 +636,7 @@ export class ProfessionalPortalComponent {
       id: item.id,
       title: item.title,
       description: item.description ?? '',
-      imageUrl: '',
+      imageUrl: item.imageUrl ?? '',
       durationMinutes: item.durationMinutes ?? 60,
       modality: item.modality,
       locationId: item.locationId,
@@ -670,6 +658,10 @@ export class ProfessionalPortalComponent {
       this.failed('El precio no puede ser negativo.');
       return;
     }
+    if (this.sessionForm.modality !== 'ONLINE' && !this.sessionForm.locationId) {
+      this.failed('Selecciona una ubicación para la modalidad presencial.');
+      return;
+    }
     this.saving.set(true);
     this.clearMessages();
     const editingId = this.sessionForm.id;
@@ -679,7 +671,7 @@ export class ProfessionalPortalComponent {
       imageUrl: this.sessionForm.imageUrl || undefined,
       durationMinutes: this.sessionForm.durationMinutes,
       modality: this.sessionForm.modality,
-      locationId: this.sessionForm.locationId,
+      locationId: this.sessionForm.modality === 'ONLINE' ? null : this.sessionForm.locationId,
       price: this.sessionForm.price,
       currency: this.sessionForm.currency,
       status: this.sessionForm.status,
@@ -690,9 +682,13 @@ export class ProfessionalPortalComponent {
       ? this.sessionsApi.updateService(this.sessionForm.id, request)
       : this.sessionsApi.createService(request);
     operation.subscribe({
-      next: () => {
+      next: savedSession => {
         this.saving.set(false);
         this.showSessionForm.set(false);
+        this.sessions.update(current => {
+          const withoutSaved = current.filter(item => item.id !== savedSession.id);
+          return [savedSession, ...withoutSaved];
+        });
         this.succeeded(editingId
           ? 'Sesión 1:1 actualizada correctamente.'
           : this.sessionForm.status === 'PUBLICADO'
@@ -757,7 +753,7 @@ export class ProfessionalPortalComponent {
 
   private loadSessions(): void {
     this.sessionsApi.getMyServices().subscribe({
-      next: sessions => this.sessions.set(sessions),
+      next: sessions => this.sessions.set(Array.isArray(sessions) ? sessions : []),
       error: () => this.error.set('No se pudieron cargar las sesiones 1:1.'),
     });
   }
@@ -815,6 +811,7 @@ export class ProfessionalPortalComponent {
       currency: 'EUR',
       minimumAge: 18,
       categoryId: null,
+      occurrenceId: null,
       startsAt: this.localDateTime(2),
       endsAt: this.localDateTime(2, 2),
       capacity: 12,
@@ -840,19 +837,6 @@ export class ProfessionalPortalComponent {
       status: 'PUBLICADO',
       workTopics: [],
       techniques: [],
-    };
-  }
-
-  private emptyOccurrenceForm(): OccurrenceForm {
-    return {
-      id: null,
-      startsAt: this.localDateTime(2),
-      endsAt: this.localDateTime(2, 2),
-      capacity: 12,
-      meetingUrl: 'https://meet.google.com/',
-      locationName: '',
-      address: '',
-      cityId: null,
     };
   }
 

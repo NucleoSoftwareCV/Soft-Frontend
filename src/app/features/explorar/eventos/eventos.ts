@@ -61,6 +61,10 @@ export class Eventos {
   selectedSort = signal<EventSortOption>(this.sortOptions[0]);
   private lastRequestKey = '';
 
+  assetUrl(url: string | null | undefined, fallback = this.fallbackImage): string {
+    return this.eventosService.resolveAssetUrl(url) ?? fallback;
+  }
+
   constructor() {
     this.loadCategorias();
 

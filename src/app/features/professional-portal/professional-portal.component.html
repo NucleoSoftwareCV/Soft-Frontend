@@ -160,24 +160,38 @@
           @for (item of events(); track item.event.id) {
             <article class="resource-row">
               <div class="resource-row__marker"><svg lucideCalendarDays aria-hidden="true"></svg></div>
-              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.event.categoryName }}</span></div><h2>{{ item.event.title }}</h2><p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : (item.event.priceFrom | currency:item.event.currency) }}</p></div>
-              <div class="resource-row__meta"><strong>{{ item.occurrences.length }}</strong><span>{{ item.occurrences.length === 1 ? 'fecha' : 'fechas' }}</span></div>
-              <div class="resource-actions">
-                <button (click)="openEditEvent(item)">Editar</button>
-                <button (click)="openOccurrence(item)">Añadir fecha</button>
-                @if (item.status !== 'PUBLICADO') { <button (click)="changeEventStatus(item, 'PUBLICADO')">Publicar</button> }
-                @if (item.status === 'PUBLICADO') { <button (click)="changeEventStatus(item, 'CANCELADO')">Cancelar</button> }
+              <div class="resource-row__content">
+                <div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.event.categoryName }}</span></div>
+                <h2>{{ item.event.title }}</h2>
+                <p>{{ item.event.summary || item.event.description }}</p>
+                @if (item.occurrences[0]; as occurrence) {
+                  <div class="event-facts">
+                    <span title="Fecha y hora"><svg lucideCalendarClock aria-hidden="true"></svg>{{ occurrence.startsAt | date:'dd/MM/yyyy · HH:mm' }}</span>
+                    <span title="Lugar"><svg lucideMapPin aria-hidden="true"></svg>{{ eventLocation(item) }}</span>
+                    <span title="Participantes"><svg lucideUsersRound aria-hidden="true"></svg>{{ occurrence.reservedSpots }}/{{ occurrence.capacity }} participantes</span>
+                  </div>
+                } @else {
+                  <div class="event-facts event-facts--warning"><svg lucideTriangleAlert aria-hidden="true"></svg>Fecha por confirmar</div>
+                }
               </div>
-              @if (item.occurrences.length) {
-                <div class="occurrences">
-                  @for (occurrence of item.occurrences; track occurrence.id) {
-                    <span>{{ occurrence.startsAt | date:'dd/MM/yyyy HH:mm' }} · {{ occurrence.status }}
-                      <button (click)="openEditOccurrence(item, occurrence)">Editar</button>
-                      @if (occurrence.status === 'PROGRAMADA') { <button (click)="cancelOccurrence(occurrence.id)">Cancelar</button> }
-                    </span>
+              <div class="resource-actions">
+                <button class="button resource-edit" (click)="openEditEvent(item)"><svg lucidePencil aria-hidden="true"></svg>Editar evento</button>
+                <div class="action-menu">
+                  <button class="icon-action" type="button" title="Más acciones" aria-label="Más acciones para {{ item.event.title }}" [disabled]="eventActionId() === item.event.id" (click)="toggleEventMenu(item.event.id)">
+                    <svg lucideEllipsis aria-hidden="true"></svg>
+                  </button>
+                  @if (eventMenuId() === item.event.id) {
+                    <div class="action-menu__content" role="menu">
+                      @if (item.status !== 'PUBLICADO') {
+                        <button role="menuitem" (click)="changeEventStatus(item, 'PUBLICADO')"><svg lucideEye aria-hidden="true"></svg>Publicar evento</button>
+                      }
+                      @if (item.status === 'PUBLICADO') {
+                        <button class="destructive" role="menuitem" (click)="requestEventCancellation(item)"><svg lucideBan aria-hidden="true"></svg>Cancelar evento</button>
+                      }
+                    </div>
                   }
                 </div>
-              }
+              </div>
             </article>
           } @empty {
             <div class="empty-state"><h2>Aún no tienes eventos</h2><p>Usa el botón “Nuevo evento” para empezar a organizar tu programación.</p></div>
@@ -343,9 +357,8 @@
             </div>
           </section>
 
-          @if (!eventForm.id) {
             <section class="form-section">
-              <div class="form-section__heading"><strong>Primera fecha</strong><small>Podrás añadir más fechas después de crear el evento.</small></div>
+              <div class="form-section__heading"><strong>{{ eventForm.id ? 'Fecha principal' : 'Primera fecha' }}</strong><small>{{ eventForm.id ? 'Estos son los datos actuales de programación y ubicación.' : 'Define cuándo y dónde se realizará el evento.' }}</small></div>
               <div class="form-grid form-grid--section">
                 <label>Empieza<input name="eventStarts" type="datetime-local" [min]="minimumDateTime()" [(ngModel)]="eventForm.startsAt" (change)="syncEventEndTime()" required></label>
                 <label>Termina<input name="eventEnds" type="datetime-local" [min]="eventForm.startsAt" [(ngModel)]="eventForm.endsAt" required><small class="field-help" [class.field-help--error]="eventDurationLabel().startsWith('La hora')">{{ eventDurationLabel() }}</small></label>
@@ -359,7 +372,6 @@
                 }
               </div>
             </section>
-          }
 
           <section class="form-section form-section--optional">
             <div class="form-section__heading"><strong>Detalles opcionales</strong><small>Se mostrarán en el detalle del evento.</small></div>
@@ -375,24 +387,15 @@
     </section>
   }
 
-  @if (occurrenceEvent(); as item) {
-    <button class="modal-backdrop" aria-label="Cerrar" (click)="occurrenceEvent.set(null)"></button>
-    <section class="modal modal--small">
-      <header><div><span>{{ occurrenceForm.id ? 'Editar fecha' : 'Nueva fecha' }}</span><h2>{{ item.event.title }}</h2></div><button (click)="occurrenceEvent.set(null)">×</button></header>
-      <form (ngSubmit)="saveOccurrence()">
-        <div class="form-grid">
-          <label>Empieza<input name="occStarts" type="datetime-local" [(ngModel)]="occurrenceForm.startsAt" required></label>
-          <label>Termina<input name="occEnds" type="datetime-local" [(ngModel)]="occurrenceForm.endsAt" required></label>
-          <label>Capacidad<input name="occCapacity" type="number" min="1" [(ngModel)]="occurrenceForm.capacity" required></label>
-          @if (item.event.modality === 'ONLINE') { <label>Enlace<input name="occMeeting" type="url" [(ngModel)]="occurrenceForm.meetingUrl" required></label> }
-          @if (item.event.modality === 'PRESENCIAL') {
-            <label>Nombre del lugar<input name="occLocation" [(ngModel)]="occurrenceForm.locationName" required></label>
-            <label>Dirección<input name="occAddress" [(ngModel)]="occurrenceForm.address" required></label>
-            <label>Ciudad<select name="occCity" [(ngModel)]="occurrenceForm.cityId" required><option [ngValue]="null">Selecciona</option>@for (city of cities(); track city.id) { <option [ngValue]="city.id">{{ city.name }}</option> }</select></label>
-          }
-        </div>
-        <footer><button type="button" (click)="occurrenceEvent.set(null)">Cancelar</button><button class="primary" type="submit">{{ occurrenceForm.id ? 'Guardar fecha' : 'Añadir fecha' }}</button></footer>
-      </form>
+  @if (cancelEventTarget(); as item) {
+    <button class="modal-backdrop" aria-label="Mantener evento" (click)="cancelEventTarget.set(null)"></button>
+    <section class="alert-dialog" role="alertdialog" aria-modal="true" aria-labelledby="cancel-event-title" aria-describedby="cancel-event-description">
+      <div class="alert-dialog__icon"><svg lucideBan aria-hidden="true"></svg></div>
+      <div><h2 id="cancel-event-title">Cancelar evento</h2><p id="cancel-event-description">¿Estás seguro de que deseas cancelar “{{ item.event.title }}”? Esta acción podría afectar a los participantes asociados.</p></div>
+      <footer>
+        <button type="button" (click)="cancelEventTarget.set(null)">Mantener evento</button>
+        <button class="destructive-button" type="button" [disabled]="eventActionId() === item.event.id" (click)="confirmEventCancellation()"><svg lucideBan aria-hidden="true"></svg>Confirmar cancelación</button>
+      </footer>
     </section>
   }
 
@@ -419,6 +422,21 @@
             <div class="form-grid form-grid--section">
               <label>Duración<div class="input-suffix"><input name="sessionDuration" type="number" min="15" step="15" [(ngModel)]="sessionForm.durationMinutes" required><span>min</span></div><small class="field-help">En intervalos de 15 minutos.</small></label>
               <label>Modalidad<select name="sessionModality" [(ngModel)]="sessionForm.modality"><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="AMBAS">Online y presencial</option></select></label>
+              @if (sessionForm.modality !== 'ONLINE') {
+                <label class="wide">Ubicación presencial
+                  <select name="sessionLocation" [(ngModel)]="sessionForm.locationId" required>
+                    <option [ngValue]="null">Selecciona una ubicación</option>
+                    @for (location of locations(); track location.id) {
+                      <option [ngValue]="location.id">{{ location.name }} · {{ location.address }} · {{ location.cityName }}</option>
+                    }
+                  </select>
+                  @if (locations().length === 0) {
+                    <small class="field-help field-help--error">No hay ubicaciones activas disponibles.</small>
+                  } @else {
+                    <small class="field-help">Se mostrará como lugar de atención en la sesión pública.</small>
+                  }
+                </label>
+              }
               <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
               <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
             </div>
