@@ -1,32 +1,50 @@
-import { Injectable, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+
+import {
+  CategoryCatalogItem,
+  ExperienceTypeCatalogItem,
+} from '../shared/models/event-catalog.model';
+import { EventCatalogService } from './event-catalog.service';
 
 @Injectable({ providedIn: 'root' })
 export class FiltrosService {
-  filterWhen       = signal<string | null>(null);
+  private readonly catalogApi = inject(EventCatalogService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  filterWhen = signal<string | null>(null);
   filterCategories = signal<string[]>([]);
-  filterTypes      = signal<string[]>([]);
-  filterCity       = signal<string>('Todas');
-  filterTimeOfDay  = signal<string | null>(null);
-  filterModality   = signal<string | null>(null);
+  filterTypes = signal<string[]>([]);
+  filterCity = signal<string>('Todas');
+  filterTimeOfDay = signal<string | null>(null);
+  filterModality = signal<string | null>(null);
   filterRecurrence = signal<string | null>(null);
 
-  whenOptions     = ['Hoy', 'Mañana', 'Este finde', 'Esta semana', 'Próxima semana'];
-  categoryOptions = [
-    'Yoga', 'Hielo y Breathwork', 'Arte y Creatividad', 'Movimiento',
-    'Deporte', 'Meditación y Mindfulness', 'Sonido y Vibración',
-    'Espiritualidad y Energía', 'Nutrición y Cocina', 'Psicología',
-    'Cuerpo y Salud', 'Maternidad y Familia', 'Emprendimiento',
+  readonly categories = signal<CategoryCatalogItem[]>([]);
+  readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
+
+  whenOptions = ['Hoy', 'Mañana', 'Este finde', 'Esta semana', 'Próxima semana'];
+  cityOptions = ['Todas', 'Valencia', 'Alicante', 'Castellón', 'Barcelona', 'Madrid'];
+  timeOptions = [
+    { label: 'Mañana', sub: '6h - 12h' },
+    { label: 'Mediodía', sub: '12h - 16h' },
+    { label: 'Tarde', sub: '16h - 20h' },
+    { label: 'Noche', sub: '20h - 24h' },
   ];
-  typeOptions     = ['Talleres', 'Retiros', 'Clases', 'Ceremonias', 'Encuentros Grupales', 'Formaciones'];
-  cityOptions     = ['Todas', 'Valencia', 'Alicante', 'Castellón', 'Barcelona', 'Madrid'];
-  timeOptions     = [
-    { label: 'Mañana',   sub: '6h – 12h'  },
-    { label: 'Mediodía', sub: '12h – 16h' },
-    { label: 'Tarde',    sub: '16h – 20h' },
-    { label: 'Noche',    sub: '20h – 24h' },
-  ];
-  modalityOptions   = ['Presencial', 'Online'];
+  modalityOptions = ['Presencial', 'Online'];
   recurrenceOptions = ['Único', 'Recurrente'];
+
+  constructor() {
+    this.refreshCatalogs();
+  }
+
+  get categoryOptions(): string[] {
+    return this.categories().map(category => category.name);
+  }
+
+  get typeOptions(): string[] {
+    return this.experienceTypes().map(type => type.name);
+  }
 
   get activeFilterCount(): number {
     return (
@@ -40,34 +58,67 @@ export class FiltrosService {
     );
   }
 
-  selectWhen(opt: string): void {
-    this.filterWhen.set(this.filterWhen() === opt ? null : opt);
+  refreshCatalogs(): void {
+    if (!this.isBrowser) return;
+
+    this.catalogApi.getCategories().subscribe({
+      next: categories => {
+        const active = categories.filter(category => category.active);
+        this.categories.set(active);
+        this.filterCategories.update(selected =>
+          selected.filter(name => active.some(category => category.name === name))
+        );
+      },
+      error: () => undefined,
+    });
+    this.catalogApi.getExperienceTypes().subscribe({
+      next: types => {
+        const active = types.filter(type => type.active);
+        this.experienceTypes.set(active);
+        this.filterTypes.update(selected =>
+          selected.filter(name => active.some(type => type.name === name))
+        );
+      },
+      error: () => undefined,
+    });
   }
 
-  toggleCategory(cat: string): void {
-    const c = this.filterCategories();
-    this.filterCategories.set(c.includes(cat) ? c.filter(x => x !== cat) : [...c, cat]);
+  selectWhen(option: string): void {
+    this.filterWhen.set(this.filterWhen() === option ? null : option);
   }
 
-  toggleType(t: string): void {
-    const c = this.filterTypes();
-    this.filterTypes.set(c.includes(t) ? c.filter(x => x !== t) : [...c, t]);
+  toggleCategory(category: string): void {
+    const selected = this.filterCategories();
+    this.filterCategories.set(
+      selected.includes(category)
+        ? selected.filter(item => item !== category)
+        : [...selected, category]
+    );
+  }
+
+  toggleType(type: string): void {
+    const selected = this.filterTypes();
+    this.filterTypes.set(
+      selected.includes(type)
+        ? selected.filter(item => item !== type)
+        : [...selected, type]
+    );
   }
 
   selectCity(city: string): void {
     this.filterCity.set(city);
   }
 
-  selectTimeOfDay(t: string): void {
-    this.filterTimeOfDay.set(this.filterTimeOfDay() === t ? null : t);
+  selectTimeOfDay(value: string): void {
+    this.filterTimeOfDay.set(this.filterTimeOfDay() === value ? null : value);
   }
 
-  selectModality(m: string): void {
-    this.filterModality.set(this.filterModality() === m ? null : m);
+  selectModality(value: string): void {
+    this.filterModality.set(this.filterModality() === value ? null : value);
   }
 
-  selectRecurrence(r: string): void {
-    this.filterRecurrence.set(this.filterRecurrence() === r ? null : r);
+  selectRecurrence(value: string): void {
+    this.filterRecurrence.set(this.filterRecurrence() === value ? null : value);
   }
 
   clearFilters(): void {

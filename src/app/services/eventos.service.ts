@@ -11,6 +11,7 @@ import {
   EventFilterParams,
   SpringPage,
 } from '../shared/models/evento.model';
+import { ExperienceTypeCatalogItem } from '../shared/models/event-catalog.model';
 
 @Injectable({ providedIn: 'root' })
 export class EventosService {
@@ -23,6 +24,10 @@ export class EventosService {
 
   getCiudades(): Observable<CityResponse[]> {
     return this.http.get<CityResponse[]>(`${this.BASE}/cities`);
+  }
+
+  getExperienceTypes(): Observable<ExperienceTypeCatalogItem[]> {
+    return this.http.get<ExperienceTypeCatalogItem[]>(`${this.BASE}/experience-types`);
   }
 
   getEventos(filters: EventFilterParams = {}): Observable<SpringPage<EventCardResponse>> {

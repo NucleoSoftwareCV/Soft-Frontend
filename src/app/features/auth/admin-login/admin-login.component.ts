@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   LucideArrowRight,
   LucideKeyRound,
@@ -28,16 +28,21 @@ import { AuthService } from '../../../core/services/auth.service';
 export class AdminLoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   username = '';
   password = '';
   loading = signal(false);
   error = signal<string | null>(null);
+  sessionExpired = signal(
+    this.route.snapshot.queryParamMap.get('expired') === 'true'
+  );
 
   submit(): void {
     if (!this.username.trim() || !this.password) return;
     this.loading.set(true);
     this.error.set(null);
+    this.sessionExpired.set(false);
     this.auth.adminLogin({
       username: this.username.trim(),
       password: this.password,

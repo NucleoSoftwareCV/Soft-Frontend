@@ -18,6 +18,9 @@ export interface EventManagementEvent {
   featured: boolean;
   categoryId: number;
   categoryName: string;
+  experienceTypeId: number;
+  eventType: string;
+  experienceTypeSlug: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +66,7 @@ export interface EventUpsertRequest {
   minimumAge?: number | null;
   featured: boolean;
   categoryId: number;
+  experienceTypeId: number;
   specialistId: number;
 }
 

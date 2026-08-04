@@ -336,6 +336,7 @@
             <div class="form-grid form-grid--section">
               <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
               <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
+              <label>Tipo de experiencia<select name="eventExperienceType" [(ngModel)]="eventForm.experienceTypeId" required><option [ngValue]="null" disabled>Selecciona un tipo</option>@for (type of experienceTypes(); track type.id) { <option [ngValue]="type.id">{{ type.name }}</option> }</select></label>
               <label>Visibilidad<select name="eventStatus" [(ngModel)]="eventForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option></select><small class="field-help">Publicado aparecerá en Explorar cuando tenga una fecha futura.</small></label>
               <label class="wide">Resumen<input name="eventSummary" [(ngModel)]="eventForm.summary" maxlength="300" placeholder="Una frase breve para la tarjeta"></label>
               <label class="wide">Descripción<textarea name="eventDescription" [(ngModel)]="eventForm.description" rows="4" required placeholder="Explica qué vivirán las personas durante el evento"></textarea></label>

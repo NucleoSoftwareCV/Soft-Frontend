@@ -63,6 +63,7 @@ import {
   OneToOneServiceRequest,
 } from '../../shared/models/one-to-one-service.model';
 import { environment } from '../../../environments/environment';
+import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 
 type PortalSection = 'summary' | 'profile' | 'events' | 'sessions';
 
@@ -79,6 +80,7 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
+  experienceTypeId: number | null;
   occurrenceId: number | null;
   startsAt: string;
   endsAt: string;
@@ -155,6 +157,7 @@ export class ProfessionalPortalComponent {
   events = signal<EventManagementResponse[]>([]);
   sessions = signal<OneToOneServiceDetailResponse[]>([]);
   categories = signal<CategoryResponse[]>([]);
+  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   cities = signal<CityResponse[]>([]);
   workTopics = signal<OneToOneFilterOption[]>([]);
   techniques = signal<OneToOneFilterOption[]>([]);
@@ -234,6 +237,9 @@ export class ProfessionalPortalComponent {
     this.loadSessions();
     this.publicEventsApi.getCategorias().subscribe({
       next: categories => this.categories.set(categories),
+    });
+    this.publicEventsApi.getExperienceTypes().subscribe({
+      next: types => this.experienceTypes.set(types),
     });
     this.publicEventsApi.getCiudades().subscribe({
       next: cities => this.cities.set(cities.filter(city => city.active)),
@@ -499,6 +505,7 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
+      experienceTypeId: event.experienceTypeId,
       occurrenceId: occurrence?.id ?? null,
       startsAt: occurrence ? this.toLocalInput(occurrence.startsAt) : this.localDateTime(2),
       endsAt: occurrence ? this.toLocalInput(occurrence.endsAt) : this.localDateTime(2, 2),
@@ -514,8 +521,8 @@ export class ProfessionalPortalComponent {
 
   saveEvent(): void {
     const profile = this.profile();
-    if (!profile || !this.eventForm.categoryId) {
-      this.failed('Selecciona una categoria antes de guardar el evento.');
+    if (!profile || !this.eventForm.categoryId || !this.eventForm.experienceTypeId) {
+      this.failed('Selecciona la categoria y el tipo de experiencia antes de guardar el evento.');
       return;
     }
     if (!this.validateEventOccurrence()) return;
@@ -772,6 +779,7 @@ export class ProfessionalPortalComponent {
       minimumAge: this.eventForm.minimumAge,
       featured: false,
       categoryId: this.eventForm.categoryId!,
+      experienceTypeId: this.eventForm.experienceTypeId!,
       specialistId,
     };
   }
@@ -811,6 +819,7 @@ export class ProfessionalPortalComponent {
       currency: 'EUR',
       minimumAge: 18,
       categoryId: null,
+      experienceTypeId: null,
       occurrenceId: null,
       startsAt: this.localDateTime(2),
       endsAt: this.localDateTime(2, 2),

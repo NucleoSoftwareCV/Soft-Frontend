@@ -11,8 +11,8 @@ import {
   EventCardResponse,
   EventFilterParams,
   EventModality,
-  EventType,
 } from '../../../shared/models/evento.model';
+import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 
 interface EventSortOption {
   label: string;
@@ -36,6 +36,7 @@ export class Eventos {
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
+  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   totalEventos = signal(0);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -67,6 +68,7 @@ export class Eventos {
 
   constructor() {
     this.loadCategorias();
+    this.loadExperienceTypes();
 
     effect(() => {
       const criteria = {
@@ -232,7 +234,7 @@ export class Eventos {
       ...this.dateRangeFor(this.filterWhen()),
       ...this.timeRangeFor(this.filterTimeOfDay()),
       categoryId: this.categoryIdFor(this.filterCategories()[0]),
-      eventType: this.eventTypeFor(this.filterTypes()[0]),
+      experienceTypeId: this.experienceTypeIdFor(this.filterTypes()[0]),
       cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
       modality: this.modalityFor(this.filterModality()),
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
@@ -255,16 +257,17 @@ export class Eventos {
     return value === 'Recurrente';
   }
 
-  private eventTypeFor(value: string | undefined): EventType | undefined {
-    const map: Record<string, EventType> = {
-      'Talleres': 'TALLER',
-      'Retiros': 'RETIRO',
-      'Clases': 'CLASE',
-      'Ceremonias': 'CEREMONIA',
-      'Encuentros Grupales': 'ENCUENTRO_GRUPAL',
-      'Formaciones': 'FORMACION',
-    };
-    return value ? map[value] : undefined;
+  private experienceTypeIdFor(value: string | undefined): number | undefined {
+    return this.experienceTypes().find(type => type.name === value)?.id;
+  }
+
+  private loadExperienceTypes(): void {
+    this.eventosService.getExperienceTypes().subscribe({
+      next: types => {
+        this.experienceTypes.set(types);
+      },
+      error: () => this.experienceTypes.set([]),
+    });
   }
 
   private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {

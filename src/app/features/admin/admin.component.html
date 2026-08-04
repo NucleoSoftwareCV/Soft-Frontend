@@ -31,6 +31,10 @@
         <svg lucideMapPin aria-hidden="true"></svg>
         <span class="nav-label">Ciudades</span>
       </button>
+      <button title="Catálogos" [class.active]="section() === 'catalogs'" (click)="show('catalogs')">
+        <svg lucideTags aria-hidden="true"></svg>
+        <span class="nav-label">Catálogos</span>
+      </button>
     </nav>
     <button class="erp__logout" title="Cerrar sesion" (click)="logoutConfirm.set(true)">
       <svg lucideLogOut aria-hidden="true"></svg>
@@ -42,7 +46,7 @@
     <header class="erp__topbar">
       <div>
         <span>Administración</span>
-        <strong>{{ section() === 'summary' ? 'Resumen operativo' : section() === 'cities' ? 'Catálogo de Ciudades' : 'Solicitudes profesionales' }}</strong>
+        <strong>{{ section() === 'summary' ? 'Resumen operativo' : section() === 'cities' ? 'Catálogo de ciudades' : section() === 'catalogs' ? 'Catálogos de eventos' : 'Solicitudes profesionales' }}</strong>
       </div>
       <div class="erp__operator-container">
         <button class="erp__operator" (click)="avatarMenuOpen.update(v => !v)">
@@ -244,6 +248,56 @@
           </table>
         </div>
       </section>
+    } @else if (section() === 'catalogs') {
+      <section class="erp__content">
+        <div class="erp__heading">
+          <div>
+            <h1>Catálogos de eventos</h1>
+            <p>Gestiona las opciones que se muestran en Explorar y al crear eventos.</p>
+          </div>
+          <button class="primary icon-inline" (click)="openNewCatalogItem()">
+            <svg lucidePlus aria-hidden="true" class="icon-md"></svg>
+            {{ catalogTab() === 'categories' ? 'Nueva categoría' : 'Nuevo tipo' }}
+          </button>
+        </div>
+
+        <div class="catalog-tabs" role="tablist" aria-label="Catálogos de eventos">
+          <button role="tab" [attr.aria-selected]="catalogTab() === 'categories'" [class.active]="catalogTab() === 'categories'" (click)="selectCatalogTab('categories')">Categorías</button>
+          <button role="tab" [attr.aria-selected]="catalogTab() === 'experienceTypes'" [class.active]="catalogTab() === 'experienceTypes'" (click)="selectCatalogTab('experienceTypes')">Tipos de experiencia</button>
+        </div>
+
+        <div class="table-shell">
+          <table>
+            <thead><tr><th>Nombre</th><th>Slug</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+              @if (loading()) {
+                @for (_ of [1,2,3,4]; track $index) { <tr><td colspan="5"><div class="skeleton-row"></div></td></tr> }
+              } @else {
+                @for (item of (catalogTab() === 'categories' ? categories() : experienceTypes()); track item.id) {
+                  <tr>
+                    <td><strong>{{ item.name }}</strong></td>
+                    <td><span class="code-chip">{{ item.slug }}</span></td>
+                    <td class="catalog-description">{{ item.description || 'Sin descripción' }}</td>
+                    <td>
+                      <button type="button" class="status status--toggle" [attr.data-status]="item.active ? 'APROBADO' : 'RECHAZADO'" (click)="toggleCatalogItem(item)">
+                        {{ item.active ? 'ACTIVO' : 'INACTIVO' }}
+                      </button>
+                    </td>
+                    <td><div class="row-actions">
+                      <button class="table-action table-action--square" title="Editar" (click)="openEditCatalogItem(item)"><svg lucidePencil aria-hidden="true" class="icon-sm"></svg></button>
+                      @if (item.deletable) {
+                        <button class="table-action table-action--square table-action--danger" title="Eliminar" (click)="catalogDeleteConfirm.set(item)"><svg lucideTrash2 aria-hidden="true" class="icon-sm"></svg></button>
+                      } @else {
+                        <span class="usage-note" title="Está relacionado y solo puede desactivarse">En uso</span>
+                      }
+                    </div></td>
+                  </tr>
+                } @empty { <tr><td colspan="5" class="empty">No hay elementos registrados.</td></tr> }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
     }
   </main>
 
@@ -343,6 +397,83 @@
         <button class="cancel" (click)="cityDeleteConfirm.set(null)">Cancelar</button>
         <button class="primary" [disabled]="deciding()" (click)="deleteCity()">Eliminar</button>
       </footer>
+    </section>
+  }
+
+  @if (catalogFormOpen()) {
+    <button class="drawer-backdrop" aria-label="Cerrar formulario" (click)="catalogFormOpen.set(false)"></button>
+    <aside class="drawer catalog-dialog" aria-labelledby="catalog-form-title">
+      <header class="catalog-dialog__header">
+        <div class="catalog-dialog__heading">
+          <span class="catalog-dialog__icon" aria-hidden="true">
+            @if (catalogTab() === 'categories') {
+              <svg lucideTags></svg>
+            } @else {
+              <svg lucideShapes></svg>
+            }
+          </span>
+          <div>
+            <span>{{ catalogTab() === 'categories' ? 'Categoría' : 'Tipo de experiencia' }}</span>
+            <h2 id="catalog-form-title">{{ catalogForm.id ? 'Editar elemento' : 'Nuevo elemento' }}</h2>
+            <p>{{ catalogTab() === 'categories' ? 'Define cómo se mostrará esta categoría en la experiencia pública.' : 'Organiza los formatos disponibles al crear eventos.' }}</p>
+          </div>
+        </div>
+        <button class="catalog-dialog__close" type="button" title="Cerrar" aria-label="Cerrar" (click)="catalogFormOpen.set(false)">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+
+      <form (ngSubmit)="saveCatalogItem()" class="catalog-form">
+        <label class="catalog-field">
+          <span>Nombre <b>*</b></span>
+          <input
+            name="catalogName"
+            [(ngModel)]="catalogForm.name"
+            required
+            maxlength="100"
+            [placeholder]="catalogTab() === 'categories' ? 'Ej. Yoga y movimiento' : 'Ej. Taller terapéutico'">
+          <small>Este nombre aparecerá en filtros, formularios y tarjetas públicas.</small>
+        </label>
+
+        @if (catalogTab() === 'categories') {
+          <fieldset class="emoji-picker">
+            <legend>Emoji representativo <b>*</b></legend>
+            <div class="emoji-picker__summary">
+              <span class="emoji-picker__preview" aria-hidden="true">{{ catalogForm.emoji }}</span>
+              <div><strong>Selecciona un símbolo</strong><small>Se utilizará en la portada y accesos rápidos de la home.</small></div>
+            </div>
+            <div class="emoji-picker__grid" role="radiogroup" aria-label="Emoji de la categoría">
+              @for (emoji of categoryEmojis; track emoji) {
+                <button type="button" role="radio" [attr.aria-checked]="catalogForm.emoji === emoji" [class.selected]="catalogForm.emoji === emoji" [title]="'Usar ' + emoji" (click)="selectCategoryEmoji(emoji)">{{ emoji }}</button>
+              }
+            </div>
+          </fieldset>
+        }
+
+        <label class="catalog-field">
+          <span>Descripción</span>
+          <textarea name="catalogDescription" [(ngModel)]="catalogForm.description" rows="4" maxlength="500" placeholder="Explica brevemente qué experiencias reúne este elemento."></textarea>
+          <small class="catalog-field__counter">{{ catalogForm.description.length }}/500</small>
+        </label>
+
+        <footer class="catalog-dialog__footer">
+          <button type="button" class="cancel" (click)="catalogFormOpen.set(false)">Cancelar</button>
+          <button type="submit" class="primary catalog-dialog__save" [disabled]="deciding()">
+            <svg lucideSave aria-hidden="true"></svg>
+            {{ deciding() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </footer>
+      </form>
+    </aside>
+  }
+
+  @if (catalogDeleteConfirm(); as item) {
+    <button class="confirm-backdrop" aria-label="Cancelar eliminación" (click)="catalogDeleteConfirm.set(null)"></button>
+    <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="catalog-delete-title">
+      <div class="confirm-dialog__icon confirm-dialog__icon--danger"><svg lucideTrash2 aria-hidden="true"></svg></div>
+      <h2 id="catalog-delete-title">Eliminar {{ item.name }}</h2>
+      <p>Esta opción todavía no tiene relaciones. La eliminación es permanente.</p>
+      <footer><button class="cancel" (click)="catalogDeleteConfirm.set(null)">Volver</button><button class="primary" [disabled]="deciding()" (click)="deleteCatalogItem()">Eliminar</button></footer>
     </section>
   }
 
