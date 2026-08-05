@@ -148,7 +148,7 @@
 
           <article class="organizer-card">
             <div class="organizer-info">
-              <img [src]="event.organizer?.photoUrl || fallbackImages[0]" [alt]="event.organizer?.publicName || 'Organizador'">
+              <img [src]="organizerPhoto()" [alt]="event.organizer?.publicName || 'Organizador'">
               <div>
                 <small>Organizado por</small>
                 <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
@@ -277,42 +277,55 @@
               <strong>{{ cityLabel() }}</strong>
             </div>
 
-            <!-- Solo para eventos recurrentes -->
-            <div *ngIf="event.isRecurring" class="session-picker">
+            <!-- Selector de Sesiones / Fechas -->
+            <div *ngIf="event.occurrences && event.occurrences.length > 0" class="session-picker">
               <div class="session-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar h-4 w-4 text-dark-teal"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
                 <span>Elige tu sesión</span>
               </div>
 
               <div class="session-list">
-
-                <div
+                <button
+                  type="button"
                   class="session-card"
-                  *ngFor="let occurrence of event.occurrences; let i = index"
-                  [class.active]="i === 0">
-
+                  *ngFor="let occurrence of event.occurrences"
+                  [class.active]="selectedOccurrence()?.id === occurrence.id"
+                  [disabled]="occurrence.soldOut"
+                  (click)="selectOccurrence(occurrence)">
                   <span class="day">
                     {{ getOccurrenceWeekday(occurrence) }}
                   </span>
-
                   <span class="date">
                     {{ getOccurrenceDay(occurrence) }}
                   </span>
-
                   <span class="time">
                     {{ getOccurrenceMonthHour(occurrence) }}
                   </span>
-                </div>
+                  <small class="spots-left" style="font-size: 0.65rem; margin-top: 2px; display: block;">
+                    {{ occurrence.soldOut ? 'Agotado' : occurrence.availableSpots + ' libres' }}
+                  </small>
+                </button>
               </div>
             </div>
 
-            <!-- Eventos normales -->
+            <!-- Botón de Pago / WhatsApp -->
             <div class="pay-btn">
-              <button class="wait-btn">
-                {{ primaryOccurrence()?.soldOut
-                    ? 'Apuntarme a la lista de espera'
-                    : 'Comprar entrada - ' + formatPrice()  }}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              <button 
+                class="wait-btn"
+                [disabled]="!selectedOccurrence() || selectedOccurrence()?.soldOut"
+                (click)="abrirReserva()">
+                <ng-container *ngIf="selectedOccurrence()?.soldOut; else activeBookingBtn">
+                  <span>Agotado</span>
+                </ng-container>
+                <ng-template #activeBookingBtn>
+                  <ng-container *ngIf="event.paymentMethod === 'WHATSAPP'; else onlineBookingBtn">
+                    <span>Contactar por WhatsApp</span>
+                  </ng-container>
+                  <ng-template #onlineBookingBtn>
+                    <span>Comprar entrada - {{ formatPrice() }}</span>
+                  </ng-template>
+                </ng-template>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
               </button>
             </div>
           </div>
@@ -324,7 +337,7 @@
 
         <div class="about-card">
           <div class="organizer-top">
-            <img [src]="event.organizer?.photoUrl || fallbackImages[0]" [alt]="event.organizer?.publicName || 'Organizador'">
+            <img [src]="organizerPhoto()" [alt]="event.organizer?.publicName || 'Organizador'">
 
             <div class="organizer-data">
               <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
@@ -371,14 +384,284 @@
           <span>por entrada</span>
         </div>
 
-        <button>{{ primaryOccurrence()?.soldOut ? 'Lista de espera' : 'Reservar plaza' }}</button>
+        <button 
+          [disabled]="!selectedOccurrence() || selectedOccurrence()?.soldOut"
+          (click)="abrirReserva()">
+          {{ selectedOccurrence()?.soldOut ? 'Agotado' : (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
+        </button>
       </div>
 
-    </div>
+      </div>
 
-    
-  </section>
-}
+      <!-- Modal de Reserva (Checkout) -->
+      <div class="booking-modal-backdrop" *ngIf="showBookingModal()" (click)="cerrarReserva()"></div>
+      <div class="booking-modal-container" *ngIf="showBookingModal()" role="dialog" aria-modal="true">
+        <header class="booking-modal-header" style="background: #005766; color: white !important; padding: 18px 20px; text-align: center; position: relative;">
+          <div style="width: 100%;">
+            <span class="event-caps-title" style="display: block; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: rgba(255, 255, 255, 0.75) !important; text-transform: uppercase; margin-bottom: 2px;">
+              {{ event.title }}
+            </span>
+            <h2 style="font-family: Sunset, Georgia, serif; font-size: 22px; font-weight: 700; color: white !important; margin: 2px 0 6px;">
+              ¡Reserva tu plaza!
+            </h2>
+            <div class="event-occurrence-time" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar" style="color: rgba(255, 255, 255, 0.85) !important;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></svg>
+              <span style="color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">{{ formatOccurrenceDate(selectedOccurrence() || undefined) }} - {{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</span>
+            </div>
+          </div>
+          <button class="close-btn" type="button" aria-label="Cerrar" (click)="cerrarReserva()" style="position: absolute; top: 12px; right: 16px; background: none; border: none; color: rgba(255, 255, 255, 0.8) !important; font-size: 18px; cursor: pointer;">✕</button>
+        </header>
+
+        <div class="booking-modal-body">
+          <!-- Error Message -->
+          <div class="booking-error-alert" *ngIf="bookingError()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>{{ bookingError() }}</span>
+          </div>
+
+          <!-- STEP 1: Datos de Asistentes -->
+          <div class="booking-step-content" *ngIf="bookingStep() === 1">
+            
+            <!-- Nombre y apellidos -->
+            <div class="form-field-wrapper">
+              <div class="field-label-row">
+                <span class="field-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Nombre y apellidos <span class="required">*</span>
+                </span>
+                <span class="field-status verified" *ngIf="compradorNombre().trim() && compradorApellido().trim()">
+                  ✓ Verificado
+                </span>
+              </div>
+              <div class="two-column-inputs">
+                <input type="text" [(ngModel)]="compradorNombre" placeholder="Said" required />
+                <input type="text" [(ngModel)]="compradorApellido" placeholder="Lopez" required />
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-field-wrapper mt-4">
+              <div class="field-label-row">
+                <span class="field-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                  Email <span class="required">*</span>
+                </span>
+                <span class="field-status verified" *ngIf="compradorEmail().trim().includes('@')">
+                  ✓ Verificado
+                </span>
+              </div>
+              <input type="email" [(ngModel)]="compradorEmail" placeholder="saidlopescangre123@gmail.com" required />
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="form-field-wrapper mt-4">
+              <div class="field-label-row">
+                <span class="field-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
+                  WhatsApp <span class="required">*</span>
+                </span>
+              </div>
+              <input type="tel" [(ngModel)]="compradorTelefono" placeholder="+34 600 000 000" />
+              <p class="field-help-text">El profesional te enviará información del evento por WhatsApp.</p>
+            </div>
+
+            <!-- Número de plazas & Código de descuento -->
+            <div class="form-field-wrapper mt-4">
+              <div class="field-label-row">
+                <span class="field-label">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  Número de plazas
+                </span>
+              </div>
+              <div class="plazas-discount-row">
+                <div class="plazas-counter-inline">
+                  <button type="button" class="counter-btn" (click)="updatePlazas(-1)" [disabled]="numPlazas() <= 1">-</button>
+                  <span class="counter-val">{{ numPlazas() }}</span>
+                  <button type="button" class="counter-btn" (click)="updatePlazas(1)" [disabled]="selectedOccurrence() && numPlazas() >= selectedOccurrence()!.availableSpots">+</button>
+                </div>
+                <label class="discount-checkbox-label">
+                  <input type="checkbox" [(ngModel)]="tieneCodigoDescuento" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag" style="color: #64748b !important;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                  <span>Tengo un código de descuento</span>
+                </label>
+              </div>
+
+              <!-- Coupon Input Code Box -->
+              <div class="coupon-input-wrapper mt-3" *ngIf="tieneCodigoDescuento()">
+                <div style="display: flex; gap: 8px; width: 100%;">
+                  <input type="text" [(ngModel)]="codigoDescuento" placeholder="DESCUENTO10" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; text-transform: uppercase;" />
+                  <button type="button" (click)="aplicarCodigoDescuento()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Aplicar</button>
+                </div>
+                <p class="coupon-msg" *ngIf="mensajeDescuento()" [style.color]="codigoAplicado() ? '#16a34a' : '#ef4444'" style="font-size: 11px; margin-top: 4px; font-weight: 600; text-align: left;">
+                  {{ mensajeDescuento() }}
+                </p>
+                <p class="coupon-msg text-muted" *ngIf="codigoAplicado()" style="font-size: 11px; margin-top: 2px; text-align: left; color: #64748b;">
+                  Total antes de descuento: {{ formatTotalBeforeDiscount() }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Card: La reserva es para mí -->
+            <div class="reserva-para-mi-card mt-4" (click)="toggleYoTambienAsisto()">
+              <!-- Circle with green checkmark when active, empty circle when inactive -->
+              <svg *ngIf="yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #005766;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <svg *ngIf="!yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;"><circle cx="12" cy="12" r="10"></circle></svg>
+              <span style="font-size: 13.5px; font-weight: 700; color: #005766 !important;">La reserva es para mí</span>
+            </div>
+
+            <!-- Datos de la persona que asistirá (visible when unchecked) -->
+            <div class="mt-4" *ngIf="!yoTambienAsisto()" style="text-align: left;">
+              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 2px;">Datos de la persona que asistirá</h3>
+              <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4;">
+                Tú gestionarás la reserva, pero esta plaza será para otra persona. Le enviaremos los detalles por email.
+              </p>
+            </div>
+
+            <!-- Formulario de asistentes adicionales (acompañantes) -->
+            <section class="additional-attendees mt-4" *ngIf="asistentesAdicionales().length > 0">
+              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 4px; text-align: left;" *ngIf="yoTambienAsisto()">Asistentes adicionales</h3>
+              <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4; text-align: left;" *ngIf="yoTambienAsisto()">
+                Ocupas la plaza 1. Si quieres, indica los datos de la otra persona (opcional). Recibirán su entrada por email.
+              </p>
+              
+              <div class="attendee-subform-card" *ngFor="let ast of asistentesAdicionales(); let i = index">
+                <div class="subform-card-header">
+                  <span>Asistente {{ yoTambienAsisto() ? i + 2 : i + 1 }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up" style="color: #64748b !important;"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                </div>
+                <div class="subform-card-body">
+                  <div class="two-column-inputs">
+                    <input type="text" [(ngModel)]="ast.name" placeholder="Nombre" required />
+                    <input type="text" [(ngModel)]="ast.lastName" placeholder="Apellido" required />
+                  </div>
+                  <input type="email" [(ngModel)]="ast.email" placeholder="email@ejemplo.com" class="mt-2" required style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; color: #0f172a !important; background: #f8fafc; box-sizing: border-box;" />
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- STEP 2: Pago Online Ficticio -->
+          <div class="booking-step-content" *ngIf="bookingStep() === 2">
+            <section class="form-section">
+              <h3>Selecciona tu método de pago</h3>
+              <div class="payment-method-selector">
+                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'TARJETA'" (click)="paymentMethod.set('TARJETA')">
+                  Tarjeta de Crédito / Débito
+                </button>
+                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'YAPE'" (click)="paymentMethod.set('YAPE')">
+                  Yape
+                </button>
+              </div>
+            </section>
+
+            <section class="form-section mt-4" *ngIf="paymentMethod() === 'TARJETA'">
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label>Número de tarjeta *</label>
+                  <input type="text" [(ngModel)]="cardNumber" (input)="onCardNumberInput($event)" placeholder="4111 2222 3333 4444" maxlength="19" required />
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Expiración *</label>
+                  <input type="text" [(ngModel)]="cardExpiration" (input)="onCardExpirationInput($event)" placeholder="MM/AA" maxlength="5" required />
+                </div>
+                <div class="form-group">
+                  <label>CVV *</label>
+                  <input type="text" [(ngModel)]="cardCvv" (input)="onCardCvvInput($event)" placeholder="123" maxlength="4" required />
+                </div>
+                <div class="form-group wide">
+                  <label>Nombre del Titular *</label>
+                  <input type="text" [(ngModel)]="cardHolderName" (input)="onCardHolderNameInput($event)" placeholder="Como figura en la tarjeta" maxlength="50" required />
+                </div>
+              </div>
+              <div class="alert alert-info mt-3">
+                <p><strong>Nota de simulación:</strong> El número de tarjeta que termina en 4444 simulará fondos insuficientes (rechazo). Cualquier otro número será aprobado.</p>
+              </div>
+            </section>
+
+            <section class="form-section mt-4" *ngIf="paymentMethod() === 'YAPE'">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Número de Celular *</label>
+                  <input type="text" [(ngModel)]="yapePhone" (input)="onYapePhoneInput($event)" placeholder="999888777" maxlength="9" required />
+                </div>
+                <div class="form-group">
+                  <label>Código de Aprobación *</label>
+                  <input type="text" [(ngModel)]="yapeOtp" (input)="onYapeOtpInput($event)" placeholder="123456" maxlength="6" required />
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- STEP 3: Confirmación / Éxito -->
+          <div class="booking-step-content booking-success-content" *ngIf="bookingStep() === 3">
+            <div class="success-icon-wrapper">
+              <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="success-checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+            
+            <h2>¡Tu reserva está registrada!</h2>
+            <p class="success-msg" *ngIf="event.paymentMethod === 'WHATSAPP'">
+              Hemos abierto WhatsApp para que coordines el pago directamente con el profesional. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+            </p>
+            <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
+              El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+            </p>
+
+            <div class="booking-summary-box mt-4">
+              <h4>Resumen del evento</h4>
+              <div class="summary-details">
+                <div class="summary-row"><span>Evento:</span><strong>{{ event.title }}</strong></div>
+                <div class="summary-row"><span>Fecha:</span><strong>{{ formatOccurrenceDate(selectedOccurrence() || undefined) }}</strong></div>
+                <div class="summary-row"><span>Hora:</span><strong>{{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</strong></div>
+                <div class="summary-row"><span>Plazas reservadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
+                <div class="summary-row total"><span>Monto Total:</span><strong>{{ formatTotalPrice() }}</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="booking-modal-footer">
+          <div class="footer-summary" *ngIf="bookingStep() < 3">
+            <span class="total-label" style="text-transform: lowercase; font-size: 13px; color: #64748b; font-weight: 500;">
+              {{ numPlazas() }} plaza{{ numPlazas() > 1 ? 's' : '' }}
+            </span>
+            <strong class="total-price" style="font-size: 1.5rem; font-weight: 800; color: #005766; display: block; margin-top: -2px;">
+              {{ formatTotalPrice() }}
+            </strong>
+          </div>
+          <div class="footer-actions">
+            <button type="button" class="btn btn-secondary" *ngIf="bookingStep() === 2" (click)="bookingStep.set(1)" [disabled]="bookingLoading()">
+              Atrás
+            </button>
+            
+            <!-- STEP 1 Action Buttons -->
+            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 1" (click)="confirmarReserva()" [disabled]="bookingLoading()">
+              <span *ngIf="bookingLoading()">Generando...</span>
+              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
+                Confirmar reserva <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </span>
+            </button>
+
+            <!-- STEP 2 Action Buttons -->
+            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 2" (click)="realizarPagoOnline()" [disabled]="bookingLoading()">
+              <span *ngIf="bookingLoading()">Procesando...</span>
+              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
+                Confirmar pago <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </span>
+            </button>
+
+            <!-- STEP 3 Action Button -->
+            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 3" (click)="cerrarReserva()">
+              Entendido
+            </button>
+          </div>
+        </footer>
+      </div>
+
+    </section>
+  }
 <div class="gallery-modal" *ngIf="galleryOpen()">
   <div class="gallery-container">
 

@@ -88,6 +88,8 @@ export interface MeetingLinkResponse {
   url: string | null;
 }
 
+export type EventPaymentMethod = 'WHATSAPP' | 'ONLINE';
+
 export interface EventDetailResponse {
   id: number;
   title: string;
@@ -100,6 +102,7 @@ export interface EventDetailResponse {
   featured: boolean;
   categoryId: number | null;
   categoryName: string | null;
+  paymentMethod?: EventPaymentMethod;
   organizer: EventOrganizerResponse | null;
   occurrences: EventOccurrenceResponse[];
   eventType: EventType | null;

@@ -1,4 +1,18 @@
-<div class="portal" [class.portal--collapsed]="sidebarCollapsed()">
+<div class="portal" [class.portal--collapsed]="sidebarCollapsed()" [class.portal--nav-open]="mobileNavOpen()">
+  <header class="portal__mobile-bar">
+    <button class="portal__hamburger" type="button" aria-label="Abrir menu" (click)="mobileNavOpen.set(true)">
+      <svg lucideMenu aria-hidden="true"></svg>
+    </button>
+    <span class="portal__mobile-brand"><strong>oona.</strong><small>PRO</small></span>
+    <span class="profile-state" [attr.data-state]="profile()?.publicationStatus">
+      {{ profile()?.publicationStatus || 'SIN PERFIL' }}
+    </span>
+  </header>
+
+  @if (mobileNavOpen()) {
+    <button class="mobile-nav-backdrop" aria-label="Cerrar menu" (click)="mobileNavOpen.set(false)"></button>
+  }
+
   <aside class="portal__sidebar">
     <div class="portal__sidebar-header">
       <div class="portal__brand">
@@ -14,6 +28,9 @@
         } @else {
           <svg lucidePanelLeftClose aria-hidden="true"></svg>
         }
+      </button>
+      <button class="portal__drawer-close" type="button" aria-label="Cerrar menu" (click)="mobileNavOpen.set(false)">
+        <svg lucideX aria-hidden="true"></svg>
       </button>
     </div>
     <div class="portal__identity">
@@ -158,26 +175,49 @@
         <div class="resource-summary"><span><strong>{{ events().length }}</strong>Total</span><span><strong>{{ publishedEvents() }}</strong>Publicados</span><span><strong>{{ events().length - publishedEvents() }}</strong>Sin publicar</span></div>
         <div class="resource-list">
           @for (item of events(); track item.event.id) {
-            <article class="resource-row">
+            <article class="resource-row resource-row--event">
               <div class="resource-row__marker"><svg lucideCalendarDays aria-hidden="true"></svg></div>
-              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.event.categoryName }}</span></div><h2>{{ item.event.title }}</h2><p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : (item.event.priceFrom | currency:item.event.currency) }}</p></div>
-              <div class="resource-row__meta"><strong>{{ item.occurrences.length }}</strong><span>{{ item.occurrences.length === 1 ? 'fecha' : 'fechas' }}</span></div>
-              <div class="resource-actions">
-                <button (click)="openEditEvent(item)">Editar</button>
-                <button (click)="openOccurrence(item)">Añadir fecha</button>
-                @if (item.status !== 'PUBLICADO') { <button (click)="changeEventStatus(item, 'PUBLICADO')">Publicar</button> }
-                @if (item.status === 'PUBLICADO') { <button (click)="changeEventStatus(item, 'CANCELADO')">Cancelar</button> }
-              </div>
-              @if (item.occurrences.length) {
-                <div class="occurrences">
-                  @for (occurrence of item.occurrences; track occurrence.id) {
-                    <span>{{ occurrence.startsAt | date:'dd/MM/yyyy HH:mm' }} · {{ occurrence.status }}
-                      <button (click)="openEditOccurrence(item, occurrence)">Editar</button>
-                      @if (occurrence.status === 'PROGRAMADA') { <button (click)="cancelOccurrence(occurrence.id)">Cancelar</button> }
-                    </span>
+              <div class="resource-row__body">
+                <div class="resource-row__top">
+                  <div class="resource-row__content">
+                    <div class="resource-row__eyebrow">
+                      <span class="status" [attr.data-status]="item.status">{{ item.status }}</span>
+                      <span>{{ item.event.categoryName }}</span>
+                    </div>
+                    <h2>{{ item.event.title }}</h2>
+                    <p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : (item.event.priceFrom | currency:item.event.currency) }}</p>
+                  </div>
+                  <div class="resource-actions">
+                    <button (click)="openEditEvent(item)">
+                      <svg lucidePencil aria-hidden="true"></svg>Editar
+                    </button>
+                    <button (click)="openOccurrence(item)">
+                      <svg lucidePlus aria-hidden="true"></svg>Añadir fecha
+                    </button>
+                    @if (item.status !== 'PUBLICADO') {
+                      <button class="btn-publish" (click)="changeEventStatus(item, 'PUBLICADO')">
+                        <svg lucideCircleCheck aria-hidden="true"></svg>Publicar
+                      </button>
+                    }
+                    @if (item.status === 'PUBLICADO') {
+                      <button class="btn-cancel" (click)="changeEventStatus(item, 'CANCELADO')">
+                        <svg lucideX aria-hidden="true"></svg>Cancelar
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="occurrences-summary">
+                  @if (item.occurrences.length) {
+                    <button class="btn-occurrences" (click)="openOccurrencesPanel(item)">
+                      <svg lucideCalendarDays aria-hidden="true"></svg>
+                      {{ item.occurrences.length }} fecha{{ item.occurrences.length === 1 ? '' : 's' }} programada{{ item.occurrences.length === 1 ? '' : 's' }}
+                      <svg lucideChevronRight aria-hidden="true"></svg>
+                    </button>
+                  } @else {
+                    <span class="occurrences-summary__empty">Sin fechas programadas todavía</span>
                   }
                 </div>
-              }
+              </div>
             </article>
           } @empty {
             <div class="empty-state"><h2>Aún no tienes eventos</h2><p>Usa el botón “Nuevo evento” para empezar a organizar tu programación.</p></div>
@@ -197,9 +237,19 @@
               <div class="resource-row__marker"><svg lucideBriefcaseBusiness aria-hidden="true"></svg></div>
               <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.modality === 'AMBAS' ? 'Online y presencial' : item.modality }}</span></div><h2>{{ item.title }}</h2><p><svg lucideClock3 aria-hidden="true"></svg>{{ item.durationMinutes }} min · {{ item.price === 0 ? 'Gratis' : (item.price | currency:item.currency) }}</p></div>
               <div class="resource-actions">
-                <button (click)="openEditSession(item)">Editar</button>
-                @if (item.status !== 'PUBLICADO') { <button (click)="changeSessionStatus(item, 'PUBLICADO')">Publicar</button> }
-                @if (item.status === 'PUBLICADO') { <button (click)="changeSessionStatus(item, 'OCULTO')">Ocultar</button> }
+                <button (click)="openEditSession(item)">
+                  <svg lucidePencil aria-hidden="true"></svg>Editar
+                </button>
+                @if (item.status !== 'PUBLICADO') {
+                  <button class="btn-publish" (click)="changeSessionStatus(item, 'PUBLICADO')">
+                    <svg lucideCircleCheck aria-hidden="true"></svg>Publicar
+                  </button>
+                }
+                @if (item.status === 'PUBLICADO') {
+                  <button class="btn-cancel" (click)="changeSessionStatus(item, 'OCULTO')">
+                    <svg lucideEyeOff aria-hidden="true"></svg>Ocultar
+                  </button>
+                }
               </div>
             </article>
           } @empty {
@@ -315,35 +365,62 @@
         </div>
         <button type="button" aria-label="Cerrar" (click)="showEventForm.set(false)"><svg lucideX aria-hidden="true"></svg></button>
       </header>
+      <ol class="wizard-steps" aria-label="Pasos del formulario">
+        @for (stepKey of eventSteps(); track stepKey; let i = $index) {
+          <li
+            class="wizard-step"
+            [class.active]="i === eventStepIndex()"
+            [class.done]="i < eventStepIndex()"
+            [class.clickable]="i <= eventStepIndex()"
+            [title]="eventStepLabel(stepKey)"
+            (click)="goToEventStep(i)">
+            <span class="wizard-step__dot">
+              @if (i < eventStepIndex()) { <svg lucideCircleCheck aria-hidden="true"></svg> } @else { {{ i + 1 }} }
+            </span>
+            <span class="wizard-step__label">{{ eventStepLabel(stepKey) }}</span>
+          </li>
+        }
+      </ol>
       <form (ngSubmit)="saveEvent()">
         <div class="editor-scroll">
-          <section class="form-section">
-            <div class="form-section__heading"><strong>Información principal</strong><small>Lo esencial para reconocer el evento.</small></div>
-            <div class="form-grid form-grid--section">
-              <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
-              <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
-              <label>Visibilidad<select name="eventStatus" [(ngModel)]="eventForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option></select><small class="field-help">Publicado aparecerá en Explorar cuando tenga una fecha futura.</small></label>
-              <label class="wide">Resumen<input name="eventSummary" [(ngModel)]="eventForm.summary" maxlength="300" placeholder="Una frase breve para la tarjeta"></label>
-              <label class="wide">Descripción<textarea name="eventDescription" [(ngModel)]="eventForm.description" rows="4" required placeholder="Explica qué vivirán las personas durante el evento"></textarea></label>
-            </div>
-          </section>
-
-          <section class="form-section">
-            <div class="form-section__heading"><strong>Formato y precio</strong><small>Define cómo se realizará y cuánto cuesta.</small></div>
-            <div class="form-grid form-grid--section">
-              <div class="form-control wide">
-                <span class="form-label">Modalidad</span>
-                <div class="segmented-control" aria-label="Modalidad del evento">
-                  <button type="button" [class.active]="eventForm.modality === 'ONLINE'" (click)="setEventModality('ONLINE')">Online</button>
-                  <button type="button" [class.active]="eventForm.modality === 'PRESENCIAL'" (click)="setEventModality('PRESENCIAL')">Presencial</button>
-                </div>
+          @if (currentEventStepKey() === 'info') {
+            <section class="form-section">
+              <div class="form-section__heading"><strong>Información principal</strong><small>Lo esencial para reconocer el evento.</small></div>
+              <div class="form-grid form-grid--section">
+                <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
+                <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
+                <label>Visibilidad<select name="eventStatus" [(ngModel)]="eventForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option></select><small class="field-help">Publicado aparecerá en Explorar cuando tenga una fecha futura.</small></label>
+                <label class="wide">Resumen<input name="eventSummary" [(ngModel)]="eventForm.summary" maxlength="300" placeholder="Una frase breve para la tarjeta"></label>
+                <label class="wide">Descripción<textarea name="eventDescription" [(ngModel)]="eventForm.description" rows="4" required placeholder="Explica qué vivirán las personas durante el evento"></textarea></label>
               </div>
-              <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
-              <label>Edad mínima<input name="eventAge" type="number" min="0" max="120" [(ngModel)]="eventForm.minimumAge"><small class="field-help">Usa 0 si es apto para todas las edades.</small></label>
-            </div>
-          </section>
+            </section>
+          }
 
-          @if (!eventForm.id) {
+          @if (currentEventStepKey() === 'format') {
+            <section class="form-section">
+              <div class="form-section__heading"><strong>Formato y precio</strong><small>Define cómo se realizará y cuánto cuesta.</small></div>
+              <div class="form-grid form-grid--section">
+                <div class="form-control wide">
+                  <span class="form-label">Modalidad</span>
+                  <div class="segmented-control" aria-label="Modalidad del evento">
+                    <button type="button" [class.active]="eventForm.modality === 'ONLINE'" (click)="setEventModality('ONLINE')">Online</button>
+                    <button type="button" [class.active]="eventForm.modality === 'PRESENCIAL'" (click)="setEventModality('PRESENCIAL')">Presencial</button>
+                  </div>
+                </div>
+                <div class="form-control wide">
+                  <span class="form-label">Método de Pago</span>
+                  <div class="segmented-control" aria-label="Método de pago del evento">
+                    <button type="button" [class.active]="eventForm.paymentMethod === 'WHATSAPP'" (click)="eventForm.paymentMethod = 'WHATSAPP'">Contacto por WhatsApp</button>
+                    <button type="button" [class.active]="eventForm.paymentMethod === 'ONLINE'" (click)="eventForm.paymentMethod = 'ONLINE'">Reserva Online</button>
+                  </div>
+                </div>
+                <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Edad mínima<input name="eventAge" type="number" min="0" max="120" [(ngModel)]="eventForm.minimumAge"><small class="field-help">Usa 0 si es apto para todas las edades.</small></label>
+              </div>
+            </section>
+          }
+
+          @if (currentEventStepKey() === 'schedule') {
             <section class="form-section">
               <div class="form-section__heading"><strong>Primera fecha</strong><small>Podrás añadir más fechas después de crear el evento.</small></div>
               <div class="form-grid form-grid--section">
@@ -361,17 +438,84 @@
             </section>
           }
 
-          <section class="form-section form-section--optional">
-            <div class="form-section__heading"><strong>Detalles opcionales</strong><small>Se mostrarán en el detalle del evento.</small></div>
-            <div class="form-grid form-grid--section">
-              <label class="wide">Lo que incluye<input name="eventIncludes" [(ngModel)]="eventForm.includes" placeholder="Material, bebida, acceso... (separado por comas)"></label>
-              <label class="wide">Puntos destacados<input name="eventHighlights" [(ngModel)]="eventForm.highlights" placeholder="Beneficios principales (separados por comas)"></label>
-              <label class="wide">Qué traer<input name="eventBring" [(ngModel)]="eventForm.whatToBring" placeholder="Ropa cómoda, esterilla... (separado por comas)"></label>
-            </div>
-          </section>
+          @if (currentEventStepKey() === 'extra') {
+            <section class="form-section form-section--optional">
+              <div class="form-section__heading"><strong>Detalles opcionales</strong><small>Se mostrarán en el detalle del evento.</small></div>
+              <div class="form-grid form-grid--section">
+                <label class="wide">Lo que incluye<input name="eventIncludes" [(ngModel)]="eventForm.includes" placeholder="Material, bebida, acceso... (separado por comas)"></label>
+                <label class="wide">Puntos destacados<input name="eventHighlights" [(ngModel)]="eventForm.highlights" placeholder="Beneficios principales (separados por comas)"></label>
+                <label class="wide">Qué traer<input name="eventBring" [(ngModel)]="eventForm.whatToBring" placeholder="Ropa cómoda, esterilla... (separado por comas)"></label>
+              </div>
+            </section>
+          }
         </div>
-        <footer><span>{{ eventForm.status === 'PUBLICADO' ? 'Se mostrará públicamente si la fecha es futura.' : 'Podrás publicarlo más adelante.' }}</span><button type="button" (click)="showEventForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : eventForm.id ? 'Guardar cambios' : 'Crear evento' }}</button></footer>
+        <footer>
+          <span>{{ eventForm.status === 'PUBLICADO' ? 'Se mostrará públicamente si la fecha es futura.' : 'Podrás publicarlo más adelante.' }}</span>
+          @if (eventStepIndex() > 0) {
+            <button type="button" (click)="prevEventStep()">Atrás</button>
+          } @else {
+            <button type="button" (click)="showEventForm.set(false)">Cancelar</button>
+          }
+          @if (eventStepIndex() < eventSteps().length - 1) {
+            <button class="primary" type="button" (click)="nextEventStep()">Siguiente</button>
+          } @else {
+            <button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : eventForm.id ? 'Guardar cambios' : 'Crear evento' }}</button>
+          }
+        </footer>
       </form>
+    </section>
+  }
+
+  @if (occurrencesPanelItem(); as item) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="closeOccurrencesPanel()"></button>
+    <section class="modal modal--occurrences" role="dialog" aria-modal="true" aria-labelledby="occurrences-panel-title">
+      <header class="modal__header">
+        <div>
+          <h2 id="occurrences-panel-title">Fechas programadas</h2>
+          <p class="participants-subtitle">{{ item.event.title }}</p>
+        </div>
+        <button class="modal__close" aria-label="Cerrar" (click)="closeOccurrencesPanel()">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+      <div class="occurrences-panel-body">
+        <button class="button occurrences-panel-add" type="button" (click)="openOccurrence(item)">
+          <svg lucidePlus aria-hidden="true"></svg>Añadir fecha
+        </button>
+        @if (item.occurrences.length === 0) {
+          <div class="participants-empty">
+            <svg lucideCalendarDays aria-hidden="true"></svg>
+            <p>Aún no hay fechas programadas para este evento.</p>
+          </div>
+        } @else {
+          <div class="occurrence-list">
+            @for (occurrence of item.occurrences; track occurrence.id) {
+              <div class="occurrence-row">
+                <div class="occurrence-row__info">
+                  <svg lucideCalendarDays aria-hidden="true"></svg>
+                  <div>
+                    <span class="occurrence-row__date">{{ occurrence.startsAt | date:'dd MMM yyyy, HH:mm' }}</span>
+                    <span class="occ-status" [attr.data-status]="occurrence.status">{{ occurrence.status }}</span>
+                  </div>
+                </div>
+                <div class="occurrence-actions">
+                  <button class="occ-btn" title="Editar fecha" (click)="openEditOccurrence(item, occurrence)">
+                    <svg lucidePencil aria-hidden="true"></svg>
+                  </button>
+                  <button class="occ-btn occ-btn--participants" title="Ver participantes" (click)="verParticipantes(occurrence)">
+                    <svg lucideUsers aria-hidden="true"></svg>
+                  </button>
+                  @if (occurrence.status === 'PROGRAMADA') {
+                    <button class="occ-btn occ-btn--danger" title="Cancelar fecha" (click)="cancelOccurrence(occurrence.id)">
+                      <svg lucideX aria-hidden="true"></svg>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
     </section>
   }
 
@@ -381,14 +525,14 @@
       <header><div><span>{{ occurrenceForm.id ? 'Editar fecha' : 'Nueva fecha' }}</span><h2>{{ item.event.title }}</h2></div><button (click)="occurrenceEvent.set(null)">×</button></header>
       <form (ngSubmit)="saveOccurrence()">
         <div class="form-grid">
-          <label>Empieza<input name="occStarts" type="datetime-local" [(ngModel)]="occurrenceForm.startsAt" required></label>
-          <label>Termina<input name="occEnds" type="datetime-local" [(ngModel)]="occurrenceForm.endsAt" required></label>
-          <label>Capacidad<input name="occCapacity" type="number" min="1" [(ngModel)]="occurrenceForm.capacity" required></label>
-          @if (item.event.modality === 'ONLINE') { <label>Enlace<input name="occMeeting" type="url" [(ngModel)]="occurrenceForm.meetingUrl" required></label> }
+          <label>Empieza<input name="occStarts" type="datetime-local" [(ngModel)]="occurrenceForm.startsAt" (change)="syncOccurrenceEndTime()" required></label>
+          <label>Termina<input name="occEnds" type="datetime-local" [min]="occurrenceForm.startsAt" [(ngModel)]="occurrenceForm.endsAt" required></label>
+          <label>Capacidad<input name="occCapacity" type="number" min="1" [(ngModel)]="occurrenceForm.capacity" required><small class="field-help">Número total de plazas para esta fecha.</small></label>
+          @if (item.event.modality === 'ONLINE') { <label class="wide">Enlace de reunión<input name="occMeeting" type="url" [(ngModel)]="occurrenceForm.meetingUrl" placeholder="https://meet.google.com/..." required></label> }
           @if (item.event.modality === 'PRESENCIAL') {
-            <label>Nombre del lugar<input name="occLocation" [(ngModel)]="occurrenceForm.locationName" required></label>
-            <label>Dirección<input name="occAddress" [(ngModel)]="occurrenceForm.address" required></label>
+            <label>Nombre del lugar<input name="occLocation" [(ngModel)]="occurrenceForm.locationName" placeholder="Ej. Centro Oona" required></label>
             <label>Ciudad<select name="occCity" [(ngModel)]="occurrenceForm.cityId" required><option [ngValue]="null">Selecciona</option>@for (city of cities(); track city.id) { <option [ngValue]="city.id">{{ city.name }}</option> }</select></label>
+            <label class="wide">Dirección<input name="occAddress" [(ngModel)]="occurrenceForm.address" placeholder="Calle, número y referencia" required></label>
           }
         </div>
         <footer><button type="button" (click)="occurrenceEvent.set(null)">Cancelar</button><button class="primary" type="submit">{{ occurrenceForm.id ? 'Guardar fecha' : 'Añadir fecha' }}</button></footer>
@@ -403,36 +547,70 @@
         <div><span>Oferta individual</span><h2 id="session-editor-title">{{ sessionForm.id ? 'Editar sesión 1:1' : 'Crear sesión 1:1' }}</h2><p>Define una propuesta clara para que las personas sepan qué reservar.</p></div>
         <button type="button" aria-label="Cerrar" (click)="showSessionForm.set(false)"><svg lucideX aria-hidden="true"></svg></button>
       </header>
+      <ol class="wizard-steps" aria-label="Pasos del formulario">
+        @for (stepKey of sessionSteps; track stepKey; let i = $index) {
+          <li
+            class="wizard-step"
+            [class.active]="i === sessionStepIndex()"
+            [class.done]="i < sessionStepIndex()"
+            [class.clickable]="i <= sessionStepIndex()"
+            [title]="sessionStepLabel(stepKey)"
+            (click)="goToSessionStep(i)">
+            <span class="wizard-step__dot">
+              @if (i < sessionStepIndex()) { <svg lucideCircleCheck aria-hidden="true"></svg> } @else { {{ i + 1 }} }
+            </span>
+            <span class="wizard-step__label">{{ sessionStepLabel(stepKey) }}</span>
+          </li>
+        }
+      </ol>
       <form (ngSubmit)="saveSession()">
         <div class="editor-scroll">
-          <section class="form-section">
-            <div class="form-section__heading"><strong>Información principal</strong><small>Así se mostrará la sesión en el catálogo.</small></div>
-            <div class="form-grid form-grid--section">
-              <label class="wide">Título<input name="sessionTitle" [(ngModel)]="sessionForm.title" required maxlength="180" placeholder="Ej. Sesión de claridad y bienestar emocional"></label>
-              <label class="wide">Descripción<textarea name="sessionDescription" [(ngModel)]="sessionForm.description" rows="5" required placeholder="Explica el enfoque, qué incluye y para quién es esta sesión"></textarea></label>
-              <label class="wide">Imagen de portada<input name="sessionImage" type="url" [(ngModel)]="sessionForm.imageUrl" placeholder="https://..."><small class="field-help">Opcional. Debe ser una URL pública de imagen.</small></label>
-            </div>
-          </section>
+          @if (currentSessionStepKey() === 'info') {
+            <section class="form-section">
+              <div class="form-section__heading"><strong>Información principal</strong><small>Así se mostrará la sesión en el catálogo.</small></div>
+              <div class="form-grid form-grid--section">
+                <label class="wide">Título<input name="sessionTitle" [(ngModel)]="sessionForm.title" required maxlength="180" placeholder="Ej. Sesión de claridad y bienestar emocional"></label>
+                <label class="wide">Descripción<textarea name="sessionDescription" [(ngModel)]="sessionForm.description" rows="5" required placeholder="Explica el enfoque, qué incluye y para quién es esta sesión"></textarea></label>
+                <label class="wide">Imagen de portada<input name="sessionImage" type="url" [(ngModel)]="sessionForm.imageUrl" placeholder="https://..."><small class="field-help">Opcional. Debe ser una URL pública de imagen.</small></label>
+              </div>
+            </section>
+          }
 
-          <section class="form-section">
-            <div class="form-section__heading"><strong>Formato y publicación</strong><small>Configura la duración, modalidad y visibilidad.</small></div>
-            <div class="form-grid form-grid--section">
-              <label>Duración<div class="input-suffix"><input name="sessionDuration" type="number" min="15" step="15" [(ngModel)]="sessionForm.durationMinutes" required><span>min</span></div><small class="field-help">En intervalos de 15 minutos.</small></label>
-              <label>Modalidad<select name="sessionModality" [(ngModel)]="sessionForm.modality"><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="AMBAS">Online y presencial</option></select></label>
-              <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
-              <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
-            </div>
-          </section>
+          @if (currentSessionStepKey() === 'format') {
+            <section class="form-section">
+              <div class="form-section__heading"><strong>Formato y publicación</strong><small>Configura la duración, modalidad y visibilidad.</small></div>
+              <div class="form-grid form-grid--section">
+                <label>Duración<div class="input-suffix"><input name="sessionDuration" type="number" min="15" step="15" [(ngModel)]="sessionForm.durationMinutes" required><span>min</span></div><small class="field-help">En intervalos de 15 minutos.</small></label>
+                <label>Modalidad<select name="sessionModality" [(ngModel)]="sessionForm.modality"><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="AMBAS">Online y presencial</option></select></label>
+                <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
+              </div>
+            </section>
+          }
 
-          <section class="form-section form-section--optional">
-            <div class="form-section__heading"><strong>Especialidad</strong><small>Ayuda a encontrar esta sesión por tema y técnica.</small></div>
-            <div class="form-grid form-grid--section">
-              <fieldset class="wide option-grid"><legend>Temas</legend>@for (option of workTopics(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.workTopics.includes(option.id)" (change)="toggleSelection(sessionForm.workTopics, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
-              <fieldset class="wide option-grid"><legend>Técnicas</legend>@for (option of techniques(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.techniques.includes(option.id)" (change)="toggleSelection(sessionForm.techniques, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
-            </div>
-          </section>
+          @if (currentSessionStepKey() === 'specialty') {
+            <section class="form-section form-section--optional">
+              <div class="form-section__heading"><strong>Especialidad</strong><small>Ayuda a encontrar esta sesión por tema y técnica.</small></div>
+              <div class="form-grid form-grid--section">
+                <fieldset class="wide option-grid"><legend>Temas</legend>@for (option of workTopics(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.workTopics.includes(option.id)" (change)="toggleSelection(sessionForm.workTopics, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
+                <fieldset class="wide option-grid"><legend>Técnicas</legend>@for (option of techniques(); track option.id) { <label><input type="checkbox" [checked]="sessionForm.techniques.includes(option.id)" (change)="toggleSelection(sessionForm.techniques, option.id)"> <span>{{ option.name }}</span></label> }</fieldset>
+              </div>
+            </section>
+          }
         </div>
-        <footer><span>{{ sessionForm.status === 'PUBLICADO' ? 'Se mostrará en el catálogo público.' : 'No será visible públicamente.' }}</span><button type="button" (click)="showSessionForm.set(false)">Cancelar</button><button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : sessionForm.id ? 'Guardar cambios' : 'Crear sesión' }}</button></footer>
+        <footer>
+          <span>{{ sessionForm.status === 'PUBLICADO' ? 'Se mostrará en el catálogo público.' : 'No será visible públicamente.' }}</span>
+          @if (sessionStepIndex() > 0) {
+            <button type="button" (click)="prevSessionStep()">Atrás</button>
+          } @else {
+            <button type="button" (click)="showSessionForm.set(false)">Cancelar</button>
+          }
+          @if (sessionStepIndex() < sessionSteps.length - 1) {
+            <button class="primary" type="button" (click)="nextSessionStep()">Siguiente</button>
+          } @else {
+            <button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : sessionForm.id ? 'Guardar cambios' : 'Crear sesión' }}</button>
+          }
+        </footer>
       </form>
     </section>
   }
@@ -454,6 +632,110 @@
         <button (click)="logoutConfirm.set(false)">Cancelar</button>
         <button class="primary" (click)="logout()">Cerrar sesion</button>
       </footer>
+    </section>
+  }
+
+  @if (showParticipantsModal()) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="cerrarParticipantes()"></button>
+    <section class="modal modal--participants" role="dialog" aria-modal="true" aria-labelledby="participants-title">
+      <header class="modal__header">
+        <div>
+          <h2 id="participants-title">Participantes</h2>
+          <p class="participants-subtitle">{{ participantsOccurrenceLabel() }}</p>
+        </div>
+        <button class="modal__close" aria-label="Cerrar" (click)="cerrarParticipantes()">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+
+      @if (participantsLoading()) {
+        <div class="participants-loading">
+          <svg lucideRotateCw aria-hidden="true" class="spin"></svg>
+          <span>Cargando participantes…</span>
+        </div>
+      } @else if (participantsError()) {
+        <div class="participants-error">
+          <svg lucideTriangleAlert aria-hidden="true"></svg>
+          <span>{{ participantsError() }}</span>
+        </div>
+      } @else if (!selectedAttendeeDetail()) {
+        <!-- LIST VIEW -->
+        @if (participantsList().length === 0) {
+          <div class="participants-empty">
+            <svg lucideUserRound aria-hidden="true"></svg>
+            <p>No hay participantes registrados para esta sesión.</p>
+          </div>
+        } @else {
+          <p class="participants-count">{{ participantsList().length }} participante(s) registrado(s)</p>
+          <div class="participants-table-wrap">
+            <table class="participants-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (att of participantsList(); track att.attendeeId) {
+                  <tr>
+                    <td>{{ att.attendeeName || att.buyerFullName }}</td>
+                    <td class="participants-email">{{ att.attendeeEmail || att.buyerEmail }}</td>
+                    <td>
+                      <span class="att-status" [attr.data-status]="att.attendanceStatus">
+                        {{ att.attendanceStatus }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-detail" (click)="mostrarDetalleAsistente(att)" aria-label="Ver detalle">
+                        <svg lucideEye aria-hidden="true"></svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <!-- DETAIL VIEW -->
+        <button class="btn-back" (click)="volverAListado()">
+          <svg lucidePanelLeftOpen aria-hidden="true"></svg> Volver al listado
+        </button>
+        <div class="participant-detail">
+          <section class="detail-section">
+            <h3>Asistente</h3>
+            <dl>
+              <dt>Nombre</dt><dd>{{ selectedAttendeeDetail()!.attendeeName || '—' }}</dd>
+              <dt>Email</dt><dd>{{ selectedAttendeeDetail()!.attendeeEmail || '—' }}</dd>
+              <dt>Teléfono</dt><dd>{{ selectedAttendeeDetail()!.attendeePhone || '—' }}</dd>
+              <dt>Estado asistencia</dt>
+              <dd>
+                <span class="att-status" [attr.data-status]="selectedAttendeeDetail()!.attendanceStatus">
+                  {{ selectedAttendeeDetail()!.attendanceStatus }}
+                </span>
+              </dd>
+            </dl>
+          </section>
+          <section class="detail-section">
+            <h3>Reserva</h3>
+            <dl>
+              <dt>Código</dt><dd class="mono">{{ selectedAttendeeDetail()!.bookingCode }}</dd>
+              <dt>Estado reserva</dt><dd>{{ selectedAttendeeDetail()!.bookingStatus }}</dd>
+              <dt>Fecha registro</dt><dd>{{ selectedAttendeeDetail()!.bookingCreatedAt | date:'dd/MM/yyyy HH:mm' }}</dd>
+            </dl>
+          </section>
+          <section class="detail-section">
+            <h3>Comprador / Titular</h3>
+            <dl>
+              <dt>Nombre</dt><dd>{{ selectedAttendeeDetail()!.buyerFullName }}</dd>
+              <dt>Email</dt><dd>{{ selectedAttendeeDetail()!.buyerEmail }}</dd>
+              <dt>Teléfono</dt><dd>{{ selectedAttendeeDetail()!.buyerPhone || '—' }}</dd>
+            </dl>
+          </section>
+        </div>
+      }
     </section>
   }
 </div>

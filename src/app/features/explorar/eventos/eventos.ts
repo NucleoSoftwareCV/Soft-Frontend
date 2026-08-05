@@ -13,6 +13,8 @@ import {
   EventModality,
   EventType,
 } from '../../../shared/models/evento.model';
+import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
+import { categoryIcon } from '../../../shared/utils/category-icon.util';
 
 interface EventSortOption {
   label: string;
@@ -170,6 +172,18 @@ export class Eventos {
 
   isFavorito(item: EventCardResponse): boolean {
     return this.favoritos().has(item.id);
+  }
+
+  organizerPhoto(item: EventCardResponse): string {
+    return item.organizerPhotoUrl ? resolveAssetUrl(item.organizerPhotoUrl) : this.fallbackImage;
+  }
+
+  categoryEmoji(name: string | null): string {
+    return categoryIcon(name);
+  }
+
+  isOnline(item: EventCardResponse): boolean {
+    return item.modality === EventModality.ONLINE;
   }
 
   formatDate(value: string | null): string {

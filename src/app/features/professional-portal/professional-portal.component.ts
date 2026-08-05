@@ -12,6 +12,7 @@ import {
 import {
   LucideBriefcaseBusiness,
   LucideCalendarDays,
+  LucideChevronRight,
   LucideCircleCheck,
   LucideClock3,
   LucideEye,
@@ -21,6 +22,7 @@ import {
   LucideLayoutDashboard,
   LucideLink2,
   LucideLogOut,
+  LucideMenu,
   LucidePanelLeftClose,
   LucidePanelLeftOpen,
   LucidePencil,
@@ -31,10 +33,12 @@ import {
   LucideUserRound,
   LucideZoomIn,
   LucideX,
+  LucideUsers,
+  LucideEyeOff,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
-import { EventManagementService } from '../../services/event-management.service';
+import { EventManagementService, OccurrenceAttendee } from '../../services/event-management.service';
 import { EventosService } from '../../services/eventos.service';
 import {
   SpecialistProfileResponse,
@@ -57,9 +61,11 @@ import {
   OneToOneServiceDetailResponse,
   OneToOneServiceRequest,
 } from '../../shared/models/one-to-one-service.model';
-import { environment } from '../../../environments/environment';
+import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 
 type PortalSection = 'summary' | 'profile' | 'events' | 'sessions';
+type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
+type SessionStepKey = 'info' | 'format' | 'specialty';
 
 interface EventForm {
   id: number | null;
@@ -74,6 +80,7 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
+  paymentMethod: 'WHATSAPP' | 'ONLINE';
   startsAt: string;
   endsAt: string;
   capacity: number;
@@ -119,6 +126,7 @@ interface OccurrenceForm {
     ImageCropperComponent,
     LucideBriefcaseBusiness,
     LucideCalendarDays,
+    LucideChevronRight,
     LucideCircleCheck,
     LucideClock3,
     LucideEye,
@@ -128,6 +136,7 @@ interface OccurrenceForm {
     LucideLayoutDashboard,
     LucideLink2,
     LucideLogOut,
+    LucideMenu,
     LucidePanelLeftClose,
     LucidePanelLeftOpen,
     LucidePencil,
@@ -138,6 +147,8 @@ interface OccurrenceForm {
     LucideUserRound,
     LucideZoomIn,
     LucideX,
+    LucideUsers,
+    LucideEyeOff,
   ],
   templateUrl: './professional-portal.component.html',
   styleUrl: './professional-portal.component.css',
@@ -169,8 +180,47 @@ export class ProfessionalPortalComponent {
   showSocialForm = signal(false);
   occurrenceEvent = signal<EventManagementResponse | null>(null);
   sidebarCollapsed = signal(false);
+  mobileNavOpen = signal(false);
   logoutConfirm = signal(false);
   cropAsset = signal<'photo' | 'banner' | null>(null);
+
+  // ── Wizard: crear/editar evento ─────────────────────────────────────────
+  // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
+  // se definen como métodos (no computed) para que siempre lean el eventForm.id vigente en
+  // cada ciclo de detección de cambios, en vez de quedar cacheados con el primer valor leído.
+  eventStepIndex = signal(0);
+
+  eventSteps(): EventStepKey[] {
+    return this.eventForm.id
+      ? ['info', 'format', 'extra']
+      : ['info', 'format', 'schedule', 'extra'];
+  }
+
+  currentEventStepKey(): EventStepKey {
+    return this.eventSteps()[this.eventStepIndex()];
+  }
+
+  // ── Wizard: crear/editar sesión 1:1 ─────────────────────────────────────
+  sessionStepIndex = signal(0);
+  sessionSteps: SessionStepKey[] = ['info', 'format', 'specialty'];
+
+  currentSessionStepKey(): SessionStepKey {
+    return this.sessionSteps[this.sessionStepIndex()];
+  }
+
+  // ── Panel de fechas programadas ─────────────────────────────────────────
+  occurrencesPanelEventId = signal<number | null>(null);
+  occurrencesPanelItem = computed(
+    () => this.events().find(item => item.event.id === this.occurrencesPanelEventId()) ?? null
+  );
+
+  // ── Participants modal ──────────────────────────────────────────────────
+  showParticipantsModal = signal(false);
+  participantsLoading = signal(false);
+  participantsError = signal<string | null>(null);
+  participantsList = signal<OccurrenceAttendee[]>([]);
+  selectedAttendeeDetail = signal<OccurrenceAttendee | null>(null);
+  participantsOccurrenceLabel = signal<string>('');
   cropImageFile = signal<File | null>(null);
   cropImageUrl = signal<string | null>(null);
   cropTransform: ImageTransform = { scale: 1, rotate: 0 };
@@ -222,7 +272,115 @@ export class ProfessionalPortalComponent {
 
   show(section: PortalSection): void {
     this.section.set(section);
+    this.mobileNavOpen.set(false);
     this.clearMessages();
+  }
+
+  // ── Wizard: evento ───────────────────────────────────────────────────────
+  nextEventStep(): void {
+    if (!this.validateEventStep(this.currentEventStepKey())) return;
+    this.eventStepIndex.update(index => Math.min(index + 1, this.eventSteps().length - 1));
+  }
+
+  prevEventStep(): void {
+    this.eventStepIndex.update(index => Math.max(index - 1, 0));
+  }
+
+  goToEventStep(index: number): void {
+    if (index <= this.eventStepIndex()) this.eventStepIndex.set(index);
+  }
+
+  eventStepLabel(key: EventStepKey): string {
+    return {
+      info: 'Información',
+      format: 'Formato y precio',
+      schedule: 'Primera fecha',
+      extra: 'Detalles',
+    }[key];
+  }
+
+  private validateEventStep(key: EventStepKey): boolean {
+    this.clearMessages();
+    if (key === 'info') {
+      if (!this.eventForm.title.trim() || !this.eventForm.categoryId || !this.eventForm.description.trim()) {
+        this.failed('Completa el título, la categoría y la descripción antes de continuar.');
+        return false;
+      }
+      return true;
+    }
+    if (key === 'format') {
+      if (this.eventForm.priceFrom < 0) {
+        this.failed('El precio no puede ser negativo.');
+        return false;
+      }
+      return true;
+    }
+    if (key === 'schedule') return this.validateEventOccurrence();
+    return true;
+  }
+
+  // ── Wizard: sesión 1:1 ────────────────────────────────────────────────────
+  nextSessionStep(): void {
+    if (!this.validateSessionStep(this.currentSessionStepKey())) return;
+    this.sessionStepIndex.update(index => Math.min(index + 1, this.sessionSteps.length - 1));
+  }
+
+  prevSessionStep(): void {
+    this.sessionStepIndex.update(index => Math.max(index - 1, 0));
+  }
+
+  goToSessionStep(index: number): void {
+    if (index <= this.sessionStepIndex()) this.sessionStepIndex.set(index);
+  }
+
+  sessionStepLabel(key: SessionStepKey): string {
+    return {
+      info: 'Información',
+      format: 'Formato y publicación',
+      specialty: 'Especialidad',
+    }[key];
+  }
+
+  private validateSessionStep(key: SessionStepKey): boolean {
+    this.clearMessages();
+    if (key === 'info') {
+      if (!this.sessionForm.title.trim() || !this.sessionForm.description.trim()) {
+        this.failed('Completa el título y la descripción antes de continuar.');
+        return false;
+      }
+      return true;
+    }
+    if (key === 'format') {
+      if (this.sessionForm.durationMinutes <= 0) {
+        this.failed('La duración debe ser mayor que cero.');
+        return false;
+      }
+      if (this.sessionForm.price < 0) {
+        this.failed('El precio no puede ser negativo.');
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  // ── Panel de fechas programadas ──────────────────────────────────────────
+  openOccurrencesPanel(item: EventManagementResponse): void {
+    this.occurrencesPanelEventId.set(item.event.id);
+  }
+
+  closeOccurrencesPanel(): void {
+    this.occurrencesPanelEventId.set(null);
+  }
+
+  syncOccurrenceEndTime(): void {
+    if (!this.occurrenceForm.startsAt) return;
+    const startsAt = new Date(this.occurrenceForm.startsAt);
+    const endsAt = new Date(this.occurrenceForm.endsAt);
+    if (!this.occurrenceForm.endsAt || endsAt <= startsAt) {
+      startsAt.setHours(startsAt.getHours() + 2);
+      this.occurrenceForm.endsAt = this.toLocalInput(startsAt.toISOString());
+    }
   }
 
   loadAll(): void {
@@ -391,9 +549,7 @@ export class ProfessionalPortalComponent {
   }
 
   profileAssetUrl(url?: string): string {
-    if (!url || /^(https?:|data:|blob:)/i.test(url)) return url ?? '';
-    if (!environment.apiUrl.startsWith('http')) return url;
-    return `${new URL(environment.apiUrl).origin}${url.startsWith('/') ? url : `/${url}`}`;
+    return resolveAssetUrl(url);
   }
 
   imageCropped(event: ImageCroppedEvent): void {
@@ -474,6 +630,7 @@ export class ProfessionalPortalComponent {
 
   openNewEvent(): void {
     this.eventForm = this.emptyEventForm();
+    this.eventStepIndex.set(0);
     this.showEventForm.set(true);
   }
 
@@ -492,6 +649,7 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
+      paymentMethod: event.paymentMethod ?? 'WHATSAPP',
       startsAt: this.localDateTime(2),
       endsAt: this.localDateTime(2, 2),
       capacity: 12,
@@ -501,6 +659,7 @@ export class ProfessionalPortalComponent {
       cityId: null,
       status: item.status === 'PUBLICADO' ? 'PUBLICADO' : 'BORRADOR',
     };
+    this.eventStepIndex.set(0);
     this.showEventForm.set(true);
   }
 
@@ -640,6 +799,7 @@ export class ProfessionalPortalComponent {
 
   openNewSession(): void {
     this.sessionForm = this.emptySessionForm();
+    this.sessionStepIndex.set(0);
     this.showSessionForm.set(true);
   }
 
@@ -658,6 +818,7 @@ export class ProfessionalPortalComponent {
       workTopics: this.idsForNames(this.workTopics(), item.workTopics ?? []),
       techniques: this.idsForNames(this.techniques(), item.techniques ?? []),
     };
+    this.sessionStepIndex.set(0);
     this.showSessionForm.set(true);
   }
 
@@ -776,6 +937,7 @@ export class ProfessionalPortalComponent {
       minimumAge: this.eventForm.minimumAge,
       featured: false,
       categoryId: this.eventForm.categoryId!,
+      paymentMethod: this.eventForm.paymentMethod,
       specialistId,
     };
   }
@@ -815,6 +977,7 @@ export class ProfessionalPortalComponent {
       currency: 'EUR',
       minimumAge: 18,
       categoryId: null,
+      paymentMethod: 'WHATSAPP',
       startsAt: this.localDateTime(2),
       endsAt: this.localDateTime(2, 2),
       capacity: 12,
@@ -1004,5 +1167,44 @@ export class ProfessionalPortalComponent {
       return error.error?.message || error.error?.detail || fallback;
     }
     return fallback;
+  }
+
+  // ── Participants modal methods ──────────────────────────────────────────
+  verParticipantes(occurrence: EventOccurrenceManagement): void {
+    const label = new Date(occurrence.startsAt).toLocaleString('es-ES', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+    this.participantsOccurrenceLabel.set(label);
+    this.participantsList.set([]);
+    this.selectedAttendeeDetail.set(null);
+    this.participantsError.set(null);
+    this.participantsLoading.set(true);
+    this.showParticipantsModal.set(true);
+
+    this.eventsApi.getOccurrenceAttendees(occurrence.id).subscribe({
+      next: list => {
+        this.participantsList.set(list);
+        this.participantsLoading.set(false);
+      },
+      error: err => {
+        this.participantsError.set(this.apiError(err, 'No se pudo cargar la lista de participantes.'));
+        this.participantsLoading.set(false);
+      }
+    });
+  }
+
+  cerrarParticipantes(): void {
+    this.showParticipantsModal.set(false);
+    this.selectedAttendeeDetail.set(null);
+    this.participantsList.set([]);
+  }
+
+  mostrarDetalleAsistente(attendee: OccurrenceAttendee): void {
+    this.selectedAttendeeDetail.set(attendee);
+  }
+
+  volverAListado(): void {
+    this.selectedAttendeeDetail.set(null);
   }
 }

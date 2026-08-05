@@ -15,6 +15,20 @@ import {
   EventUpsertRequest,
 } from '../shared/models/event-management.model';
 
+export interface OccurrenceAttendee {
+  attendeeId: number;
+  attendeeName: string | null;
+  attendeeEmail: string | null;
+  attendeePhone: string | null;
+  attendanceStatus: string;
+  bookingCode: string;
+  bookingStatus: string;
+  bookingCreatedAt: string;
+  buyerFullName: string;
+  buyerEmail: string;
+  buyerPhone: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EventManagementService {
   private readonly http = inject(HttpClient);
@@ -58,5 +72,9 @@ export class EventManagementService {
       `${this.occurrencesBase}/${id}/status`,
       { status }
     );
+  }
+
+  getOccurrenceAttendees(occurrenceId: number): Observable<OccurrenceAttendee[]> {
+    return this.http.get<OccurrenceAttendee[]>(`${this.base}/occurrences/${occurrenceId}/attendees`);
   }
 }
