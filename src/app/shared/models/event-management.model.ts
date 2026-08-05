@@ -19,6 +19,9 @@ export interface EventManagementEvent {
   categoryId: number;
   categoryName: string;
   paymentMethod: 'WHATSAPP' | 'ONLINE';
+  experienceTypeId: number;
+  eventType: string;
+  experienceTypeSlug: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +68,7 @@ export interface EventUpsertRequest {
   featured: boolean;
   categoryId: number;
   paymentMethod: 'WHATSAPP' | 'ONLINE';
+  experienceTypeId: number;
   specialistId: number;
 }
 

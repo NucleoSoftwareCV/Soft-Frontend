@@ -6,15 +6,15 @@
     <!-- Scroll horizontal con todos los items en una fila -->
     <div class="categories__track-wrap">
       <ul class="categories__track" role="list">
-        @for (cat of categories; track cat.path) {
+        @for (cat of categories(); track cat.id) {
           <li class="categories__item">
-            <a [routerLink]="cat.path" class="categories__link">
+            <a routerLink="/explorar" (click)="selectCategory(cat.name)" class="categories__link">
               <span
                 class="categories__icon"
-                [style.background-color]="cat.bg"
+                [style.background-color]="cat.background"
                 aria-hidden="true"
               >{{ cat.emoji }}</span>
-              <span class="categories__label">{{ cat.label }}</span>
+              <span class="categories__label">{{ cat.name }}</span>
             </a>
           </li>
         }

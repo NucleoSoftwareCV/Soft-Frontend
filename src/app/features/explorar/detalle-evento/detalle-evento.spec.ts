@@ -23,7 +23,11 @@ describe('DetalleEvento', () => {
       currency: 'EUR',
       organizer: { id: 3, publicName: 'Oona', whatsappPhone: '+34600111222' },
       occurrences: [],
+      includes: [],
+      highlights: [],
+      whatToBring: [],
     })),
+    resolveAssetUrl: vi.fn((url: string | null | undefined) => url ?? null),
   };
   const followService = {
     getStatus: vi.fn(() => of({ professionalId: 3, following: false })),

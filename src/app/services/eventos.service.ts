@@ -11,6 +11,7 @@ import {
   EventFilterParams,
   SpringPage,
 } from '../shared/models/evento.model';
+import { ExperienceTypeCatalogItem } from '../shared/models/event-catalog.model';
 
 @Injectable({ providedIn: 'root' })
 export class EventosService {
@@ -23,6 +24,10 @@ export class EventosService {
 
   getCiudades(): Observable<CityResponse[]> {
     return this.http.get<CityResponse[]>(`${this.BASE}/cities`);
+  }
+
+  getExperienceTypes(): Observable<ExperienceTypeCatalogItem[]> {
+    return this.http.get<ExperienceTypeCatalogItem[]>(`${this.BASE}/experience-types`);
   }
 
   getEventos(filters: EventFilterParams = {}): Observable<SpringPage<EventCardResponse>> {
@@ -38,5 +43,14 @@ export class EventosService {
 
   getEvento(id: number): Observable<EventDetailResponse> {
     return this.http.get<EventDetailResponse>(`${this.BASE}/events/${id}`);
+  }
+
+  resolveAssetUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (/^(https?:|data:|blob:)/i.test(url)) return url;
+    if (!environment.apiUrl.startsWith('http')) return url;
+
+    const apiOrigin = new URL(environment.apiUrl).origin;
+    return `${apiOrigin}${url.startsWith('/') ? url : `/${url}`}`;
   }
 }

@@ -148,7 +148,7 @@
 
           <article class="organizer-card">
             <div class="organizer-info">
-              <img [src]="organizerPhoto()" [alt]="event.organizer?.publicName || 'Organizador'">
+              <img [src]="organizerPhotoUrl()" [alt]="event.organizer?.publicName || 'Organizador'">
               <div>
                 <small>Organizado por</small>
                 <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
@@ -207,6 +207,7 @@
             <p class="descripcion">{{ event.description || event.summary || 'Descripcion por confirmar.' }}</p>
           </article>
 
+          @if (event.includes.length) {
           <article class="info-card">
             <div class="section-title">
               <div class="icon-box icon-green-2">
@@ -214,12 +215,26 @@
               <h2>Lo que incluye</h2>
             </div>
             <div class="chips">
-              <span>Goma</span>
-              <span>Corrospum</span>
-              <span>Plumones</span>
+              @for (item of event.includes; track item) { <span>{{ item }}</span> }
             </div>
           </article>
+          }
 
+        @if (event.highlights.length) {
+        <article class="info-card">
+          <div class="section-title">
+            <div class="icon-box icon-green-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 3.9-4.3.6 3.1 3-.7 4.3 3.8-2 3.8 2-.7-4.3 3.1-3-4.3-.6Z"></path></svg>
+            </div>
+            <h2>Puntos destacados</h2>
+          </div>
+          <div class="chips">
+            @for (item of event.highlights; track item) { <span>{{ item }}</span> }
+          </div>
+        </article>
+        }
+
+        @if (event.whatToBring.length) {
         <article class="info-card">
           <div class="section-title">
             <div class="icon-box icon-blue">
@@ -227,10 +242,10 @@
             <h2>Qué traer</h2>
           </div>
           <div class="chips blue">
-            <span>Ropa cómoda</span>
-            <span>Botella de agua</span>
+            @for (item of event.whatToBring; track item) { <span>{{ item }}</span> }
           </div>
         </article>
+        }
 
         </main>
 
@@ -337,7 +352,7 @@
 
         <div class="about-card">
           <div class="organizer-top">
-            <img [src]="organizerPhoto()" [alt]="event.organizer?.publicName || 'Organizador'">
+            <img [src]="organizerPhotoUrl()" [alt]="event.organizer?.publicName || 'Organizador'">
 
             <div class="organizer-data">
               <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>

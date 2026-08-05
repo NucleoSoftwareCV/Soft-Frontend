@@ -1,12 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-export interface Category {
-  label: string;
-  path:  string;
-  emoji: string;
-  bg:    string; /* color de fondo del icono */
-}
+import { FiltrosService } from '../../../../services/filtros.service';
 
 @Component({
   selector: 'app-categories',
@@ -16,20 +11,22 @@ export interface Category {
   styleUrl: './categories.component.css',
 })
 export class CategoriesComponent {
-  categories: Category[] = [
-    { label: 'Yoga',                   path: '/eventos/yoga',           emoji: '🧘', bg: '#DCE6CD' },
-    { label: 'Pilates',                path: '/eventos/pilates',        emoji: '🤸', bg: '#F6D7CE' },
-    { label: 'Hielo y\nBreathwork',    path: '/eventos/breathwork',     emoji: '🧊', bg: '#CFE0EA' },
-    { label: 'Arte y\nCreatividad',    path: '/eventos/arte',           emoji: '🎨', bg: '#EADFB6' },
-    { label: 'Movimiento',             path: '/eventos/movimiento',     emoji: '🏃', bg: '#F2D2CF' },
-    { label: 'Deporte',                path: '/eventos/deporte',        emoji: '💪', bg: '#F5DDC8' },
-    { label: 'Meditación y\nMindfulness', path: '/eventos/meditacion', emoji: '🧠', bg: '#DAD4E9' },
-    { label: 'Sonido y\nVibración',    path: '/eventos/sonido',         emoji: '🎵', bg: '#E2DCF0' },
-    { label: 'Espiritualidad y\nEnergía', path: '/eventos/espiritualidad', emoji: '✨', bg: '#F0DDE7' },
-    { label: 'Nutrición y\nCocina',    path: '/eventos/nutricion',      emoji: '🥗', bg: '#E2E6C1' },
-    { label: 'Psicología',             path: '/eventos/psicologia',     emoji: '🌱', bg: '#D2E6D6' },
-    { label: 'Cuerpo y Salud',         path: '/eventos/cuerpo',         emoji: '💆', bg: '#F2DDDB' },
-    { label: 'Maternidad y\nFamilia',  path: '/eventos/maternidad',     emoji: '🤰', bg: '#F4E1CB' },
-    { label: 'Emprendimiento',         path: '/eventos/emprendimiento', emoji: '🚀', bg: '#DEDEE2' },
+  private readonly filters = inject(FiltrosService);
+  private readonly backgrounds = [
+    '#DCE6CD', '#F6D7CE', '#CFE0EA', '#EADFB6', '#F2D2CF', '#F5DDC8',
+    '#DAD4E9', '#E2DCF0', '#F0DDE7', '#E2E6C1', '#D2E6D6', '#F2DDDB',
+    '#F4E1CB', '#DEDEE2',
   ];
+
+  readonly categories = computed(() =>
+    this.filters.categories().map((category, index) => ({
+      ...category,
+      emoji: category.emoji || '✨',
+      background: this.backgrounds[index % this.backgrounds.length],
+    }))
+  );
+
+  selectCategory(name: string): void {
+    this.filters.filterCategories.set([name]);
+  }
 }

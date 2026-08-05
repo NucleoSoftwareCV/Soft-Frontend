@@ -119,7 +119,11 @@ export class SesionesComponent implements OnInit {
   }
 
   imageFor(sesion: OneToOneServiceCardResponse): string {
-    return sesion.imageUrl || this.fallbackImage;
+    return this.oneToOneServices.resolveAssetUrl(sesion.imageUrl) || this.fallbackImage;
+  }
+
+  specialistPhotoFor(sesion: OneToOneServiceCardResponse): string | null {
+    return this.oneToOneServices.resolveAssetUrl(sesion.specialistPhotoUrl);
   }
 
   specialistInitial(sesion: OneToOneServiceCardResponse): string {

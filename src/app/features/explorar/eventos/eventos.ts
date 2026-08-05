@@ -11,10 +11,9 @@ import {
   EventCardResponse,
   EventFilterParams,
   EventModality,
-  EventType,
 } from '../../../shared/models/evento.model';
-import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
+import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 
 interface EventSortOption {
   label: string;
@@ -38,6 +37,7 @@ export class Eventos {
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
+  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   totalEventos = signal(0);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -63,8 +63,13 @@ export class Eventos {
   selectedSort = signal<EventSortOption>(this.sortOptions[0]);
   private lastRequestKey = '';
 
+  assetUrl(url: string | null | undefined, fallback = this.fallbackImage): string {
+    return this.eventosService.resolveAssetUrl(url) ?? fallback;
+  }
+
   constructor() {
     this.loadCategorias();
+    this.loadExperienceTypes();
 
     effect(() => {
       const criteria = {
@@ -174,10 +179,6 @@ export class Eventos {
     return this.favoritos().has(item.id);
   }
 
-  organizerPhoto(item: EventCardResponse): string {
-    return item.organizerPhotoUrl ? resolveAssetUrl(item.organizerPhotoUrl) : this.fallbackImage;
-  }
-
   categoryEmoji(name: string | null): string {
     return categoryIcon(name);
   }
@@ -242,7 +243,7 @@ export class Eventos {
       ...this.dateRangeFor(this.filterWhen()),
       ...this.timeRangeFor(this.filterTimeOfDay()),
       categoryId: this.categoryIdFor(this.filterCategories()[0]),
-      eventType: this.eventTypeFor(this.filterTypes()[0]),
+      experienceTypeId: this.experienceTypeIdFor(this.filterTypes()[0]),
       cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
       modality: this.modalityFor(this.filterModality()),
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
@@ -265,16 +266,17 @@ export class Eventos {
     return value === 'Recurrente';
   }
 
-  private eventTypeFor(value: string | undefined): EventType | undefined {
-    const map: Record<string, EventType> = {
-      'Talleres': 'TALLER',
-      'Retiros': 'RETIRO',
-      'Clases': 'CLASE',
-      'Ceremonias': 'CEREMONIA',
-      'Encuentros Grupales': 'ENCUENTRO_GRUPAL',
-      'Formaciones': 'FORMACION',
-    };
-    return value ? map[value] : undefined;
+  private experienceTypeIdFor(value: string | undefined): number | undefined {
+    return this.experienceTypes().find(type => type.name === value)?.id;
+  }
+
+  private loadExperienceTypes(): void {
+    this.eventosService.getExperienceTypes().subscribe({
+      next: types => {
+        this.experienceTypes.set(types);
+      },
+      error: () => this.experienceTypes.set([]),
+    });
   }
 
   private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {

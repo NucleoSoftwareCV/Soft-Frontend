@@ -389,6 +389,7 @@
               <div class="form-grid form-grid--section">
                 <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
                 <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
+                <label>Tipo de experiencia<select name="eventExperienceType" [(ngModel)]="eventForm.experienceTypeId" required><option [ngValue]="null" disabled>Selecciona un tipo</option>@for (type of experienceTypes(); track type.id) { <option [ngValue]="type.id">{{ type.name }}</option> }</select></label>
                 <label>Visibilidad<select name="eventStatus" [(ngModel)]="eventForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option></select><small class="field-help">Publicado aparecerá en Explorar cuando tenga una fecha futura.</small></label>
                 <label class="wide">Resumen<input name="eventSummary" [(ngModel)]="eventForm.summary" maxlength="300" placeholder="Una frase breve para la tarjeta"></label>
                 <label class="wide">Descripción<textarea name="eventDescription" [(ngModel)]="eventForm.description" rows="4" required placeholder="Explica qué vivirán las personas durante el evento"></textarea></label>
@@ -422,7 +423,7 @@
 
           @if (currentEventStepKey() === 'schedule') {
             <section class="form-section">
-              <div class="form-section__heading"><strong>Primera fecha</strong><small>Podrás añadir más fechas después de crear el evento.</small></div>
+              <div class="form-section__heading"><strong>{{ eventForm.id ? 'Fecha principal' : 'Primera fecha' }}</strong><small>{{ eventForm.id ? 'Estos son los datos actuales de programación y ubicación.' : 'Define cuándo y dónde se realizará el evento.' }}</small></div>
               <div class="form-grid form-grid--section">
                 <label>Empieza<input name="eventStarts" type="datetime-local" [min]="minimumDateTime()" [(ngModel)]="eventForm.startsAt" (change)="syncEventEndTime()" required></label>
                 <label>Termina<input name="eventEnds" type="datetime-local" [min]="eventForm.startsAt" [(ngModel)]="eventForm.endsAt" required><small class="field-help" [class.field-help--error]="eventDurationLabel().startsWith('La hora')">{{ eventDurationLabel() }}</small></label>
@@ -436,7 +437,6 @@
                 }
               </div>
             </section>
-          }
 
           @if (currentEventStepKey() === 'extra') {
             <section class="form-section form-section--optional">
@@ -582,6 +582,21 @@
               <div class="form-grid form-grid--section">
                 <label>Duración<div class="input-suffix"><input name="sessionDuration" type="number" min="15" step="15" [(ngModel)]="sessionForm.durationMinutes" required><span>min</span></div><small class="field-help">En intervalos de 15 minutos.</small></label>
                 <label>Modalidad<select name="sessionModality" [(ngModel)]="sessionForm.modality"><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="AMBAS">Online y presencial</option></select></label>
+                @if (sessionForm.modality !== 'ONLINE') {
+                  <label class="wide">Ubicación presencial
+                    <select name="sessionLocation" [(ngModel)]="sessionForm.locationId" required>
+                      <option [ngValue]="null">Selecciona una ubicación</option>
+                      @for (location of locations(); track location.id) {
+                        <option [ngValue]="location.id">{{ location.name }} · {{ location.address }} · {{ location.cityName }}</option>
+                      }
+                    </select>
+                    @if (locations().length === 0) {
+                      <small class="field-help field-help--error">No hay ubicaciones activas disponibles.</small>
+                    } @else {
+                      <small class="field-help">Se mostrará como lugar de atención en la sesión pública.</small>
+                    }
+                  </label>
+                }
                 <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
                 <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
               </div>

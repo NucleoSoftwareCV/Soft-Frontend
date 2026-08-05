@@ -9,7 +9,6 @@ import { EventDetailResponse, EventOccurrenceResponse } from '../../../shared/mo
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { CheckoutService } from '../../../services/checkout.service';
-import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
@@ -102,11 +101,6 @@ export class DetalleEvento implements OnDestroy{
     }
   }
 
-  organizerPhoto(): string {
-    const photoUrl = this.evento()?.organizer?.photoUrl;
-    return photoUrl ? resolveAssetUrl(photoUrl) : this.fallbackImages[0];
-  }
-
   getGalleryCount(): number {
     return Math.min(this.fallbackImages.length, 5);
   }
@@ -177,6 +171,11 @@ export class DetalleEvento implements OnDestroy{
 
     const message = `Hola, tengo una consulta sobre el evento ${this.evento()?.title ?? ''}.`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  }
+
+  organizerPhotoUrl(): string {
+    return this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl)
+      ?? this.fallbackImages[0];
   }
 
   formatPrice(): string {

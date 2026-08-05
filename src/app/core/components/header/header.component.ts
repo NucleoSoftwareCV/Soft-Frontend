@@ -74,6 +74,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.filtrosService.refreshCatalogs();
     if (this.isBrowser) {
       window.addEventListener('oona:open-filter', this.openFilterListener);
     }
@@ -166,6 +167,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   openFilter(): void {
+    this.filtrosService.refreshCatalogs();
     this.pendingWhen.set(this.filtrosService.filterWhen());
     this.pendingCategories.set([...this.filtrosService.filterCategories()]);
     this.pendingTypes.set([...this.filtrosService.filterTypes()]);

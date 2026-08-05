@@ -21,6 +21,13 @@
         <p>Usa tus credenciales administrativas.</p>
       </div>
 
+      @if (sessionExpired()) {
+        <div class="erp-login__notice" role="status">
+          <strong>Tu sesion ha expirado.</strong>
+          <span>Inicia sesion nuevamente para continuar en el ERP.</span>
+        </div>
+      }
+
       <label>
         Email o usuario
         <span class="field">
