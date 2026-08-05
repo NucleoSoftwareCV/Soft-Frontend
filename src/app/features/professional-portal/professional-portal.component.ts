@@ -10,21 +10,17 @@ import {
   ImageTransform,
 } from 'ngx-image-cropper';
 import {
-  LucideBan,
   LucideBriefcaseBusiness,
-  LucideCalendarClock,
   LucideCalendarDays,
   LucideChevronRight,
   LucideCircleCheck,
   LucideClock3,
-  LucideEllipsis,
   LucideEye,
   LucideExternalLink,
   LucideGlobe2,
   LucideLanguages,
   LucideLayoutDashboard,
   LucideLink2,
-  LucideMapPin,
   LucideLogOut,
   LucideMenu,
   LucidePanelLeftClose,
@@ -35,7 +31,6 @@ import {
   LucideTriangleAlert,
   LucideUpload,
   LucideUserRound,
-  LucideUsersRound,
   LucideZoomIn,
   LucideX,
   LucideUsers,
@@ -52,6 +47,7 @@ import {
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import {
   EventManagementResponse,
+  EventOccurrenceManagement,
   EventOccurrenceRequest,
   EventStatus,
   EventUpsertRequest,
@@ -114,6 +110,17 @@ interface SessionForm {
   techniques: number[];
 }
 
+interface OccurrenceForm {
+  id: number | null;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+  meetingUrl: string;
+  locationName: string;
+  address: string;
+  cityId: number | null;
+}
+
 @Component({
   selector: 'app-professional-portal',
   standalone: true,
@@ -121,21 +128,17 @@ interface SessionForm {
     CommonModule,
     FormsModule,
     ImageCropperComponent,
-    LucideBan,
     LucideBriefcaseBusiness,
-    LucideCalendarClock,
     LucideCalendarDays,
     LucideChevronRight,
     LucideCircleCheck,
     LucideClock3,
-    LucideEllipsis,
     LucideEye,
     LucideExternalLink,
     LucideGlobe2,
     LucideLanguages,
     LucideLayoutDashboard,
     LucideLink2,
-    LucideMapPin,
     LucideLogOut,
     LucideMenu,
     LucidePanelLeftClose,
@@ -146,7 +149,6 @@ interface SessionForm {
     LucideTriangleAlert,
     LucideUpload,
     LucideUserRound,
-    LucideUsersRound,
     LucideZoomIn,
     LucideX,
     LucideUsers,
@@ -182,6 +184,7 @@ export class ProfessionalPortalComponent {
   showProfileForm = signal(false);
   showLanguageForm = signal(false);
   showSocialForm = signal(false);
+  occurrenceEvent = signal<EventManagementResponse | null>(null);
   eventMenuId = signal<number | null>(null);
   cancelEventTarget = signal<EventManagementResponse | null>(null);
   eventActionId = signal<number | null>(null);
@@ -251,6 +254,7 @@ export class ProfessionalPortalComponent {
 
   eventForm: EventForm = this.emptyEventForm();
   sessionForm: SessionForm = this.emptySessionForm();
+  occurrenceForm: OccurrenceForm = this.emptyOccurrenceForm();
 
   publishedEvents = computed(
     () => this.events().filter(item => item.status === 'PUBLICADO').length
@@ -770,6 +774,65 @@ export class ProfessionalPortalComponent {
     });
   }
 
+  openOccurrence(item: EventManagementResponse): void {
+    this.occurrenceEvent.set(item);
+    this.occurrenceForm = this.emptyOccurrenceForm();
+  }
+
+  openEditOccurrence(item: EventManagementResponse, occurrence: EventOccurrenceManagement): void {
+    this.occurrenceEvent.set(item);
+    this.occurrenceForm = {
+      id: occurrence.id,
+      startsAt: this.toLocalInput(occurrence.startsAt),
+      endsAt: this.toLocalInput(occurrence.endsAt),
+      capacity: occurrence.capacity,
+      meetingUrl: occurrence.meetingLink?.meetingUrl ?? '',
+      locationName: occurrence.location?.name ?? '',
+      address: occurrence.location?.address ?? '',
+      cityId: this.cities().find(city => city.name === occurrence.location?.cityName)?.id ?? null,
+    };
+  }
+
+  saveOccurrence(): void {
+    const item = this.occurrenceEvent();
+    if (!item) return;
+    const request: EventOccurrenceRequest = {
+      startsAt: new Date(this.occurrenceForm.startsAt).toISOString(),
+      endsAt: new Date(this.occurrenceForm.endsAt).toISOString(),
+      capacity: this.occurrenceForm.capacity,
+      meetingLink: item.event.modality === 'ONLINE'
+        ? {
+            platform: 'MEET',
+            meetingUrl: this.occurrenceForm.meetingUrl,
+          }
+        : null,
+      location: item.event.modality === 'PRESENCIAL'
+        ? {
+            name: this.occurrenceForm.locationName,
+            address: this.occurrenceForm.address,
+            cityId: this.occurrenceForm.cityId!,
+          }
+        : null,
+    };
+    const operation = this.occurrenceForm.id
+      ? this.eventsApi.updateOccurrence(this.occurrenceForm.id, request)
+      : this.eventsApi.addOccurrence(item.event.id, request);
+    operation.subscribe({
+      next: () => {
+        this.occurrenceEvent.set(null);
+        this.loadEvents();
+      },
+      error: () => this.failed('No se pudo agregar la fecha.'),
+    });
+  }
+
+  cancelOccurrence(id: number): void {
+    this.eventsApi.updateOccurrenceStatus(id, 'CANCELADA').subscribe({
+      next: () => this.loadEvents(),
+      error: () => this.failed('No se pudo cancelar la fecha.'),
+    });
+  }
+
   toggleEventMenu(eventId: number): void {
     this.eventMenuId.update(current => current === eventId ? null : eventId);
   }
@@ -1009,6 +1072,19 @@ export class ProfessionalPortalComponent {
       status: 'PUBLICADO',
       workTopics: [],
       techniques: [],
+    };
+  }
+
+  private emptyOccurrenceForm(): OccurrenceForm {
+    return {
+      id: null,
+      startsAt: this.localDateTime(2),
+      endsAt: this.localDateTime(2, 2),
+      capacity: 12,
+      meetingUrl: 'https://meet.google.com/',
+      locationName: '',
+      address: '',
+      cityId: null,
     };
   }
 
