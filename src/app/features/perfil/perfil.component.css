@@ -1694,3 +1694,46 @@
     padding: 8px 12px;
   }
 }
+
+
+/* ── Acciones de la tarjeta Siguiendo ── */
+.following-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.following-card__btn--danger {
+  color: #c0392b;
+  border-color: #f5c6cb;
+  background-color: transparent;
+}
+
+.following-card__btn--danger:hover {
+  background-color: #fde8e8;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Modificamos el media query existente para las tarjetas de "siguiendo" */
+@media (max-width: 639px) {
+  .following-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .following-card__avatar {
+    margin: 0 auto;
+  }
+
+  /* Hacemos que los botones se apilen en móviles */
+  .following-card__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .following-card__btn {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+}

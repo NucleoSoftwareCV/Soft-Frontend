@@ -211,6 +211,34 @@ export class PerfilComponent implements OnInit {
     });
   }
 
+
+  unfollowProfessional(professionalId: number): void {
+    if (confirm('¿Seguro que quieres dejar de seguir a este profesional?')) {
+      // AQUÍ ESTÁ EL CAMBIO: Usamos followService.unfollow(...)
+      this.followService.unfollow(professionalId).subscribe({
+        next: () => {
+          // Filtramos la lista actual para remover el profesional
+          this.followedProfessionals.update(list =>
+            list.filter(p => p.professionalId !== professionalId)
+          );
+
+          // Descontamos 1 del total de elementos
+          this.followingTotalElements.update(total => total > 0 ? total - 1 : 0);
+
+          // Si nos quedamos sin elementos en la página actual y no estamos en la primera, retrocedemos
+          if (this.followedProfessionals().length === 0 && this.followingPage() > 0) {
+            this.loadFollowedProfessionals(this.followingPage() - 1);
+          }
+        },
+        error: () => {
+          console.error('Error al dejar de seguir al profesional.');
+        }
+      });
+    }
+  }
+
+
+
   followingInitials(professional: FollowedProfessionalResponse): string {
     return professional.publicName
       .split(/\s+/)

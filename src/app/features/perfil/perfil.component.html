@@ -686,7 +686,7 @@
   <!-- VISTA CLIENTE: MI ESPACIO -->
   <div class="mi-espacio-wrapper">
     <div class="mi-espacio">
-      
+
       <!-- Enlace Volver -->
       <div class="mi-espacio__back-wrap">
         <a routerLink="/explorar" class="mi-espacio__back-link">
@@ -782,7 +782,7 @@
 
     <!-- Contenido Activo -->
     <div class="mi-espacio__tab-content">
-      
+
       <!-- Pestaña Reservas (Vacío) -->
       @if (seccionCliente() === 'reservas') {
         <div class="mi-espacio__empty-state">
@@ -827,7 +827,7 @@
                 <!-- Contenedor Imagen (Izquierda) -->
                 <div class="saved-card__img-wrap">
                   <img [src]="fav.imageUrl || 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400'" alt="" class="saved-card__img" />
-                  
+
                   @if (fav.recurrenceLabel) {
                     <span class="saved-card__recurrence-badge">
                       @if (fav.recurrenceLabel !== 'ÚNICO' && fav.recurrenceLabel !== 'PROFESIONAL') {
@@ -839,7 +839,7 @@
                     </span>
                   }
                 </div>
-                
+
                 <!-- Contenedor Info (Derecha) -->
                 <div class="saved-card__body">
                   <div class="saved-card__body-top">
@@ -850,13 +850,13 @@
                       </svg>
                     </button>
                   </div>
-                  
+
                   <h3 class="saved-card__title">{{ fav.title }}</h3>
-                  
+
                   @if (fav.organizerName) {
                     <span class="saved-card__organizer">con {{ fav.organizerName }}</span>
                   }
-                  
+
                   <div class="saved-card__details">
                     @if (fav.startsAt) {
                       <div class="saved-card__detail-row">
@@ -869,7 +869,7 @@
                         <span>{{ formatDateTime(fav.startsAt) }}</span>
                       </div>
                     }
-                    
+
                     @if (fav.locationName) {
                       <div class="saved-card__detail-row">
                         <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
@@ -880,10 +880,10 @@
                       </div>
                     }
                   </div>
-                  
+
                   <div class="saved-card__footer">
                     <button class="saved-card__action-btn" [routerLink]="detailRoute">Ver evento</button>
-                    
+
                     @if (fav.price !== null && fav.price !== undefined) {
                       <span class="saved-card__price">
                         {{ fav.price === 0 ? 'Gratis' : 'Desde ' + fav.price + (fav.currency === 'EUR' ? '€' : fav.currency) }}
@@ -924,7 +924,15 @@
                   <h3 class="following-card__name">{{ professional.publicName }}</h3>
                   <p class="following-card__role">{{ profileCategoryLabel(professional.profileCategory) }}</p>
                 </div>
-                <a [routerLink]="['/profesionales', professional.slug]" class="btn-outline following-card__btn">Ver perfil</a>
+
+                <!-- NUEVO: Contenedor de acciones -->
+                <div class="following-card__actions">
+                  <a [routerLink]="['/profesionales', professional.slug]" class="btn-outline following-card__btn">Ver perfil</a>
+                  <button type="button" class="btn-outline following-card__btn following-card__btn--danger" (click)="unfollowProfessional(professional.professionalId)">
+                    Dejar de seguir
+                  </button>
+                </div>
+
               </div>
             }
           </div>
