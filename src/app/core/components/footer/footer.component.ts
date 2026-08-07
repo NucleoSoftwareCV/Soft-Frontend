@@ -13,38 +13,35 @@ export class FooterComponent {
 
   footerLinks = [
     {
-      title: 'Explorar',
+      title: 'EXPLORAR',
       links: [
-        { label: 'Todos los eventos', path: '/eventos' },
-        { label: 'Sesiones individuales', path: '/sesiones' },
-        { label: 'Profesionales', path: '/profesionales' },
-        { label: 'Talleres',  path: '/eventos/talleres' },
-        { label: 'Retiros',   path: '/eventos/retiros' },
+        { label: 'Todos los eventos', path: '/explorar' },
+        { label: 'Sesiones 1:1', path: '/sesiones' },
+        { label: 'Profesionales y centros', path: '/profesionales' },
+        { label: 'Retiros 2026', path: '/explorar' },
       ],
     },
     {
-      title: 'Para profesionales',
+      title: 'COMUNIDAD',
       links: [
-        { label: 'Publicar evento', path: '/publicar' },
-        { label: 'Circulo Oona',    path: '/circulo-oona', fragment: 'form' },
-        { label: 'Cómo funciona',   path: '/como-funciona' },
-        { label: 'Tarifas',         path: '/tarifas' },
+        { label: 'Crear cuenta', path: '/auth/login' },
+        { label: 'Iniciar sesión', path: '/auth/login' },
+        { label: 'Grupo WhatsApp', href: 'https://wa.me/34600000000' },
       ],
     },
     {
-      title: 'Oona',
+      title: 'PROFESIONALES',
       links: [
-        { label: 'Quiénes somos', path: '/nosotros' },
-        { label: 'Blog',          path: '/blog' },
-        { label: 'Contacto',      path: '/contacto' },
-        { label: 'Prensa',        path: '/prensa' },
+        { label: 'Circulo Oona', path: '/circulo-oona' },
+        { label: 'Acceder a mi panel', path: '/profesional' },
       ],
     },
   ];
 
   socialLinks = [
+    { label: 'Email', href: 'mailto:hola@oona.es', icon: 'email' },
+    { label: 'WhatsApp', href: 'https://wa.me/34600000000', icon: 'whatsapp' },
     { label: 'Instagram', href: 'https://instagram.com/oona_es', icon: 'instagram' },
-    { label: 'Twitter',   href: 'https://twitter.com/oona_es',   icon: 'twitter'   },
-    { label: 'LinkedIn',  href: 'https://linkedin.com',           icon: 'linkedin'  },
+    { label: 'TikTok', href: 'https://tiktok.com/@oona_es', icon: 'tiktok' },
   ];
 }

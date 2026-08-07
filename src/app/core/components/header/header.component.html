@@ -10,13 +10,11 @@
     <nav class="header__nav" aria-label="Navegación principal">
       <ul class="header__nav-list">
         @for (link of navLinks; track link.path) {
-          <li>
-            <a [routerLink]="link.path"
-               routerLinkActive="header__nav-link--active"
-               class="header__nav-link">
-              {{ link.label }}
-            </a>
-          </li>
+        <li>
+          <a [routerLink]="link.path" routerLinkActive="header__nav-link--active" class="header__nav-link">
+            {{ link.label }}
+          </a>
+        </li>
         }
       </ul>
     </nav>
@@ -24,138 +22,46 @@
     <!-- Buscador central -->
     <div class="header__search-wrap">
       <div class="header__search" [class.header__search--focused]="isSearchFocused()">
-        <svg class="header__search-icon" width="15" height="15" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        <svg class="header__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
         </svg>
-        <input
-          type="search"
-          class="header__search-input"
-          placeholder="¿Qué te apetece vivir hoy?"
-          [value]="searchQuery()"
-          (input)="onSearchInput($any($event.target).value)"
-          (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()"
-          (keydown.enter)="goToAllResults()"
-          aria-label="Buscar experiencias de bienestar"
-          autocomplete="off"
-        />
-        <button
-          class="header__filter-btn"
-          [class.header__filter-btn--active]="activeFilterCount > 0"
+        <input type="search" class="header__search-input" placeholder="¿Qué te apetece vivir hoy?"
+          [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()" aria-label="Buscar experiencias de bienestar" autocomplete="off" />
+        <button class="header__filter-btn" [class.header__filter-btn--active]="activeFilterCount > 0"
           (click)="openFilter()"
-          [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '')"
-          type="button"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/>
-            <line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/>
-            <line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/>
-            <line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/>
-            <line x1="16" x2="16" y1="18" y2="22"/>
+          [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '')" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="21" x2="14" y1="4" y2="4" />
+            <line x1="10" x2="3" y1="4" y2="4" />
+            <line x1="21" x2="12" y1="12" y2="12" />
+            <line x1="8" x2="3" y1="12" y2="12" />
+            <line x1="21" x2="16" y1="20" y2="20" />
+            <line x1="12" x2="3" y1="20" y2="20" />
+            <line x1="14" x2="14" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="10" y2="14" />
+            <line x1="16" x2="16" y1="18" y2="22" />
           </svg>
           @if (activeFilterCount > 0) {
-            <span class="header__filter-badge">{{ activeFilterCount }}</span>
+          <span class="header__filter-badge">{{ activeFilterCount }}</span>
           }
         </button>
       </div>
 
       <!-- Dropdown inspiración -->
       @if (isSearchFocused() && !searchQuery()) {
-        <div class="header__inspiration" role="listbox" aria-label="Sugerencias de búsqueda">
-          <p class="header__inspiration-title">¿NECESITAS INSPIRACIÓN?</p>
-          <div class="header__inspiration-grid">
-            @for (tag of inspirationTags; track tag) {
-              <button class="header__inspiration-tag" role="option" type="button"
-                      (mousedown)="selectInspiration(tag)">{{ tag }}</button>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Dropdown de resultados en vivo -->
-      @if (isSearchFocused() && searchQuery()) {
-        <div class="header__results" role="listbox" aria-label="Resultados de búsqueda">
-          <button type="button" class="header__results-all" (mousedown)="goToAllResults()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <span><strong>«{{ searchQuery() }}»</strong> Ver todas las experiencias</span>
-            <svg class="header__results-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-
-          @if (searching()) {
-            <p class="header__results-status">Buscando…</p>
-          } @else if (searchResults(); as results) {
-            @if (results.isEmpty) {
-              <p class="header__results-status">No encontramos resultados para «{{ results.query }}».</p>
-            } @else {
-              @if (results.categories.length) {
-                <div class="header__results-section">
-                  <p class="header__results-title">Sugerencias</p>
-                  <div class="header__results-suggestions">
-                    @for (category of results.categories; track category.id) {
-                      <button type="button" class="header__results-suggestion" (mousedown)="selectSearchCategory(category)">
-                        {{ category.emoji }} {{ category.name }}
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-
-              @if (results.events.length) {
-                <div class="header__results-section">
-                  <p class="header__results-title">Eventos</p>
-                  @for (event of results.events; track event.id) {
-                    <button type="button" class="header__results-row" (mousedown)="selectSearchEvent(event)">
-                      <img class="header__results-avatar" [src]="resolveImage(event.coverImageUrl)" alt="" />
-                      <span class="header__results-row-body">
-                        <strong>{{ event.title }}</strong>
-                        <small>{{ formatSearchDate(event.startsAt) }}@if (event.cityName) { · {{ event.cityName }} }</small>
-                      </span>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                  }
-                </div>
-              }
-
-              @if (results.sessions.length) {
-                <div class="header__results-section">
-                  <p class="header__results-title">Sesiones 1:1</p>
-                  @for (session of results.sessions; track session.id) {
-                    <button type="button" class="header__results-row" (mousedown)="selectSearchSession(session)">
-                      <img class="header__results-avatar" [src]="resolveImage(session.imageUrl || session.specialistPhotoUrl)" alt="" />
-                      <span class="header__results-row-body">
-                        <strong>{{ session.title }}</strong>
-                        <small>{{ session.specialistName }}@if (session.durationMinutes) { · {{ session.durationMinutes }} min }</small>
-                      </span>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                  }
-                </div>
-              }
-
-              @if (results.organizers.length) {
-                <div class="header__results-section">
-                  <p class="header__results-title">Organizadores</p>
-                  @for (organizer of results.organizers; track organizer.id) {
-                    <button type="button" class="header__results-row" (mousedown)="selectSearchOrganizer(organizer)">
-                      <img class="header__results-avatar header__results-avatar--round" [src]="resolveImage(organizer.photoUrl)" alt="" />
-                      <span class="header__results-row-body">
-                        <strong>{{ organizer.publicName }}</strong>
-                      </span>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                  }
-                </div>
-              }
-            }
+      <div class="header__inspiration" role="listbox" aria-label="Sugerencias de búsqueda">
+        <p class="header__inspiration-title">¿NECESITAS INSPIRACIÓN?</p>
+        <div class="header__inspiration-grid">
+          @for (tag of inspirationTags; track tag) {
+          <button class="header__inspiration-tag" role="option" type="button" (mousedown)="selectInspiration(tag)">{{
+            tag }}</button>
           }
         </div>
+      </div>
       }
     </div>
 
@@ -164,236 +70,253 @@
 
       <!-- Ciudad (solo desktop) -->
       <div class="header__city-wrap">
-        <button class="header__city-btn" (click)="toggleCity()"
-                [attr.aria-expanded]="isCityOpen()" type="button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-            <circle cx="12" cy="10" r="3"/>
+        <button class="header__city-btn" (click)="toggleCity()" [attr.aria-expanded]="isCityOpen()" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path
+              d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+            <circle cx="12" cy="10" r="3" />
           </svg>
           <span>{{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}</span>
-          <svg width="11" height="11" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"/>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
         @if (isCityOpen()) {
-          <div class="header__city-dropdown">
-            <p class="header__city-dropdown-title">Próximamente más ciudades</p>
-            <p class="header__city-dropdown-text">
-              Por ahora Oona vive en la Comunidad Valenciana.
-              Avisanos por dónde te gustaría que aterricemos.
-            </p>
-          </div>
+        <div class="header__city-dropdown">
+          <p class="header__city-dropdown-title">Próximamente más ciudades</p>
+          <p class="header__city-dropdown-text">
+            Por ahora Oona vive en la Comunidad Valenciana.
+            Avisanos por dónde te gustaría que aterricemos.
+          </p>
+        </div>
         }
       </div>
 
       <!-- Lupa (solo móvil horizontal 480–767px) -->
-      <button class="header__icon-btn header__icon-btn--mobile-only"
-              aria-label="Buscar" type="button">
-        <svg width="17" height="17" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      <button class="header__icon-btn header__icon-btn--mobile-only" aria-label="Buscar" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
         </svg>
       </button>
 
       <!-- Pin ciudad (solo móvil horizontal 480–767px) -->
-      <button class="header__icon-btn header__icon-btn--mobile-only"
-              aria-label="Ciudad" type="button" (click)="toggleCity()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-          <circle cx="12" cy="10" r="3"/>
+      <button class="header__icon-btn header__icon-btn--mobile-only" aria-label="Ciudad" type="button"
+        (click)="toggleCity()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path
+            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+          <circle cx="12" cy="10" r="3" />
         </svg>
       </button>
 
       <!-- Favoritos -->
       <a routerLink="/perfil" [queryParams]="{ tab: 'guardados' }" class="header__icon-btn" aria-label="Mis favoritos">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path
+            d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
         </svg>
       </a>
 
       <!-- Perfil / Usuario -->
       <div class="header__profile-container">
         @if (!authService.isLoggedIn) {
-          <!-- Enlace normal a login si no está logueado -->
-          <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/>
-              <circle cx="12" cy="12" r="10"/>
-            </svg>
-          </a>
+        <!-- Enlace normal a login si no está logueado -->
+        <a routerLink="/auth/login" class="header__icon-btn" aria-label="Iniciar sesión">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 20a6 6 0 0 0-12 0" />
+            <circle cx="12" cy="10" r="4" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        </a>
         } @else {
-          <!-- Botón de Avatar si está logueado -->
-          <button (click)="toggleProfilePopover()" class="header__avatar-btn" aria-label="Mi cuenta" type="button">
-            <span class="header__avatar-initial">{{ getUserInitial() }}</span>
-          </button>
-          
-          <!-- Popover Dropdown -->
-          @if (isProfilePopoverOpen()) {
-            <div class="popover-backdrop" (click)="closeProfilePopover()"></div>
-            <div class="profile-popover">
-              
-              <!-- Tarjeta de Usuario -->
-              <div class="profile-popover__user-card">
-                <div class="profile-popover__user-left" style="display: flex; align-items: center; gap: 12px;">
-                  <div class="profile-popover__avatar-circle">
-                    {{ getUserInitial() }}
-                  </div>
-                  <div class="profile-popover__user-info" style="display: flex; flex-direction: column;">
-                    <span class="profile-popover__username">Hola, {{ getUsername() }}</span>
-                    <span class="profile-popover__usersub">Tu espacio personal</span>
-                  </div>
-                </div>
-                <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__view-profile-link">
-                  Ver perfil
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                </a>
+        <!-- Botón de Avatar si está logueado -->
+        <button (click)="toggleProfilePopover()" class="header__avatar-btn" aria-label="Mi cuenta" type="button">
+          <span class="header__avatar-initial">{{ getUserInitial() }}</span>
+        </button>
+
+        <!-- Popover Dropdown -->
+        @if (isProfilePopoverOpen()) {
+        <div class="popover-backdrop" (click)="closeProfilePopover()"></div>
+        <div class="profile-popover">
+
+          <!-- Tarjeta de Usuario -->
+          <div class="profile-popover__user-card">
+            <div class="profile-popover__user-left" style="display: flex; align-items: center; gap: 12px;">
+              <div class="profile-popover__avatar-circle">
+                {{ getUserInitial() }}
               </div>
-
-              <!-- Enlaces del Menú -->
-              <ul class="profile-popover__menu">
-                @if (isProfessional) {
-                  <li>
-                    <a routerLink="/profesional" (click)="closeProfilePopover()" class="profile-popover__item">
-                      <span class="profile-popover__item-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
-                          <rect x="3" y="5" width="18" height="15" rx="1"/>
-                          <path d="M8 5V3h8v2M3 11h18M9 11v2h6v-2"/>
-                        </svg>
-                      </span>
-                      <span class="profile-popover__item-text">Panel profesional</span>
-                      <span class="profile-popover__item-arrow">›</span>
-                    </a>
-                  </li>
-                }
-                <li>
-                  <a routerLink="/explorar" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Explorar</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-                <li>
-                  <a routerLink="/sesiones" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Sesiones 1:1</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-                <li>
-                  <a routerLink="/profesionales" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Profesionales</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-                <li>
-                  <a routerLink="/match-bienestar" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <line x1="19" y1="8" x2="19" y2="14"/>
-                        <line x1="22" y1="11" x2="16" y2="11"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Conocer gente</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-              </ul>
-
-              <div class="profile-popover__divider"></div>
-              
-              <!-- Sección Tu Espacio -->
-              <div class="profile-popover__section-title">TU ESPACIO</div>
-              <ul class="profile-popover__menu">
-                <li>
-                  <a routerLink="/perfil" [queryParams]="{ tab: 'guardados' }" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Mi espacio</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-                <li>
-                  <a routerLink="/perfil" [queryParams]="{ tab: 'perfil' }" (click)="closeProfilePopover()" class="profile-popover__item">
-                    <span class="profile-popover__item-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-                        <line x1="4" y1="21" x2="4" y2="14"/>
-                        <line x1="4" y1="10" x2="4" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12" y2="3"/>
-                        <line x1="20" y1="21" x2="20" y2="16"/>
-                        <line x1="20" y1="12" x2="20" y2="3"/>
-                        <line x1="1" y1="14" x2="7" y2="14"/>
-                        <line x1="9" y1="8" x2="15" y2="8"/>
-                        <line x1="17" y1="16" x2="23" y2="16"/>
-                      </svg>
-                    </span>
-                    <span class="profile-popover__item-text">Mis preferencias</span>
-                    <span class="profile-popover__item-arrow">›</span>
-                  </a>
-                </li>
-              </ul>
-
-              <!-- Banner de WhatsApp -->
-              <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" class="profile-popover__whatsapp-banner">
-                <div class="profile-popover__whatsapp-icon-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.003 5.324 5.328 0 11.859 0c3.161.001 6.132 1.233 8.369 3.472 2.236 2.239 3.466 5.213 3.465 8.376-.003 6.536-5.328 11.86-11.859 11.86-2.007-.001-3.98-.51-5.727-1.479L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.725 1.45 5.535 0 10.04-4.502 10.04-10.038.002-2.679-1.04-5.197-2.934-7.093C16.538 1.577 14.024.536 11.352.536 5.817.536 1.312 5.04 1.31 10.576c0 1.702.49 3.328 1.479 4.76L1.734 21.05l5.913-1.896zm12.39-4.9c-.3-.15-1.77-.875-2.04-.975-.27-.1-.47-.15-.67.15-.2.3-.77.975-.94 1.175-.17.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.49-.895-.8-1.5-1.785-1.675-2.085-.175-.3-.02-.46.13-.61.135-.13.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.67-1.62-.92-2.2-.24-.58-.49-.5-.67-.51-.18-.01-.38-.015-.58-.015s-.52.075-.79.37c-.27.295-1.03 1.005-1.03 2.455s1.055 2.855 1.2 3.05c.145.2 2.08 3.175 5.035 4.455.7.3 1.25.485 1.675.62.705.225 1.345.195 1.85.12.565-.085 1.77-.725 2.02-1.42.25-.695.25-1.295.175-1.42-.075-.13-.275-.205-.575-.355z"/>
-                  </svg>
-                </div>
-                <div class="profile-popover__whatsapp-text">
-                  <span class="profile-popover__whatsapp-title">Comunidad Oona en WhatsApp</span>
-                  <span class="profile-popover__whatsapp-sub" style="color: #fbd38d !important; font-weight: 600;">+1.000 personas</span>
-                </div>
-                <span class="profile-popover__whatsapp-btn">Entrar</span>
-              </a>
-
-              <div class="profile-popover__logout-wrap">
-                <button (click)="openLogoutConfirm()" class="profile-popover__logout-btn" type="button">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-                  </svg>
-                  Cerrar sesión
-                </button>
+              <div class="profile-popover__user-info" style="display: flex; flex-direction: column;">
+                <span class="profile-popover__username">Hola, {{ getUsername() }}</span>
+                <span class="profile-popover__usersub">Tu espacio personal</span>
               </div>
-
             </div>
-          }
+            <a routerLink="/perfil" (click)="closeProfilePopover()" class="profile-popover__view-profile-link">
+              Ver perfil
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          </div>
+
+          <!-- Enlaces del Menú -->
+          <ul class="profile-popover__menu">
+            @if (isProfessional) {
+            <li>
+              <a routerLink="/profesional" (click)="closeProfilePopover()" class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
+                    <rect x="3" y="5" width="18" height="15" rx="1" />
+                    <path d="M8 5V3h8v2M3 11h18M9 11v2h6v-2" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Panel profesional</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+            }
+            <li>
+              <a routerLink="/explorar" (click)="closeProfilePopover()" class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Explorar</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/sesiones" (click)="closeProfilePopover()" class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <path
+                      d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Sesiones 1:1</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/profesionales" (click)="closeProfilePopover()" class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Profesionales</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/match-bienestar" (click)="closeProfilePopover()" class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Conocer gente</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="profile-popover__divider"></div>
+
+          <!-- Sección Tu Espacio -->
+          <div class="profile-popover__section-title">TU ESPACIO</div>
+          <ul class="profile-popover__menu">
+            <li>
+              <a routerLink="/perfil" [queryParams]="{ tab: 'guardados' }" (click)="closeProfilePopover()"
+                class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Mi espacio</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/perfil" [queryParams]="{ tab: 'perfil' }" (click)="closeProfilePopover()"
+                class="profile-popover__item">
+                <span class="profile-popover__item-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="18" height="18">
+                    <line x1="4" y1="21" x2="4" y2="14" />
+                    <line x1="4" y1="10" x2="4" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12" y2="3" />
+                    <line x1="20" y1="21" x2="20" y2="16" />
+                    <line x1="20" y1="12" x2="20" y2="3" />
+                    <line x1="1" y1="14" x2="7" y2="14" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="17" y1="16" x2="23" y2="16" />
+                  </svg>
+                </span>
+                <span class="profile-popover__item-text">Mis preferencias</span>
+                <span class="profile-popover__item-arrow">›</span>
+              </a>
+            </li>
+          </ul>
+
+          <!-- Banner de WhatsApp -->
+          <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer"
+            class="profile-popover__whatsapp-banner">
+            <div class="profile-popover__whatsapp-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.003 5.324 5.328 0 11.859 0c3.161.001 6.132 1.233 8.369 3.472 2.236 2.239 3.466 5.213 3.465 8.376-.003 6.536-5.328 11.86-11.859 11.86-2.007-.001-3.98-.51-5.727-1.479L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.725 1.45 5.535 0 10.04-4.502 10.04-10.038.002-2.679-1.04-5.197-2.934-7.093C16.538 1.577 14.024.536 11.352.536 5.817.536 1.312 5.04 1.31 10.576c0 1.702.49 3.328 1.479 4.76L1.734 21.05l5.913-1.896zm12.39-4.9c-.3-.15-1.77-.875-2.04-.975-.27-.1-.47-.15-.67.15-.2.3-.77.975-.94 1.175-.17.2-.35.225-.65.075-.3-.15-1.27-.47-2.42-1.49-.895-.8-1.5-1.785-1.675-2.085-.175-.3-.02-.46.13-.61.135-.13.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.67-1.62-.92-2.2-.24-.58-.49-.5-.67-.51-.18-.01-.38-.015-.58-.015s-.52.075-.79.37c-.27.295-1.03 1.005-1.03 2.455s1.055 2.855 1.2 3.05c.145.2 2.08 3.175 5.035 4.455.7.3 1.25.485 1.675.62.705.225 1.345.195 1.85.12.565-.085 1.77-.725 2.02-1.42.25-.695.25-1.295.175-1.42-.075-.13-.275-.205-.575-.355z" />
+              </svg>
+            </div>
+            <div class="profile-popover__whatsapp-text">
+              <span class="profile-popover__whatsapp-title">Comunidad Oona en WhatsApp</span>
+              <span class="profile-popover__whatsapp-sub" style="color: #fbd38d !important; font-weight: 600;">+1.000
+                personas</span>
+            </div>
+            <span class="profile-popover__whatsapp-btn">Entrar</span>
+          </a>
+
+          <div class="profile-popover__logout-wrap">
+            <button (click)="openLogoutConfirm()" class="profile-popover__logout-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
+              Cerrar sesión
+            </button>
+          </div>
+
+        </div>
+        }
         }
       </div>
 
       <!-- Burger / X -->
-      <button class="header__burger" [class.header__burger--open]="isMobileMenuOpen()"
-              (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen()"
-              aria-label="Abrir menú" type="button">
+      <button class="header__burger" [class.header__burger--open]="isMobileMenuOpen()" (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="isMobileMenuOpen()" aria-label="Abrir menú" type="button">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -402,185 +325,189 @@
 
 <!-- MODAL FILTROS -->
 @if (isFilterOpen()) {
-  <div class="filter-overlay" (click)="closeFilter()"
-       role="dialog" aria-modal="true" aria-label="Filtros de búsqueda">
-    <div class="filter-modal" (click)="$event.stopPropagation()">
-      <div class="filter-modal__head">
-        <div>
-          <h2 class="filter-modal__title">Filtrar</h2>
-          <p class="filter-modal__subtitle">
-            {{ pendingFilterCount === 0 ? 'Sin filtros aplicados' : pendingFilterCount + ' filtros seleccionados' }}
-          </p>
+<div class="filter-overlay" (click)="closeFilter()" role="dialog" aria-modal="true" aria-label="Filtros de búsqueda">
+  <div class="filter-modal" (click)="$event.stopPropagation()">
+    <div class="filter-modal__head">
+      <div>
+        <h2 class="filter-modal__title">Filtrar</h2>
+        <p class="filter-modal__subtitle">
+          {{ pendingFilterCount === 0 ? 'Sin filtros aplicados' : pendingFilterCount + ' filtros seleccionados' }}
+        </p>
+      </div>
+      <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar filtros" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="filter-modal__body">
+      <section class="filter-section" aria-labelledby="fw-when">
+        <h3 id="fw-when" class="filter-section__title">CUÁNDO</h3>
+        <div class="filter-chips">
+          @for (opt of whenOptions; track opt) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingWhen() === opt"
+            (click)="pendingSelectWhen(opt)" type="button">{{ opt }}</button>
+          }
+          <button class="filter-chip filter-chip--date" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+            </svg>
+            Elegir fecha
+          </button>
         </div>
-        <button class="filter-modal__close" (click)="closeFilter()" aria-label="Cerrar filtros" type="button">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div class="filter-modal__body">
-        <section class="filter-section" aria-labelledby="fw-when">
-          <h3 id="fw-when" class="filter-section__title">CUÁNDO</h3>
-          <div class="filter-chips">
-            @for (opt of whenOptions; track opt) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingWhen() === opt"
-                      (click)="pendingSelectWhen(opt)" type="button">{{ opt }}</button>
-            }
-            <button class="filter-chip filter-chip--date" type="button">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-              </svg>
-              Elegir fecha
-            </button>
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-cat">
-          <h3 id="fw-cat" class="filter-section__title">CATEGORÍA</h3>
-          <div class="filter-chips">
-            @for (cat of categoryOptions; track cat) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingCategories().includes(cat)"
-                      (click)="pendingToggleCategory(cat)" type="button">{{ cat }}</button>
-            }
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-type">
-          <h3 id="fw-type" class="filter-section__title">TIPO DE EXPERIENCIA</h3>
-          <div class="filter-chips">
-            @for (type of typeOptions; track type) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingTypes().includes(type)"
-                      (click)="pendingToggleType(type)" type="button">{{ type }}</button>
-            }
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-city">
-          <h3 id="fw-city" class="filter-section__title">UBICACIÓN</h3>
-          <div class="filter-chips">
-            @for (city of cityOptions; track city) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingCity() === city"
-                      (click)="pendingSelectCity(city)" type="button">{{ city }}</button>
-            }
-            <button class="filter-chip" type="button">Ver más ↓</button>
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-time">
-          <h3 id="fw-time" class="filter-section__title">HORA DEL DÍA</h3>
-          <div class="filter-time-grid">
-            @for (t of timeOptions; track t.label) {
-              <button class="filter-time-card" [class.filter-time-card--active]="pendingTimeOfDay() === t.label"
-                      (click)="pendingSelectTimeOfDay(t.label)" type="button">
-                <span class="filter-time-card__label">{{ t.label }}</span>
-                <span class="filter-time-card__sub">{{ t.sub }}</span>
-              </button>
-            }
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-mod">
-          <h3 id="fw-mod" class="filter-section__title">MODALIDAD</h3>
-          <div class="filter-chips">
-            @for (m of modalityOptions; track m) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingModality() === m"
-                      (click)="pendingSelectModality(m)" type="button">{{ m }}</button>
-            }
-          </div>
-        </section>
-        <div class="filter-divider"></div>
-        <section class="filter-section" aria-labelledby="fw-rec">
-          <h3 id="fw-rec" class="filter-section__title">RECURRENCIA</h3>
-          <div class="filter-chips">
-            @for (r of recurrenceOptions; track r) {
-              <button class="filter-chip" [class.filter-chip--active]="pendingRecurrence() === r"
-                      (click)="pendingSelectRecurrence(r)" type="button">{{ r }}</button>
-            }
-          </div>
-        </section>
-      </div>
-      <div class="filter-modal__footer">
-        <button class="filter-modal__clear" (click)="pendingClearFilters()"
-                [disabled]="pendingFilterCount === 0" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
-          </svg>
-          Quitar filtros
-        </button>
-        <button class="filter-modal__apply btn-primary" (click)="applyFilters()" type="button">
-          Ver eventos →
-        </button>
-      </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-cat">
+        <h3 id="fw-cat" class="filter-section__title">CATEGORÍA</h3>
+        <div class="filter-chips">
+          @for (cat of categoryOptions; track cat) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingCategories().includes(cat)"
+            (click)="pendingToggleCategory(cat)" type="button">{{ cat }}</button>
+          }
+        </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-type">
+        <h3 id="fw-type" class="filter-section__title">TIPO DE EXPERIENCIA</h3>
+        <div class="filter-chips">
+          @for (type of typeOptions; track type) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingTypes().includes(type)"
+            (click)="pendingToggleType(type)" type="button">{{ type }}</button>
+          }
+        </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-city">
+        <h3 id="fw-city" class="filter-section__title">UBICACIÓN</h3>
+        <div class="filter-chips">
+          @for (city of cityOptions; track city) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingCity() === city"
+            (click)="pendingSelectCity(city)" type="button">{{ city }}</button>
+          }
+          <button class="filter-chip" type="button">Ver más ↓</button>
+        </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-time">
+        <h3 id="fw-time" class="filter-section__title">HORA DEL DÍA</h3>
+        <div class="filter-time-grid">
+          @for (t of timeOptions; track t.label) {
+          <button class="filter-time-card" [class.filter-time-card--active]="pendingTimeOfDay() === t.label"
+            (click)="pendingSelectTimeOfDay(t.label)" type="button">
+            <span class="filter-time-card__label">{{ t.label }}</span>
+            <span class="filter-time-card__sub">{{ t.sub }}</span>
+          </button>
+          }
+        </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-mod">
+        <h3 id="fw-mod" class="filter-section__title">MODALIDAD</h3>
+        <div class="filter-chips">
+          @for (m of modalityOptions; track m) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingModality() === m"
+            (click)="pendingSelectModality(m)" type="button">{{ m }}</button>
+          }
+        </div>
+      </section>
+      <div class="filter-divider"></div>
+      <section class="filter-section" aria-labelledby="fw-rec">
+        <h3 id="fw-rec" class="filter-section__title">RECURRENCIA</h3>
+        <div class="filter-chips">
+          @for (r of recurrenceOptions; track r) {
+          <button class="filter-chip" [class.filter-chip--active]="pendingRecurrence() === r"
+            (click)="pendingSelectRecurrence(r)" type="button">{{ r }}</button>
+          }
+        </div>
+      </section>
+    </div>
+    <div class="filter-modal__footer">
+      <button class="filter-modal__clear" (click)="pendingClearFilters()" [disabled]="pendingFilterCount === 0"
+        type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14H6L5 6" />
+        </svg>
+        Quitar filtros
+      </button>
+      <button class="filter-modal__apply btn-primary" (click)="applyFilters()" type="button">
+        Ver eventos →
+      </button>
     </div>
   </div>
+</div>
 }
 
 @if (isCityOpen()) {
-  <div class="city-overlay" (click)="closeCity()" aria-hidden="true"></div>
+<div class="city-overlay" (click)="closeCity()" aria-hidden="true"></div>
 }
 
 <!-- MENÚ MÓVIL -->
 @if (isMobileMenuOpen()) {
-  <div class="header__mobile" role="dialog" aria-modal="true" aria-label="Menú principal">
+<div class="header__mobile" role="dialog" aria-modal="true" aria-label="Menú principal">
 
-    <!-- Ciudad -->
-    <div class="header__mobile-city">
-      <span style="display:flex;align-items:center;gap:0.4rem">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-        {{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}
-      </span>
-      <svg class="header__mobile-city-chevron" width="16" height="16" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <polyline points="6 9 12 15 18 9"/>
+  <!-- Ciudad -->
+  <div class="header__mobile-city">
+    <span style="display:flex;align-items:center;gap:0.4rem">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        aria-hidden="true">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
       </svg>
-    </div>
-
-    <!-- Links -->
-    <nav aria-label="Menú móvil">
-      <ul class="header__mobile-list">
-        @for (link of navLinks; track link.path) {
-          <li>
-            <a [routerLink]="link.path" class="header__mobile-link" (click)="closeMobileMenu()">
-              {{ link.label }}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </a>
-          </li>
-        }
-      </ul>
-    </nav>
-
-    <!-- CTAs -->
-    <div class="header__mobile-actions">
-      <a routerLink="/auth/login" class="btn-outline" (click)="closeMobileMenu()">Entrar</a>
-      <a routerLink="/registro"   class="btn-primary" (click)="closeMobileMenu()">Publicar evento</a>
-    </div>
+      {{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}
+    </span>
+    <svg class="header__mobile-city-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
   </div>
+
+  <!-- Links -->
+  <nav aria-label="Menú móvil">
+    <ul class="header__mobile-list">
+      @for (link of navLinks; track link.path) {
+      <li>
+        <a [routerLink]="link.path" class="header__mobile-link" (click)="closeMobileMenu()">
+          {{ link.label }}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </a>
+      </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- CTAs -->
+  <div class="header__mobile-actions">
+    <a routerLink="/auth/login" class="btn-outline" (click)="closeMobileMenu()">Entrar</a>
+    <a routerLink="/registro" class="btn-primary" (click)="closeMobileMenu()">Publicar evento</a>
+  </div>
+</div>
 }
 
 <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
 @if (showLogoutConfirm()) {
-  <div class="logout-overlay" (click)="showLogoutConfirm.set(false)" role="dialog" aria-modal="true" aria-label="Confirmar cierre de sesión">
-    <div class="logout-modal" (click)="$event.stopPropagation()">
-      <div class="logout-modal__icon">⚠️</div>
-      <h3 class="logout-modal__title">¿Cerrar sesión?</h3>
-      <p class="logout-modal__text">
-        ¿Estás seguro de que deseas salir? Tendrás que iniciar sesión de nuevo para acceder a tu perfil y participar en los matches de bienestar.
-      </p>
-      <div class="logout-modal__actions">
-        <button (click)="showLogoutConfirm.set(false)" class="btn-outline logout-modal__btn-cancel" type="button">
-          Cancelar
-        </button>
-        <button (click)="logout()" class="btn-primary logout-modal__btn-confirm" type="button">
-          Cerrar sesión
-        </button>
-      </div>
+<div class="logout-overlay" (click)="showLogoutConfirm.set(false)" role="dialog" aria-modal="true"
+  aria-label="Confirmar cierre de sesión">
+  <div class="logout-modal" (click)="$event.stopPropagation()">
+    <div class="logout-modal__icon">⚠️</div>
+    <h3 class="logout-modal__title">¿Cerrar sesión?</h3>
+    <p class="logout-modal__text">
+      ¿Estás seguro de que deseas salir? Tendrás que iniciar sesión de nuevo para acceder a tu perfil y participar en
+      los matches de bienestar.
+    </p>
+    <div class="logout-modal__actions">
+      <button (click)="showLogoutConfirm.set(false)" class="btn-outline logout-modal__btn-cancel" type="button">
+        Cancelar
+      </button>
+      <button (click)="logout()" class="btn-primary logout-modal__btn-confirm" type="button">
+        Cerrar sesión
+      </button>
     </div>
   </div>
+</div>
 }
