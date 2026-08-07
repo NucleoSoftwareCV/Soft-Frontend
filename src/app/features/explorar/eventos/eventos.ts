@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { EventosService } from '../../../services/eventos.service';
 import { FiltrosService } from '../../../services/filtros.service';
@@ -34,7 +34,9 @@ export class Eventos {
   private readonly eventosService = inject(EventosService);
   private readonly filtrosService = inject(FiltrosService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
+  searchQuery = signal<string>('');
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
   experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
@@ -70,6 +72,7 @@ export class Eventos {
   constructor() {
     this.loadCategorias();
     this.loadExperienceTypes();
+    this.searchQuery.set(this.route.snapshot.queryParamMap.get('q') ?? '');
 
     effect(() => {
       const criteria = {
@@ -81,11 +84,16 @@ export class Eventos {
         timeOfDay: this.filterTimeOfDay(),
         modality: this.filterModality(),
         recurrence: this.filterRecurrence(),
+        search: this.searchQuery(),
         sort: this.selectedSort().sort,
       };
 
       queueMicrotask(() => this.loadEventos(criteria));
     });
+  }
+
+  clearSearchQuery(): void {
+    this.searchQuery.set('');
   }
 
   get filterWhen()       { return this.filtrosService.filterWhen; }
@@ -240,6 +248,7 @@ export class Eventos {
   private buildFilters(): EventFilterParams {
     return {
       size: 24,
+      search: this.searchQuery().trim() || undefined,
       ...this.dateRangeFor(this.filterWhen()),
       ...this.timeRangeFor(this.filterTimeOfDay()),
       categoryId: this.categoryIdFor(this.filterCategories()[0]),

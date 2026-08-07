@@ -70,6 +70,13 @@
       </div>
     </div>
 
+    @if (searchQuery()) {
+      <div class="search-banner">
+        <span>Resultados para «{{ searchQuery() }}»</span>
+        <button type="button" class="search-banner-clear" (click)="clearSearchQuery()">Quitar búsqueda ×</button>
+      </div>
+    }
+
     <div class="results-header">
       <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'evento' : 'eventos' }} cerca de ti</strong>
       <div class="results-actions">

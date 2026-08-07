@@ -216,6 +216,30 @@
   padding: 0 22px;
 }
 
+.search-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: #e9f5f9;
+  border: 1px solid #cfe0e4;
+  border-radius: 999px;
+  width: fit-content;
+  color: #004e59;
+  font-size: 13px;
+}
+
+.search-banner-clear {
+  background: none;
+  border: none;
+  color: #004e59;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .results-header {
   display: flex;
   justify-content: space-between;
@@ -460,6 +484,10 @@
   flex: 0 0 auto;
 }
 
+.location span {
+  color: inherit;
+}
+
 .card-body {
   padding: .75rem;
   display: flex;
@@ -485,7 +513,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-sage, hsl(100 53% 36%));
+  color: var(--color-success, #1f7a45);
   font-size: 0.70rem;
   font-weight: 700;
   letter-spacing: 0.08em;

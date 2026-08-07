@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, ElementRef, inject, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { FiltrosService } from '../../../../services/filtros.service';
@@ -18,6 +18,8 @@ export class CategoriesComponent {
     '#F4E1CB', '#DEDEE2',
   ];
 
+  @ViewChild('trackWrap') private trackWrap?: ElementRef<HTMLElement>;
+
   readonly categories = computed(() =>
     this.filters.categories().map((category, index) => ({
       ...category,
@@ -26,7 +28,18 @@ export class CategoriesComponent {
     }))
   );
 
+  constructor() {
+    // Refresca el catálogo cada vez que se muestra este widget, así las
+    // ediciones hechas en el panel admin (activar/desactivar, renombrar...)
+    // se reflejan sin depender de la carga inicial de la app.
+    this.filters.refreshCatalogs();
+  }
+
   selectCategory(name: string): void {
     this.filters.filterCategories.set([name]);
+  }
+
+  scrollTrack(direction: 1 | -1): void {
+    this.trackWrap?.nativeElement.scrollBy({ left: direction * 280, behavior: 'smooth' });
   }
 }

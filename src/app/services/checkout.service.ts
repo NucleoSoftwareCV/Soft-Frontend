@@ -49,7 +49,22 @@ export interface PaymentResponse {
 }
 
 export interface WhatsAppRedirect {
-  whatsappUrl: string;
+  redirectUrl: string;
+}
+
+export interface MyBooking {
+  code: string;
+  status: 'PENDIENTE' | 'CONFIRMADA' | 'CANCELADA' | string;
+  quantity: number;
+  totalAmount: number;
+  currency: string;
+  createdAt: string;
+  eventId: number;
+  eventTitle: string;
+  occurrenceStartsAt: string;
+  modality: 'ONLINE' | 'PRESENCIAL';
+  locationName: string | null;
+  cityName: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -71,5 +86,9 @@ export class CheckoutService {
 
   getDigitalReceipt(code: string): Observable<any> {
     return this.http.get<any>(`${this.BASE}/receipts/${code}`);
+  }
+
+  getMyBookings(): Observable<MyBooking[]> {
+    return this.http.get<MyBooking[]>(`${this.BASE}/bookings/me`);
   }
 }

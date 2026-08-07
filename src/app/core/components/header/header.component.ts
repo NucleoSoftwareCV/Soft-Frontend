@@ -2,8 +2,15 @@ import { Component, HostListener, signal, OnInit, OnDestroy, inject, PLATFORM_ID
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { FiltrosService } from '../../../services/filtros.service';
 import { AuthService } from '../../services/auth.service';
+import { SearchCategoryMatch, SearchResults, SearchService } from '../../../services/search.service';
+import { EventCardResponse } from '../../../shared/models/evento.model';
+import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-service.model';
+import { SpecialistProfileResponse } from '../../../services/profesionales.service';
+import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 
 @Component({
   selector: 'app-header',
@@ -18,6 +25,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly filtrosService = inject(FiltrosService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly searchService = inject(SearchService);
 
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
@@ -27,6 +35,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isProfilePopoverOpen = signal(false);
   showLogoutConfirm = signal(false);
   searchQuery      = signal('');
+  searchResults    = signal<SearchResults | null>(null);
+  searching        = signal(false);
+  private readonly searchInput$ = new Subject<string>();
 
   navLinks = [
     { label: 'Explorar',      path: '/explorar'      },
@@ -78,6 +89,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.isBrowser) {
       window.addEventListener('oona:open-filter', this.openFilterListener);
     }
+
+    this.searchInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(query => {
+          const trimmed = query.trim();
+          if (!trimmed) {
+            this.searching.set(false);
+            return [null];
+          }
+          this.searching.set(true);
+          return this.searchService.search(trimmed);
+        }),
+      )
+      .subscribe(results => {
+        this.searching.set(false);
+        this.searchResults.set(results);
+      });
   }
 
   ngOnDestroy(): void {
@@ -122,6 +152,56 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onSearchFocus():    void { this.isSearchFocused.set(true); }
   onSearchBlur():     void { setTimeout(() => this.isSearchFocused.set(false), 160); }
 
+  onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.searchInput$.next(value);
+  }
+
+  resolveImage(url?: string | null, fallback = ''): string {
+    return url ? resolveAssetUrl(url) : fallback;
+  }
+
+  formatSearchDate(value: string | null): string {
+    if (!value) return 'Fecha por confirmar';
+    return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })
+      .format(new Date(value))
+      .replace('.', '');
+  }
+
+  goToAllResults(): void {
+    const query = this.searchQuery().trim();
+    if (!query) return;
+    this.closeSearch();
+    this.router.navigate(['/explorar'], { queryParams: { q: query } });
+  }
+
+  selectSearchCategory(category: SearchCategoryMatch): void {
+    this.filtrosService.filterCategories.set([category.name]);
+    this.closeSearch();
+    this.router.navigate(['/explorar']);
+  }
+
+  selectSearchEvent(event: EventCardResponse): void {
+    this.closeSearch();
+    this.router.navigate(['/evento', event.id]);
+  }
+
+  selectSearchSession(session: OneToOneServiceCardResponse): void {
+    this.closeSearch();
+    this.router.navigate(['/sesiones', session.id]);
+  }
+
+  selectSearchOrganizer(organizer: SpecialistProfileResponse): void {
+    this.closeSearch();
+    this.router.navigate(['/profesionales', organizer.slug]);
+  }
+
+  private closeSearch(): void {
+    this.isSearchFocused.set(false);
+    this.searchQuery.set('');
+    this.searchResults.set(null);
+  }
+
   toggleProfilePopover(): void {
     this.isProfilePopoverOpen.update(v => !v);
   }
@@ -162,8 +242,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   selectInspiration(tag: string): void {
-    this.searchQuery.set(tag);
-    this.isSearchFocused.set(false);
+    this.onSearchInput(tag);
   }
 
   openFilter(): void {

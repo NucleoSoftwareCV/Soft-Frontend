@@ -11,8 +11,16 @@
   padding: 24px 32px;
 }
 
+.categories__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .categories__title {
-  margin: 0 0 20px;
+  margin: 0;
   padding-inline: 4px;
   color: #004e59;
   font-family: Sunset, Georgia, serif;
@@ -20,6 +28,38 @@
   font-weight: 700;
   line-height: 40px;
   letter-spacing: 0;
+}
+
+.categories__nav {
+  display: none;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.categories__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d6e5e8;
+  border-radius: 999px;
+  color: #004e59;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+
+.categories__nav-btn:hover {
+  border-color: #004e59;
+  background: #f3f9f8;
+}
+
+/* Los botones solo aportan valor donde no hay swipe táctil nativo. */
+@media (hover: hover) and (pointer: fine) {
+  .categories__nav {
+    display: flex;
+  }
 }
 
 .categories__track-wrap {
@@ -97,8 +137,11 @@
     padding: 12px 12px 16px;
   }
 
-  .categories__title {
+  .categories__head {
     margin-bottom: 12px;
+  }
+
+  .categories__title {
     font-size: 24px;
     line-height: 30px;
   }

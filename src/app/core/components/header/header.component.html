@@ -33,9 +33,10 @@
           class="header__search-input"
           placeholder="¿Qué te apetece vivir hoy?"
           [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
+          (input)="onSearchInput($any($event.target).value)"
           (focus)="onSearchFocus()"
           (blur)="onSearchBlur()"
+          (keydown.enter)="goToAllResults()"
           aria-label="Buscar experiencias de bienestar"
           autocomplete="off"
         />
@@ -70,6 +71,90 @@
                       (mousedown)="selectInspiration(tag)">{{ tag }}</button>
             }
           </div>
+        </div>
+      }
+
+      <!-- Dropdown de resultados en vivo -->
+      @if (isSearchFocused() && searchQuery()) {
+        <div class="header__results" role="listbox" aria-label="Resultados de búsqueda">
+          <button type="button" class="header__results-all" (mousedown)="goToAllResults()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <span><strong>«{{ searchQuery() }}»</strong> Ver todas las experiencias</span>
+            <svg class="header__results-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          @if (searching()) {
+            <p class="header__results-status">Buscando…</p>
+          } @else if (searchResults(); as results) {
+            @if (results.isEmpty) {
+              <p class="header__results-status">No encontramos resultados para «{{ results.query }}».</p>
+            } @else {
+              @if (results.categories.length) {
+                <div class="header__results-section">
+                  <p class="header__results-title">Sugerencias</p>
+                  <div class="header__results-suggestions">
+                    @for (category of results.categories; track category.id) {
+                      <button type="button" class="header__results-suggestion" (mousedown)="selectSearchCategory(category)">
+                        {{ category.emoji }} {{ category.name }}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (results.events.length) {
+                <div class="header__results-section">
+                  <p class="header__results-title">Eventos</p>
+                  @for (event of results.events; track event.id) {
+                    <button type="button" class="header__results-row" (mousedown)="selectSearchEvent(event)">
+                      <img class="header__results-avatar" [src]="resolveImage(event.coverImageUrl)" alt="" />
+                      <span class="header__results-row-body">
+                        <strong>{{ event.title }}</strong>
+                        <small>{{ formatSearchDate(event.startsAt) }}@if (event.cityName) { · {{ event.cityName }} }</small>
+                      </span>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (results.sessions.length) {
+                <div class="header__results-section">
+                  <p class="header__results-title">Sesiones 1:1</p>
+                  @for (session of results.sessions; track session.id) {
+                    <button type="button" class="header__results-row" (mousedown)="selectSearchSession(session)">
+                      <img class="header__results-avatar" [src]="resolveImage(session.imageUrl || session.specialistPhotoUrl)" alt="" />
+                      <span class="header__results-row-body">
+                        <strong>{{ session.title }}</strong>
+                        <small>{{ session.specialistName }}@if (session.durationMinutes) { · {{ session.durationMinutes }} min }</small>
+                      </span>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (results.organizers.length) {
+                <div class="header__results-section">
+                  <p class="header__results-title">Organizadores</p>
+                  @for (organizer of results.organizers; track organizer.id) {
+                    <button type="button" class="header__results-row" (mousedown)="selectSearchOrganizer(organizer)">
+                      <img class="header__results-avatar header__results-avatar--round" [src]="resolveImage(organizer.photoUrl)" alt="" />
+                      <span class="header__results-row-body">
+                        <strong>{{ organizer.publicName }}</strong>
+                      </span>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  }
+                </div>
+              }
+            }
+          }
         </div>
       }
     </div>

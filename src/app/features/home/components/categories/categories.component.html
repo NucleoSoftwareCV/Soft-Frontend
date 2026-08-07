@@ -1,10 +1,20 @@
 <section class="categories" aria-labelledby="categories-title">
   <div class="container">
 
-    <h2 id="categories-title" class="categories__title">¿Qué te apetece hacer hoy?</h2>
+    <div class="categories__head">
+      <h2 id="categories-title" class="categories__title">¿Qué te apetece hacer hoy?</h2>
+      <div class="categories__nav">
+        <button type="button" class="categories__nav-btn" (click)="scrollTrack(-1)" aria-label="Ver categorías anteriores">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button type="button" class="categories__nav-btn" (click)="scrollTrack(1)" aria-label="Ver más categorías">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
 
     <!-- Scroll horizontal con todos los items en una fila -->
-    <div class="categories__track-wrap">
+    <div class="categories__track-wrap" #trackWrap>
       <ul class="categories__track" role="list">
         @for (cat of categories(); track cat.id) {
           <li class="categories__item">

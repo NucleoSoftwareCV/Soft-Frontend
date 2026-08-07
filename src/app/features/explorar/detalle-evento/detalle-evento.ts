@@ -605,7 +605,9 @@ export class DetalleEvento implements OnDestroy{
               this.bookingLoading.set(false);
               this.createdOrderCode.set(order.code);
               this.bookingStep.set(3); // success screen
-              window.open(redirect.whatsappUrl, '_blank');
+              if (redirect.redirectUrl) {
+                window.open(redirect.redirectUrl, '_blank');
+              }
             },
             error: () => {
               this.bookingLoading.set(false);

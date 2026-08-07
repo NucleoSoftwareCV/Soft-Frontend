@@ -1456,6 +1456,10 @@
   text-transform: uppercase;
 }
 
+.saved-card__recurrence-badge[data-status="CONFIRMADA"] { color: #1f7a45; }
+.saved-card__recurrence-badge[data-status="PENDIENTE"] { color: #8a6d1f; }
+.saved-card__recurrence-badge[data-status="CANCELADA"] { color: #a93d3d; }
+
 .badge-sync-icon {
   margin-right: 4px;
   color: #004e59;

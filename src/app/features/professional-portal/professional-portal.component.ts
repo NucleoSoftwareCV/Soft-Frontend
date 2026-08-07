@@ -315,6 +315,10 @@ export class ProfessionalPortalComponent {
         this.failed('Completa el título, la categoría y la descripción antes de continuar.');
         return false;
       }
+      if (!this.eventForm.experienceTypeId) {
+        this.failed('Selecciona un tipo de experiencia antes de continuar. Los eventos creados antes de este catálogo necesitan que se les asigne uno.');
+        return false;
+      }
       return true;
     }
     if (key === 'format') {
@@ -688,20 +692,23 @@ export class ProfessionalPortalComponent {
       this.failed('Selecciona la categoria y el tipo de experiencia antes de guardar el evento.');
       return;
     }
-    if (!this.validateEventOccurrence()) return;
+    // La fecha/hora de la primera ocurrencia solo se define al crear el evento
+    // (el wizard de edicion no muestra el paso 'schedule'); revalidarla al
+    // editar bloqueaba el guardado de cualquier evento cuya fecha ya hubiera
+    // pasado, aunque no se estuviera tocando la fecha.
+    if (!this.eventForm.id && !this.validateEventOccurrence()) return;
 
     this.saving.set(true);
     this.clearMessages();
     const event = this.eventRequest(profile.id);
     const editingId = this.eventForm.id;
-    const occurrence = this.eventOccurrenceRequest();
+    // La fecha ya publicada se gestiona aparte, desde el panel de fechas
+    // programadas ("Añadir/editar fecha"). Editar el evento no debe reenviar
+    // ni revalidar los datos de esa ocurrencia: si algún campo antiguo de la
+    // ubicación quedó incompleto, no tiene por qué bloquear guardar cambios
+    // en el título, la categoría o el precio del evento.
     const operation = editingId
-      ? this.eventsApi.update(editingId, event).pipe(
-          switchMap(() => this.eventForm.occurrenceId
-            ? this.eventsApi.updateOccurrence(this.eventForm.occurrenceId, occurrence)
-            : this.eventsApi.addOccurrence(editingId, occurrence)),
-          map(() => editingId)
-        )
+      ? this.eventsApi.update(editingId, event).pipe(map(() => editingId))
       : this.eventsApi.create({ event, occurrence: this.eventOccurrenceRequest() })
           .pipe(map(response => response.event.id));
     const currentStatus = editingId
