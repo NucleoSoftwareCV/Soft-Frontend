@@ -227,8 +227,24 @@ export class DetalleEvento implements OnDestroy{
   availableSpotsLabel(): string {
     const occurrence = this.primaryOccurrence();
     if (!occurrence) return 'Por confirmar';
+    if (occurrence.status === 'EN_CURSO') return 'Ya en curso';
+    if (occurrence.status === 'FINALIZADA') return 'Finalizado';
+    if (occurrence.status === 'CANCELADA') return 'Cancelado';
     if (occurrence.soldOut) return 'Agotado';
     return `${occurrence.availableSpots} disponibles`;
+  }
+
+  isOccurrenceBookable(occurrence: EventOccurrenceResponse | null): boolean {
+    return !!occurrence && occurrence.status === 'PROGRAMADA' && !occurrence.soldOut;
+  }
+
+  occurrenceUnavailableLabel(occurrence: EventOccurrenceResponse | null): string | null {
+    if (!occurrence) return null;
+    if (occurrence.status === 'EN_CURSO') return 'Ya en curso';
+    if (occurrence.status === 'FINALIZADA') return 'Finalizado';
+    if (occurrence.status === 'CANCELADA') return 'Cancelado';
+    if (occurrence.soldOut) return 'Agotado';
+    return null;
   }
 
   private loadEvento(id: number): void {
@@ -242,7 +258,8 @@ export class DetalleEvento implements OnDestroy{
       next: event => {
         this.evento.set(event);
         if (event.occurrences && event.occurrences.length > 0) {
-          this.selectedOccurrence.set(event.occurrences[0]);
+          const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
+          this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
         }
         this.loading.set(false);
         this.loadFollowStatus(event.organizer?.id);
@@ -380,7 +397,7 @@ export class DetalleEvento implements OnDestroy{
     }
 
     const occ = this.selectedOccurrence();
-    if (!occ || occ.soldOut || occ.availableSpots <= 0) return;
+    if (!occ || !this.isOccurrenceBookable(occ) || occ.soldOut || occ.availableSpots <= 0) return;
 
     this.bookingError.set(null);
     this.bookingLoading.set(false);

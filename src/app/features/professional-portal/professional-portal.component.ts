@@ -172,6 +172,7 @@ export class ProfessionalPortalComponent {
   categories = signal<CategoryResponse[]>([]);
   experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   cities = signal<CityResponse[]>([]);
+  private allCities = signal<CityResponse[]>([]);
   workTopics = signal<OneToOneFilterOption[]>([]);
   techniques = signal<OneToOneFilterOption[]>([]);
   locations = signal<LocationResponse[]>([]);
@@ -408,7 +409,10 @@ export class ProfessionalPortalComponent {
       next: types => this.experienceTypes.set(types),
     });
     this.publicEventsApi.getCiudades().subscribe({
-      next: cities => this.cities.set(cities.filter(city => city.active)),
+      next: cities => {
+        this.allCities.set(cities);
+        this.cities.set(cities.filter(city => city.active));
+      },
     });
     this.sessionsApi.getActiveWorkTopics().subscribe({
       next: topics => {
@@ -679,7 +683,7 @@ export class ProfessionalPortalComponent {
       meetingUrl: occurrence?.meetingLink?.meetingUrl ?? 'https://meet.google.com/',
       locationName: occurrence?.location?.name ?? '',
       addressLine1: occurrence?.location?.address ?? '',
-      cityId: this.cities().find(city => city.name === occurrence?.location?.cityName)?.id ?? null,
+      cityId: this.allCities().find(city => city.name === occurrence?.location?.cityName)?.id ?? null,
       status: item.status === 'PUBLICADO' ? 'PUBLICADO' : 'BORRADOR',
     };
     this.eventStepIndex.set(0);
@@ -796,7 +800,7 @@ export class ProfessionalPortalComponent {
       meetingUrl: occurrence.meetingLink?.meetingUrl ?? '',
       locationName: occurrence.location?.name ?? '',
       address: occurrence.location?.address ?? '',
-      cityId: this.cities().find(city => city.name === occurrence.location?.cityName)?.id ?? null,
+      cityId: this.allCities().find(city => city.name === occurrence.location?.cityName)?.id ?? null,
     };
   }
 
@@ -827,16 +831,39 @@ export class ProfessionalPortalComponent {
     operation.subscribe({
       next: () => {
         this.occurrenceEvent.set(null);
+        this.succeeded(this.occurrenceForm.id ? 'Fecha actualizada.' : 'Fecha agregada.');
         this.loadEvents();
       },
-      error: () => this.failed('No se pudo agregar la fecha.'),
+      error: error => this.failed(this.apiError(error, 'No se pudo guardar la fecha.')),
     });
   }
 
-  cancelOccurrence(id: number): void {
+  cancelOccurrenceTarget = signal<number | null>(null);
+
+  requestOccurrenceCancellation(id: number): void {
+    this.cancelOccurrenceTarget.set(id);
+  }
+
+  confirmOccurrenceCancellation(): void {
+    const id = this.cancelOccurrenceTarget();
+    if (id == null) return;
+    this.cancelOccurrenceTarget.set(null);
     this.eventsApi.updateOccurrenceStatus(id, 'CANCELADA').subscribe({
-      next: () => this.loadEvents(),
-      error: () => this.failed('No se pudo cancelar la fecha.'),
+      next: () => {
+        this.succeeded('Fecha cancelada.');
+        this.loadEvents();
+      },
+      error: error => this.failed(this.apiError(error, 'No se pudo cancelar la fecha.')),
+    });
+  }
+
+  reactivateOccurrence(id: number): void {
+    this.eventsApi.updateOccurrenceStatus(id, 'PROGRAMADA').subscribe({
+      next: () => {
+        this.succeeded('Fecha reactivada.');
+        this.loadEvents();
+      },
+      error: error => this.failed(this.apiError(error, 'No se pudo reactivar la fecha.')),
     });
   }
 
