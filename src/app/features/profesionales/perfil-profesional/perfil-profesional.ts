@@ -2,15 +2,16 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import {
-  SpecialistProfileService,
-  SpecialistProfileResponse
-} from '../../../services/profesionales.service';
+import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
 
 import { TarjetaDirectorio } from '../directorio/directorio';
 import { AppIcon, IconName } from '../../../shared/components/icon/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
+
+import { EventosService } from '../../../services/eventos.service';
+
+import { EventCardResponse } from '../../../shared/models/evento.model';
 
 @Component({
   selector: 'app-perfil-profesional',
@@ -35,6 +36,7 @@ export class PerfilProfesional implements OnInit {
 
   private readonly authService = inject(AuthService);
   private readonly followService = inject(ProfessionalFollowService);
+  private readonly eventosService = inject(EventosService);
 
   readonly perfil = signal<TarjetaDirectorio | null>(null);
   readonly following = signal(false);
@@ -45,6 +47,8 @@ export class PerfilProfesional implements OnInit {
     const currentUser = this.authService.currentUser();
     return Boolean(currentProfile && currentUser && currentProfile.userId === currentUser.id);
   });
+
+  eventos: EventCardResponse[] = [];
 
   ngOnInit(): void {
 
@@ -77,10 +81,12 @@ export class PerfilProfesional implements OnInit {
             this.loadFollowStatus(perfilBackend.id);
           }
 
+          this.cargarEventos(
+            perfilBackend.id
+          );
         },
 
         error: (error) => {
-
           console.error(
             'Error al cargar el perfil:',
             error
@@ -89,11 +95,37 @@ export class PerfilProfesional implements OnInit {
           this.router.navigate([
             '/profesionales'
           ]);
-
         }
-
       });
+  }
 
+  cargarEventos(
+    organizerId: number
+  ): void {
+
+    this.eventosService
+      .getEventosPorOrganizador(
+        organizerId
+      )
+      .subscribe({
+
+        next: (response) => {
+          this.eventos =
+            response.content;
+
+          console.log(
+            'Eventos cargados:',
+            this.eventos
+          );
+        },
+
+        error: (error) => {
+          console.error(
+            'Error al cargar eventos:',
+            error
+          );
+        }
+      });
   }
 
   private convertirPerfil(

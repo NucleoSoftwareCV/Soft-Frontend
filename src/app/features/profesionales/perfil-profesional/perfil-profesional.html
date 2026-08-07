@@ -1,235 +1,229 @@
-@if (perfil(); as perfil) {
-<div class="container">
+@if (perfil(); as p) {
 
-  <!-- Breadcrumb -->
-  <nav class="profile-breadcrumb">
+  <div class="container">
 
-    <span routerLink="/inicio">
-      Inicio
-    </span>
+    <nav class="profile-breadcrumb">
 
-    <span>/</span>
+      <span routerLink="/">
+        Inicio
+      </span>
 
-    <span routerLink="/profesionales">
-      Profesionales
-    </span>
+      <span>/</span>
 
-    <span>/</span>
+      <span routerLink="/profesionales">
+        Profesionales
+      </span>
 
-    <span class="active">
-      {{ perfil.nombre }}
-    </span>
+      <span>/</span>
 
-  </nav>
+      <span class="active">
+        {{ p.nombre }}
+      </span>
 
-  <!-- Botón volver -->
-  <button
-    class="profile-back-btn"
-    type="button"
-    (click)="volverAlDirectorio()">
+    </nav>
 
-    ← Volver
+    <button
+      class="profile-back-btn"
+      routerLink="/profesionales">
+      ← Volver
+    </button>
 
-  </button>
-
-  <div class="profile-banner">
-
-    <img
-      [src]="perfil.bannerUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'"
-      [alt]="'Banner de ' + perfil.nombre"
-      class="profile-banner__img">
-
-  </div>
-
-  <div class="profile-body">
-    <div class="profile-header">
+    <div class="profile-banner">
       <img
-        [src]="perfil.imagenUrl"
-        [alt]="perfil.nombre"
-        class="profile-avatar">
+        [src]="
+          p.bannerUrl ||
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'
+        "
+        [alt]="'Banner de ' + p.nombre"
+        class="profile-banner__img"
+      >
 
-      <div class="profile-name-block">
-        <div class="profile-name-row">
-          <h1 class="profile-name">
-            {{ perfil.nombre }}
-          </h1>
+    </div>
 
-          <span class="profile-role-badge">
-            Profesional de bienestar
+    <div class="profile-body">
+      <div class="profile-header">
+        <img
+          [src]="p.imagenUrl"
+          [alt]="p.nombre"
+          class="profile-avatar"
+        >
+
+        <div class="profile-name-block">
+          <div class="profile-name-row">
+            <h1 class="profile-name">
+              {{ p.nombre }}
+            </h1>
+
+            <span class="profile-role-badge">
+              {{ p.tipo }}
+            </span>
+
+          </div>
+
+          @if (!isOwnProfile()) {
+            <button
+              class="profile-follow-btn"
+              [class.profile-follow-btn--active]="following()"
+              [disabled]="followLoading()"
+              (click)="toggleFollow()">
+              {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
+            </button>
+            @if (followError()) {
+              <p class="profile-follow-error" role="alert">{{ followError() }}</p>
+            }
+          }
+
+          <div class="profile-quote">
+            "{{ p.cita }}"
+          </div>
+
+          <p class="profile-bio">
+            {{ p.bio || p.cita }}
+          </p>
+
+        </div>
+      </div>
+
+      <div class="caja-contacto">
+        <div class="contacto">
+          <h5>
+            CONTACTO
+          </h5>
+
+          <button class="icon-inline">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+            Enviar mensaje
+          </button>
+
+          <button class="icon-inline">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+            Contactar WhatsApp
+          </button>
+
+          <button class="icon-inline">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+            Llamar
+          </button>
+
+          <button class="icon-inline">
+            <app-icon
+              name="carta"
+              [size]="16">
+
+            </app-icon>
+            Enviar DM en Instagram
+          </button>
+
+          <button class="icon-inline">
+            <app-icon
+              name="carta"
+              [size]="16">
+            </app-icon>
+            Visitar Web
+          </button>
+        </div>
+
+        <div class="ubicacion">
+          <h5>UBICACIÓN</h5>
+          <span class="icon-inline">
+            <app-icon
+              name="map-pin"
+              [size]="16">
+            </app-icon>
+            {{ p.ubicacion }}
           </span>
         </div>
 
-        @if (!isOwnProfile()) {
-          <button
-            class="profile-follow-btn"
-            [class.profile-follow-btn--active]="following()"
-            [disabled]="followLoading()"
-            (click)="toggleFollow()">
-            {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
-          </button>
-          @if (followError()) {
-            <p class="profile-follow-error" role="alert">{{ followError() }}</p>
-          }
-        }
+        <div class="idiomas">
 
-        <div class="profile-quote">
-          "{{ perfil.cita }}"
+          <h5>IDIOMAS</h5>
+
+          <div idioma-card>
+            <span>español</span>
+          </div>
+
         </div>
-
-        <p class="profile-bio">
-          {{ perfil.bio || perfil.cita }}
-        </p>
       </div>
     </div>
 
-    <div class="caja-contacto">
-      <div class="contacto">
+    <div class="topics">
 
-        <h5>CONTACTO</h5>
+      @if (
+        p.temas &&
+        p.temas.length > 0
+      ) {
 
-        <button> 
-          <a href="">
-            <app-icon
-              name="carta"
-              [size]="16">
-            </app-icon>
-              Enviar mensaje
-          </a>
-        </button>
+        <div class="profile-section">
 
-        <button>
-          <a href="">
-            <app-icon
-              name="carta"
-              [size]="16">
-            </app-icon>
-              Contactar Whatsapp
-          </a>
-        </button>
+          <h3 class="topics_title">
+            Temas que trabajo
+          </h3>
 
-        <button>
-          <a href="">
-            <app-icon
-              name="carta"
-              [size]="16">
-            </app-icon>
-              Llamar
-          </a>
-        </button>
+          <div class="profile-tags">
 
-        <button>
-          <a href="">
-            <app-icon
-              name="carta"
-              [size]="16">
-            </app-icon>
-              Eniviar DM en Instagram
-          </a>
-        </button>
+            @for (
+              tema of p.temas;
+              track tema
+            ) {
 
-        <button>
-          <a href="">
-            <app-icon
-              name="carta"
-              [size]="16">
-            </app-icon>
-              Visitar Web
-          </a>
-        </button>
-    
-      </div>
+              <span class="profile-tag">
+                {{ tema }}
+              </span>
+
+            }
+          </div>
+
+        </div>
+
+      }
       
-      <div class="ubicacion">
+      @if (
+        p.tecnicas &&
+        p.tecnicas.length > 0
+      ) {
 
-        <h5>UBICACION</h5>
+        <div class="profile-section">
 
-        <span class="icon-inline">
-          <app-icon
-            name="map-pin"
-            [size]="16">              
-          </app-icon>
-          {{ perfil.ubicacion }}
-        </span>
-      </div>
-
-      <div class="idiomas">
-        <h5>IDIOMAS</h5>
-        <div idioma-card>
-          <span>{{ perfil.ubicacion }}</span>
-          
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="topics">
-    @if (perfil.temas && perfil.temas.length > 0) {
-
-      <div class="profile-section">
-
-        <h3 class="topics_title">
-          Temas que trabajo
-        </h3>
-
-        <div class="profile-tags">
-
-          @for (tema of perfil.temas; track tema) {
-
-            <span class="profile-tag">
-              {{ tema }}
-            </span>
-
-          }
-
-        </div>
-      </div>
-    }
-
-    @if (perfil.tecnicas && perfil.tecnicas.length > 0) {
-
-      <div class="profile-section">
-
-        
           <h3 class="topics_title">
             Técnicas que ofrezco
           </h3>
-      
 
-        <div class="profile-tags">
+          <div class="profile-tags">
 
-          @for (tecnica of perfil.tecnicas; track tecnica) {
+            @for (
 
-            <span class="profile-tag">
-              {{ tecnica }}
-            </span>
+              tecnica of p.tecnicas;
+              track tecnica
 
-          }
+            ) {
+
+              <span class="profile-tag">
+                {{ tecnica }}
+              </span>
+            }
+          </div>
         </div>
-      </div>
-    }
-  </div>
-
-
-      <!-- Aquí mantienes tu calendario -->
-      <div class="profile-calendar">
-
-        <!-- Tu calendario actual -->
-
-      </div>
-    
-
-    <div class="profile-sidebar">
-
-      <!-- Tu sidebar de contacto actual -->
-
+      }
     </div>
-</div>
+
+    <div class="profile-calendar">
+
+      <!-- Calendario -->
+    </div>
+  </div>
 
 } @else {
 
-<div class="loading">
-  Cargando perfil...
-</div>
-
+  <div class="loading">
+    Cargando perfil...
+  </div>
 }

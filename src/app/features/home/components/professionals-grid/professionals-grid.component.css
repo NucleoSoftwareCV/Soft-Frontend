@@ -4,16 +4,22 @@
    <900px   → 1 columna × 4 filas
    ============================================ */
 
-.pg-section {
-  padding-block: var(--space-16);
-  background-color: #eaede6;
+.pg-section{
+  padding: 40px 32px;
+  margin: auto 0;
 }
 
 .container {
-  width: 100%;
-  max-width: var(--layout-max);
-  margin-inline: auto;
-  padding-inline: var(--layout-pad);
+  width: 1280px;
+  padding: 0px;
+  margin-top: auto;
+}
+
+.pg-caja{
+  padding: 28px;
+  background: rgb(228, 235, 225);
+  border-radius: 1.5rem;
+  margin-bottom: 32px;
 }
 
 /* ── Cabecera ── */
@@ -26,34 +32,31 @@
 }
 
 .pg-head__title {
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  letter-spacing: -.025em;
   font-weight: 700;
-  color: var(--color-sage-dark);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  max-width: 620px;
 }
 
 .pg-head__sub {
-  font-size: var(--text-sm);
-  color: var(--color-muted);
-  margin-top: 0.5rem;
-  max-width: 540px;
+  color: var(--secundary);
+  margin-top: 8px;
+  max-width: 672px;
   line-height: 1.6;
 }
 
 .pg-head__link {
-  font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--color-sage);
-  white-space: nowrap;
-  flex-shrink: 0;
+  color: var(--primary);
   padding-top: 0.2rem;
-  transition: color var(--transition-fast);
+  align-items: center;
+  display: flex;
+  gap: .375rem;
 }
 
-.pg-head__link:hover { color: var(--color-sage-dark); }
+.pg-head__link:hover { 
+  color: hsla(100, 53%, 36%, 0.85);
+}
 
 /* ── Features ── */
 .pg-features {
@@ -62,8 +65,7 @@
   gap: var(--space-5);
   background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  margin-bottom: var(--space-8);
+  padding: var(--space-6);
 }
 
 .pg-feature {
@@ -79,21 +81,17 @@
   width: 40px; height: 40px;
   border-radius: 50%;
   background-color: #eaede6;
-  color: var(--color-sage);
-  flex-shrink: 0;
 }
 
 .pg-feature__title {
-  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-sage-dark);
   line-height: 1.3;
 }
 
 .pg-feature__desc {
   font-size: var(--text-sm);
-  color: var(--color-muted);
+  color: var(--secundary);
   line-height: 1.6;
 }
 
@@ -109,7 +107,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-5);
+  padding: var(--space-3);
   background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-divider);
@@ -118,11 +116,11 @@
 
 .pg-card:hover {
   border-color: var(--color-sage-light);
-  box-shadow: var(--shadow-md);
 }
 
 .pg-card__avatar {
-  width: 64px; height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -138,18 +136,16 @@
 }
 
 .pg-card__role {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--color-sage);
+  letter-spacing: .14em;
+  color: var(--primary);
   text-transform: uppercase;
 }
 
 .pg-card__name {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-sage-dark);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -160,8 +156,8 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: var(--text-xs);
-  color: var(--color-muted);
+  font-size: 14px;
+  color: var(--primary);
 }
 
 .pg-card__tags {
@@ -172,25 +168,40 @@
 }
 
 .pg-card__tag {
-  font-size: 0.72rem;
-  color: var(--color-ink-light);
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-divider);
+  font-size: 11px;
+  background-color: rgb(221, 229, 216);
   border-radius: var(--radius-full);
-  padding: 2px 8px;
+  padding: 0px 8px;
 }
 
-.pg-card__tag--more { color: var(--color-muted); }
-
 .pg-card__arrow {
-  color: var(--color-muted);
+  color: var(--secundary);
   flex-shrink: 0;
   transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 .pg-card:hover .pg-card__arrow {
-  color: var(--color-sage);
+  color: var(--principal);
   transform: translateX(3px);
+}
+
+.pg-btn{
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.pg-btn button{
+  display: flex;
+  padding: 14px 28px;
+  background: var(--principal);
+  color: white;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  border-radius: 99999px;
+  align-items: center;
+  gap: .5rem;
 }
 
 /* ── Responsive ── */
