@@ -10,6 +10,7 @@ import {
   EventCardResponse,
   EventDetailResponse,
   EventFilterParams,
+  HomeEventSectionsResponse,
   SpringPage,
 } from '../shared/models/evento.model';
 
@@ -106,6 +107,22 @@ export class EventosService {
       SpringPage<EventCardResponse>
     >(
       `${this.BASE}/events/${organizerId}/organizer-events`,
+      { params }
+    );
+
+  }
+
+  getHomeSections(
+    cityName: string = 'Valencia',
+    limit: number = 4
+  ): Observable<HomeEventSectionsResponse> {
+
+    const params = new HttpParams()
+      .set('cityName', cityName)
+      .set('limit', limit);
+
+    return this.http.get<HomeEventSectionsResponse>(
+      `${this.BASE}/home/event-sections`,
       { params }
     );
 

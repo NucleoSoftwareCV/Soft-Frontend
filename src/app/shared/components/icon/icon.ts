@@ -6,6 +6,7 @@ export type IconName =
   | 'map-pin'
   | 'search'
   | 'carta' 
+  | 'arrow-r' 
  
 
 @Component({

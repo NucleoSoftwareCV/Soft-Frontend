@@ -1,10 +1,17 @@
-<section class="er-section" [attr.aria-labelledby]="'er-title-' + title()">
+<section class="er-section">
   <div class="er-wrapper">
 
     <!-- Cabecera -->
     <div class="er-section__head">
-      <h2 [id]="'er-title-' + title()" class="er-section__title">{{ title() }}</h2>
-      <a [routerLink]="seeAllPath()" class="er-section__see-all">Ver todo →</a>
+      <h2  class="er-section__title">{{ title() }}</h2>
+      <a [routerLink]="seeAllPath()" class="er-section__see-all">
+        Ver todo 
+        <app-icon
+          name="arrow-r"
+          [size]="16">
+        </app-icon>
+      </a>
+      
     </div>
 
     <!-- Carrusel con flechas -->
@@ -38,7 +45,7 @@
 
                 <!-- Imagen -->
                 <a
-                  [routerLink]="['/eventos', event.id]"
+                  [routerLink]="['/evento', event.id]"
                   class="er-card__img-wrap"
                   aria-hidden="true"
                   tabindex="-1"
@@ -48,8 +55,6 @@
                     [alt]="event.title"
                     class="er-card__img"
                     loading="lazy"
-                    width="600"
-                    height="400"
                   />
                   <!-- Chip ubicación -->
                   <span class="er-card__location">
@@ -95,7 +100,7 @@
                     }
                   </div>
                   <!-- Título -->
-                  <a [routerLink]="['/eventos', event.id]" class="er-card__title-link">
+                  <a [routerLink]="['/evento', event.id]" class="er-card__title-link">
                     <h3 class="er-card__title">{{ event.title }}</h3>
                   </a>
                   <!-- Host + plazas -->

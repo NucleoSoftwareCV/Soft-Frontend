@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AppIcon } from '../../../../shared/components/icon/icon';
+
 
 export interface Professional {
   id:        number;
@@ -14,7 +16,7 @@ export interface Professional {
 @Component({
   selector: 'app-professionals-grid',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AppIcon],
   templateUrl: './professionals-grid.component.html',
   styleUrl:    './professionals-grid.component.css',
 })

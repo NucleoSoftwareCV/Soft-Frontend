@@ -136,3 +136,47 @@ export interface EventFilterParams {
   size?: number;
   sort?: string;
 }
+
+export interface HomeEventSectionsResponse {
+  cityName: string;
+  sections: HomeSectionResponse[];
+}
+
+export interface HomeSectionResponse {
+  key: HomeSectionKey;
+  title: string;
+  viewAllFilters: HomeViewAllFilters;
+  events: HomeEventCardResponse[];
+}
+
+export type HomeSectionKey =
+  | 'THIS_WEEK'
+  | 'WEEKEND'
+  | 'YOGA'
+  | 'BREATHWORK_ICE'
+  | 'SLOW_DOWN'
+  | 'WORKSHOPS'
+  | 'RETREATS';
+
+export interface HomeViewAllFilters {
+  categoryIds: number[];
+  eventType: EventType | null;
+  dateFrom: string | null;
+  dateTo: string | null;
+  cityName: string;
+  includeOnline: boolean;
+}
+
+export interface HomeEventCardResponse {
+  id: number;
+  title: string;
+  coverImageUrl: string;
+  startsAt: string;
+  modality: EventModality;
+  cityName: string | null;
+  organizerName: string;
+  organizerPhotoUrl: string;
+  priceFrom: number | null;
+  currency: string;
+  recurrenceLabel: string | null;
+}

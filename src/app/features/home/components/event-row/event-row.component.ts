@@ -12,6 +12,8 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AppIcon } from '../../../../shared/components/icon/icon';
+
 
 export interface EventItem {
   id:         number;
@@ -37,7 +39,7 @@ function getCardsPerPage(viewportWidth: number): number {
 @Component({
   selector: 'app-event-row',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AppIcon],
   templateUrl: './event-row.component.html',
   styleUrl:    './event-row.component.css',
 })
