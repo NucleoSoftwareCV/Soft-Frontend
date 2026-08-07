@@ -228,8 +228,8 @@ export class MatchBienestarComponent implements OnInit {
           this.submitError.set('Tu sesión ha expirado o no estás autenticado. Por favor, vuelve a iniciar sesión.');
         } else {
           this.submitError.set(
-            err.error?.detail || 
-            err.error?.message || 
+            err.error?.detail ||
+            err.error?.message ||
             'Ha ocurrido un error al registrar tu participación. Por favor, revisa tus datos e inténtalo de nuevo.'
           );
         }
