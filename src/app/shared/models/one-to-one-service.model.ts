@@ -19,6 +19,7 @@ export interface OneToOneServiceCardResponse {
   id: number;
   title: string;
   specialistName: string;
+  specialistPhotoUrl: string | null;
   price: number | null;
   currency: string;
   durationMinutes: number | null;
@@ -29,9 +30,12 @@ export interface OneToOneServiceDetailResponse {
   id: number;
   specialistId: number;
   specialistName: string;
+  specialistPhotoUrl: string | null;
+  specialistWhatsappPhone: string | null;
   slug: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   durationMinutes: number | null;
   modality: 'ONLINE' | 'PRESENCIAL' | 'AMBAS';
   locationId: number | null;

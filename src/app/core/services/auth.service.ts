@@ -74,6 +74,10 @@ export class AuthService {
         .subscribe();
     }
 
+    this.clearSession();
+  }
+
+  clearSession(): void {
     if (this.isBrowser) {
       localStorage.removeItem('oona_session');
     }

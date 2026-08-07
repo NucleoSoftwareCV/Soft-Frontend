@@ -121,7 +121,10 @@
         <div class="card-body">
           <h3 class="card-titulo">{{ sesion.title }}</h3>
           <div class="card-profesional">
-            <div class="avatar">{{ specialistInitial(sesion) }}</div>
+            <div class="avatar">
+              <img *ngIf="specialistPhotoFor(sesion) as photo; else specialistInitialTemplate" [src]="photo" [alt]="sesion.specialistName" />
+              <ng-template #specialistInitialTemplate>{{ specialistInitial(sesion) }}</ng-template>
+            </div>
             <span>{{ sesion.specialistName }}</span>
           </div>
           <p class="card-precio">

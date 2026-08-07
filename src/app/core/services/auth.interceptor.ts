@@ -33,13 +33,21 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
       if (
         isAuthenticationRequest(request.url)
-        || !authService.currentUser()?.refreshToken
       ) {
+        return throwError(() => error);
+      }
+
+      if (!authService.currentUser()?.refreshToken) {
+        redirectAfterExpiration(authService, router);
         return throwError(() => error);
       }
 
       if (!refreshRequest$) {
         refreshRequest$ = authService.refreshToken().pipe(
+          catchError(refreshError => {
+            redirectAfterExpiration(authService, router);
+            return throwError(() => refreshError);
+          }),
           finalize(() => {
             refreshRequest$ = null;
           }),
@@ -51,17 +59,34 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         switchMap(() =>
           next(addAuthorizationHeader(request, authService.token))
         ),
-        catchError(refreshError => {
-          authService.logout();
-          router.navigate(['/auth/login'], {
-            queryParams: { expired: 'true' },
-          });
-          return throwError(() => refreshError);
+        catchError(retryError => {
+          if (retryError instanceof HttpErrorResponse && retryError.status === 401) {
+            redirectAfterExpiration(authService, router);
+          }
+          return throwError(() => retryError);
         })
       );
     })
   );
 };
+
+function redirectAfterExpiration(authService: AuthService, router: Router): void {
+  const session = authService.currentUser();
+  if (!session) return;
+
+  const isErpSession = session.roles.includes('ADMIN')
+    || router.url === '/admin'
+    || router.url.startsWith('/admin/');
+
+  authService.clearSession();
+  router.navigate(
+    [isErpSession ? '/auth/erp/login' : '/auth/login'],
+    {
+      queryParams: { expired: 'true' },
+      replaceUrl: true,
+    }
+  );
+}
 
 function addAuthorizationHeader(
   request: HttpRequest<unknown>,

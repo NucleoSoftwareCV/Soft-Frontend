@@ -1,98 +1,67 @@
-<div class="detalle-page" *ngIf="!loading() && sesion() as current; else estadoDetalle">
-  <div class="detalle-contenido">
-    <nav class="breadcrumb">
-      <span class="bc-item">Inicio</span>
-      <span class="bc-sep">/</span>
-      <span class="bc-item">Sesiones</span>
-      <span class="bc-sep">/</span>
-      <span class="bc-item bc-activo">{{ current.title | slice:0:30 }}...</span>
-    </nav>
-
-    <button class="btn-volver" (click)="volver()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
+<main class="session-detail" *ngIf="!loading() && sesion() as current; else detailState">
+  <div class="session-detail__content">
+    <button class="back-button" type="button" (click)="volver()">
+      <svg lucideArrowLeft aria-hidden="true"></svg>
       Volver
     </button>
 
-    <div class="detalle-grid">
-      <div class="col-imagenes">
-        <div class="imagen-principal-wrapper">
-          <span class="badge-sesion">Sesión 1:1</span>
-          <img [src]="fallbackImage" [alt]="current.title" class="imagen-principal" />
-        </div>
+    <section class="session-hero">
+      <div class="session-media">
+        <span class="session-badge">Sesión 1:1</span>
+        <img [src]="sessionImage()" [alt]="current.title" />
       </div>
 
-      <div class="col-info">
-        <h1 class="detalle-titulo">{{ current.title }}</h1>
+      <div class="session-summary">
+        <h1>{{ current.title }}</h1>
 
-        <div class="profesional-row">
-          <div class="avatar-grande">{{ specialistInitial() }}</div>
-          <span class="profesional-nombre">{{ current.specialistName }}</span>
-          <button
-            class="btn-seguir"
-            type="button"
-            [class.btn-seguir--active]="following()"
-            [disabled]="followLoading()"
-            (click)="toggleFollow()">
-            {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
-          </button>
+        <div class="specialist-line">
+          <span class="specialist-avatar">
+            <img *ngIf="specialistPhoto() as photo; else detailInitial" [src]="photo" [alt]="current.specialistName" />
+            <ng-template #detailInitial>{{ specialistInitial() }}</ng-template>
+          </span>
+          <span>{{ current.specialistName }}</span>
         </div>
-        <p class="follow-error" *ngIf="followError()">{{ followError() }}</p>
 
-        <div class="meta-row">
-          <div class="meta-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <span class="meta-precio">{{ formatPrice() }}</span>
-          </div>
-
-          <div class="meta-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <span class="meta-texto">{{ durationLabel() }}</span>
-          </div>
-
-          <div class="meta-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-            </svg>
-            <span class="meta-texto">{{ modalityLabel() }}</span>
-          </div>
-
-          <div class="meta-item" *ngIf="current.locationName">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#607456" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            <span class="meta-texto">{{ current.locationName }}</span>
-          </div>
+        <div class="session-meta" aria-label="Información de la sesión">
+          <strong>{{ formatPrice() }}</strong>
+          <span><svg lucideClock3 aria-hidden="true"></svg>{{ durationLabel() }}</span>
+          <span><svg lucideMonitor aria-hidden="true"></svg>{{ modalityLabel() }}</span>
+          <span *ngIf="current.locationName"><svg lucideMapPin aria-hidden="true"></svg>{{ current.locationName }}</span>
         </div>
-      </div>
-    </div>
 
-    <div class="seccion-descripcion">
-      <h2 class="seccion-titulo">Sobre esta sesión</h2>
-      <div class="descripcion-texto" *ngIf="getDescripcionParrafos().length > 0; else sinDescripcion">
-        <p *ngFor="let parrafo of getDescripcionParrafos()">{{ parrafo }}</p>
+        <a class="whatsapp-button" *ngIf="whatsappUrl() as whatsapp; else unavailableContact" [href]="whatsapp" target="_blank" rel="noopener noreferrer">
+          <svg lucideMessageCircle aria-hidden="true"></svg>
+          Contactar por WhatsApp
+        </a>
+        <ng-template #unavailableContact>
+          <p class="contact-unavailable">Este profesional todavía no publicó un WhatsApp de contacto.</p>
+        </ng-template>
       </div>
-      <ng-template #sinDescripcion>
-        <p class="descripcion-vacia">Este profesional aún no agregó una descripción para esta sesión.</p>
-      </ng-template>
-    </div>
+    </section>
+
+    <section class="detail-section">
+      <h2>Sobre esta sesión</h2>
+      <div *ngIf="getDescripcionParrafos().length; else noDescription">
+        <p *ngFor="let paragraph of getDescripcionParrafos()">{{ paragraph }}</p>
+      </div>
+      <ng-template #noDescription><p>Este profesional aún no agregó una descripción.</p></ng-template>
+    </section>
+
+    <section class="detail-section" *ngIf="current.workTopics.length">
+      <h2>Esta sesión puede ayudar con</h2>
+      <div class="topic-list"><span *ngFor="let topic of current.workTopics">{{ topic }}</span></div>
+    </section>
+
+    <section class="detail-section" *ngIf="current.techniques.length">
+      <h2>Técnicas que se utilizan</h2>
+      <ul><li *ngFor="let technique of current.techniques">{{ technique }}</li></ul>
+    </section>
   </div>
-</div>
+</main>
 
-<ng-template #estadoDetalle>
-  <div class="no-encontrado">
-    <p *ngIf="loading()">Cargando sesión...</p>
-    <p *ngIf="!loading()">{{ error() || 'No se ha encontrado la sesión.' }}</p>
-    <button class="btn-volver" (click)="volver()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      Volver a sesiones
-    </button>
+<ng-template #detailState>
+  <div class="detail-state">
+    <p>{{ loading() ? 'Cargando sesión...' : (error() || 'No se ha encontrado la sesión.') }}</p>
+    <button class="back-button" type="button" (click)="volver()"><svg lucideArrowLeft aria-hidden="true"></svg>Volver a sesiones</button>
   </div>
 </ng-template>

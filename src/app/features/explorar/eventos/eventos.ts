@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { EventosService } from '../../../services/eventos.service';
 import { FiltrosService } from '../../../services/filtros.service';
@@ -11,8 +11,9 @@ import {
   EventCardResponse,
   EventFilterParams,
   EventModality,
-  EventType,
 } from '../../../shared/models/evento.model';
+import { categoryIcon } from '../../../shared/utils/category-icon.util';
+import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 
 interface EventSortOption {
   label: string;
@@ -33,9 +34,12 @@ export class Eventos {
   private readonly eventosService = inject(EventosService);
   private readonly filtrosService = inject(FiltrosService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
+  searchQuery = signal<string>('');
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
+  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   totalEventos = signal(0);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -61,8 +65,14 @@ export class Eventos {
   selectedSort = signal<EventSortOption>(this.sortOptions[0]);
   private lastRequestKey = '';
 
+  assetUrl(url: string | null | undefined, fallback = this.fallbackImage): string {
+    return this.eventosService.resolveAssetUrl(url) ?? fallback;
+  }
+
   constructor() {
     this.loadCategorias();
+    this.loadExperienceTypes();
+    this.searchQuery.set(this.route.snapshot.queryParamMap.get('q') ?? '');
 
     effect(() => {
       const criteria = {
@@ -74,11 +84,16 @@ export class Eventos {
         timeOfDay: this.filterTimeOfDay(),
         modality: this.filterModality(),
         recurrence: this.filterRecurrence(),
+        search: this.searchQuery(),
         sort: this.selectedSort().sort,
       };
 
       queueMicrotask(() => this.loadEventos(criteria));
     });
+  }
+
+  clearSearchQuery(): void {
+    this.searchQuery.set('');
   }
 
   get filterWhen()       { return this.filtrosService.filterWhen; }
@@ -172,6 +187,14 @@ export class Eventos {
     return this.favoritos().has(item.id);
   }
 
+  categoryEmoji(name: string | null): string {
+    return categoryIcon(name);
+  }
+
+  isOnline(item: EventCardResponse): boolean {
+    return item.modality === EventModality.ONLINE;
+  }
+
   formatDate(value: string | null): string {
     if (!value) return 'Fecha por confirmar';
     return new Intl.DateTimeFormat('es-ES', {
@@ -225,10 +248,11 @@ export class Eventos {
   private buildFilters(): EventFilterParams {
     return {
       size: 24,
+      search: this.searchQuery().trim() || undefined,
       ...this.dateRangeFor(this.filterWhen()),
       ...this.timeRangeFor(this.filterTimeOfDay()),
       categoryId: this.categoryIdFor(this.filterCategories()[0]),
-      eventType: this.eventTypeFor(this.filterTypes()[0]),
+      experienceTypeId: this.experienceTypeIdFor(this.filterTypes()[0]),
       cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
       modality: this.modalityFor(this.filterModality()),
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
@@ -251,16 +275,17 @@ export class Eventos {
     return value === 'Recurrente';
   }
 
-  private eventTypeFor(value: string | undefined): EventType | undefined {
-    const map: Record<string, EventType> = {
-      'Talleres': 'TALLER',
-      'Retiros': 'RETIRO',
-      'Clases': 'CLASE',
-      'Ceremonias': 'CEREMONIA',
-      'Encuentros Grupales': 'ENCUENTRO_GRUPAL',
-      'Formaciones': 'FORMACION',
-    };
-    return value ? map[value] : undefined;
+  private experienceTypeIdFor(value: string | undefined): number | undefined {
+    return this.experienceTypes().find(type => type.name === value)?.id;
+  }
+
+  private loadExperienceTypes(): void {
+    this.eventosService.getExperienceTypes().subscribe({
+      next: types => {
+        this.experienceTypes.set(types);
+      },
+      error: () => this.experienceTypes.set([]),
+    });
   }
 
   private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {

@@ -208,6 +208,23 @@
   font-size: .8rem;
 }
 
+.erp-login__notice {
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px;
+  border: 1px solid #d7e3df;
+  border-left: 3px solid #247078;
+  border-radius: 6px;
+  color: #234b4e;
+  background: #f0f7f5;
+  font-size: .8rem;
+  line-height: 1.4;
+}
+
+.erp-login__notice span {
+  color: #607572;
+}
+
 @media (max-width: 840px) {
   .erp-login {
     grid-template-columns: 1fr;

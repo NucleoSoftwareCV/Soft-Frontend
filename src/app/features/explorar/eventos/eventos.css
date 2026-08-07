@@ -216,6 +216,30 @@
   padding: 0 22px;
 }
 
+.search-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: #e9f5f9;
+  border: 1px solid #cfe0e4;
+  border-radius: 999px;
+  width: fit-content;
+  color: #004e59;
+  font-size: 13px;
+}
+
+.search-banner-clear {
+  background: none;
+  border: none;
+  color: #004e59;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .results-header {
   display: flex;
   justify-content: space-between;
@@ -442,12 +466,26 @@
 
 .location {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
+  left: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: white;
-  font-size: 13px;
-  font-weight: 700;
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.location svg {
+  flex: 0 0 auto;
+}
+
+.location span {
+  color: inherit;
 }
 
 .card-body {
@@ -473,17 +511,26 @@
 
 .date-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  color: hsl(100 53% 36%);
+  color: var(--color-success, #1f7a45);
   font-size: 0.70rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .recurrence-badge {
-  color: #004e59;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-muted, #888);
   font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.recurrence-badge svg {
+  flex: 0 0 auto;
 }
 
 h2 {

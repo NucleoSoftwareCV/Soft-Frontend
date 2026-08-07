@@ -12,13 +12,22 @@ import {
   LucidePencil,
   LucidePlus,
   LucideShieldCheck,
+  LucideShapes,
+  LucideSave,
+  LucideTags,
   LucideTrash2,
+  LucideX,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { CityService } from '../../services/city.service';
+import { EventCatalogService } from '../../services/event-catalog.service';
 import { CityResponse } from '../../shared/models/evento.model';
+import {
+  CategoryCatalogItem,
+  ExperienceTypeCatalogItem,
+} from '../../shared/models/event-catalog.model';
 import {
   PROFESSIONAL_TYPE_OPTIONS,
   ProfessionalApplicationResponse,
@@ -41,7 +50,11 @@ import {
     LucidePencil,
     LucidePlus,
     LucideShieldCheck,
+    LucideShapes,
+    LucideSave,
+    LucideTags,
     LucideTrash2,
+    LucideX,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
@@ -49,12 +62,13 @@ import {
 export class AdminComponent {
   private readonly applicationsApi = inject(ProfessionalApplicationService);
   private readonly cityService = inject(CityService);
+  private readonly eventCatalogService = inject(EventCatalogService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly currentUser = this.auth.currentUser;
 
-  section = signal<'summary' | 'applications' | 'cities'>('summary');
+  section = signal<'summary' | 'applications' | 'cities' | 'catalogs'>('summary');
   applications = signal<ProfessionalApplicationResponse[]>([]);
   selected = signal<ProfessionalApplicationResponse | null>(null);
   loading = signal(false);
@@ -86,6 +100,18 @@ export class AdminComponent {
   };
   cityDeleteConfirm = signal<CityResponse | null>(null);
 
+  catalogTab = signal<'categories' | 'experienceTypes'>('categories');
+  categories = signal<CategoryCatalogItem[]>([]);
+  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
+  catalogFormOpen = signal(false);
+  catalogDeleteConfirm = signal<CategoryCatalogItem | ExperienceTypeCatalogItem | null>(null);
+  catalogForm = { id: null as number | null, name: '', description: '', emoji: '✨' };
+  readonly categoryEmojis = [
+    '🧘', '🧊', '🎨', '🏃', '💪', '🧠', '🎵', '✨',
+    '🥗', '🌱', '💆', '🤰', '🚀', '🌿', '🫁', '☀️',
+    '🌙', '💫', '🧘‍♀️', '🤸', '🏋️', '🫶', '🌸', '🔥',
+  ];
+
   pendingOnPage = computed(
     () => this.applications().filter(item => item.status === 'PENDIENTE').length
   );
@@ -94,7 +120,7 @@ export class AdminComponent {
     this.load(0);
   }
 
-  show(section: 'summary' | 'applications' | 'cities'): void {
+  show(section: 'summary' | 'applications' | 'cities' | 'catalogs'): void {
     this.section.set(section);
     this.selected.set(null);
     this.selectedCity.set(null);
@@ -103,7 +129,128 @@ export class AdminComponent {
 
     if (section === 'cities') {
       this.loadCities();
+    } else if (section === 'catalogs') {
+      this.loadCatalogs();
     }
+  }
+
+  selectCatalogTab(tab: 'categories' | 'experienceTypes'): void {
+    this.catalogTab.set(tab);
+    this.catalogFormOpen.set(false);
+    this.catalogDeleteConfirm.set(null);
+  }
+
+  loadCatalogs(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.eventCatalogService.getCategoriesForAdmin().subscribe({
+      next: categories => {
+        this.categories.set(categories);
+        this.finishCatalogLoad();
+      },
+      error: error => this.catalogFailed(error, 'No se pudieron cargar las categorias.'),
+    });
+    this.eventCatalogService.getExperienceTypesForAdmin().subscribe({
+      next: types => {
+        this.experienceTypes.set(types);
+        this.finishCatalogLoad();
+      },
+      error: error => this.catalogFailed(error, 'No se pudieron cargar los tipos de experiencia.'),
+    });
+  }
+
+  openNewCatalogItem(): void {
+    this.catalogForm = { id: null, name: '', description: '', emoji: '✨' };
+    this.catalogFormOpen.set(true);
+  }
+
+  openEditCatalogItem(item: CategoryCatalogItem | ExperienceTypeCatalogItem): void {
+    this.catalogForm = {
+      id: item.id,
+      name: item.name,
+      description: item.description ?? '',
+      emoji: 'emoji' in item ? item.emoji ?? '✨' : '✨',
+    };
+    this.catalogFormOpen.set(true);
+  }
+
+  saveCatalogItem(): void {
+    const name = this.catalogForm.name.trim();
+    if (!name) {
+      this.error.set('El nombre es obligatorio.');
+      return;
+    }
+    const category = this.catalogTab() === 'categories';
+    if (category && !this.catalogForm.emoji) {
+      this.error.set('Selecciona un emoji para la categoria.');
+      return;
+    }
+    const payload = {
+      name,
+      description: this.catalogForm.description.trim() || null,
+      ...(category ? { emoji: this.catalogForm.emoji } : {}),
+    };
+    const request = this.catalogForm.id
+      ? category
+        ? this.eventCatalogService.updateCategory(this.catalogForm.id, payload)
+        : this.eventCatalogService.updateExperienceType(this.catalogForm.id, payload)
+      : category
+        ? this.eventCatalogService.createCategory(payload)
+        : this.eventCatalogService.createExperienceType(payload);
+
+    this.deciding.set(true);
+    request.subscribe({
+      next: () => {
+        this.deciding.set(false);
+        this.catalogFormOpen.set(false);
+        this.loadCatalogs();
+      },
+      error: error => this.catalogFailed(error, 'No se pudo guardar el elemento.'),
+    });
+  }
+
+  selectCategoryEmoji(emoji: string): void {
+    this.catalogForm.emoji = emoji;
+  }
+
+  toggleCatalogItem(item: CategoryCatalogItem | ExperienceTypeCatalogItem): void {
+    const request = this.catalogTab() === 'categories'
+      ? this.eventCatalogService.toggleCategory(item.id)
+      : this.eventCatalogService.toggleExperienceType(item.id);
+    request.subscribe({
+      next: () => this.loadCatalogs(),
+      error: error => this.catalogFailed(error, 'No se pudo cambiar el estado.'),
+    });
+  }
+
+  deleteCatalogItem(): void {
+    const item = this.catalogDeleteConfirm();
+    if (!item) return;
+    const request = this.catalogTab() === 'categories'
+      ? this.eventCatalogService.deleteCategory(item.id)
+      : this.eventCatalogService.deleteExperienceType(item.id);
+    this.deciding.set(true);
+    request.subscribe({
+      next: () => {
+        this.deciding.set(false);
+        this.catalogDeleteConfirm.set(null);
+        this.loadCatalogs();
+      },
+      error: error => {
+        this.catalogDeleteConfirm.set(null);
+        this.catalogFailed(error, 'No se pudo eliminar. Desactivalo si ya esta relacionado.');
+      },
+    });
+  }
+
+  private finishCatalogLoad(): void {
+    this.loading.set(false);
+  }
+
+  private catalogFailed(error: any, fallback: string): void {
+    this.loading.set(false);
+    this.deciding.set(false);
+    this.error.set(error?.error?.detail ?? error?.error?.message ?? fallback);
   }
 
   load(page = this.page()): void {

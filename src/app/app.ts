@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './core/components/header/header.component';
@@ -14,6 +15,8 @@ import { filter, map, startWith } from 'rxjs/operators';
 })
 export class App {
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
+  private readonly initialUrl = this.document.location?.pathname || this.router.url;
 
   /** Rutas operativas que no deben mostrar el header/footer global. */
   private readonly SHELLLESS_ROUTES = ['/admin', '/profesional'];
@@ -23,9 +26,9 @@ export class App {
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
       map(e => e.urlAfterRedirects),
-      startWith(this.router.url),
+      startWith(this.initialUrl),
     ),
-    { initialValue: this.router.url }
+    { initialValue: this.initialUrl }
   );
 
   /** true cuando estamos en una página de autenticación */

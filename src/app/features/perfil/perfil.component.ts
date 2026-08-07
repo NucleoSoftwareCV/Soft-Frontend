@@ -7,6 +7,7 @@ import { ProfessionalFollowService } from '../../services/professional-follow.se
 import { FollowedProfessionalResponse } from '../../shared/models/professional-follow.model';
 import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
+import { CheckoutService, MyBooking } from '../../services/checkout.service';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -50,10 +51,15 @@ export class PerfilComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly followService = inject(ProfessionalFollowService);
   readonly favoritesService = inject(FavoritesService);
+  private readonly checkoutService = inject(CheckoutService);
 
   readonly favoritesDetails = signal<FavoriteResponse[]>([]);
   readonly favoritesLoading = signal(false);
   readonly favoritesError = signal<string | null>(null);
+
+  readonly myBookings = signal<MyBooking[]>([]);
+  readonly bookingsLoading = signal(false);
+  readonly bookingsError = signal<string | null>(null);
 
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
@@ -146,6 +152,26 @@ export class PerfilComponent implements OnInit {
     if (tab === 'guardados') {
       this.loadFavoritesDetails();
     }
+    if (tab === 'reservas') {
+      this.loadMyBookings();
+    }
+  }
+
+  loadMyBookings(): void {
+    if (!this.authService.isLoggedIn) return;
+
+    this.bookingsLoading.set(true);
+    this.bookingsError.set(null);
+    this.checkoutService.getMyBookings().subscribe({
+      next: data => {
+        this.myBookings.set(data);
+        this.bookingsLoading.set(false);
+      },
+      error: () => {
+        this.bookingsError.set('No pudimos cargar tus reservas.');
+        this.bookingsLoading.set(false);
+      }
+    });
   }
 
   loadFavoritesDetails(): void {
@@ -269,6 +295,7 @@ export class PerfilComponent implements OnInit {
   ngOnInit(): void {
     this.items.set([...this.buildSampleData()]);
     this.loadFollowedProfessionals(0);
+    this.loadMyBookings();
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
       if (tab === 'guardados') {

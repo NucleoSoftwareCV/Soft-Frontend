@@ -129,13 +129,21 @@ export class SpecialistProfileService {
   }
 
   getPublicProfiles(
-    profileCategory?: string
+    profileCategory?: string,
+    search?: string,
+    size?: number
   ): Observable<PageResponse<SpecialistProfileResponse>> {
 
     let params = new HttpParams();
 
     if (profileCategory) {
       params = params.set('profileCategory', profileCategory);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
+    if (size) {
+      params = params.set('size', String(size));
     }
 
     return this.http.get<PageResponse<SpecialistProfileResponse>>(

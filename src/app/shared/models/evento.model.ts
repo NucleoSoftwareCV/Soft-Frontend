@@ -27,7 +27,10 @@ export interface CategoryResponse {
   id: number;
   name: string;
   description: string;
+  slug?: string;
+  emoji?: string | null;
   active: boolean;
+  deletable?: boolean;
 }
 
 export interface LocationResponse {
@@ -54,8 +57,6 @@ export enum EventModality {
   HIBRIDA = 'HIBRIDA',
 }
 
-export type EventType = 'TALLER' | 'RETIRO' | 'CLASE' | 'CEREMONIA' | 'ENCUENTRO_GRUPAL' | 'FORMACION';
-
 export interface EventCardResponse {
   id: number;
   title: string;
@@ -68,10 +69,13 @@ export interface EventCardResponse {
   organizerId: number | null;
   organizerName: string | null;
   organizerPhotoUrl: string | null;
+  coverImageUrl: string | null;
   startsAt: string | null;
   endsAt: string | null;
   cityName: string | null;
-  eventType: EventType | null;
+  experienceTypeId: number | null;
+  eventType: string | null;
+  experienceTypeSlug: string | null;
   isRecurring: boolean;
 }
 
@@ -88,11 +92,16 @@ export interface MeetingLinkResponse {
   url: string | null;
 }
 
+export type EventPaymentMethod = 'WHATSAPP' | 'ONLINE';
+
 export interface EventDetailResponse {
   id: number;
   title: string;
   summary: string | null;
   description: string | null;
+  includes: string[];
+  highlights: string[];
+  whatToBring: string[];
   modality: EventModality;
   priceFrom: number | null;
   currency: string;
@@ -100,9 +109,12 @@ export interface EventDetailResponse {
   featured: boolean;
   categoryId: number | null;
   categoryName: string | null;
+  paymentMethod?: EventPaymentMethod;
   organizer: EventOrganizerResponse | null;
   occurrences: EventOccurrenceResponse[];
-  eventType: EventType | null;
+  experienceTypeId: number | null;
+  eventType: string | null;
+  experienceTypeSlug: string | null;
   isRecurring: boolean;
   createdAt: string;
   updatedAt: string;
@@ -122,7 +134,7 @@ export type TimeFilter = 'MANANA' | 'MEDIODIA' | 'TARDE' | 'NOCHE';
 export interface EventFilterParams {
   search?: string;
   categoryId?: number;
-  eventType?: EventType;
+  experienceTypeId?: number;
   modality?: EventModality;
   cityName?: string;
   minPrice?: number;

@@ -6,11 +6,18 @@ import { OneToOneServicesService } from '../../services/one-to-one-services.serv
 import { ProfessionalFollowService } from '../../services/professional-follow.service';
 import { OneToOneServiceDetailResponse } from '../../shared/models/one-to-one-service.model';
 import { AuthService } from '../../core/services/auth.service';
+import {
+  LucideArrowLeft,
+  LucideClock3,
+  LucideMapPin,
+  LucideMessageCircle,
+  LucideMonitor,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-sesion-detalle',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideArrowLeft, LucideClock3, LucideMapPin, LucideMessageCircle, LucideMonitor],
   templateUrl: './sesion-detalle.html',
   styleUrls: ['./sesion-detalle.css']
 })
@@ -95,6 +102,21 @@ export class SesionDetalleComponent implements OnInit {
 
   specialistInitial(): string {
     return this.sesion()?.specialistName?.trim().charAt(0).toUpperCase() || 'S';
+  }
+
+  sessionImage(): string {
+    return this.oneToOneServices.resolveAssetUrl(this.sesion()?.imageUrl) || this.fallbackImage;
+  }
+
+  specialistPhoto(): string | null {
+    return this.oneToOneServices.resolveAssetUrl(this.sesion()?.specialistPhotoUrl);
+  }
+
+  whatsappUrl(): string | null {
+    const phone = this.sesion()?.specialistWhatsappPhone?.replace(/\D/g, '');
+    if (!phone) return null;
+    const title = this.sesion()?.title ?? 'tu sesion 1:1';
+    return `https://wa.me/${phone}?text=${encodeURIComponent(`Hola, me interesa la sesion: ${title}`)}`;
   }
 
   getDescripcionParrafos(): string[] {

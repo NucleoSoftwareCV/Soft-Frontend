@@ -760,7 +760,7 @@
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
-          Reservas (0)
+          Reservas ({{ myBookings().length }})
         </button>
         <button (click)="cambiarSeccionCliente('guardados')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'guardados'" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
@@ -783,26 +783,67 @@
     <!-- Contenido Activo -->
     <div class="mi-espacio__tab-content">
 
-      <!-- Pestaña Reservas (Vacío) -->
+      <!-- Pestaña Reservas -->
       @if (seccionCliente() === 'reservas') {
-        <div class="mi-espacio__empty-state">
-          <div class="mi-espacio__empty-icon-wrap">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-              <path d="M9 16l2 2 4-4"></path>
-            </svg>
+        @if (bookingsLoading()) {
+          <div class="following-state" aria-live="polite">Cargando tus reservas...</div>
+        } @else if (bookingsError()) {
+          <div class="following-state following-state--error">
+            <p>{{ bookingsError() }}</p>
+            <button class="btn-outline" type="button" (click)="loadMyBookings()">Reintentar</button>
           </div>
-          <h2 class="mi-espacio__empty-title">Aún no tienes reservas</h2>
-          <p class="mi-espacio__empty-text">
-            Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
-          </p>
-          <a routerLink="/explorar" class="btn-primary mi-espacio__empty-btn">
-            Explorar eventos
-          </a>
-        </div>
+        } @else if (myBookings().length === 0) {
+          <div class="mi-espacio__empty-state">
+            <div class="mi-espacio__empty-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <path d="M9 16l2 2 4-4"></path>
+              </svg>
+            </div>
+            <h2 class="mi-espacio__empty-title">Aún no tienes reservas</h2>
+            <p class="mi-espacio__empty-text">
+              Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
+            </p>
+            <a routerLink="/explorar" class="btn-primary mi-espacio__empty-btn">
+              Explorar eventos
+            </a>
+          </div>
+        } @else {
+          <div class="mi-espacio__guardados-grid">
+            @for (booking of myBookings(); track booking.code) {
+              <div class="saved-card" [routerLink]="['/evento', booking.eventId]" style="cursor: pointer;">
+                <div class="saved-card__img-wrap">
+                  <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400" alt="" class="saved-card__img" />
+                  <span class="saved-card__recurrence-badge" [attr.data-status]="booking.status">{{ booking.status }}</span>
+                </div>
+                <div class="saved-card__body">
+                  <div class="saved-card__body-top">
+                    <span class="saved-card__category">{{ booking.modality === 'ONLINE' ? 'ONLINE' : (booking.cityName || 'PRESENCIAL') | uppercase }}</span>
+                  </div>
+                  <h3 class="saved-card__title">{{ booking.eventTitle }}</h3>
+                  <span class="saved-card__organizer">Código {{ booking.code }}</span>
+                  <div class="saved-card__details">
+                    <div class="saved-card__detail-row">
+                      <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                      <span>{{ formatDateTime(booking.occurrenceStartsAt) }}</span>
+                    </div>
+                    <div class="saved-card__detail-row">
+                      <span>{{ booking.quantity }} plaza{{ booking.quantity === 1 ? '' : 's' }} · {{ booking.totalAmount === 0 ? 'Gratis' : (booking.totalAmount + ' ' + booking.currency) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
       }
 
       <!-- Pestaña Guardados -->

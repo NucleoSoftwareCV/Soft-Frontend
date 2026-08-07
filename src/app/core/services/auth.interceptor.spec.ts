@@ -1,5 +1,6 @@
 import {
   HttpClient,
+  HttpErrorResponse,
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
@@ -10,7 +11,7 @@ import {
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { JwtResponse } from '../../shared/models/auth.model';
 import { authInterceptor } from './auth.interceptor';
@@ -46,16 +47,38 @@ describe('authInterceptor', () => {
       });
     }),
     logout: vi.fn(),
+    clearSession: vi.fn(() => session.set(null)),
   };
 
   const router = {
+    url: '/',
     navigate: vi.fn(),
   };
 
   beforeEach(() => {
     accessToken = 'expired-token';
-    authService.refreshToken.mockClear();
+    session.set({
+      token: 'expired-token',
+      refreshToken: 'valid-refresh-token',
+      type: 'Bearer',
+      id: 1,
+      username: 'user1',
+      email: 'user1@oona.es',
+      roles: ['USER'],
+    });
+    authService.refreshToken.mockReset();
+    authService.refreshToken.mockImplementation(() => {
+      accessToken = 'renewed-token';
+      return of({
+        accessToken: 'renewed-token',
+        refreshToken: 'renewed-refresh-token',
+        tokenType: 'Bearer',
+        roles: ['USER'],
+      });
+    });
     authService.logout.mockClear();
+    authService.clearSession.mockClear();
+    router.url = '/';
     router.navigate.mockClear();
 
     TestBed.configureTestingModule({
@@ -105,5 +128,23 @@ describe('authInterceptor', () => {
       tokenType: 'Bearer',
       roles: ['USER'],
     });
+  });
+
+  it('clears an expired admin session and redirects to the ERP login', () => {
+    session.update(current => current ? { ...current, roles: ['ADMIN'] } : current);
+    router.url = '/admin';
+    authService.refreshToken.mockReturnValueOnce(
+      throwError(() => new HttpErrorResponse({ status: 401 }))
+    );
+
+    httpClient.get('/api/v1/admin/cities').subscribe({ error: () => undefined });
+    httpTesting.expectOne('/api/v1/admin/cities')
+      .flush(null, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.clearSession).toHaveBeenCalledTimes(1);
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/auth/erp/login'],
+      { queryParams: { expired: 'true' }, replaceUrl: true }
+    );
   });
 });
