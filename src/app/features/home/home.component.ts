@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HeroComponent }              from './components/hero/hero.component';
 import { CategoriesComponent }        from './components/categories/categories.component';
 import { EventRowComponent, EventItem } from './components/event-row/event-row.component';
@@ -35,10 +36,15 @@ export class HomeComponent implements OnInit {
 
   private readonly eventosService =
     inject(EventosService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   homeSections: HomeSectionViewModel[] = [];
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.eventosService.getHomeSections().subscribe({
 
       next: (response) => {

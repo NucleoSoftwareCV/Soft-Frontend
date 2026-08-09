@@ -200,7 +200,7 @@
                       </button>
                     }
                     @if (item.status === 'PUBLICADO') {
-                      <button class="btn-cancel" (click)="changeEventStatus(item, 'CANCELADO')">
+                      <button class="btn-cancel" (click)="requestEventCancellation(item)">
                         <svg lucideX aria-hidden="true"></svg>Cancelar
                       </button>
                     }
@@ -467,6 +467,21 @@
     </section>
   }
 
+  @if (cancelEventTarget(); as eventToCancel) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="cancelEventTarget.set(null)"></button>
+    <section class="modal modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-event-cancel-title">
+      <header class="modal__header">
+        <svg lucideTriangleAlert aria-hidden="true"></svg>
+        <h2 id="confirm-event-cancel-title">¿Cancelar “{{ eventToCancel.event.title }}”?</h2>
+      </header>
+      <p class="modal__body-text">Se cancelará el evento y dejará de mostrarse en Explorar. Los usuarios que ya se hayan inscrito serán notificados. Esta acción no se puede deshacer.</p>
+      <footer>
+        <button type="button" (click)="cancelEventTarget.set(null)">Volver</button>
+        <button class="danger" type="button" (click)="confirmEventCancellation()">Sí, cancelar evento</button>
+      </footer>
+    </section>
+  }
+
   @if (occurrencesPanelItem(); as item) {
     <button class="modal-backdrop" aria-label="Cerrar" (click)="closeOccurrencesPanel()"></button>
     <section class="modal modal--occurrences" role="dialog" aria-modal="true" aria-labelledby="occurrences-panel-title">
@@ -506,9 +521,14 @@
                   <button class="occ-btn occ-btn--participants" title="Ver participantes" (click)="verParticipantes(occurrence)">
                     <svg lucideUsers aria-hidden="true"></svg>
                   </button>
-                  @if (occurrence.status === 'PROGRAMADA') {
-                    <button class="occ-btn occ-btn--danger" title="Cancelar fecha" (click)="cancelOccurrence(occurrence.id)">
+                  @if (occurrence.status === 'PROGRAMADA' || occurrence.status === 'EN_CURSO') {
+                    <button class="occ-btn occ-btn--danger" title="Cancelar fecha" (click)="requestOccurrenceCancellation(occurrence.id)">
                       <svg lucideX aria-hidden="true"></svg>
+                    </button>
+                  }
+                  @if (occurrence.status === 'CANCELADA') {
+                    <button class="occ-btn occ-btn--reactivate" title="Reactivar fecha" (click)="reactivateOccurrence(occurrence.id)">
+                      <svg lucideRotateCw aria-hidden="true"></svg>
                     </button>
                   }
                 </div>
@@ -517,6 +537,21 @@
           </div>
         }
       </div>
+    </section>
+  }
+
+  @if (cancelOccurrenceTarget(); as occId) {
+    <button class="modal-backdrop" aria-label="Cerrar" (click)="cancelOccurrenceTarget.set(null)"></button>
+    <section class="modal modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-occ-cancel-title">
+      <header class="modal__header">
+        <svg lucideTriangleAlert aria-hidden="true"></svg>
+        <h2 id="confirm-occ-cancel-title">¿Cancelar esta fecha?</h2>
+      </header>
+      <p class="modal__body-text">Los usuarios que ya se hayan inscrito serán notificados y esta fecha dejará de estar disponible para nuevas reservas. Podrás reactivarla más tarde si lo necesitas.</p>
+      <footer>
+        <button type="button" (click)="cancelOccurrenceTarget.set(null)">Volver</button>
+        <button class="danger" type="button" (click)="confirmOccurrenceCancellation()">Sí, cancelar fecha</button>
+      </footer>
     </section>
   }
 

@@ -1,7 +1,7 @@
 import { SpringPage } from './evento.model';
 
 export type EventStatus = 'BORRADOR' | 'REVISION' | 'PUBLICADO' | 'CANCELADO' | 'ARCHIVADO';
-export type EventOccurrenceStatus = 'PROGRAMADA' | 'AGOTADA' | 'CANCELADA' | 'FINALIZADA';
+export type EventOccurrenceStatus = 'PROGRAMADA' | 'EN_CURSO' | 'AGOTADA' | 'CANCELADA' | 'FINALIZADA';
 
 export interface EventManagementEvent {
   id: number;

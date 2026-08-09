@@ -305,7 +305,7 @@
                   class="session-card"
                   *ngFor="let occurrence of event.occurrences"
                   [class.active]="selectedOccurrence()?.id === occurrence.id"
-                  [disabled]="occurrence.soldOut"
+                  [disabled]="!isOccurrenceBookable(occurrence)"
                   (click)="selectOccurrence(occurrence)">
                   <span class="day">
                     {{ getOccurrenceWeekday(occurrence) }}
@@ -317,7 +317,7 @@
                     {{ getOccurrenceMonthHour(occurrence) }}
                   </span>
                   <small class="spots-left" style="font-size: 0.65rem; margin-top: 2px; display: block;">
-                    {{ occurrence.soldOut ? 'Agotado' : occurrence.availableSpots + ' libres' }}
+                    {{ occurrenceUnavailableLabel(occurrence) ?? (occurrence.availableSpots + ' libres') }}
                   </small>
                 </button>
               </div>
@@ -325,12 +325,12 @@
 
             <!-- Botón de Pago / WhatsApp -->
             <div class="pay-btn">
-              <button 
+              <button
                 class="wait-btn"
-                [disabled]="!selectedOccurrence() || selectedOccurrence()?.soldOut"
+                [disabled]="!isOccurrenceBookable(selectedOccurrence())"
                 (click)="abrirReserva()">
-                <ng-container *ngIf="selectedOccurrence()?.soldOut; else activeBookingBtn">
-                  <span>Agotado</span>
+                <ng-container *ngIf="occurrenceUnavailableLabel(selectedOccurrence()) as unavailableLabel; else activeBookingBtn">
+                  <span>{{ unavailableLabel }}</span>
                 </ng-container>
                 <ng-template #activeBookingBtn>
                   <ng-container *ngIf="event.paymentMethod === 'WHATSAPP'; else onlineBookingBtn">
@@ -399,10 +399,10 @@
           <span>por entrada</span>
         </div>
 
-        <button 
-          [disabled]="!selectedOccurrence() || selectedOccurrence()?.soldOut"
+        <button
+          [disabled]="!isOccurrenceBookable(selectedOccurrence())"
           (click)="abrirReserva()">
-          {{ selectedOccurrence()?.soldOut ? 'Agotado' : (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
+          {{ occurrenceUnavailableLabel(selectedOccurrence()) ?? (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
         </button>
       </div>
 
