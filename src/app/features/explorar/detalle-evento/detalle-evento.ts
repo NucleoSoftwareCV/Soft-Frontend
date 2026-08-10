@@ -17,9 +17,9 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class DetalleEvento implements OnDestroy{
+export class DetalleEvento implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly eventosService = inject(EventosService);
@@ -49,7 +49,7 @@ export class DetalleEvento implements OnDestroy{
   bookingStep = signal(1); // 1: Datos de asistentes, 2: Pago online, 3: Éxito
   selectedOccurrence = signal<EventOccurrenceResponse | null>(null);
   numPlazas = signal(1);
-  
+
   // Datos del comprador
   compradorNombre = signal('');
   compradorApellido = signal('');
@@ -80,6 +80,13 @@ export class DetalleEvento implements OnDestroy{
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
 
+  // --- VARIABLES PARA EL MODAL DE COMPARTIR ---
+  mostrarModalCompartir = signal(false);
+  enlaceCopiado = signal(false);
+  enlaceEvento = computed(() => {
+    return typeof window !== 'undefined' ? window.location.href : '';
+  });
+
   readonly fallbackImages = [
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
@@ -87,7 +94,6 @@ export class DetalleEvento implements OnDestroy{
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
-
   ];
 
   constructor() {
@@ -131,9 +137,9 @@ export class DetalleEvento implements OnDestroy{
     }
 
     this.favoritesService.toggleFavorite('EVENTO', eventId).subscribe({
-      error: err => {
+      error: (err) => {
         console.error('Error toggling favorite', err);
-      }
+      },
     });
   }
 
@@ -153,7 +159,7 @@ export class DetalleEvento implements OnDestroy{
       : this.followService.follow(professionalId);
 
     request.subscribe({
-      next: response => {
+      next: (response) => {
         this.following.set(response.following);
         this.followLoading.set(false);
       },
@@ -174,8 +180,10 @@ export class DetalleEvento implements OnDestroy{
   }
 
   organizerPhotoUrl(): string {
-    return this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl)
-      ?? this.fallbackImages[0];
+    return (
+      this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl) ??
+      this.fallbackImages[0]
+    );
   }
 
   formatPrice(): string {
@@ -217,7 +225,9 @@ export class DetalleEvento implements OnDestroy{
     const event = this.evento();
     const occurrence = this.primaryOccurrence();
     if (event?.modality === 'ONLINE') return 'Online';
-    return occurrence?.location?.name || occurrence?.location?.cityName || 'Ubicacion por confirmar';
+    return (
+      occurrence?.location?.name || occurrence?.location?.cityName || 'Ubicacion por confirmar'
+    );
   }
 
   cityLabel(): string {
@@ -255,10 +265,10 @@ export class DetalleEvento implements OnDestroy{
     }
 
     this.eventosService.getEvento(id).subscribe({
-      next: event => {
+      next: (event) => {
         this.evento.set(event);
         if (event.occurrences && event.occurrences.length > 0) {
-          const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
+          const firstBookable = event.occurrences.find((occ) => this.isOccurrenceBookable(occ));
           this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
         }
         this.loading.set(false);
@@ -275,7 +285,7 @@ export class DetalleEvento implements OnDestroy{
     if (!professionalId || !this.authService.isLoggedIn) return;
 
     this.followService.getStatus(professionalId).subscribe({
-      next: response => this.following.set(response.following),
+      next: (response) => this.following.set(response.following),
       error: () => this.following.set(false),
     });
   }
@@ -298,13 +308,13 @@ export class DetalleEvento implements OnDestroy{
 
   getOccurrenceWeekday(occurrence: EventOccurrenceResponse): string {
     return new Intl.DateTimeFormat('es-ES', {
-      weekday: 'long'
+      weekday: 'long',
     }).format(new Date(occurrence.startsAt));
   }
 
   getOccurrenceDay(occurrence: EventOccurrenceResponse): string {
     return new Intl.DateTimeFormat('es-ES', {
-      day: 'numeric'
+      day: 'numeric',
     }).format(new Date(occurrence.startsAt));
   }
 
@@ -312,12 +322,12 @@ export class DetalleEvento implements OnDestroy{
     const date = new Date(occurrence.startsAt);
 
     const month = new Intl.DateTimeFormat('es-ES', {
-      month: 'short'
+      month: 'short',
     }).format(date);
 
     const hour = new Intl.DateTimeFormat('es-ES', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     }).format(date);
 
     return `${month} · ${hour}`;
@@ -367,8 +377,7 @@ export class DetalleEvento implements OnDestroy{
   }
 
   previousImage(images: string[]): void {
-    const previous =
-      (this.selectedImageIndex() - 1 + images.length) % images.length;
+    const previous = (this.selectedImageIndex() - 1 + images.length) % images.length;
 
     this.selectedImageIndex.set(previous);
   }
@@ -380,7 +389,6 @@ export class DetalleEvento implements OnDestroy{
   counterImageModal(images: string[]): string {
     return `${this.selectedImageIndex() + 1} / ${images.length}`;
   }
-
 
   onSlideChange(event: any) {
     this.currentSlide.set(event.target.swiper.realIndex);
@@ -410,7 +418,7 @@ export class DetalleEvento implements OnDestroy{
     this.mensajeDescuento.set(null);
     this.asistentesAdicionales.set([]);
     this.recalcularAsistentes();
-    
+
     // Prefill comprador details
     const user = this.authService.currentUser();
     this.compradorNombre.set(user?.username ?? '');
@@ -448,7 +456,11 @@ export class DetalleEvento implements OnDestroy{
 
     const current = this.asistentesAdicionales();
     if (needed > current.length) {
-      const added = Array.from({ length: needed - current.length }, () => ({ name: '', lastName: '', email: '' }));
+      const added = Array.from({ length: needed - current.length }, () => ({
+        name: '',
+        lastName: '',
+        email: '',
+      }));
       this.asistentesAdicionales.set([...current, ...added]);
     } else if (needed < current.length) {
       this.asistentesAdicionales.set(current.slice(0, needed));
@@ -579,7 +591,9 @@ export class DetalleEvento implements OnDestroy{
     for (let i = 0; i < adicionales.length; i++) {
       const a = adicionales[i];
       if (!a.name.trim() || !a.lastName.trim() || !a.email.trim()) {
-        this.bookingError.set(`Por favor, completa el nombre, apellido y correo del asistente adicional #${i + 1}.`);
+        this.bookingError.set(
+          `Por favor, completa el nombre, apellido y correo del asistente adicional #${i + 1}.`,
+        );
         return;
       }
       if (!emailRegex.test(a.email.trim())) {
@@ -595,9 +609,9 @@ export class DetalleEvento implements OnDestroy{
           {
             name: this.compradorNombre(),
             lastName: this.compradorApellido(),
-            email: this.compradorEmail()
+            email: this.compradorEmail(),
           },
-          ...adicionales
+          ...adicionales,
         ]
       : adicionales;
 
@@ -609,16 +623,16 @@ export class DetalleEvento implements OnDestroy{
             referenceId: occurrence.id,
             itemType: 'EVENTO' as const,
             quantity: this.numPlazas(),
-            attendees: attendeesPayload
-          }
+            attendees: attendeesPayload,
+          },
         ],
-        billingName: this.compradorNombre()
+        billingName: this.compradorNombre(),
       };
 
       this.checkoutService.createOrder(requestPayload).subscribe({
-        next: order => {
+        next: (order) => {
           this.checkoutService.getWhatsAppLink(order.code).subscribe({
-            next: redirect => {
+            next: (redirect) => {
               this.bookingLoading.set(false);
               this.createdOrderCode.set(order.code);
               this.bookingStep.set(3); // success screen
@@ -629,13 +643,13 @@ export class DetalleEvento implements OnDestroy{
             error: () => {
               this.bookingLoading.set(false);
               this.bookingError.set('No se pudo generar el enlace de WhatsApp.');
-            }
+            },
           });
         },
-        error: error => {
+        error: (error) => {
           this.bookingLoading.set(false);
           this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
-        }
+        },
       });
     } else {
       if (this.bookingStep() === 1) {
@@ -691,9 +705,9 @@ export class DetalleEvento implements OnDestroy{
           {
             name: this.compradorNombre(),
             lastName: this.compradorApellido(),
-            email: this.compradorEmail()
+            email: this.compradorEmail(),
           },
-          ...adicionales
+          ...adicionales,
         ]
       : adicionales;
 
@@ -703,52 +717,112 @@ export class DetalleEvento implements OnDestroy{
           referenceId: occurrence.id,
           itemType: 'EVENTO' as const,
           quantity: this.numPlazas(),
-          attendees: attendeesPayload
-        }
+          attendees: attendeesPayload,
+        },
       ],
-      billingName: this.compradorNombre()
+      billingName: this.compradorNombre(),
     };
 
     this.checkoutService.createOrder(orderRequest).subscribe({
-      next: order => {
-        const paymentPayload = this.paymentMethod() === 'TARJETA' 
-          ? {
-              method: 'TARJETA' as const,
-              cardNumber: this.cardNumber(),
-              cardExpiration: this.cardExpiration(),
-              cardCvv: this.cardCvv(),
-              cardHolderName: this.cardHolderName() || this.compradorNombre()
-            }
-          : {
-              method: 'YAPE' as const,
-              yapePhone: this.yapePhone(),
-              yapeOtp: this.yapeOtp()
-            };
+      next: (order) => {
+        const paymentPayload =
+          this.paymentMethod() === 'TARJETA'
+            ? {
+                method: 'TARJETA' as const,
+                cardNumber: this.cardNumber(),
+                cardExpiration: this.cardExpiration(),
+                cardCvv: this.cardCvv(),
+                cardHolderName: this.cardHolderName() || this.compradorNombre(),
+              }
+            : {
+                method: 'YAPE' as const,
+                yapePhone: this.yapePhone(),
+                yapeOtp: this.yapeOtp(),
+              };
 
         this.checkoutService.processPayment(order.code, paymentPayload).subscribe({
-          next: payResult => {
+          next: (payResult) => {
             this.bookingLoading.set(false);
             if (payResult.status === 'APROBADO') {
               this.createdOrderCode.set(order.code);
               this.bookingStep.set(3); // Éxito
-              
+
               occurrence.reservedSpots += this.numPlazas();
-              occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
+              occurrence.availableSpots = Math.max(
+                0,
+                occurrence.capacity - occurrence.reservedSpots,
+              );
             } else {
-              this.bookingError.set(payResult.errorMessage || 'El pago fue rechazado. Revisa tus fondos o tarjeta.');
+              this.bookingError.set(
+                payResult.errorMessage || 'El pago fue rechazado. Revisa tus fondos o tarjeta.',
+              );
             }
           },
-          error: error => {
+          error: (error) => {
             this.bookingLoading.set(false);
-            this.bookingError.set(error.error?.message || 'Error procesando el pago. Inténtalo de nuevo.');
-          }
+            this.bookingError.set(
+              error.error?.message || 'Error procesando el pago. Inténtalo de nuevo.',
+            );
+          },
         });
       },
-      error: error => {
+      error: (error) => {
         this.bookingLoading.set(false);
         this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
-      }
+      },
+    });
+  }
+  // ════════════════════════════════════════════
+  //        MÉTODOS PARA EL MODAL DE COMPARTIR
+  // ════════════════════════════════════════════
+
+  abrirModalCompartir(): void {
+    this.mostrarModalCompartir.set(true);
+    // Bloquear scroll de fondo opcionalmente
+    document.body.style.overflow = 'hidden';
+  }
+
+  cerrarModalCompartir(): void {
+    this.mostrarModalCompartir.set(false);
+    this.enlaceCopiado.set(false);
+    // Restaurar scroll
+    document.body.style.overflow = '';
+  }
+
+  copiarEnlace(inputElement: HTMLInputElement): void {
+    inputElement.select();
+    navigator.clipboard.writeText(this.enlaceEvento()).then(() => {
+      this.enlaceCopiado.set(true);
+      setTimeout(() => this.enlaceCopiado.set(false), 2500);
     });
   }
 
+  compartirRedSocial(redSocial: string): void {
+    const urlActual = encodeURIComponent(this.enlaceEvento());
+    const tituloEvento = this.evento()?.title || 'este evento';
+    const texto = encodeURIComponent(`¡Te invito a vivir esta experiencia: ${tituloEvento}!`);
+    let shareUrl = '';
+
+    switch (redSocial) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${urlActual}`;
+        break;
+      case 'messenger':
+        shareUrl = `fb-messenger://share/?link=${urlActual}`;
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${urlActual}&text=${texto}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${texto}%0A${urlActual}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=Invitación: ${tituloEvento}&body=${texto}%0A%0ARevísalo aquí: ${urlActual}`;
+        break;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
 }
