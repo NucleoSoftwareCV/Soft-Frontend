@@ -1,35 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, PLATFORM_ID, NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import { GoogleIdentityService } from '../../../core/services/google-identity.service';
 
 type AccountType = 'usuario' | 'profesional';
 type ViewType = 'login' | 'register';
-type RegisterStep = 'role-selection' | 'form' | 'professional-landing' | 'professional-type' | 'professional-google' | 'professional-form';
-
-interface ProfessionalTypeOption {
-  value: string;
-  label: string;
-}
-
-const PROFESSIONAL_TYPES: ProfessionalTypeOption[] = [
-  { value: 'terapeuta', label: 'Terapeuta' },
-  { value: 'coach', label: 'Coach' },
-  { value: 'yoga', label: 'Profe de yoga' },
-  { value: 'acupunturista', label: 'Acupunturista' },
-  { value: 'constelaciones', label: 'Facilitador/a de constelaciones' },
-  { value: 'fisio', label: 'Fisioterapeuta' },
-  { value: 'arteterapeuta', label: 'Arteterapeuta' },
-  { value: 'respiracion', label: 'Respiración / Breathwork' },
-  { value: 'talleres', label: 'Talleres / Retiros' },
-  { value: 'masaje', label: 'Masajista / Terapeuta corporal' },
-  { value: 'nutricion', label: 'Nutricionista / Dietista' },
-  { value: 'meditacion', label: 'Meditación / Mindfulness' },
-  { value: 'sonido', label: 'Sound Healing / Baños de sonido' },
-  { value: 'psicoterapia', label: 'Psicoterapeuta' },
-  { value: 'espacio', label: 'Gestiono un espacio de bienestar' },
-  { value: 'otro', label: 'Otra disciplina de bienestar' },
-];
+type RegisterStep = 'role-selection' | 'form';
 
 @Component({
   selector: 'app-login',
@@ -41,8 +19,19 @@ const PROFESSIONAL_TYPES: ProfessionalTypeOption[] = [
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly ngZone = inject(NgZone);
+  private readonly googleIdentity = inject(GoogleIdentityService);
 
-  readonly professionalTypes = PROFESSIONAL_TYPES;
+  constructor() {
+    if (this.isBrowser) {
+      setTimeout(() => {
+        if (new URLSearchParams(window.location.search).get('expired') === 'true') {
+          this.ngZone.run(() => this.showError('Tu sesión ha expirado. Inicia sesión de nuevo.'));
+        }
+      }, 0);
+    }
+  }
 
   activeTab = signal<AccountType>('usuario');
   currentView = signal<ViewType>('login');
@@ -53,9 +42,6 @@ export class LoginComponent {
   confirmPassword = signal('');
   firstName = signal('');
   lastName = signal('');
-  city = signal('');
-  professionalType = signal<string | null>(null);
-  organizationName = signal('');
 
   showPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -90,9 +76,6 @@ export class LoginComponent {
     this.confirmPassword.set('');
     this.firstName.set('');
     this.lastName.set('');
-    this.city.set('');
-    this.professionalType.set(null);
-    this.organizationName.set('');
   }
 
   handleRegisterNavigation(): void {
@@ -168,6 +151,8 @@ export class LoginComponent {
 
     this.authService.register({
       username: generatedUsername,
+      firstName: this.firstName(),
+      lastName: this.lastName(),
       email: this.email(),
       password: this.password()
     }).subscribe({
@@ -214,32 +199,30 @@ export class LoginComponent {
     return 'Error al registrar la cuenta. Inténtalo de nuevo.';
   }
 
-  onProfessionalLeadSubmit(): void {
-    this.router.navigate(['/circulo-oona']);
-  }
-
-  professionalTypeLabel(): string {
-    const found = PROFESSIONAL_TYPES.find(t => t.value === this.professionalType());
-    return found ? found.label : '';
-  }
-
-  selectProfessionalType(type: string): void {
-    this.professionalType.set(type);
-    this.router.navigate(['/circulo-oona']);
-  }
-
   onGoogleLogin(): void {
-    this.router.navigate(['/circulo-oona']);
-    return;
+    this.errorMessage.set(null);
 
-    if (this.registerStep() === 'professional-google') {
-      this.registerStep.set('professional-form');
-      return;
-    }
-    console.info('Google login — pendiente de integración');
-  }
-
-  onProfessionalFormSubmit(): void {
-    this.router.navigate(['/circulo-oona']);
+    this.googleIdentity.requestIdToken()
+      .then(idToken => {
+        this.isLoading.set(true);
+        this.authService.loginWithGoogle({ idToken }).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            if (this.authService.roles.includes('PROFESSIONAL')) {
+              this.roleChoice.set(true);
+            } else {
+              this.router.navigate(['/']);
+            }
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            this.showError('No se pudo iniciar sesión con Google.');
+            console.error(err);
+          }
+        });
+      })
+      .catch(err => {
+        this.showError(err?.message ?? 'No se pudo iniciar sesión con Google.');
+      });
   }
 }

@@ -10,6 +10,8 @@ export interface UserDTO {
 
 export interface RegisterRequest {
   username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
 }
@@ -19,6 +21,23 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface GoogleLoginRequest {
+  idToken: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface PasswordResetResponse {
+  message: string;
+}
+
 export interface JwtResponse {
   token: string;
   refreshToken: string;
@@ -26,6 +45,7 @@ export interface JwtResponse {
   id: number;
   username: string;
   email: string;
+  firstName: string | null;
   roles: string[];
 }
 
