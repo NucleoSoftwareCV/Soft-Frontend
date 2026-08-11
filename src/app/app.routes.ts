@@ -116,6 +116,24 @@ export const routes: Routes = [
       },
 
       {
+        path: 'recuperar',
+        loadComponent: () =>
+          import('./features/auth/forgot-password/forgot-password.component')
+            .then(m => m.ForgotPasswordComponent),
+
+        title: 'Recuperar contraseña - Oona',
+      },
+
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./features/auth/reset-password/reset-password.component')
+            .then(m => m.ResetPasswordComponent),
+
+        title: 'Restablecer contraseña - Oona',
+      },
+
+      {
         path: '',
         redirectTo: 'login',
         pathMatch: 'full',

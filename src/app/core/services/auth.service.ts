@@ -10,7 +10,11 @@ import {
   RegisterRequest,
   JwtResponse,
   UserDTO,
-  TokenRefreshResponse
+  TokenRefreshResponse,
+  GoogleLoginRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  PasswordResetResponse
 } from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
@@ -41,6 +45,20 @@ export class AuthService {
       `${environment.apiUrl}/auth/admin/login`,
       request
     ).pipe(tap(response => this.saveSession(response)));
+  }
+
+  loginWithGoogle(request: GoogleLoginRequest): Observable<JwtResponse> {
+    return this.http.post<JwtResponse>(`${this.BASE}/google`, request).pipe(
+      tap(response => this.saveSession(response))
+    );
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.BASE}/forgot-password`, request);
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<PasswordResetResponse> {
+    return this.http.post<PasswordResetResponse>(`${this.BASE}/reset-password`, request);
   }
 
   refreshToken(): Observable<TokenRefreshResponse> {

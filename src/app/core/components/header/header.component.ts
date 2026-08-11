@@ -1,4 +1,4 @@
-import { Component, HostListener, signal, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, signal, computed, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,10 @@ import { EventCardResponse } from '../../../shared/models/evento.model';
 import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-service.model';
 import { SpecialistProfileResponse } from '../../../services/profesionales.service';
 import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
+import { CityInterestService } from '../../../services/city-interest.service';
+import { ToastService } from '../../../shared/services/toast.service';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-header',
@@ -26,6 +30,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
+  private readonly cityInterestService = inject(CityInterestService);
+  private readonly toastService = inject(ToastService);
 
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
@@ -38,6 +44,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   searchResults    = signal<SearchResults | null>(null);
   searching        = signal(false);
   private readonly searchInput$ = new Subject<string>();
+
+  cityInterestEmail      = signal('');
+  cityInterestSubmitting = signal(false);
+  cityInterestError      = signal<string | null>(null);
+
+  readonly selectedCityName = computed(() => {
+    const selected = this.filtrosService.filterCity();
+    if (selected !== 'Todas') return selected;
+    return this.filtrosService.cities()[0]?.name ?? 'tu ciudad';
+  });
 
   navLinks = [
     { label: 'Explorar',      path: '/explorar'      },
@@ -147,8 +163,56 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleMobileMenu(): void { this.isMobileMenuOpen.update(v => !v); }
   closeMobileMenu():  void { this.isMobileMenuOpen.set(false); }
-  toggleCity():       void { this.isCityOpen.update(v => !v); this.isFilterOpen.set(false); }
-  closeCity():        void { this.isCityOpen.set(false); }
+
+  toggleCity(): void {
+    const opening = !this.isCityOpen();
+    this.isCityOpen.set(opening);
+    this.isFilterOpen.set(false);
+    if (opening) {
+      this.cityInterestError.set(null);
+      this.cityInterestEmail.set(this.authService.currentUser()?.email ?? '');
+    }
+  }
+
+  closeCity(): void {
+    this.isCityOpen.set(false);
+  }
+
+  onCityInterestEmailInput(value: string): void {
+    this.cityInterestEmail.set(value);
+    if (this.cityInterestError()) this.cityInterestError.set(null);
+  }
+
+  submitCityInterest(): void {
+    if (this.cityInterestSubmitting()) return;
+
+    const email = this.cityInterestEmail().trim();
+    if (!EMAIL_PATTERN.test(email)) {
+      this.cityInterestError.set('Introduce un email válido.');
+      return;
+    }
+
+    const city = this.filtrosService.getCityByName(this.selectedCityName());
+    if (!city) {
+      this.cityInterestError.set('No se pudo identificar la ciudad seleccionada.');
+      return;
+    }
+
+    this.cityInterestError.set(null);
+    this.cityInterestSubmitting.set(true);
+    this.cityInterestService.registerInterest({ cityId: city.id, email }).subscribe({
+      next: () => {
+        this.cityInterestSubmitting.set(false);
+        this.closeCity();
+        this.toastService.success(`¡Genial! Hemos guardado tu interés por ${city.name}`);
+      },
+      error: err => {
+        this.cityInterestSubmitting.set(false);
+        const message = err?.error?.message || 'No se pudo registrar tu interés. Inténtalo de nuevo.';
+        this.cityInterestError.set(message);
+      },
+    });
+  }
   onSearchFocus():    void { this.isSearchFocused.set(true); }
   onSearchBlur():     void { setTimeout(() => this.isSearchFocused.set(false), 160); }
 

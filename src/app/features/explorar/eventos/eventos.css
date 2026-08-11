@@ -2,6 +2,18 @@
   box-sizing: border-box;
 }
 
+.eventos-page {
+  padding-top: 24px;
+}
+
+/* El .container global compensa un header fijo con margin-top:65px;
+   el header de esta app es sticky (ya ocupa espacio en el flujo),
+   así que se anula esa compensación duplicada aquí. */
+.container {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .title{
   font-weight: 700;
   font-size: 2.25rem;
@@ -722,7 +734,7 @@ h2 {
 
 @media (max-width: 520px) {
   .eventos-page {
-    padding-top: 124px;
+    padding-top: 20px;
   }
 
   .cards-grid {

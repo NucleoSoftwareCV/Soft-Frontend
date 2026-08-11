@@ -2,6 +2,14 @@
   padding: 32px;
 }
 
+/* El .container global compensa un header fijo con margin-top:65px;
+   el header de esta app es sticky (ya ocupa espacio en el flujo),
+   así que se anula esa compensación duplicada aquí. */
+.container {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .directory-hero {
   text-align: center;
   margin-bottom: 32px;
@@ -325,7 +333,7 @@
 
 @media (max-width: 768px) {
   .wellness-directory {
-    padding: 16px;
+    padding: 20px 16px;
   }
 
   .directory-grid {

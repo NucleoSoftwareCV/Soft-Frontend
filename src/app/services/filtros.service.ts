@@ -5,11 +5,14 @@ import {
   CategoryCatalogItem,
   ExperienceTypeCatalogItem,
 } from '../shared/models/event-catalog.model';
+import { CityResponse } from '../shared/models/evento.model';
 import { EventCatalogService } from './event-catalog.service';
+import { CityService } from './city.service';
 
 @Injectable({ providedIn: 'root' })
 export class FiltrosService {
   private readonly catalogApi = inject(EventCatalogService);
+  private readonly cityApi = inject(CityService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   filterWhen = signal<string | null>(null);
@@ -22,9 +25,9 @@ export class FiltrosService {
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
   readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
+  readonly cities = signal<CityResponse[]>([]);
 
   whenOptions = ['Hoy', 'Mañana', 'Este finde', 'Esta semana', 'Próxima semana'];
-  cityOptions = ['Todas', 'Valencia', 'Alicante', 'Castellón', 'Barcelona', 'Madrid'];
   timeOptions = [
     { label: 'Mañana', sub: '6h - 12h' },
     { label: 'Mediodía', sub: '12h - 16h' },
@@ -44,6 +47,10 @@ export class FiltrosService {
 
   get typeOptions(): string[] {
     return this.experienceTypes().map(type => type.name);
+  }
+
+  get cityOptions(): string[] {
+    return ['Todas', ...this.cities().map(city => city.name)];
   }
 
   get activeFilterCount(): number {
@@ -81,6 +88,20 @@ export class FiltrosService {
       },
       error: () => undefined,
     });
+    this.cityApi.getCities().subscribe({
+      next: cities => {
+        const active = cities.filter(city => city.active);
+        this.cities.set(active);
+        if (this.filterCity() !== 'Todas' && !active.some(city => city.name === this.filterCity())) {
+          this.filterCity.set('Todas');
+        }
+      },
+      error: () => undefined,
+    });
+  }
+
+  getCityByName(name: string): CityResponse | undefined {
+    return this.cities().find(city => city.name === name);
   }
 
   selectWhen(option: string): void {

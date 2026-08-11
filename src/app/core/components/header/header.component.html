@@ -22,7 +22,7 @@
     <!-- Buscador central -->
     <div class="header__search-wrap">
       <div class="header__search" [class.header__search--focused]="isSearchFocused()">
-        <svg class="header__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        <svg class="header__search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
@@ -70,28 +70,20 @@
 
       <!-- Ciudad (solo desktop) -->
       <div class="header__city-wrap">
-        <button class="header__city-btn" (click)="toggleCity()" [attr.aria-expanded]="isCityOpen()" type="button">
+        <button class="header__city-btn" (click)="toggleCity()" [attr.aria-expanded]="isCityOpen()"
+          aria-controls="header-city-popover" aria-haspopup="dialog" type="button">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path
               d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          <span>{{ filtrosService.filterCity() === 'Todas' ? 'Valencia' : filtrosService.filterCity() }}</span>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            aria-hidden="true">
+          <span>{{ selectedCityName() }}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="opacity: 0.6" aria-hidden="true">
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
-        @if (isCityOpen()) {
-        <div class="header__city-dropdown">
-          <p class="header__city-dropdown-title">Próximamente más ciudades</p>
-          <p class="header__city-dropdown-text">
-            Por ahora Oona vive en la Comunidad Valenciana.
-            Avisanos por dónde te gustaría que aterricemos.
-          </p>
-        </div>
-        }
       </div>
 
       <!-- Lupa (solo móvil horizontal 480–767px) -->
@@ -442,6 +434,27 @@
 
 @if (isCityOpen()) {
 <div class="city-overlay" (click)="closeCity()" aria-hidden="true"></div>
+<div class="header__city-popover" id="header-city-popover" role="dialog" aria-label="Interés por ciudad">
+  <button type="button" class="header__city-popover-close" (click)="closeCity()" aria-label="Cerrar">×</button>
+  <p class="header__city-popover-question">
+    ¿Quieres que te avisemos cuando Oona llegue a <strong>{{ selectedCityName() }}</strong>?
+  </p>
+  <div class="header__city-popover-field">
+    <label class="header__city-popover-label" for="header-city-email">Email</label>
+    <input id="header-city-email" type="email" class="header__city-popover-input"
+      [class.header__city-popover-input--error]="cityInterestError()" [value]="cityInterestEmail()"
+      (input)="onCityInterestEmailInput($any($event.target).value)" (keydown.enter)="submitCityInterest()"
+      placeholder="tu@email.com" autocomplete="email" [attr.aria-invalid]="cityInterestError() ? true : null"
+      [disabled]="cityInterestSubmitting()" />
+  </div>
+  @if (cityInterestError()) {
+  <p class="header__city-popover-error" role="alert">{{ cityInterestError() }}</p>
+  }
+  <button type="button" class="header__city-popover-submit btn-primary" (click)="submitCityInterest()"
+    [disabled]="cityInterestSubmitting()">
+    {{ cityInterestSubmitting() ? 'Enviando…' : 'Avísame' }}
+  </button>
+</div>
 }
 
 <!-- MENÚ MÓVIL -->
