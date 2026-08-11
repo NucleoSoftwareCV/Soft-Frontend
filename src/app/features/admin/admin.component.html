@@ -255,17 +255,20 @@
             <h1>Catálogos de eventos</h1>
             <p>Gestiona las opciones que se muestran en Explorar y al crear eventos.</p>
           </div>
-          <button class="primary icon-inline" (click)="openNewCatalogItem()">
+          <button class="primary icon-inline" (click)="(catalogTab() === 'workTopics' || catalogTab() === 'techniques') ? openNewSessionCatalogItem() : openNewCatalogItem()">
             <svg lucidePlus aria-hidden="true" class="icon-md"></svg>
-            {{ catalogTab() === 'categories' ? 'Nueva categoría' : 'Nuevo tipo' }}
+            {{ catalogTab() === 'categories' ? 'Nueva categoría' : catalogTab() === 'experienceTypes' ? 'Nuevo tipo' : catalogTab() === 'workTopics' ? 'Nuevo tema' : 'Nueva técnica' }}
           </button>
         </div>
 
-        <div class="catalog-tabs" role="tablist" aria-label="Catálogos de eventos">
+        <div class="catalog-tabs" role="tablist" aria-label="Catálogos">
           <button role="tab" [attr.aria-selected]="catalogTab() === 'categories'" [class.active]="catalogTab() === 'categories'" (click)="selectCatalogTab('categories')">Categorías</button>
           <button role="tab" [attr.aria-selected]="catalogTab() === 'experienceTypes'" [class.active]="catalogTab() === 'experienceTypes'" (click)="selectCatalogTab('experienceTypes')">Tipos de experiencia</button>
+          <button role="tab" [attr.aria-selected]="catalogTab() === 'workTopics'" [class.active]="catalogTab() === 'workTopics'" (click)="selectCatalogTab('workTopics')">Temas de sesión</button>
+          <button role="tab" [attr.aria-selected]="catalogTab() === 'techniques'" [class.active]="catalogTab() === 'techniques'" (click)="selectCatalogTab('techniques')">Técnicas de sesión</button>
         </div>
 
+        @if (catalogTab() === 'categories' || catalogTab() === 'experienceTypes') {
         <div class="table-shell">
           <table>
             <thead><tr><th>Nombre</th><th>Slug</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
@@ -297,6 +300,38 @@
             </tbody>
           </table>
         </div>
+        } @else {
+        <div class="table-shell">
+          <table>
+            <thead><tr><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+              @if (loading()) {
+                @for (_ of [1,2,3,4]; track $index) { <tr><td colspan="3"><div class="skeleton-row"></div></td></tr> }
+              } @else {
+                @for (item of activeSessionCatalogList; track item.id) {
+                  <tr>
+                    <td><strong>{{ item.name }}</strong></td>
+                    <td>
+                      <button
+                        type="button"
+                        class="status status--toggle"
+                        [attr.data-status]="item.active ? 'APROBADO' : 'RECHAZADO'"
+                        [title]="item.active ? 'Desactivar' : 'Reactivar'"
+                        (click)="item.active ? confirmDeactivateSessionCatalogItem(item) : reactivateSessionCatalogItem(item)"
+                      >
+                        {{ item.active ? 'ACTIVO' : 'INACTIVO' }}
+                      </button>
+                    </td>
+                    <td><div class="row-actions">
+                      <button class="table-action table-action--square" title="Editar" (click)="openEditSessionCatalogItem(item)"><svg lucidePencil aria-hidden="true" class="icon-sm"></svg></button>
+                    </div></td>
+                  </tr>
+                } @empty { <tr><td colspan="3" class="empty">No hay elementos registrados.</td></tr> }
+              }
+            </tbody>
+          </table>
+        </div>
+        }
       </section>
     }
   </main>
@@ -474,6 +509,61 @@
       <h2 id="catalog-delete-title">Eliminar {{ item.name }}</h2>
       <p>Esta opción todavía no tiene relaciones. La eliminación es permanente.</p>
       <footer><button class="cancel" (click)="catalogDeleteConfirm.set(null)">Volver</button><button class="primary" [disabled]="deciding()" (click)="deleteCatalogItem()">Eliminar</button></footer>
+    </section>
+  }
+
+  @if (sessionCatalogFormOpen()) {
+    <button class="drawer-backdrop" aria-label="Cerrar formulario" (click)="sessionCatalogFormOpen.set(false)"></button>
+    <aside class="drawer catalog-dialog" aria-labelledby="session-catalog-form-title">
+      <header class="catalog-dialog__header">
+        <div class="catalog-dialog__heading">
+          <span class="catalog-dialog__icon" aria-hidden="true"><svg lucideTags></svg></span>
+          <div>
+            <span>{{ catalogTab() === 'workTopics' ? 'Tema de sesión' : 'Técnica de sesión' }}</span>
+            <h2 id="session-catalog-form-title">{{ sessionCatalogForm.id ? 'Editar elemento' : 'Nuevo elemento' }}</h2>
+            <p>{{ catalogTab() === 'workTopics' ? 'Los temas se usan para filtrar sesiones 1:1 por objetivo.' : 'Las técnicas se usan para filtrar sesiones 1:1 por enfoque.' }}</p>
+          </div>
+        </div>
+        <button class="catalog-dialog__close" type="button" title="Cerrar" aria-label="Cerrar" (click)="sessionCatalogFormOpen.set(false)">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+
+      <form (ngSubmit)="saveSessionCatalogItem()" class="catalog-form">
+        <label class="catalog-field">
+          <span>Nombre <b>*</b></span>
+          <input
+            name="sessionCatalogName"
+            [(ngModel)]="sessionCatalogForm.name"
+            required
+            maxlength="100"
+            [placeholder]="catalogTab() === 'workTopics' ? 'Ej. Ansiedad' : 'Ej. Terapia cognitivo-conductual'">
+          <small>Este nombre aparecerá en los filtros de sesiones 1:1.</small>
+        </label>
+
+        <label class="field--checkbox">
+          <input type="checkbox" name="sessionCatalogActive" [(ngModel)]="sessionCatalogForm.active" />
+          <span>Elemento activo y disponible para usuarios</span>
+        </label>
+
+        <footer class="catalog-dialog__footer">
+          <button type="button" class="cancel" (click)="sessionCatalogFormOpen.set(false)">Cancelar</button>
+          <button type="submit" class="primary catalog-dialog__save" [disabled]="sessionCatalogSaving()">
+            <svg lucideSave aria-hidden="true"></svg>
+            {{ sessionCatalogSaving() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </footer>
+      </form>
+    </aside>
+  }
+
+  @if (sessionCatalogDeactivateConfirm(); as item) {
+    <button class="confirm-backdrop" aria-label="Cancelar desactivación" (click)="sessionCatalogDeactivateConfirm.set(null)"></button>
+    <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="session-catalog-deactivate-title">
+      <div class="confirm-dialog__icon confirm-dialog__icon--danger"><svg lucideTrash2 aria-hidden="true"></svg></div>
+      <h2 id="session-catalog-deactivate-title">Desactivar {{ item.name }}</h2>
+      <p>El elemento dejará de estar disponible en los filtros públicos, pero no se elimina y puede reactivarse luego.</p>
+      <footer><button class="cancel" (click)="sessionCatalogDeactivateConfirm.set(null)">Volver</button><button class="primary" [disabled]="sessionCatalogSaving()" (click)="deactivateSessionCatalogItemConfirmed()">Desactivar</button></footer>
     </section>
   }
 

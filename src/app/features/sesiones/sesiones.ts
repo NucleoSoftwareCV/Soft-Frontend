@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { LucideChevronDown } from '@lucide/angular';
 
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import { OneToOneFilterOption, OneToOneServiceCardResponse } from '../../shared/models/one-to-one-service.model';
@@ -8,7 +10,7 @@ import { OneToOneFilterOption, OneToOneServiceCardResponse } from '../../shared/
 @Component({
   selector: 'app-sesiones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideChevronDown],
   templateUrl: './sesiones.html',
   styleUrls: ['./sesiones.css']
 })
@@ -22,6 +24,7 @@ export class SesionesComponent implements OnInit {
   readonly loadingMore = signal(false);
   readonly error = signal<string | null>(null);
   readonly filtersError = signal<string | null>(null);
+  readonly filtersLoading = signal(true);
 
   readonly workTopics = signal<OneToOneFilterOption[]>([]);
   readonly techniques = signal<OneToOneFilterOption[]>([]);
@@ -76,6 +79,24 @@ export class SesionesComponent implements OnInit {
     this.openDropdown.set(this.openDropdown() === dropdown ? null : dropdown);
   }
 
+  closeDropdown(): void {
+    this.openDropdown.set(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (!this.openDropdown()) return;
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown-wrapper')) {
+      this.closeDropdown();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeDropdown();
+  }
+
   selectWorkTopic(id: number | null): void {
     this.selectedWorkTopicId.set(id);
     this.openDropdown.set(null);
@@ -111,7 +132,7 @@ export class SesionesComponent implements OnInit {
 
   selectedTechniqueLabel(): string {
     const selectedId = this.selectedTechniqueId();
-    return this.techniques().find(technique => technique.id === selectedId)?.name ?? 'Tipos';
+    return this.techniques().find(technique => technique.id === selectedId)?.name ?? 'Técnicas';
   }
 
   hasMorePages(): boolean {
@@ -148,15 +169,35 @@ export class SesionesComponent implements OnInit {
 
   private loadFilterOptions(): void {
     this.filtersError.set(null);
+    this.filtersLoading.set(true);
 
-    this.oneToOneServices.getActiveWorkTopics().subscribe({
-      next: topics => this.workTopics.set(topics),
-      error: () => this.filtersError.set('No se pudieron cargar los filtros de temas.'),
-    });
+    forkJoin({
+      topics: this.oneToOneServices.getActiveWorkTopics(),
+      techniques: this.oneToOneServices.getActiveTechniques(),
+    }).subscribe({
+      next: ({ topics, techniques }) => {
+        this.workTopics.set(topics);
+        this.techniques.set(techniques);
+        this.filtersLoading.set(false);
 
-    this.oneToOneServices.getActiveTechniques().subscribe({
-      next: techniques => this.techniques.set(techniques),
-      error: () => this.filtersError.set('No se pudieron cargar los filtros de tipos.'),
+        // Si el tema o la tecnica seleccionados fueron desactivados, limpiamos la seleccion.
+        let mustReload = false;
+        if (this.selectedWorkTopicId() !== null && !topics.some(topic => topic.id === this.selectedWorkTopicId())) {
+          this.selectedWorkTopicId.set(null);
+          mustReload = true;
+        }
+        if (this.selectedTechniqueId() !== null && !techniques.some(technique => technique.id === this.selectedTechniqueId())) {
+          this.selectedTechniqueId.set(null);
+          mustReload = true;
+        }
+        if (mustReload) {
+          this.loadSesiones(0);
+        }
+      },
+      error: () => {
+        this.filtersLoading.set(false);
+        this.filtersError.set('No se pudieron cargar los filtros de temas y técnicas.');
+      },
     });
   }
 

@@ -7,7 +7,7 @@
 .sesiones-page {
   background-color: #f2f4f0;
   min-height: 100vh;
-  padding: 92px 20px 40px;
+  padding: 24px 20px 40px;
   font-family: sans-serif;
 }
 
@@ -131,21 +131,55 @@
 }
 
 .flecha {
-  display: none;
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.flecha--open {
+  transform: rotate(180deg);
 }
 
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  left: auto;
   background: white;
   border: 1px solid #e8e8e8;
   border-radius: 20px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.1);
   min-width: 180px;
+  max-width: min(280px, calc(100vw - 32px));
+  max-height: min(320px, calc(100vh - 140px));
+  overflow-y: auto;
   z-index: 100;
   padding: 6px;
-  overflow: hidden;
+}
+
+.dropdown-estado {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #4e6f59;
+  margin: 0;
+}
+
+.dropdown-estado--error {
+  color: #a93d3d;
+}
+
+/* La primera dropdown se ancla a la izquierda para no salirse del viewport
+   por la izquierda en pantallas estrechas; la segunda se ancla a la derecha. */
+.dropdown-wrapper--topics .dropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+.dropdown-wrapper--techniques .dropdown-menu {
+  right: 0;
+  left: auto;
 }
 
 .dropdown-item {
@@ -521,7 +555,7 @@
 }
 
 @media (max-width: 1300px) {
-  .sesiones-page { padding: 92px 20px 36px; }
+  .sesiones-page { padding: 24px 20px 36px; }
 }
 
 @media (max-width: 1100px) {
@@ -530,7 +564,7 @@
 
 @media (max-width: 768px) {
   .sesiones-page {
-    padding: 84px 16px 24px;
+    padding: 20px 16px 24px;
   }
 
   .sesiones-filtros {
@@ -546,7 +580,17 @@
   .filtros-derecha {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .dropdown-wrapper--topics .dropdown-menu,
+  .dropdown-wrapper--techniques .dropdown-menu {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    margin-inline: auto;
   }
 
   .sesiones-grid {
