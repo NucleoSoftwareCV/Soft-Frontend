@@ -152,10 +152,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('document:click', ['$event'])
+  @HostListener('document:click', ['$event'])
   onClickOutside(event: Event): void {
     if (this.isProfilePopoverOpen()) {
       const target = event.target as HTMLElement;
-      if (!target.closest('.header__profile-container')) {
+      if (!target.closest('.header__profile-container') && !target.closest('.header__burger')) {
         this.isProfilePopoverOpen.set(false);
       }
     }

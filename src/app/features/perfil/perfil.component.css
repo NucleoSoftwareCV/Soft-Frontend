@@ -1093,17 +1093,26 @@
    ESTILOS DE CLIENTE: MI ESPACIO
    ══════════════════════════════════════ */
 
-.mi-espacio-wrapper {
+/*.mi-espacio-wrapper {
   background-color: #f7f8f3;
   min-height: calc(100vh - 64px);
   width: 100%;
-}
+}*/
 
 .mi-espacio {
-  max-width: 1142px;
-  margin: 0 auto;
-  padding: 72px 24px 36px;
-  display: flex;
+  display: block;
+  flex: 1 1 0%;
+  width: 100%;
+  min-height: calc(100vh - 64px); 
+  margin: 0;
+  padding: 32px;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 66, 87);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
   flex-direction: column;
   gap: 16px;
   animation: fadeIn 0.3s ease-out;
@@ -1117,10 +1126,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #789972;
+  color: rgb(97, 117, 87);
   text-decoration: none;
   font-size: var(--text-sm, 0.88rem);
-  font-weight: 600;
   transition: transform var(--transition-fast, 0.15s);
 }
 
@@ -1128,14 +1136,118 @@
   transform: translateX(-3px);
 }
 
+.ticket{
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+
+  fill: none;
+  stroke: rgb(0, 66, 87);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 66, 87);
+  cursor: pointer;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+.calendariocheck{
+  display: block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+
+  fill: none;
+  stroke: rgb(0, 78, 89);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 78, 89);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+}
+.lineas{
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+
+  fill: none;
+  stroke: rgb(0, 78, 89);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 78, 89);
+
+  cursor: pointer;
+  pointer-events: none;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.calendario{
+  display: block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+  fill: none;
+  stroke: rgb(0, 78, 89);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 78, 89);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+}
 .mi-espacio__header-card {
-  background-color: #ffffff;
-  border-radius: 18px;
-  padding: 17px 26px;
-  box-shadow: 0 2px 12px rgba(0, 78, 89, 0.06);
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0;
+  display: block;
+  width: 100%;
+  min-height: 190px; 
+  margin-top: 10px;
+  margin-bottom: 24px;
+  padding: 28px;
+  box-sizing: border-box;
+
+  background-image: linear-gradient(to right bottom, rgba(0, 78, 89, 0.06), rgb(255, 255, 255), rgb(255, 255, 255));
+  border: 0.666667px solid rgba(238, 244, 235, 0.6);
+  border-radius: 24px;
+  color: rgb(0, 66, 87);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
 }
 
 .mi-espacio__header {
@@ -1156,7 +1268,8 @@
 }
 
 .mi-espacio__title {
-  font-family: var(--font-display, serif);
+
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 1.85rem;
   font-weight: 700;
   color: #004e59;
@@ -1165,19 +1278,19 @@
 }
 
 .mi-espacio__subtitle-desc {
-  font-size: 0.92rem;
-  color: #555;
+  font-size: 14px;
+  color: rgb(97, 117, 87);
   margin: 0;
 }
 
 .mi-espacio__preferences-btn {
-  background-color: #ffffff;
-  border: 1px solid #004e59;
+  background-color: rgb(243, 244, 240);
+  border: 1px solid rgba(0, 78, 89, 0.3);
   border-radius: 9999px;
   padding: 8px 16px;
   font-family: var(--font-body, sans-serif);
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: #004e59;
   display: inline-flex;
   align-items: center;
@@ -1202,9 +1315,9 @@
 
 .mi-espacio__info-card {
   background-color: #ffffff;
-  border: 1px solid rgba(0, 78, 89, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 78, 89, 0.02);
-  border-radius: 9999px; /* Pill shape */
+  border: 1px solid rgba(238, 244, 235, 0.6);
+  box-shadow: rgba(0, 78, 89, 0.02) 0px 1px 3px 0px;
+  border-radius: 9999px; 
   padding: 6px 14px;
   display: flex;
   align-items: center;
@@ -1219,19 +1332,20 @@
 }
 
 .mi-espacio__info-text {
-  font-size: 0.84rem;
-  color: #555;
+  font-size: 12px;
+  color: rgb(97, 117, 87);
   font-family: var(--font-body, sans-serif);
 }
 
 .mi-espacio__info-text strong {
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 14px;
   color: #004e59;
   margin-left: 4px;
 }
 
 .mi-espacio__tabs-container {
-  background-color: #ffffff;
+  background-color: rgb(245, 249, 250);
   border-radius: 9999px;
   border: 1px solid #eef2f5;
   padding: 3px;
@@ -1248,13 +1362,13 @@
 }
 
 .mi-espacio__tab-btn {
-  background: none;
+  background: rgba(0, 0, 0, 0);
   border: none;
   padding: 7px 16px;
   font-family: var(--font-body, sans-serif);
   font-size: var(--text-sm, 0.88rem);
   font-weight: 600;
-  color: var(--color-muted, #7c8ba1);
+  color: rgb(97, 117, 87);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1272,7 +1386,7 @@
 }
 
 .mi-espacio__tab-btn--active {
-  background-color: #98c9eb !important; /* Estilo azul claro oficial de Oona.es */
+  background-color: #98c9eb !important; 
   color: #0c334b !important;
   font-weight: 700;
   border-radius: 9999px;
@@ -1289,6 +1403,7 @@
 /* ── Pestaña Reservas (Vacío) ── */
 .mi-espacio__empty-state {
   display: flex;
+  margin-top: 45px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1299,33 +1414,199 @@
 }
 
 .mi-espacio__empty-icon-wrap {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background-color: #dbeae6;
+  background-color: rgba(0, 78, 89, 0.1);
   color: #004e59;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
 }
+.corazonicono{
+  display: block;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+
+  fill: none;
+  stroke: rgb(76, 140, 43);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(76, 140, 43);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.estrella2icono{
+  display: block;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+
+  overflow: hidden;
+  overflow-clip-margin: content-box;
+
+  fill: none;
+  stroke: rgb(76, 140, 43);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(76, 140, 43);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+  text-align: center;
+  vertical-align: middle;
+}
+.mi-espacio__empty-icon-wrap2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+
+  background-color: rgba(76, 140, 43, 0.1);
+  border: 0px solid rgb(238, 244, 235);
+  border-radius: 9999px;
+  color: rgb(0, 66, 87);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+  text-align: center;
+}
 
 .mi-espacio__empty-title {
-  font-family: var(--font-display, serif);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-family: Sunset, Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
   color: #004e59;
   margin: 0 0 10px 0;
 }
 
+.following-h2 {
+  display: block;
+  width: 100%; 
+  max-width: 400px;
+  margin: 0 0 8px 0;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 66, 87);
+
+  font-family: Sunset, Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  text-align: center;
+}
+
+.following-p {
+  display: block;
+  width: 100%; 
+  max-width: 448px;
+  margin: 0 0 24px 0;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(97, 117, 87);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+  text-align: center;
+}
+
+.following-p2 {
+  display: block;
+  width: 100%; 
+  max-width: 448px;
+  margin: 0 0 24px 0;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(97, 117, 87);
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+  text-align: center;
+}
+
 .mi-espacio__empty-text {
   font-size: 0.95rem;
-  color: #555;
-  max-width: 440px;
+  color: rgb(97, 117, 87);
+  max-width: 448px;
   line-height: 1.6;
   margin: 0 0 18px 0;
 }
+.boton{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
+  width: 144px;
+  height: 40px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+
+  background-color: rgb(0, 78, 89);
+  border: 0px solid rgb(238, 244, 235);
+  border-radius: 9999px;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+
+  text-decoration: none;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.boton2{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 181px;
+  height: 40px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+
+  background-color: rgb(0, 78, 89);
+  border: 0px solid rgb(238, 244, 235);
+  border-radius: 9999px;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+
+  text-decoration: none;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .mi-espacio__empty-btn {
   padding: 10px 22px;
   text-decoration: none;
@@ -1354,6 +1635,7 @@
 
   .mi-espacio__header {
     gap: 18px;
+    flex-direction: column; 
   }
 
   .mi-espacio__header-right,
@@ -1371,18 +1653,33 @@
 
   .mi-espacio__tabs-container {
     border-radius: 14px;
+    padding: 4px;
   }
 
   .mi-espacio__tabs {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: row; 
+    gap: 2px;
   }
 
   .mi-espacio__tab-btn {
     min-height: 38px;
+    width: 100%;
+    padding: 6px 4px; 
+    font-size: 0.72rem; 
+    gap: 4px;
+  }
+
+  .mi-espacio__tab-btn svg {
+    display: none;
   }
 
   .mi-espacio__empty-state {
     padding: 30px 14px;
+  }
+  
+  .mi-espacio__guardados-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1660,14 +1957,15 @@
 }
 
 .following-state {
-  min-height: 150px;
   display: flex;
+  margin-top: 45px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  color: var(--color-muted, #667085);
   text-align: center;
+  padding: 42px 24px;
+  background-color: transparent;
+  border: none;
 }
 
 .following-state--error {
