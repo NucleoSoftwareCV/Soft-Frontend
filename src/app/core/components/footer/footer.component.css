@@ -33,9 +33,24 @@
 }
 
 .footer__logo-img {
-  height: 52px;
-  width: auto;
+  display: block;
+  width: 207.5px;
+  max-width: 100%;
+  height: 56px;
+  aspect-ratio: auto 1920 / 1080;
   object-fit: contain;
+  vertical-align: middle;
+  box-sizing: border-box;
+
+  overflow: clip;
+  overflow-clip-margin: content-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
 }
 
 .footer__tagline {
