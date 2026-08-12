@@ -12,8 +12,8 @@ import {
   EventFilterParams,
   EventModality,
 } from '../../../shared/models/evento.model';
-import { categoryIcon } from '../../../shared/utils/category-icon.util';
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
+import { EventoCardComponent } from '../../../shared/components/event-card/event-card';
 
 interface EventSortOption {
   label: string;
@@ -23,7 +23,7 @@ interface EventSortOption {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, EventoCardComponent],
   
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
@@ -64,10 +64,6 @@ export class Eventos {
   ];
   selectedSort = signal<EventSortOption>(this.sortOptions[0]);
   private lastRequestKey = '';
-
-  assetUrl(url: string | null | undefined, fallback = this.fallbackImage): string {
-    return this.eventosService.resolveAssetUrl(url) ?? fallback;
-  }
 
   constructor() {
     this.loadCategorias();
@@ -169,50 +165,6 @@ export class Eventos {
   clearFilters() {
     this.showDatePicker.set(false);
     this.filtrosService.clearFilters();
-  }
-
-  toggleFavorito(item: EventCardResponse) {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.favoritesService.toggleFavorite('EVENTO', item.id).subscribe({
-      error: err => {
-        console.error('Error toggling favorite', err);
-      }
-    });
-  }
-
-  isFavorito(item: EventCardResponse): boolean {
-    return this.favoritos().has(item.id);
-  }
-
-  categoryEmoji(name: string | null): string {
-    return categoryIcon(name);
-  }
-
-  isOnline(item: EventCardResponse): boolean {
-    return item.modality === EventModality.ONLINE;
-  }
-
-  formatDate(value: string | null): string {
-    if (!value) return 'Fecha por confirmar';
-    return new Intl.DateTimeFormat('es-ES', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  }
-
-  formatPrice(item: EventCardResponse): string {
-    if (item.priceFrom === null || item.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: item.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(item.priceFrom);
   }
 
   private loadCategorias(): void {

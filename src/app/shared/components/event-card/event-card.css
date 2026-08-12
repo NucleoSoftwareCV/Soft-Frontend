@@ -1,0 +1,174 @@
+/*EVENTOS SIMILARES*/
+.card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  transition: transform 0.25s ease, box-shadow 0.65s ease;
+  cursor: pointer;
+}
+
+.card:hover{
+  transform: scale(1.02);
+}
+
+.image-box {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+  border: 1px solid #cfe3e6;
+  background: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #006274;
+  cursor: pointer;
+  padding: 0;
+}
+
+.heart svg{
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.heart.active{
+  color: #006274;
+}
+
+.location {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.location svg {
+  flex: 0 0 auto;
+}
+
+.location span {
+  color: inherit;
+}
+
+.card-body {
+  padding: .75rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tag {
+  display: inline-block;
+  background: #e9f5f9;
+  color: #004e59;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem ;
+  border-radius: 999px;
+  gap: 0.25rem;
+  margin-bottom: 6px;
+  width: fit-content;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-success, #1f7a45);
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recurrence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-muted, #888);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.recurrence-badge svg {
+  flex: 0 0 auto;
+}
+
+h2 {
+  font-size: 1.05rem;
+  color: #004e59;
+  font-family: Sunset, Georgia, serif;
+  font-weight: 700;
+  line-height: 1.25;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+  margin-top: .125rem;
+}
+
+.card-author{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: .625rem; 
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #00566b;
+  font-size: 14px;
+}
+
+.author img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.precio{
+  font-size: .78rem;
+  font-weight: 600;
+  color: #004e59;
+}
+

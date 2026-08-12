@@ -25,7 +25,7 @@
 
 .icon-green {
   background: rgba(110, 162, 85, 0.12);
-  color: hsl(var(--primary));
+  color: var(--primary);
 }
 
 .icon-green-2 {
@@ -712,6 +712,7 @@ swiper-slide{
   margin-bottom:14px;
   font-weight:600;
   font-size:14px;
+  color: var(--principal)
 }
 
 .session-list{
@@ -782,13 +783,6 @@ swiper-slide{
 .session-card.active .spots-left {
   color: #ffffffbf;
 }
-
-
-
-
-
-
-
 
 .descripcion{
   color: hsl(100 15% 40%);
@@ -963,6 +957,71 @@ swiper-slide{
   width: 42px;
 }
 
+
+/*CARD DE EVENTOS*/
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.card-events{
+  margin-top: 48px;
+}
+
+.event-title{
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  margin-bottom: 24px;
+}
+
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+
+  width: 40px;
+  height: 40px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
+}
+
+.carousel-arrow:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-arrow-left {
+  left: -15px;
+}
+
+.carousel-arrow-right {
+  right: -15px;
+}
+
 @media (max-width: 1023px) {
   .gallery {
     height: 320px;
@@ -1047,19 +1106,6 @@ swiper-slide{
     font-size: .875rem;
     line-height: 1.25rem;
   }
-  
-  
-
-}
-
-@media (max-width: 520px) {
-
-
-
-
-
-
-
 
 }
 
@@ -1822,4 +1868,21 @@ swiper-slide{
 }
 
 
+@media (max-width: 1024px) {
+  .carousel-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 539px) {
+  .carousel-track {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
 

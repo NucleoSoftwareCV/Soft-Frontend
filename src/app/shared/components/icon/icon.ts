@@ -7,6 +7,7 @@ export type IconName =
   | 'search'
   | 'carta' 
   | 'arrow-r' 
+  | 'arrow-l' 
  
 
 @Component({

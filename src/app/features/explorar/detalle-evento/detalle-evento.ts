@@ -1,24 +1,31 @@
-import { Component, inject, signal, OnDestroy, computed } from '@angular/core';
+import { Component, inject, signal, OnDestroy, computed, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { EventosService } from '../../../services/eventos.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
-import { EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
+import { EventCardResponse, EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { CheckoutService } from '../../../services/checkout.service';
+
+import { EventoCardComponent } from '../../../shared/components/event-card/event-card';
+import { AppIcon } from '../../../shared/components/icon/icon';
+
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, EventoCardComponent, AppIcon],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
+
 export class DetalleEvento implements OnDestroy{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -28,6 +35,37 @@ export class DetalleEvento implements OnDestroy{
   private readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
   private carouselInterval?: ReturnType<typeof setInterval>;
+
+  private readonly platformId = inject(PLATFORM_ID);
+
+private actualizarCardsPorSlide(): void {
+  if (!isPlatformBrowser(this.platformId)) {
+    return;
+  }
+
+  const width = window.innerWidth;
+
+  if (width <= 540) {
+    this.CARDS_POR_SLIDE.set(1);
+  } else if (width <= 768) {
+    this.CARDS_POR_SLIDE.set(2);
+  } else if (width <= 1024) {
+    this.CARDS_POR_SLIDE.set(3);
+  } else {
+    this.CARDS_POR_SLIDE.set(4);
+  }
+}
+
+  @HostListener('window:resize')
+  onResize(): void {
+    const cantidadAnterior = this.CARDS_POR_SLIDE();
+
+    this.actualizarCardsPorSlide();
+
+    if (cantidadAnterior !== this.CARDS_POR_SLIDE()) {
+      this.organizadorSlide.set(0);
+    }
+  }
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
@@ -80,6 +118,16 @@ export class DetalleEvento implements OnDestroy{
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
 
+  //EVENTOS SIMILARES Y DEL ORGANIZADOR
+  experienciasSimilares: EventCardResponse[] = [];
+  eventosOrganizador: EventCardResponse[] = [];
+
+  organizadorSlide = signal(0);
+  experienciasSlide = signal(0);
+  CARDS_POR_SLIDE = signal(4);
+
+  
+
   readonly fallbackImages = [
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
     'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
@@ -91,13 +139,113 @@ export class DetalleEvento implements OnDestroy{
   ];
 
   constructor() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadEvento(id);
+    this.route.paramMap.subscribe(params => {
+      const id = Number(params.get('id'));
+
+      this.loadEvento(id);
+
+      // Reiniciar estados relacionados al evento
+      this.selectedImageIndex.set(0);
+      this.currentSlide.set(0);
+      this.organizadorSlide.set(0);
+      this.experienciasSlide.set(0);
+    });
+
+    this.actualizarCardsPorSlide();
   }
 
   ngOnDestroy(): void {
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
+    }
+  }
+
+  cargarExperienciasSimilares(id: number) {
+    this.eventosService
+      .getExperienciasSimilares(id)
+      .subscribe({
+        next: (response) => {
+          this.experienciasSimilares = response.content;
+        },
+        error: (error) => {
+          console.error('Error al cargar eventos similares', error);
+        }
+      });
+  }
+
+  cargarEventosOrganizador(eventId: number): void {
+    this.eventosService.getEventosOrganizador(eventId).subscribe({
+      next: response => {
+        this.eventosOrganizador = response.content;
+      },
+      error: error => {
+        console.error(
+          'Error al cargar otros eventos del organizador',
+          error
+        );
+
+        this.eventosOrganizador = [];
+      }
+    });
+  }
+
+  experienciasPuedeRetroceder(): boolean {
+    return this.experienciasSlide() > 0;
+  }
+
+  experienciasPuedeAvanzar(): boolean {
+    return (
+      this.experienciasSlide() + this.CARDS_POR_SLIDE() <
+      this.experienciasSimilares.length
+    );
+  }
+
+  experienciasAnterior(): void {
+    if (this.experienciasPuedeRetroceder()) {
+      this.experienciasSlide.update(value =>
+        Math.max(0, value - this.CARDS_POR_SLIDE())
+      );
+    }
+  }
+
+  experienciasSiguiente(): void {
+    if (this.experienciasPuedeAvanzar()) {
+      this.experienciasSlide.update(value =>
+        Math.min(
+          this.experienciasSimilares.length - this.CARDS_POR_SLIDE(),
+          value + this.CARDS_POR_SLIDE()
+        )
+      );
+    }
+  }
+
+  organizadorPuedeRetroceder(): boolean {
+    return this.organizadorSlide() > 0;
+  }
+
+  organizadorPuedeAvanzar(): boolean {
+    return (
+      this.organizadorSlide() + this.CARDS_POR_SLIDE() <
+      this.eventosOrganizador.length
+    );
+  }
+
+  organizadorAnterior(): void {
+    if (this.organizadorPuedeRetroceder()) {
+      this.organizadorSlide.update(value =>
+        Math.max(0, value - this.CARDS_POR_SLIDE())
+      );
+    }
+  }
+
+  organizadorSiguiente(): void {
+    if (this.organizadorPuedeAvanzar()) {
+      this.organizadorSlide.update(value =>
+        Math.min(
+          this.eventosOrganizador.length - this.CARDS_POR_SLIDE(),
+          value + this.CARDS_POR_SLIDE()
+        )
+      );
     }
   }
 
@@ -178,6 +326,7 @@ export class DetalleEvento implements OnDestroy{
       ?? this.fallbackImages[0];
   }
 
+  
   formatPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
@@ -254,16 +403,42 @@ export class DetalleEvento implements OnDestroy{
       return;
     }
 
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Limpiar información del evento anterior
+    this.evento.set(null);
+    this.experienciasSimilares = [];
+    this.eventosOrganizador = [];
+    this.selectedOccurrence.set(null);
+    this.following.set(false);
+
     this.eventosService.getEvento(id).subscribe({
       next: event => {
+        console.log('EVENTO COMPLETO:', event);
+        console.log('ORGANIZADOR:', event.organizer);
+        console.log('SLUG:', event.organizer?.slug);
+
         this.evento.set(event);
+
         if (event.occurrences && event.occurrences.length > 0) {
-          const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
-          this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
+          const firstBookable = event.occurrences.find(
+            occ => this.isOccurrenceBookable(occ)
+          );
+
+          this.selectedOccurrence.set(
+            firstBookable ?? event.occurrences[0]
+          );
         }
+
         this.loading.set(false);
+
         this.loadFollowStatus(event.organizer?.id);
+
+        this.cargarExperienciasSimilares(id);
+        this.cargarEventosOrganizador(event.id);
       },
+
       error: () => {
         this.error.set('No pudimos cargar este evento.');
         this.loading.set(false);

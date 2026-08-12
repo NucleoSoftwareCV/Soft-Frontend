@@ -85,6 +85,7 @@ export interface EventOrganizerResponse {
   biography: string | null;
   photoUrl: string | null;
   whatsappPhone: string | null;
+  slug: string;
 }
 
 export interface MeetingLinkResponse {

@@ -355,13 +355,25 @@
             <img [src]="organizerPhotoUrl()" [alt]="event.organizer?.publicName || 'Organizador'">
 
             <div class="organizer-data">
-              <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
+              <a
+                class="organizer-name"
+                [routerLink]="['/profesionales', event.organizer?.slug]">
+                {{ event.organizer?.publicName || 'Oona' }}
+              </a>
+
               <p>Organizador de este evento</p>
             </div>
           </div>
 
-          <button class="profile-btn">Ver perfil 
-            <svg _ngcontent-ng-c2669232257="" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path _ngcontent-ng-c2669232257="" d="M5 12h14"></path><path _ngcontent-ng-c2669232257="" d="m12 5 7 7-7 7"></path></svg>
+          <button
+            class="profile-btn"
+            [routerLink]="['/profesionales', event.organizer?.slug]">
+            Ver perfil
+
+            <app-icon
+                  name="arrow-r"
+                  [size]="16">
+                </app-icon>
           </button>
           
           <a
@@ -393,6 +405,98 @@
         </div>
       </section>
 
+      @if (experienciasSimilares.length > 0) {
+        <section class="card-events">
+          <h1 class="event-title">Eventos similares</h1>
+
+          <div class="carousel-wrapper">
+
+            @if (experienciasPuedeRetroceder()) {
+              <button
+                class="carousel-arrow carousel-arrow-left"
+                type="button"
+                (click)="experienciasAnterior()">
+                <app-icon
+                  name="arrow-l"
+                  [size]="16">
+                </app-icon>
+              </button>
+            }
+
+            <div class="cards-grid carousel-track">
+              @for (
+                item of experienciasSimilares
+                  | slice:experienciasSlide():(experienciasSlide() + CARDS_POR_SLIDE());
+                track item.id
+              ) {
+                <app-evento-card
+                  [evento]="item">
+                </app-evento-card>
+              }
+            </div>
+
+            @if (experienciasPuedeAvanzar()) {
+              <button
+                class="carousel-arrow carousel-arrow-right"
+                type="button"
+                (click)="experienciasSiguiente()">
+                <app-icon
+                  name="arrow-r"
+                  [size]="16">
+                </app-icon>
+              </button>
+            }
+
+          </div>
+        </section>
+      }
+      
+      @if (eventosOrganizador.length > 0) {
+        <section class="card-events">
+          <h1 class="event-title">Otros eventos de este organizador</h1>
+
+          <div class="carousel-wrapper">
+
+            @if (organizadorPuedeRetroceder()) {
+              <button
+                class="carousel-arrow carousel-arrow-left"
+                type="button"
+                (click)="organizadorAnterior()">
+                <app-icon
+                  name="arrow-l"
+                  [size]="16">
+                </app-icon>
+              </button>
+            }
+
+            <div class="cards-grid carousel-track">
+              @for (
+                item of eventosOrganizador
+                  | slice:organizadorSlide():(organizadorSlide() + CARDS_POR_SLIDE());
+                track item.id
+              ) {
+                <app-evento-card
+                  [evento]="item">
+                </app-evento-card>
+              }
+            </div>
+
+            @if (organizadorPuedeAvanzar()) {
+              <button
+                class="carousel-arrow carousel-arrow-right"
+                type="button"
+                (click)="organizadorSiguiente()">
+                <app-icon
+                  name="arrow-r"
+                  [size]="16">
+                </app-icon>
+              </button>
+            }
+
+          </div>
+        </section>
+      }
+
       <div class="mobile-bottom-bar">
         <div>
           <strong>{{ formatPrice() }}</strong>
@@ -405,8 +509,7 @@
           {{ occurrenceUnavailableLabel(selectedOccurrence()) ?? (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
         </button>
       </div>
-
-      </div>
+    </div>
 
       <!-- Modal de Reserva (Checkout) -->
       <div class="booking-modal-backdrop" *ngIf="showBookingModal()" (click)="cerrarReserva()"></div>

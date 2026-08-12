@@ -96,6 +96,8 @@ export class EventosService {
 
   }
 
+  
+
   getHomeSections(
     cityName: string = 'Valencia',
     limit: number = 4
@@ -119,5 +121,40 @@ export class EventosService {
 
     const apiOrigin = new URL(environment.apiUrl).origin;
     return `${apiOrigin}${url.startsWith('/') ? url : `/${url}`}`;
+  }
+
+  getExperienciasSimilares(
+    id: number,
+    page = 0,
+    size = 10,
+    sort = 'startsAt,ASC'
+  ): Observable<SpringPage<EventCardResponse>> {
+
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', sort);
+
+    return this.http.get<SpringPage<EventCardResponse>>(
+      `${this.BASE}/events/${id}/similar`,
+      { params }
+    );
+  }
+
+  getEventosOrganizador(
+    eventId: number,
+    page: number = 0,
+    size: number = 100
+  ): Observable<SpringPage<EventCardResponse>> {
+
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', 'startsAt,ASC');
+
+    return this.http.get<SpringPage<EventCardResponse>>(
+      `${this.BASE}/events/${eventId}/organizer-events`,
+      { params }
+    );
   }
 }
