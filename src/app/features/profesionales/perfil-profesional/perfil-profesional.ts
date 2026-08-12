@@ -1,24 +1,34 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
 
-import { TarjetaDirectorio } from '../directorio/directorio';
+import { TarjetaDirectorio } from '../../../shared/models/tarjeta-directorio.model';
+import { toTarjetaDirectorio } from '../../../shared/utils/tarjeta-directorio.util';
 import { AppIcon, IconName } from '../../../shared/components/icon/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
 
 import { EventosService } from '../../../services/eventos.service';
+import { OneToOneServicesService } from '../../../services/one-to-one-services.service';
 
 import { EventCardResponse } from '../../../shared/models/evento.model';
+import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-service.model';
+import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
+import { SesionCardComponent } from '../../../shared/components/sesion-card/sesion-card.component';
+import { EventoCalendarComponent } from '../../../shared/components/evento-calendar/evento-calendar.component';
 
 @Component({
   selector: 'app-perfil-profesional',
   standalone: true,
   imports: [
     CommonModule,
-    AppIcon
+    RouterLink,
+    AppIcon,
+    EventoCardComponent,
+    SesionCardComponent,
+    EventoCalendarComponent,
   ],
   templateUrl: './perfil-profesional.html',
   styleUrl: './perfil-profesional.css'
@@ -37,18 +47,34 @@ export class PerfilProfesional implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly followService = inject(ProfessionalFollowService);
   private readonly eventosService = inject(EventosService);
+  private readonly oneToOneServicesService = inject(OneToOneServicesService);
 
   readonly perfil = signal<TarjetaDirectorio | null>(null);
   readonly following = signal(false);
   readonly followLoading = signal(false);
   readonly followError = signal<string | null>(null);
+  readonly publicPhotoFailed = signal(false);
   readonly isOwnProfile = computed(() => {
     const currentProfile = this.perfil();
     const currentUser = this.authService.currentUser();
     return Boolean(currentProfile && currentUser && currentProfile.userId === currentUser.id);
   });
 
-  eventos: EventCardResponse[] = [];
+  readonly eventos = signal<EventCardResponse[]>([]);
+  readonly sesiones = signal<OneToOneServiceCardResponse[]>([]);
+  readonly galleryLightboxIndex = signal<number | null>(null);
+
+  readonly mostrarEventos = computed(() =>
+    Boolean(this.perfil()?.showUpcomingEvents) && this.eventos().length > 0
+  );
+
+  readonly mostrarSesiones = computed(() =>
+    Boolean(this.perfil()?.showOneToOneSessions) && this.sesiones().length > 0
+  );
+
+  readonly mostrarGaleria = computed(() =>
+    Boolean(this.perfil()?.showGallery) && (this.perfil()?.galleryImages?.length ?? 0) > 0
+  );
 
   ngOnInit(): void {
 
@@ -68,6 +94,8 @@ export class PerfilProfesional implements OnInit {
 
   cargarPerfil(slug: string): void {
 
+    this.publicPhotoFailed.set(false);
+
     this.specialistProfileService
       .getPublicProfileBySlug(slug)
       .subscribe({
@@ -82,6 +110,10 @@ export class PerfilProfesional implements OnInit {
           }
 
           this.cargarEventos(
+            perfilBackend.id
+          );
+
+          this.cargarSesiones(
             perfilBackend.id
           );
         },
@@ -99,24 +131,33 @@ export class PerfilProfesional implements OnInit {
       });
   }
 
+  handlePublicPhotoError(): void {
+    this.publicPhotoFailed.set(true);
+  }
+
+  whatsappLink(phone?: string): string {
+    return `https://wa.me/${(phone ?? '').replace(/\D/g, '')}`;
+  }
+
+  instagramLink(): string | undefined {
+    return this.perfil()
+      ?.socialLinks
+      ?.find(link => link.platform?.toUpperCase() === 'INSTAGRAM')
+      ?.profileUrl;
+  }
+
   cargarEventos(
-    organizerId: number
+    specialistId: number
   ): void {
 
     this.eventosService
-      .getEventosPorOrganizador(
-        organizerId
+      .getEventosPorEspecialista(
+        specialistId
       )
       .subscribe({
 
         next: (response) => {
-          this.eventos =
-            response.content;
-
-          console.log(
-            'Eventos cargados:',
-            this.eventos
-          );
+          this.eventos.set(response.content);
         },
 
         error: (error) => {
@@ -128,102 +169,55 @@ export class PerfilProfesional implements OnInit {
       });
   }
 
+  cargarSesiones(
+    specialistId: number
+  ): void {
+
+    this.oneToOneServicesService
+      .getServicesBySpecialist(specialistId)
+      .subscribe({
+
+        next: (response) => {
+          this.sesiones.set(response.content);
+        },
+
+        error: (error) => {
+          console.error(
+            'Error al cargar sesiones:',
+            error
+          );
+        }
+      });
+  }
+
+  openGalleryLightbox(index: number): void {
+    this.galleryLightboxIndex.set(index);
+  }
+
+  closeGalleryLightbox(): void {
+    this.galleryLightboxIndex.set(null);
+  }
+
+  nextGalleryImage(): void {
+    const total = this.perfil()?.galleryImages?.length ?? 0;
+    if (!total) return;
+    this.galleryLightboxIndex.update(current => ((current ?? 0) + 1) % total);
+  }
+
+  previousGalleryImage(): void {
+    const total = this.perfil()?.galleryImages?.length ?? 0;
+    if (!total) return;
+    this.galleryLightboxIndex.update(current => ((current ?? 0) - 1 + total) % total);
+  }
+
   private convertirPerfil(
     perfil: SpecialistProfileResponse
   ): TarjetaDirectorio {
 
-    const temas =
-      perfil.workTopics ?? [];
-
-    const tecnicas =
-      perfil.techniques ?? [];
-
-    return {
-
-      id: perfil.id,
-      userId: perfil.userId,
-
-      tipo: this.convertirTipo(
-        perfil.profileCategory
-      ),
-
-      nombre: perfil.publicName,
-
-      ubicacion: 'Valencia',
-
-      ubicacionCompleta:
-        'Valencia, España',
-
-      cita:
-        perfil.biography,
-
-      bio:
-        perfil.biography,
-
-      tags: [
-        ...temas,
-        ...tecnicas
-      ],
-
-      imagenUrl:
-        this.specialistProfileService.resolveAssetUrl(perfil.photoUrl),
-
-      bannerUrl:
-        this.specialistProfileService.resolveAssetUrl(perfil.bannerUrl),
-
-      temas,
-
-      tecnicas,
-
-      slug:
-        perfil.slug,
-
-      whatsappPhone:
-        perfil.whatsappPhone,
-
-      phoneNumber:
-        perfil.phoneNumber,
-
-      publicEmail:
-        perfil.publicEmail,
-
-      website:
-        perfil.website,
-
-      socialLinks:
-        perfil.socialLinks,
-
-      isLogoStyle:
-        false
-
-    };
-
-  }
-
-  private convertirTipo(
-    categoria: string
-  ):
-    | 'Profesional'
-    | 'Centro'
-    | 'Organizador de eventos' {
-
-    switch (categoria?.toUpperCase()) {
-
-      case 'CENTRO':
-      case 'CENTROS':
-        return 'Centro';
-
-      case 'ORGANIZADOR':
-      case 'ORGANIZADORES':
-      case 'ORGANIZADOR_DE_EVENTOS':
-      case 'ORGANIZADORES_DE_EVENTOS':
-        return 'Organizador de eventos';
-
-      default:
-        return 'Profesional';
-
-    }
-
+    return toTarjetaDirectorio(
+      perfil,
+      url => this.specialistProfileService.resolveAssetUrl(url)
+    );
   }
 
   volverAlDirectorio(): void {

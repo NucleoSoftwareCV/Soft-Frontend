@@ -23,6 +23,14 @@ export interface EventOccurrencePublicResponse {
   status: string;
 }
 
+export interface EventOccurrenceCalendarResponse {
+  occurrenceId: number;
+  eventId: number;
+  eventTitle: string;
+  coverImageUrl: string | null;
+  startsAt: string;
+}
+
 export interface CategoryResponse {
   id: number;
   name: string;

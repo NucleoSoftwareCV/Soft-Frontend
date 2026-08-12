@@ -6,9 +6,12 @@ import { environment } from '../../../environments/environment';
 declare const google: any;
 
 /**
- * Carga el SDK de Google Identity Services bajo demanda y resuelve un id_token
- * usando el flujo "Sign In With Google" (One Tap / prompt), para enviarlo a
- * POST /api/auth/google. Requiere environment.googleClientId configurado.
+ * Renderiza el boton oficial de "Sign in with Google" bajo demanda y entrega
+ * el id_token resultante via callback, para enviarlo a POST /api/auth/google.
+ * Se usa el boton real (no el prompt/"One Tap" silencioso) porque Google
+ * suprime el prompt automatico tras un rechazo previo o por politicas de
+ * cookies de terceros, mientras que el boton siempre abre el selector de
+ * cuenta al hacer click. Requiere environment.googleClientId configurado.
  */
 @Injectable({ providedIn: 'root' })
 export class GoogleIdentityService {
@@ -16,35 +19,48 @@ export class GoogleIdentityService {
   private readonly ngZone = inject(NgZone);
   private scriptLoadPromise: Promise<void> | null = null;
 
-  requestIdToken(): Promise<string> {
+  renderButton(
+    container: HTMLElement,
+    onToken: (idToken: string) => void,
+    onError: (message: string) => void
+  ): void {
     if (!this.isBrowser) {
-      return Promise.reject(new Error('Google Sign-In solo está disponible en el navegador.'));
+      return;
     }
     if (!environment.googleClientId) {
-      return Promise.reject(new Error('Google Sign-In no está configurado todavía.'));
+      onError('Google Sign-In no está configurado todavía.');
+      return;
     }
 
-    return this.loadScript().then(() => new Promise<string>((resolve, reject) => {
-      google.accounts.id.initialize({
-        client_id: environment.googleClientId,
-        callback: (response: { credential?: string }) => {
-          this.ngZone.run(() => {
-            if (response?.credential) {
-              resolve(response.credential);
-            } else {
-              reject(new Error('No se recibió el token de Google.'));
-            }
-          });
-        },
-      });
+    this.loadScript()
+      .then(() => {
+        google.accounts.id.initialize({
+          client_id: environment.googleClientId,
+          callback: (response: { credential?: string }) => {
+            this.ngZone.run(() => {
+              if (response?.credential) {
+                onToken(response.credential);
+              } else {
+                onError('No se recibió el token de Google.');
+              }
+            });
+          },
+        });
 
-      google.accounts.id.prompt((notification: any) => {
-        const dismissed = notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.();
-        if (dismissed) {
-          this.ngZone.run(() => reject(new Error('El inicio de sesión con Google se cerró sin completarse.')));
-        }
+        container.innerHTML = '';
+        google.accounts.id.renderButton(container, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          shape: 'pill',
+          text: 'continue_with',
+          locale: 'es',
+          width: 320,
+        });
+      })
+      .catch(() => {
+        this.ngZone.run(() => onError('No se pudo cargar Google Identity Services.'));
       });
-    }));
   }
 
   private loadScript(): Promise<void> {

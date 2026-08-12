@@ -67,6 +67,7 @@ export interface OneToOneServicePageParams {
   search?: string;
   workTopicId?: number | null;
   techniqueId?: number | null;
+  specialistId?: number | null;
 }
 
 export interface OneToOneServiceRequest {

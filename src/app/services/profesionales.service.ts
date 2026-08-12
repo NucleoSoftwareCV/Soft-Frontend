@@ -28,6 +28,16 @@ export interface SpecialistProfileResponse {
   techniques: string[];
   socialLinks: ProfessionalSocialLinkResponse[];
   languages?: ProfessionalLanguageResponse[];
+  galleryImages: GalleryImageResponse[];
+  showUpcomingEvents: boolean;
+  showOneToOneSessions: boolean;
+  showGallery: boolean;
+}
+
+export interface GalleryImageResponse {
+  id: number;
+  imageUrl: string;
+  sortOrder: number;
 }
 
 export interface ProfessionalSocialLinkResponse {
@@ -52,6 +62,9 @@ export interface SpecialistProfileUpdateRequest {
   website?: string;
   workTopicIds?: number[];
   techniqueIds?: number[];
+  showUpcomingEvents?: boolean;
+  showOneToOneSessions?: boolean;
+  showGallery?: boolean;
 }
 
 export interface PageResponse<T> {
@@ -126,6 +139,16 @@ export class SpecialistProfileService {
 
   deleteLanguage(languageId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/me/languages/${languageId}`);
+  }
+
+  uploadGalleryImage(file: File): Observable<SpecialistProfileResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<SpecialistProfileResponse>(`${this.apiUrl}/me/gallery-images`, formData);
+  }
+
+  deleteGalleryImage(imageId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me/gallery-images/${imageId}`);
   }
 
   getPublicProfiles(

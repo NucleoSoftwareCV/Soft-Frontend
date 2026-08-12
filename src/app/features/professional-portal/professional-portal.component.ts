@@ -18,6 +18,7 @@ import {
   LucideEye,
   LucideExternalLink,
   LucideGlobe2,
+  LucideImages,
   LucideLanguages,
   LucideLayoutDashboard,
   LucideLink2,
@@ -136,6 +137,7 @@ interface OccurrenceForm {
     LucideEye,
     LucideExternalLink,
     LucideGlobe2,
+    LucideImages,
     LucideLanguages,
     LucideLayoutDashboard,
     LucideLink2,
@@ -193,6 +195,8 @@ export class ProfessionalPortalComponent {
   mobileNavOpen = signal(false);
   logoutConfirm = signal(false);
   cropAsset = signal<'photo' | 'banner' | null>(null);
+  profilePhotoFailed = signal(false);
+  uploadingGalleryImage = signal(false);
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -495,6 +499,55 @@ export class ProfessionalPortalComponent {
     });
   }
 
+  selectGalleryImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.failed('El archivo debe ser una imagen.');
+      return;
+    }
+
+    this.uploadingGalleryImage.set(true);
+    this.profileApi.uploadGalleryImage(file).subscribe({
+      next: profile => {
+        this.profile.set(profile);
+        this.uploadingGalleryImage.set(false);
+        this.succeeded('Imagen añadida a tu galería.');
+      },
+      error: error => {
+        this.uploadingGalleryImage.set(false);
+        this.failed(this.apiError(error, 'No se pudo subir la imagen.'));
+      },
+    });
+  }
+
+  deleteGalleryImage(imageId: number): void {
+    this.profileApi.deleteGalleryImage(imageId).subscribe({
+      next: () => this.loadProfile(),
+      error: () => this.failed('No se pudo eliminar la imagen.'),
+    });
+  }
+
+  toggleSectionVisibility(
+    field: 'showUpcomingEvents' | 'showOneToOneSessions' | 'showGallery'
+  ): void {
+    const profile = this.profile();
+    if (!profile) return;
+
+    this.profileApi.updateMine({ [field]: !profile[field] }).subscribe({
+      next: updated => {
+        this.profile.set(updated);
+        this.succeeded('Preferencias del perfil público actualizadas.');
+      },
+      error: error => this.failed(
+        this.apiError(error, 'No se pudo actualizar la visibilidad.')
+      ),
+    });
+  }
+
   toggleProfilePublication(): void {
     const profile = this.profile();
     if (!profile) return;
@@ -576,6 +629,10 @@ export class ProfessionalPortalComponent {
     return resolveAssetUrl(url);
   }
 
+  handleProfilePhotoError(): void {
+    this.profilePhotoFailed.set(true);
+  }
+
   imageCropped(event: ImageCroppedEvent): void {
     this.croppedImage = event.blob ?? null;
   }
@@ -623,6 +680,7 @@ export class ProfessionalPortalComponent {
     operation.subscribe({
       next: profile => {
         this.profile.set(profile);
+        if (asset === 'photo') this.profilePhotoFailed.set(false);
         this.saving.set(false);
         this.closeImageCropper();
         this.succeeded(asset === 'photo' ? 'Foto actualizada.' : 'Banner actualizado.');
@@ -644,12 +702,20 @@ export class ProfessionalPortalComponent {
     return this.cropAsset() === 'photo' ? 1 : 1248 / 256;
   }
 
+  cropFrameWidth(): number {
+    return this.cropAsset() === 'photo' ? 360 : 780;
+  }
+
+  cropFrameHeight(): number {
+    return this.cropAsset() === 'photo' ? 360 : 160;
+  }
+
   cropWidth(): number {
-    return this.cropAsset() === 'photo' ? 126 : 1248;
+    return this.cropAsset() === 'photo' ? 512 : 1248;
   }
 
   cropHeight(): number {
-    return this.cropAsset() === 'photo' ? 126 : 256;
+    return this.cropAsset() === 'photo' ? 512 : 256;
   }
 
   openNewEvent(): void {
@@ -989,6 +1055,7 @@ export class ProfessionalPortalComponent {
     this.profileApi.getMine().subscribe({
       next: profile => {
         this.profile.set(profile);
+        this.profilePhotoFailed.set(false);
         Object.assign(this.profileForm, {
           publicName: profile.publicName,
           profileCategory: profile.profileCategory,

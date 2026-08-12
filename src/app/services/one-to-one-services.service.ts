@@ -36,6 +36,10 @@ export class OneToOneServicesService {
     return this.http.get<OneToOneServiceDetailResponse>(`${this.BASE}/${id}`);
   }
 
+  getServicesBySpecialist(specialistId: number): Observable<SpringPage<OneToOneServiceCardResponse>> {
+    return this.getPublicServices({ specialistId, page: 0, size: 100 });
+  }
+
   getActiveWorkTopics(): Observable<OneToOneFilterOption[]> {
     return this.http.get<OneToOneFilterOption[]>(`${this.WORK_TOPICS}/active`);
   }

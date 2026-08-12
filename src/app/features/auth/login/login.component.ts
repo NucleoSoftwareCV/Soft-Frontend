@@ -1,4 +1,4 @@
-import { Component, inject, signal, PLATFORM_ID, NgZone } from '@angular/core';
+import { Component, ElementRef, effect, inject, signal, viewChild, PLATFORM_ID, NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,8 @@ export class LoginComponent {
   private readonly ngZone = inject(NgZone);
   private readonly googleIdentity = inject(GoogleIdentityService);
 
+  private readonly googleBtnContainer = viewChild<ElementRef<HTMLElement>>('googleBtn');
+
   constructor() {
     if (this.isBrowser) {
       setTimeout(() => {
@@ -31,6 +33,17 @@ export class LoginComponent {
         }
       }, 0);
     }
+
+    effect(() => {
+      const container = this.googleBtnContainer();
+      if (container) {
+        this.googleIdentity.renderButton(
+          container.nativeElement,
+          idToken => this.handleGoogleToken(idToken),
+          message => this.showError(message)
+        );
+      }
+    });
   }
 
   activeTab = signal<AccountType>('usuario');
@@ -199,30 +212,24 @@ export class LoginComponent {
     return 'Error al registrar la cuenta. Inténtalo de nuevo.';
   }
 
-  onGoogleLogin(): void {
+  private handleGoogleToken(idToken: string): void {
     this.errorMessage.set(null);
+    this.isLoading.set(true);
 
-    this.googleIdentity.requestIdToken()
-      .then(idToken => {
-        this.isLoading.set(true);
-        this.authService.loginWithGoogle({ idToken }).subscribe({
-          next: () => {
-            this.isLoading.set(false);
-            if (this.authService.roles.includes('PROFESSIONAL')) {
-              this.roleChoice.set(true);
-            } else {
-              this.router.navigate(['/']);
-            }
-          },
-          error: (err) => {
-            this.isLoading.set(false);
-            this.showError('No se pudo iniciar sesión con Google.');
-            console.error(err);
-          }
-        });
-      })
-      .catch(err => {
-        this.showError(err?.message ?? 'No se pudo iniciar sesión con Google.');
-      });
+    this.authService.loginWithGoogle({ idToken }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        if (this.authService.roles.includes('PROFESSIONAL')) {
+          this.roleChoice.set(true);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.showError('No se pudo iniciar sesión con Google.');
+        console.error(err);
+      }
+    });
   }
 }

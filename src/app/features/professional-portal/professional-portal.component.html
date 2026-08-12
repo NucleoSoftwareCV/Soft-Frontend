@@ -114,15 +114,15 @@
         <section class="profile-sheet">
           <div class="profile-sheet__identity profile-banner-control"
                [class.profile-sheet__identity--with-banner]="profile()?.bannerUrl"
-               [style.background-image]="profile()?.bannerUrl ? 'linear-gradient(90deg, rgba(9,39,41,.78), rgba(9,39,41,.3)), url(' + profileAssetUrl(profile()?.bannerUrl) + ')' : null"
+               [style.background-image]="profile()?.bannerUrl ? 'linear-gradient(90deg, rgba(7,35,38,.9) 0%, rgba(7,35,38,.68) 48%, rgba(7,35,38,.4) 100%), url(' + profileAssetUrl(profile()?.bannerUrl) + ')' : null"
                (dragover)="allowAssetDrop($event)"
                (drop)="dropProfileAsset($event, 'banner')">
             <label class="profile-avatar profile-avatar-control" (dragover)="allowAssetDrop($event)" (drop)="$event.stopPropagation(); dropProfileAsset($event, 'photo')">
-              @if (profile()?.photoUrl) { <img [src]="profileAssetUrl(profile()?.photoUrl)" alt="Foto de {{ profile()?.publicName }}"> } @else { {{ (profile()?.publicName || 'P').charAt(0) }} }
+              @if (profile()?.photoUrl && !profilePhotoFailed()) { <img [src]="profileAssetUrl(profile()?.photoUrl)" alt="Foto de {{ profile()?.publicName }}" (error)="handleProfilePhotoError()"> } @else { {{ (profile()?.publicName || 'P').charAt(0) }} }
               <span class="profile-image-overlay"><svg lucideUpload aria-hidden="true"></svg>{{ profile()?.photoUrl ? 'Cambiar foto' : 'Agregar foto' }}</span>
               <input type="file" accept="image/*" [disabled]="saving()" (change)="selectProfileAsset($event, 'photo')">
             </label>
-            <div>
+            <div class="profile-identity-copy">
               <span class="profile-kicker">{{ profile()?.profileCategory === 'CENTRO' ? 'Centro de bienestar' : profile()?.profileCategory === 'ORGANIZADOR' ? 'Organizador' : 'Profesional' }}</span>
               <h2>{{ profile()?.publicName }}</h2>
               <p>{{ profile()?.biography || 'Añade una biografía breve para explicar tu enfoque profesional.' }}</p>
@@ -162,6 +162,40 @@
               @for (link of profile()?.socialLinks || []; track link.id) {
                 <span>{{ link.platform }} <button type="button" (click)="deleteSocialLink(link.platform)" aria-label="Eliminar red social">×</button></span>
               } @empty { <small>No hay redes registradas.</small> }
+            </div>
+          </section>
+          <section class="compact-section compact-section--wide">
+            <header>
+              <div><svg lucideImages aria-hidden="true"></svg><span><strong>Galería</strong><small>Hasta 12 fotos visibles en tu perfil público</small></span></div>
+              <label class="icon-action" title="Subir foto">
+                <svg lucidePlus></svg>
+                <input type="file" accept="image/*" style="display:none" [disabled]="uploadingGalleryImage()" (change)="selectGalleryImage($event)">
+              </label>
+            </header>
+            <div class="gallery-thumb-grid">
+              @for (image of profile()?.galleryImages || []; track image.id) {
+                <div class="gallery-thumb">
+                  <img [src]="profileAssetUrl(image.imageUrl)" alt="Foto de galería">
+                  <button type="button" (click)="deleteGalleryImage(image.id)" aria-label="Eliminar imagen">×</button>
+                </div>
+              } @empty { <small>No hay fotos en tu galería.</small> }
+            </div>
+          </section>
+          <section class="compact-section compact-section--wide">
+            <header><div><svg lucideEye aria-hidden="true"></svg><span><strong>Secciones visibles</strong><small>Elige qué aparece en tu perfil público</small></span></div></header>
+            <div class="visibility-toggle-list">
+              <label class="visibility-toggle">
+                <span>Próximos eventos</span>
+                <input type="checkbox" [checked]="profile()?.showUpcomingEvents" (change)="toggleSectionVisibility('showUpcomingEvents')">
+              </label>
+              <label class="visibility-toggle">
+                <span>Sesiones 1:1</span>
+                <input type="checkbox" [checked]="profile()?.showOneToOneSessions" (change)="toggleSectionVisibility('showOneToOneSessions')">
+              </label>
+              <label class="visibility-toggle">
+                <span>Galería</span>
+                <input type="checkbox" [checked]="profile()?.showGallery" (change)="toggleSectionVisibility('showGallery')">
+              </label>
             </div>
           </section>
         </div>
@@ -310,11 +344,18 @@
         <button type="button" aria-label="Cerrar" (click)="closeImageCropper()">×</button>
       </header>
       <div class="crop-workspace">
+        <div class="crop-guidance">
+          <strong>{{ cropAsset() === 'photo' ? 'Ajusta tu foto dentro del circulo' : 'El area clara sera visible como portada' }}</strong>
+          <span>Arrastra la imagen para encuadrarla y usa el zoom si necesitas acercarla.</span>
+        </div>
         <image-cropper
           [imageFile]="cropImageFile() || undefined"
           [imageURL]="cropImageUrl() || ''"
           [maintainAspectRatio]="true"
           [aspectRatio]="cropAspectRatio()"
+          [cropperStaticWidth]="cropFrameWidth()"
+          [cropperStaticHeight]="cropFrameHeight()"
+          [hideResizeSquares]="true"
           [resizeToWidth]="cropWidth()"
           [resizeToHeight]="cropHeight()"
           [roundCropper]="cropAsset() === 'photo'"
@@ -330,7 +371,7 @@
           (loadImageFailed)="cropImageLoadFailed()"
         ></image-cropper>
         <div class="crop-controls">
-          <label><svg lucideZoomIn aria-hidden="true"></svg><span>Zoom</span><input type="range" min="1" max="3" step="0.05" [value]="cropTransform.scale || 1" (input)="updateCropZoom($event)"></label>
+          <label><svg lucideZoomIn aria-hidden="true"></svg><span>Zoom</span><input type="range" min="1" max="4" step="0.05" [value]="cropTransform.scale || 1" (input)="updateCropZoom($event)" aria-label="Nivel de zoom de la imagen"></label>
           <button class="icon-action" type="button" title="Girar imagen" aria-label="Girar imagen" (click)="rotateCropImage()"><svg lucideRotateCw aria-hidden="true"></svg></button>
         </div>
       </div>
