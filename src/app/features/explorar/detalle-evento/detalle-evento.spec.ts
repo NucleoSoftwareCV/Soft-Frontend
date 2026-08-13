@@ -81,4 +81,16 @@ describe('DetalleEvento', () => {
   it('builds the organizer WhatsApp link from backend data', () => {
     expect(component.whatsappUrl()).toContain('https://wa.me/34600111222');
   });
+
+  it('opens and closes the share dialog while managing page scroll', () => {
+    component.openShareModal();
+
+    expect(component.shareModalOpen()).toBe(true);
+    expect(document.body.style.overflow).toBe('hidden');
+
+    component.closeShareModal();
+
+    expect(component.shareModalOpen()).toBe(false);
+    expect(document.body.style.overflow).toBe('');
+  });
 });
