@@ -41,6 +41,8 @@ export class DetalleEvento implements OnDestroy{
     return eventId ? this.favoritesService.favoritedEventIds().has(eventId) : false;
   });
   galleryOpen = signal(false);
+  shareModalOpen = signal(false);
+  shareLinkCopied = signal(false);
   following = signal(false);
   followLoading = signal(false);
   followError = signal<string | null>(null);
@@ -128,6 +130,16 @@ export class DetalleEvento implements OnDestroy{
   ngOnDestroy(): void {
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
+    }
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  closeShareModalOnEscape(): void {
+    if (this.shareModalOpen()) {
+      this.closeShareModal();
     }
   }
 
@@ -492,6 +504,75 @@ export class DetalleEvento implements OnDestroy{
 
     // Restaurar scroll
     document.body.style.overflow = '';
+  }
+
+  openShareModal(): void {
+    this.shareModalOpen.set(true);
+    this.shareLinkCopied.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  closeShareModal(): void {
+    this.shareModalOpen.set(false);
+    this.shareLinkCopied.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  eventShareUrl(): string {
+    return isPlatformBrowser(this.platformId) ? window.location.href : '';
+  }
+
+  async copyEventLink(input?: HTMLInputElement): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const url = this.eventShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      if (!input) return;
+      input.select();
+      document.execCommand('copy');
+    }
+
+    this.shareLinkCopied.set(true);
+    window.setTimeout(() => this.shareLinkCopied.set(false), 2500);
+  }
+
+  shareEvent(network: 'facebook' | 'messenger' | 'x' | 'whatsapp' | 'email'): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const url = encodeURIComponent(this.eventShareUrl());
+    const title = this.evento()?.title || 'este evento';
+    const text = encodeURIComponent(`Te invito a vivir esta experiencia: ${title}`);
+    const subject = encodeURIComponent(`Invitacion: ${title}`);
+    let shareUrl: string;
+
+    switch (network) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
+        break;
+      case 'messenger':
+        shareUrl = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+          ? `fb-messenger://share/?link=${url}`
+          : 'https://www.messenger.com/';
+        void this.copyEventLink();
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${text}%0A${url}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${subject}&body=${text}%0A%0A${url}`;
+        break;
+    }
+
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
   }
 
   nextImage(images: string[]): void {
