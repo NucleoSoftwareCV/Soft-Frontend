@@ -1093,18 +1093,19 @@
    ESTILOS DE CLIENTE: MI ESPACIO
    ══════════════════════════════════════ */
 
-/*.mi-espacio-wrapper {
+.mi-espacio-wrapper {
   background-color: #f7f8f3;
   min-height: calc(100vh - 64px);
   width: 100%;
-}*/
+}
 
 .mi-espacio {
   display: block;
   flex: 1 1 0%;
   width: 100%;
+  max-width: 1280px;
   min-height: calc(100vh - 64px); 
-  margin: 0;
+  margin-inline: auto;
   padding: 32px;
   box-sizing: border-box;
 
@@ -1615,7 +1616,7 @@
 
 @media (max-width: 899px) {
   .mi-espacio {
-    padding: 32px 18px;
+    padding: 32px 12px;
   }
 
   .mi-espacio__header-card {
@@ -1625,7 +1626,7 @@
 
 @media (max-width: 639px) {
   .mi-espacio {
-    padding: 22px 14px 32px;
+    padding: 22px 12px 32px;
     gap: 14px;
   }
 

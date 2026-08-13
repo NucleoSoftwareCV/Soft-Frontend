@@ -129,6 +129,7 @@
   background: #fde68a;
   border: none;
   padding: 8px 20px;
+  min-width: 142px;
   border-radius: 25px;
   font-size: 0.88rem;
   font-weight: 600;
@@ -136,6 +137,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: background 0.2s ease;
 }
@@ -148,6 +150,16 @@
   color: #fff;
   background: #1f6b56;
 }
+
+.follow-label-hover { display: none; }
+
+.profile-follow-btn--active:not(:disabled):hover {
+  background: #b42318;
+  color: #fff;
+}
+
+.profile-follow-btn--active:not(:disabled):hover .follow-label-default { display: none; }
+.profile-follow-btn--active:not(:disabled):hover .follow-label-hover { display: inline; }
 
 .profile-follow-btn:disabled {
   cursor: wait;

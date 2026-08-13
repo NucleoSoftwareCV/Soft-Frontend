@@ -59,6 +59,16 @@ export class EventManagementService {
     return this.http.patch<EventManagementResponse>(`${this.base}/${id}/status`, { status });
   }
 
+  addImage(id: number, file: File): Observable<EventManagementResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<EventManagementResponse>(`${this.base}/${id}/images`, formData);
+  }
+
+  deleteImage(id: number, imageId: number): Observable<EventManagementResponse> {
+    return this.http.delete<EventManagementResponse>(`${this.base}/${id}/images/${imageId}`);
+  }
+
   addOccurrence(eventId: number, request: EventOccurrenceRequest): Observable<EventOccurrenceManagement> {
     return this.http.post<EventOccurrenceManagement>(`${this.base}/${eventId}/occurrences`, request);
   }

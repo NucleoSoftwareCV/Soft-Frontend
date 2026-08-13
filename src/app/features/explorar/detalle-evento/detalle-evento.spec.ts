@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { DetalleEvento } from './detalle-evento';
@@ -27,6 +27,8 @@ describe('DetalleEvento', () => {
       highlights: [],
       whatToBring: [],
     })),
+    getEventosSimilares: vi.fn(() => of({ content: [], totalElements: 0, number: 0, size: 12 })),
+    getOtrosEventosDelOrganizador: vi.fn(() => of({ content: [], totalElements: 0, number: 0, size: 12 })),
     resolveAssetUrl: vi.fn((url: string | null | undefined) => url ?? null),
   };
   const followService = {
@@ -44,7 +46,7 @@ describe('DetalleEvento', () => {
     await TestBed.configureTestingModule({
       imports: [DetalleEvento],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: new Map([['id', '7']]) } } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: '7' })) } },
         { provide: EventosService, useValue: eventosService },
         { provide: ProfessionalFollowService, useValue: followService },
         { provide: AuthService, useValue: authService },
@@ -63,6 +65,8 @@ describe('DetalleEvento', () => {
 
   it('loads the public event detail from the backend service', () => {
     expect(eventosService.getEvento).toHaveBeenCalledWith(7);
+    expect(eventosService.getEventosSimilares).toHaveBeenCalledWith(7);
+    expect(eventosService.getOtrosEventosDelOrganizador).toHaveBeenCalledWith(7);
   });
 
   it('redirects unauthenticated users to login when following', () => {

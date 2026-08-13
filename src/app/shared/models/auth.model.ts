@@ -47,6 +47,8 @@ export interface JwtResponse {
   email: string;
   firstName: string | null;
   roles: string[];
+  onboardingRequired?: boolean;
+  newlyRegistered?: boolean;
 }
 
 export interface TokenRefreshRequest {

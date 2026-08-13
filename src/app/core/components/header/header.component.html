@@ -28,8 +28,9 @@
           <path d="m21 21-4.35-4.35" />
         </svg>
         <input type="search" class="header__search-input" placeholder="¿Qué te apetece vivir hoy?"
-          [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()" aria-label="Buscar experiencias de bienestar" autocomplete="off" />
+          [value]="searchQuery()" (input)="onSearchInput($any($event.target).value)" (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()" (keyup.enter)="goToAllResults()"
+          aria-label="Buscar experiencias de bienestar" autocomplete="off" />
         <button class="header__filter-btn" [class.header__filter-btn--active]="activeFilterCount > 0"
           (click)="openFilter()"
           [attr.aria-label]="'Filtrar' + (activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '')" type="button">
@@ -63,6 +64,102 @@
         </div>
       </div>
       }
+
+      <!-- Dropdown de resultados en vivo -->
+      @if (isSearchFocused() && searchQuery()) {
+      <div class="header__results" role="listbox" aria-label="Resultados de búsqueda">
+        @if (searching()) {
+        <p class="header__results-status">Buscando…</p>
+        } @else if (searchResults(); as results) {
+          @if (results.isEmpty) {
+          <p class="header__results-status">Sin resultados para "{{ results.query }}"</p>
+          } @else {
+          <button type="button" class="header__results-all" (mousedown)="goToAllResults()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <span>Ver todos los resultados para <strong>"{{ results.query }}"</strong></span>
+            <svg class="header__results-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+
+          @if (results.categories.length > 0) {
+          <div class="header__results-section">
+            <p class="header__results-title">Categorías</p>
+            <div class="header__results-suggestions">
+              @for (category of results.categories; track category.id) {
+              <button type="button" class="header__results-suggestion" (mousedown)="selectSearchCategory(category)">
+                <span aria-hidden="true">{{ category.emoji }}</span>{{ category.name }}
+              </button>
+              }
+            </div>
+          </div>
+          }
+
+          @if (results.events.length > 0) {
+          <div class="header__results-section">
+            <p class="header__results-title">Eventos</p>
+            @for (event of results.events; track event.id) {
+            <button type="button" class="header__results-row" (mousedown)="selectSearchEvent(event)">
+              @if (event.coverImageUrl) {
+              <img class="header__results-avatar" [src]="resolveImage(event.coverImageUrl)" alt="" />
+              } @else {
+              <span class="header__results-avatar header__results-avatar--empty" aria-hidden="true"></span>
+              }
+              <span class="header__results-row-body">
+                <strong>{{ event.title }}</strong>
+                <small>{{ formatSearchDate(event.startsAt) }}</small>
+              </span>
+            </button>
+            }
+          </div>
+          }
+
+          @if (results.sessions.length > 0) {
+          <div class="header__results-section">
+            <p class="header__results-title">Sesiones 1:1</p>
+            @for (session of results.sessions; track session.id) {
+            <button type="button" class="header__results-row" (mousedown)="selectSearchSession(session)">
+              @if (session.imageUrl) {
+              <img class="header__results-avatar" [src]="resolveImage(session.imageUrl)" alt="" />
+              } @else {
+              <span class="header__results-avatar header__results-avatar--empty" aria-hidden="true"></span>
+              }
+              <span class="header__results-row-body">
+                <strong>{{ session.title }}</strong>
+                <small>{{ session.specialistName }}</small>
+              </span>
+            </button>
+            }
+          </div>
+          }
+
+          @if (results.organizers.length > 0) {
+          <div class="header__results-section">
+            <p class="header__results-title">Profesionales</p>
+            @for (organizer of results.organizers; track organizer.id) {
+            <button type="button" class="header__results-row" (mousedown)="selectSearchOrganizer(organizer)">
+              @if (organizer.photoUrl) {
+              <img class="header__results-avatar header__results-avatar--round" [src]="resolveImage(organizer.photoUrl)"
+                alt="" />
+              } @else {
+              <span class="header__results-avatar header__results-avatar--round header__results-avatar--empty" aria-hidden="true"></span>
+              }
+              <span class="header__results-row-body">
+                <strong>{{ organizer.publicName }}</strong>
+              </span>
+            </button>
+            }
+          </div>
+          }
+          }
+        }
+      </div>
+      }
     </div>
 
     <!-- Acciones derechas -->
@@ -70,7 +167,7 @@
 
       <!-- Ciudad (solo desktop) -->
       <div class="header__city-wrap">
-        <button class="header__city-btn" (click)="toggleCity()" [attr.aria-expanded]="isCityOpen()"
+        <button class="header__city-btn" (click)="toggleCity($event)" [attr.aria-expanded]="isCityOpen()"
           aria-controls="header-city-popover" aria-haspopup="dialog" type="button">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -97,7 +194,7 @@
 
       <!-- Pin ciudad (solo móvil horizontal 480–767px) -->
       <button class="header__icon-btn header__icon-btn--mobile-only" aria-label="Ciudad" type="button"
-        (click)="toggleCity()">
+        (click)="toggleCity($event)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path
@@ -140,7 +237,7 @@
         <div class="profile-popover">
           <div class="profile-popover__city-mobile">
             <div class="header__city-wrap">
-              <button class="header__city-btn" (click)="toggleCity()" [attr.aria-expanded]="isCityOpen()" type="button">
+              <button class="header__city-btn" (click)="toggleCity($event)" [attr.aria-expanded]="isCityOpen()" type="button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path
@@ -284,7 +381,7 @@
                 </a>
               </li>
               <li>
-                <a routerLink="/perfil" [queryParams]="{ tab: 'perfil' }" (click)="closeProfilePopover()"
+                <a routerLink="/preferencias" (click)="closeProfilePopover()"
                   class="profile-popover__item">
                   <span class="profile-popover__item-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
@@ -482,7 +579,9 @@
 
 @if (isCityOpen()) {
 <div class="city-overlay" (click)="closeCity()" aria-hidden="true"></div>
-<div class="header__city-popover" id="header-city-popover" role="dialog" aria-label="Interés por ciudad">
+<div class="header__city-popover" id="header-city-popover" role="dialog" aria-label="Interés por ciudad"
+  [style.top.px]="cityPopoverPosition()?.top" [style.left.px]="cityPopoverPosition()?.left"
+  [class.header__city-popover--fallback]="!cityPopoverPosition()">
   <button type="button" class="header__city-popover-close" (click)="closeCity()" aria-label="Cerrar">×</button>
   <p class="header__city-popover-question">
     ¿Quieres que te avisemos cuando Oona llegue a <strong>{{ selectedCityName() }}</strong>?

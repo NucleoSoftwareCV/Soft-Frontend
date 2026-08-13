@@ -20,7 +20,7 @@ export class App {
   private readonly initialUrl = this.document.location?.pathname || this.router.url;
 
   /** Rutas operativas que no deben mostrar el header/footer global. */
-  private readonly SHELLLESS_ROUTES = ['/admin', '/profesional'];
+  private readonly SHELLLESS_ROUTES = ['/admin', '/profesional', '/onboarding'];
 
   /** URL actual como señal reactiva */
   private readonly currentUrl = toSignal(

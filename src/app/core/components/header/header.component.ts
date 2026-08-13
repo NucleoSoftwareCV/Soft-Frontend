@@ -38,6 +38,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isSearchFocused  = signal(false);
   isFilterOpen     = signal(false);
   isCityOpen       = signal(false);
+  cityPopoverPosition = signal<{ top: number; left: number } | null>(null);
   isProfilePopoverOpen = signal(false);
   showLogoutConfirm = signal(false);
   searchQuery      = signal('');
@@ -165,14 +166,32 @@ export class HeaderComponent implements OnInit, OnDestroy {
   toggleMobileMenu(): void { this.isMobileMenuOpen.update(v => !v); }
   closeMobileMenu():  void { this.isMobileMenuOpen.set(false); }
 
-  toggleCity(): void {
+  toggleCity(event?: MouseEvent): void {
     const opening = !this.isCityOpen();
     this.isCityOpen.set(opening);
     this.isFilterOpen.set(false);
     if (opening) {
       this.cityInterestError.set(null);
       this.cityInterestEmail.set(this.authService.currentUser()?.email ?? '');
+      this.updateCityPopoverPosition(event?.currentTarget as HTMLElement | undefined);
     }
+  }
+
+  private updateCityPopoverPosition(button?: HTMLElement): void {
+    // En móvil (<= 899px) el popover se muestra como banner de ancho completo
+    // vía CSS (ver media query); no lo anclamos al botón en ese caso.
+    if (!this.isBrowser || !button || window.innerWidth <= 899) {
+      this.cityPopoverPosition.set(null);
+      return;
+    }
+    const rect = button.getBoundingClientRect();
+    const popoverWidth = 280;
+    const margin = 16;
+    const left = Math.min(
+      Math.max(rect.right - popoverWidth, margin),
+      window.innerWidth - popoverWidth - margin
+    );
+    this.cityPopoverPosition.set({ top: rect.bottom + 8, left });
   }
 
   closeCity(): void {

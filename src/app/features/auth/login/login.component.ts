@@ -120,9 +120,11 @@ export class LoginComponent {
       username: this.email(),
       password: this.password()
     }).subscribe({
-      next: () => {
+      next: response => {
         this.isLoading.set(false);
-        if (this.authService.roles.includes('PROFESSIONAL')) {
+        if (response.onboardingRequired) {
+          this.router.navigate(['/onboarding']);
+        } else if (this.authService.roles.includes('PROFESSIONAL')) {
           this.roleChoice.set(true);
         } else {
           this.router.navigate(['/']);
@@ -176,7 +178,7 @@ export class LoginComponent {
         }).subscribe({
           next: () => {
             this.isLoading.set(false);
-            this.router.navigate(['/']);
+            this.router.navigate(['/onboarding']);
           },
           error: (err) => {
             this.isLoading.set(false);
@@ -217,9 +219,11 @@ export class LoginComponent {
     this.isLoading.set(true);
 
     this.authService.loginWithGoogle({ idToken }).subscribe({
-      next: () => {
+      next: response => {
         this.isLoading.set(false);
-        if (this.authService.roles.includes('PROFESSIONAL')) {
+        if (response.newlyRegistered || response.onboardingRequired) {
+          this.router.navigate(['/onboarding']);
+        } else if (this.authService.roles.includes('PROFESSIONAL')) {
           this.roleChoice.set(true);
         } else {
           this.router.navigate(['/']);

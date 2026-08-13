@@ -83,4 +83,10 @@ export class OneToOneServicesService {
       { params: { status } }
     );
   }
+
+  uploadImage(id: number, file: File): Observable<OneToOneServiceDetailResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<OneToOneServiceDetailResponse>(`${this.BASE}/${id}/image`, formData);
+  }
 }

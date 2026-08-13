@@ -59,11 +59,27 @@
                 [class.profile-follow-btn--active]="following()"
                 [disabled]="followLoading()"
                 (click)="toggleFollow()">
-                {{ followLoading() ? 'Guardando...' : (following() ? 'Siguiendo' : 'Seguir') }}
+                @if (followLoading()) {
+                  Guardando...
+                } @else {
+                  <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
+                  @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
+                }
               </button>
               @if (followError()) {
                 <p class="profile-follow-error" role="alert">{{ followError() }}</p>
-              }
+  }
+
+<app-confirm-dialog
+  [open]="showUnfollowDialog()"
+  title="¿Dejar de seguir a este profesional?"
+  [description]="'Dejarás de ver a ' + (perfil()?.nombre || 'este profesional') + ' en tu lista de profesionales seguidos.'"
+  confirmLabel="Dejar de seguir"
+  cancelLabel="Mantener seguimiento"
+  [loading]="followLoading()"
+  (confirmed)="confirmUnfollow()"
+  (cancelled)="cancelUnfollow()">
+</app-confirm-dialog>
             }
 
           </div>

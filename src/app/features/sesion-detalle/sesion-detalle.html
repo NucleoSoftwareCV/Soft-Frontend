@@ -22,6 +22,22 @@
           <span>{{ current.specialistName }}</span>
         </div>
 
+        <button
+          class="session-follow-button"
+          type="button"
+          [class.session-follow-button--active]="following()"
+          [disabled]="followLoading()"
+          (click)="toggleFollow()">
+          <svg lucideBell aria-hidden="true"></svg>
+          @if (followLoading()) {
+            Guardando...
+          } @else {
+            <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
+            @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
+          }
+        </button>
+        @if (followError()) { <p class="session-follow-error" role="alert">{{ followError() }}</p> }
+
         <div class="session-meta" aria-label="Información de la sesión">
           <strong>{{ formatPrice() }}</strong>
           <span><svg lucideClock3 aria-hidden="true"></svg>{{ durationLabel() }}</span>
@@ -65,3 +81,14 @@
     <button class="back-button" type="button" (click)="volver()"><svg lucideArrowLeft aria-hidden="true"></svg>Volver a sesiones</button>
   </div>
 </ng-template>
+
+<app-confirm-dialog
+  [open]="showUnfollowDialog()"
+  title="¿Dejar de seguir a este profesional?"
+  [description]="'Dejarás de ver a ' + (sesion()?.specialistName || 'este profesional') + ' en tu lista de profesionales seguidos.'"
+  confirmLabel="Dejar de seguir"
+  cancelLabel="Mantener seguimiento"
+  [loading]="followLoading()"
+  (confirmed)="confirmUnfollow()"
+  (cancelled)="cancelUnfollow()">
+</app-confirm-dialog>

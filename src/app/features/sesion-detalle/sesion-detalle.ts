@@ -12,12 +12,14 @@ import {
   LucideMapPin,
   LucideMessageCircle,
   LucideMonitor,
+  LucideBell,
 } from '@lucide/angular';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-sesion-detalle',
   standalone: true,
-  imports: [CommonModule, LucideArrowLeft, LucideClock3, LucideMapPin, LucideMessageCircle, LucideMonitor],
+  imports: [CommonModule, LucideArrowLeft, LucideClock3, LucideMapPin, LucideMessageCircle, LucideMonitor, LucideBell, ConfirmDialogComponent],
   templateUrl: './sesion-detalle.html',
   styleUrls: ['./sesion-detalle.css']
 })
@@ -34,6 +36,7 @@ export class SesionDetalleComponent implements OnInit {
   readonly following = signal(false);
   readonly followLoading = signal(false);
   readonly followError = signal<string | null>(null);
+  readonly showUnfollowDialog = signal(false);
   readonly fallbackImage = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1200&auto=format&fit=crop&q=85';
 
   ngOnInit(): void {
@@ -54,16 +57,37 @@ export class SesionDetalleComponent implements OnInit {
       return;
     }
 
+    if (this.following()) {
+      this.showUnfollowDialog.set(true);
+      return;
+    }
+
+    this.updateFollow(true);
+  }
+
+  confirmUnfollow(): void {
+    this.updateFollow(false);
+  }
+
+  cancelUnfollow(): void {
+    if (!this.followLoading()) this.showUnfollowDialog.set(false);
+  }
+
+  private updateFollow(shouldFollow: boolean): void {
+    const professionalId = this.sesion()?.specialistId;
+    if (!professionalId || this.followLoading()) return;
+
     this.followLoading.set(true);
     this.followError.set(null);
-    const request = this.following()
-      ? this.followService.unfollow(professionalId)
-      : this.followService.follow(professionalId);
+    const request = shouldFollow
+      ? this.followService.follow(professionalId)
+      : this.followService.unfollow(professionalId);
 
     request.subscribe({
       next: response => {
         this.following.set(response.following);
         this.followLoading.set(false);
+        this.showUnfollowDialog.set(false);
       },
       error: () => {
         this.followError.set('No pudimos actualizar el seguimiento. Intentalo de nuevo.');

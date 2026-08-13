@@ -89,6 +89,7 @@ export interface EventCardResponse {
 
 export interface EventOrganizerResponse {
   id: number;
+  slug: string | null;
   publicName: string;
   biography: string | null;
   photoUrl: string | null;
@@ -126,6 +127,8 @@ export interface EventDetailResponse {
   isRecurring: boolean;
   createdAt: string;
   updatedAt: string;
+  coverImageUrl: string | null;
+  images: { id: number; url: string }[];
 }
 
 export interface SpringPage<T> {

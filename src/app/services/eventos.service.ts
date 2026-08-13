@@ -77,6 +77,38 @@ export class EventosService {
 
   }
 
+  getEventosSimilares(
+    eventId: number,
+    page = 0,
+    size = 12
+  ): Observable<SpringPage<EventCardResponse>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', 'startsAt,asc');
+
+    return this.http.get<SpringPage<EventCardResponse>>(
+      `${this.BASE}/events/${eventId}/similar`,
+      { params }
+    );
+  }
+
+  getOtrosEventosDelOrganizador(
+    eventId: number,
+    page = 0,
+    size = 12
+  ): Observable<SpringPage<EventCardResponse>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', 'startsAt,asc');
+
+    return this.http.get<SpringPage<EventCardResponse>>(
+      `${this.BASE}/events/${eventId}/organizer-events`,
+      { params }
+    );
+  }
+
   getEventosPorEspecialista(
     specialistId: number
   ):

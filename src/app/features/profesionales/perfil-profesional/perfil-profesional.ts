@@ -18,6 +18,7 @@ import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-s
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 import { SesionCardComponent } from '../../../shared/components/sesion-card/sesion-card.component';
 import { EventoCalendarComponent } from '../../../shared/components/evento-calendar/evento-calendar.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-perfil-profesional',
@@ -29,6 +30,7 @@ import { EventoCalendarComponent } from '../../../shared/components/evento-calen
     EventoCardComponent,
     SesionCardComponent,
     EventoCalendarComponent,
+    ConfirmDialogComponent,
   ],
   templateUrl: './perfil-profesional.html',
   styleUrl: './perfil-profesional.css'
@@ -53,6 +55,7 @@ export class PerfilProfesional implements OnInit {
   readonly following = signal(false);
   readonly followLoading = signal(false);
   readonly followError = signal<string | null>(null);
+  readonly showUnfollowDialog = signal(false);
   readonly publicPhotoFailed = signal(false);
   readonly isOwnProfile = computed(() => {
     const currentProfile = this.perfil();
@@ -239,16 +242,37 @@ export class PerfilProfesional implements OnInit {
       return;
     }
 
+    if (this.following()) {
+      this.showUnfollowDialog.set(true);
+      return;
+    }
+
+    this.updateFollow(true);
+  }
+
+  confirmUnfollow(): void {
+    this.updateFollow(false);
+  }
+
+  cancelUnfollow(): void {
+    if (!this.followLoading()) this.showUnfollowDialog.set(false);
+  }
+
+  private updateFollow(shouldFollow: boolean): void {
+    const currentProfile = this.perfil();
+    if (!currentProfile || this.followLoading()) return;
+
     this.followLoading.set(true);
     this.followError.set(null);
-    const request = this.following()
-      ? this.followService.unfollow(currentProfile.id)
-      : this.followService.follow(currentProfile.id);
+    const request = shouldFollow
+      ? this.followService.follow(currentProfile.id)
+      : this.followService.unfollow(currentProfile.id);
 
     request.subscribe({
       next: response => {
         this.following.set(response.following);
         this.followLoading.set(false);
+        this.showUnfollowDialog.set(false);
       },
       error: () => {
         this.followError.set('No pudimos actualizar el seguimiento. Inténtalo nuevamente.');
