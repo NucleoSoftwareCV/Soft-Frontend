@@ -805,17 +805,33 @@ export class DetalleEvento implements OnDestroy {
 
     switch (redSocial) {
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${urlActual}`;
+        // Facebook ignora el texto, pero a veces acepta el parámetro 'quote' (cita).
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${urlActual}&quote=${texto}`;
         break;
+
       case 'messenger':
-        shareUrl = `fb-messenger://share/?link=${urlActual}`;
+        // Detectamos si el usuario está en celular o PC
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+          // Abre la app de Messenger en el celular
+          shareUrl = `fb-messenger://share/?link=${urlActual}`;
+        } else {
+          // En PC, Facebook requiere un "App ID" para compartir por Messenger.
+          // Como alternativa rápida, mandamos a la web de Messenger.
+          alert('Copia el enlace del evento y pégalo en tu chat de Messenger.');
+          shareUrl = `https://www.messenger.com/`;
+        }
         break;
+
       case 'x':
         shareUrl = `https://twitter.com/intent/tweet?url=${urlActual}&text=${texto}`;
         break;
+
       case 'whatsapp':
         shareUrl = `https://api.whatsapp.com/send?text=${texto}%0A${urlActual}`;
         break;
+
       case 'email':
         shareUrl = `mailto:?subject=Invitación: ${tituloEvento}&body=${texto}%0A%0ARevísalo aquí: ${urlActual}`;
         break;
