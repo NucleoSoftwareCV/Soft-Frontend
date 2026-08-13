@@ -29,6 +29,7 @@ describe('authInterceptor', () => {
     id: 1,
     username: 'user1',
     email: 'user1@oona.es',
+    firstName: 'User',
     roles: ['USER'],
   });
 
@@ -64,6 +65,7 @@ describe('authInterceptor', () => {
       id: 1,
       username: 'user1',
       email: 'user1@oona.es',
+      firstName: 'User',
       roles: ['USER'],
     });
     authService.refreshToken.mockReset();

@@ -24,6 +24,13 @@ export interface EventManagementEvent {
   experienceTypeSlug: string;
   createdAt: string;
   updatedAt: string;
+  coverImageUrl: string | null;
+  images: EventGalleryImage[];
+}
+
+export interface EventGalleryImage {
+  id: number;
+  url: string;
 }
 
 export interface EventOccurrenceManagement {

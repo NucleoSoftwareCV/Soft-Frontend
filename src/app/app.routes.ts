@@ -116,6 +116,24 @@ export const routes: Routes = [
       },
 
       {
+        path: 'recuperar',
+        loadComponent: () =>
+          import('./features/auth/forgot-password/forgot-password.component')
+            .then(m => m.ForgotPasswordComponent),
+
+        title: 'Recuperar contraseña - Oona',
+      },
+
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./features/auth/reset-password/reset-password.component')
+            .then(m => m.ResetPasswordComponent),
+
+        title: 'Restablecer contraseña - Oona',
+      },
+
+      {
         path: '',
         redirectTo: 'login',
         pathMatch: 'full',
@@ -141,6 +159,24 @@ export const routes: Routes = [
         .then(m => m.PerfilComponent),
 
     title: 'Mi Perfil - Oona',
+  },
+
+  {
+    path: 'onboarding',
+    canActivate: [roleGuard('USER')],
+    loadComponent: () =>
+      import('./features/onboarding/onboarding.component')
+        .then(m => m.OnboardingComponent),
+    title: 'Personaliza tu experiencia - Oona',
+  },
+
+  {
+    path: 'preferencias',
+    canActivate: [roleGuard('USER')],
+    loadComponent: () =>
+      import('./features/preferences/preferences.component')
+        .then(m => m.PreferencesComponent),
+    title: 'Mis preferencias - Oona',
   },
 
   // =========================

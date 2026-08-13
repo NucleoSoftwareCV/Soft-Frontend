@@ -1,0 +1,122 @@
+.sesion-card {
+  background: #fffeff;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1.5px solid #eef5eb;
+  transition: box-shadow 0.3s ease;
+}
+
+.sesion-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+}
+
+.sesion-card:hover .card-imagen {
+  transform: scale(1.05);
+}
+
+.sesion-card:hover .card-titulo {
+  color: #4c8c2a;
+}
+
+.card-imagen-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-imagen {
+  width: 100%;
+  height: 195px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.badge-sesion {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: white;
+  color: #004257;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.card-body {
+  padding: 14px 15px 15px;
+}
+
+.card-titulo {
+  font-size: 0.88rem;
+  color: #004257;
+  font-weight: 700;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: 'Georgia', serif;
+}
+
+.card-profesional {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e8e2d8;
+  color: #777;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-profesional span {
+  font-size: 0.8rem;
+  color: #607456;
+  font-family: sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.card-precio {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.precio-valor {
+  color: #4c8c2a;
+  font-weight: 700;
+}
+
+.precio-duracion {
+  color: #607456;
+  font-weight: 400;
+  margin-left: 4px;
+}

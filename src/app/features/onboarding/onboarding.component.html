@@ -1,0 +1,200 @@
+<main class="onboarding-shell">
+  <a class="onboarding-logo" (click)="explore()" aria-label="Ir a Oona">oona.</a>
+
+  @if (loading()) {
+    <section class="state-panel" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <h1>Preparando tus preferencias</h1>
+      <p>Estamos cargando los temas y experiencias disponibles.</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="state-panel" role="alert">
+      <h1>No pudimos abrir el onboarding</h1>
+      <p>{{ loadError() }}</p>
+      <button class="button button--primary" type="button" (click)="loadData()">Reintentar</button>
+    </section>
+  } @else {
+    <section class="onboarding-card" [class.onboarding-card--wide]="step() === 'events'">
+      @if (step() !== 'success') {
+        <div class="progress" aria-label="Progreso del onboarding">
+          <span [style.width.%]="progress()"></span>
+        </div>
+      }
+
+      @if (step() === 'interests') {
+        <header class="step-header">
+          <button class="icon-button step-header__close" type="button" (click)="skipOnboarding()" aria-label="Cerrar onboarding">
+            <svg lucideX aria-hidden="true"></svg>
+          </button>
+          <p class="eyebrow">PERSONALIZA TU EXPERIENCIA</p>
+          <h1>¿Que te interesa?</h1>
+          <p>Elige uno o varios temas para mostrarte eventos y experiencias mas afines a ti.</p>
+          <span class="requirement">Selecciona al menos un tema</span>
+        </header>
+
+        @if (categories().length) {
+          <div class="choice-grid choice-grid--topics">
+            @for (category of categories(); track category.id) {
+              <button
+                type="button"
+                class="choice-card choice-card--topic"
+                [class.is-selected]="selectedCategoryIds().has(category.id)"
+                (click)="toggleCategory(category.id)"
+              >
+                <span class="choice-card__emoji">{{ category.emoji || '✨' }}</span>
+                <span>{{ category.name }}</span>
+                @if (selectedCategoryIds().has(category.id)) {
+                  <span class="choice-card__check"><svg lucideCheck aria-hidden="true"></svg></span>
+                }
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-catalog">Ahora mismo no hay temas disponibles.</div>
+        }
+
+        <footer class="step-actions">
+          <button
+            class="button button--primary"
+            type="button"
+            [disabled]="!selectedCategoryIds().size || saving()"
+            (click)="saveInterests()"
+          >
+            {{ saving() ? 'Guardando...' : 'Siguiente (' + selectedCategoryIds().size + ')' }}
+            <svg lucideArrowRight aria-hidden="true"></svg>
+          </button>
+          <button class="button-link" type="button" [disabled]="saving()" (click)="skipOnboarding()">Saltar por ahora</button>
+        </footer>
+      }
+
+      @if (step() === 'success') {
+        <div class="success-state">
+          <svg lucidePartyPopper class="success-state__icon" aria-hidden="true"></svg>
+          <p class="eyebrow">OONA</p>
+          <h1>¡Felicidades!</h1>
+          <p class="success-state__lead">Ya has creado tu cuenta en Oona.</p>
+          <p>Tus temas favoritos ya estan guardados. Puedes completar tu perfil ahora o hacerlo mas tarde.</p>
+          <div class="success-state__actions">
+            <button class="button button--primary" type="button" (click)="startPreferences()">
+              Completar perfil <svg lucideArrowRight aria-hidden="true"></svg>
+            </button>
+            <button class="button button--outline" type="button" (click)="explore()">Ir a explorar eventos</button>
+          </div>
+        </div>
+      }
+
+      @if (step() === 'events') {
+        <header class="step-header">
+          <p class="eyebrow">AFINA TUS RECOMENDACIONES</p>
+          <h1>¿Te gusta este evento?</h1>
+          <p>Marca los que te interesen. Puedes valorar hasta cinco.</p>
+          <span class="counter">{{ currentEventIndex() + 1 }} de {{ events().length }}</span>
+        </header>
+
+        @if (currentEvent(); as event) {
+          <article class="event-preview">
+            <img [src]="eventImage(event)" [alt]="event.title" />
+            <div class="event-preview__overlay">
+              <span>{{ event.categoryName || 'Experiencia' }}</span>
+              <h2>{{ event.title }}</h2>
+              @if (event.startsAt) {
+                <time [attr.datetime]="event.startsAt">{{ event.startsAt | date:'d MMM' }}</time>
+              }
+            </div>
+          </article>
+          <div class="event-actions">
+            <button class="reaction reaction--reject" type="button" [disabled]="eventActionLoading()" (click)="rejectCurrentEvent()" aria-label="No me interesa">
+              <svg lucideX aria-hidden="true"></svg>
+            </button>
+            <button class="reaction reaction--accept" type="button" [disabled]="eventActionLoading()" (click)="acceptCurrentEvent()" aria-label="Guardar como favorito">
+              <svg lucideHeart aria-hidden="true"></svg>
+            </button>
+          </div>
+        }
+        <button class="button-link" type="button" (click)="skipEvents()">Saltar valoracion</button>
+      }
+
+      @if (step() === 'city') {
+        <header class="step-header">
+          <svg lucideMapPin class="step-icon" aria-hidden="true"></svg>
+          <h1>¿Donde vives?</h1>
+          <p>Usaremos tu ciudad para mostrarte eventos cerca de ti.</p>
+        </header>
+        @if (cities().length) {
+          <div class="choice-grid choice-grid--compact">
+            @for (city of visibleCities(); track city.id) {
+              <button class="choice-card" type="button" [class.is-selected]="selectedCityId() === city.id" (click)="selectedCityId.set(city.id)">
+                {{ city.name }}
+                @if (selectedCityId() === city.id) { <svg lucideCheck aria-hidden="true"></svg> }
+              </button>
+            }
+            @if (cities().length > 3) {
+              <button class="choice-card" type="button" (click)="showAllCities.set(!showAllCities())">
+                {{ showAllCities() ? 'Ver menos' : 'Otra ciudad' }}
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-catalog">No hay ciudades activas disponibles.</div>
+        }
+        <footer class="step-actions">
+          <button class="button button--primary" type="button" (click)="continueFromCity()">Siguiente <svg lucideArrowRight aria-hidden="true"></svg></button>
+          <button class="button-link" type="button" (click)="selectedCityId.set(null); continueFromCity()">Saltar</button>
+        </footer>
+      }
+
+      @if (step() === 'types') {
+        <header class="step-header">
+          <svg lucideUsers class="step-icon" aria-hidden="true"></svg>
+          <h1>¿Que tipo de evento prefieres?</h1>
+          <p>Puedes elegir varios o continuar sin seleccionar ninguno.</p>
+        </header>
+        @if (experienceTypes().length) {
+          <div class="choice-grid choice-grid--compact">
+            @for (type of experienceTypes(); track type.id) {
+              <button class="choice-card" type="button" [class.is-selected]="selectedExperienceTypeIds().has(type.id)" (click)="toggleExperienceType(type.id)">
+                {{ type.name }}
+                @if (selectedExperienceTypeIds().has(type.id)) { <svg lucideCheck aria-hidden="true"></svg> }
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-catalog">No hay tipos de experiencia activos.</div>
+        }
+        <footer class="step-actions">
+          <button class="button button--primary" type="button" (click)="continueFromTypes()">
+            Siguiente ({{ selectedExperienceTypeIds().size }}) <svg lucideArrowRight aria-hidden="true"></svg>
+          </button>
+          <button class="button-link" type="button" (click)="skipExperienceTypes()">Saltar</button>
+        </footer>
+      }
+
+      @if (step() === 'modality') {
+        <header class="step-header">
+          <h1>¿Online o presencial?</h1>
+          <p>¿Como prefieres asistir a los eventos?</p>
+        </header>
+        <div class="modality-list">
+          <button class="choice-card choice-card--modality" type="button" [class.is-selected]="selectedModality() === 'PRESENCIAL'" (click)="selectedModality.set(EventModality.PRESENCIAL)">
+            <svg lucideMapPin aria-hidden="true"></svg><span>Presencial</span>
+            @if (selectedModality() === 'PRESENCIAL') { <svg lucideCheck aria-hidden="true"></svg> }
+          </button>
+          <button class="choice-card choice-card--modality" type="button" [class.is-selected]="selectedModality() === 'ONLINE'" (click)="selectedModality.set(EventModality.ONLINE)">
+            <svg lucideLaptop aria-hidden="true"></svg><span>Online</span>
+            @if (selectedModality() === 'ONLINE') { <svg lucideCheck aria-hidden="true"></svg> }
+          </button>
+          <button class="choice-card choice-card--modality" type="button" [class.is-selected]="selectedModality() === 'HIBRIDA'" (click)="selectedModality.set(EventModality.HIBRIDA)">
+            <svg lucideUsers aria-hidden="true"></svg><span>Ambos</span>
+            @if (selectedModality() === 'HIBRIDA') { <svg lucideCheck aria-hidden="true"></svg> }
+          </button>
+        </div>
+        <footer class="step-actions">
+          <button class="button button--primary" type="button" [disabled]="saving()" (click)="finish()">
+            {{ saving() ? 'Guardando...' : 'Finalizar' }} <svg lucideArrowRight aria-hidden="true"></svg>
+          </button>
+          <button class="button-link" type="button" [disabled]="saving()" (click)="finish(null)">Saltar</button>
+        </footer>
+      }
+    </section>
+  }
+</main>

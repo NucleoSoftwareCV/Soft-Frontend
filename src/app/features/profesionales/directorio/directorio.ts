@@ -4,46 +4,8 @@ import { Router } from '@angular/router';
 
 import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
 import { AppIcon, IconName } from '../../../shared/components/icon/icon';
-
-export interface TarjetaDirectorio {
-
-  id: number;
-  userId: number;
-
-  tipo:
-    | 'Profesional'
-    | 'Centro'
-    | 'Organizador de eventos';
-
-  nombre: string;
-
-  ubicacion: string;
-  ubicacionCompleta?: string;
-
-  cita: string;
-  bio?: string;
-
-  tags: string[];
-
-  imagenUrl?: string;
-  bannerUrl?: string;
-
-  isLogoStyle?: boolean;
-  logoMarca?: string;
-  logoSub?: string;
-
-  temas?: string[];
-  tecnicas?: string[];
-
-  slug: string;
-
-  whatsappPhone?: string;
-  phoneNumber?: string;
-  publicEmail?: string;
-  website?: string;
-
-  socialLinks?: any[];
-}
+import { TarjetaDirectorio } from '../../../shared/models/tarjeta-directorio.model';
+import { toTarjetaDirectorio } from '../../../shared/utils/tarjeta-directorio.util';
 
 @Component({
   selector: 'app-directorio',
@@ -128,91 +90,17 @@ export class Directorio implements OnInit {
     perfil: SpecialistProfileResponse
   ): TarjetaDirectorio {
 
-    const temas =
-      perfil.workTopics ?? [];
-
-    const tecnicas =
-      perfil.techniques ?? [];
+    const tarjeta = toTarjetaDirectorio(
+      perfil,
+      url => this.specialistProfileService.resolveAssetUrl(url)
+    );
 
     return {
-
-      id: perfil.id,
-      userId: perfil.userId,
-
-      tipo: this.convertirTipo(
-        perfil.profileCategory
-      ),
-
-      nombre: perfil.publicName,
-
-      ubicacion: 'Valencia',
-
-      ubicacionCompleta: 'Valencia, España',
-
+      ...tarjeta,
       cita: perfil.biography,
-
       bio: perfil.biography,
-
-      tags: [
-
-        ...temas,
-
-        ...tecnicas
-
-      ].slice(0, 5),
-
-      imagenUrl: this.specialistProfileService.resolveAssetUrl(perfil.photoUrl),
-
-      bannerUrl: this.specialistProfileService.resolveAssetUrl(perfil.bannerUrl),
-
-      temas,
-
-      tecnicas,
-
-      slug: perfil.slug,
-
-      whatsappPhone: perfil.whatsappPhone,
-
-      phoneNumber: perfil.phoneNumber,
-
-      publicEmail: perfil.publicEmail,
-
-      website: perfil.website,
-
-      socialLinks: perfil.socialLinks,
-
-      isLogoStyle: false
-
+      tags: tarjeta.tags.slice(0, 5),
     };
-
-  }
-
-  // =====================================================
-  // CONVERTIR TIPO
-  // =====================================================
-
-  private convertirTipo(
-    categoria: string
-  ):
-    | 'Profesional'
-    | 'Centro'
-    | 'Organizador de eventos' {
-
-    switch (categoria?.toUpperCase()) {
-
-      case 'CENTRO':
-      case 'CENTROS':
-        return 'Centro';
-
-      case 'ORGANIZADOR':
-      case 'ORGANIZADORES':
-      case 'ORGANIZADOR_DE_EVENTOS':
-      case 'ORGANIZADORES_DE_EVENTOS':
-        return 'Organizador de eventos';
-
-      default:
-        return 'Profesional';
-    }
   }
 
   // =====================================================

@@ -27,6 +27,9 @@ describe('FiltrosService', () => {
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([
       { id: 1, name: 'Talleres', slug: 'talleres', active: true, deletable: false },
     ]);
+    http.expectOne(request => request.url.endsWith('/cities')).flush([
+      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+    ]);
 
     expect(service.categoryOptions).toEqual(['Yoga y Ballet']);
     expect(service.typeOptions).toEqual(['Talleres']);
@@ -38,6 +41,7 @@ describe('FiltrosService', () => {
       { id: 1, name: 'Yoga', slug: 'yoga', emoji: '🧘', active: true, deletable: false },
     ]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
+    http.expectOne(request => request.url.endsWith('/cities')).flush([]);
     service.filterCategories.set(['Yoga']);
 
     service.refreshCatalogs();
@@ -45,8 +49,32 @@ describe('FiltrosService', () => {
       { id: 1, name: 'Yoga y Ballet', slug: 'yoga', emoji: '🧘', active: true, deletable: false },
     ]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
+    http.expectOne(request => request.url.endsWith('/cities')).flush([]);
 
     expect(service.filterCategories()).toEqual([]);
     expect(service.categoryOptions).toEqual(['Yoga y Ballet']);
+  });
+
+  it('exposes cities from the API as filter options and clears a deactivated selection', () => {
+    http.expectOne(request => request.url.endsWith('/categories')).flush([]);
+    http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
+    http.expectOne(request => request.url.endsWith('/cities')).flush([
+      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+      { id: 2, name: 'Barcelona', province: 'Barcelona', countryCode: 'ES', active: true },
+    ]);
+
+    expect(service.cityOptions).toEqual(['Todas', 'Valencia', 'Barcelona']);
+    expect(service.getCityByName('Valencia')?.id).toBe(1);
+
+    service.filterCity.set('Barcelona');
+    service.refreshCatalogs();
+    http.expectOne(request => request.url.endsWith('/categories')).flush([]);
+    http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
+    http.expectOne(request => request.url.endsWith('/cities')).flush([
+      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+    ]);
+
+    expect(service.filterCity()).toBe('Todas');
+    expect(service.cityOptions).toEqual(['Todas', 'Valencia']);
   });
 });

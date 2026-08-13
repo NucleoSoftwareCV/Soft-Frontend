@@ -1,0 +1,23 @@
+<div class="sesion-card" [routerLink]="['/sesiones', sesion().id]">
+  <div class="card-imagen-wrapper">
+    <img [src]="imageFor()" [alt]="sesion().title" class="card-imagen" />
+    <span class="badge-sesion">Sesión 1:1</span>
+  </div>
+  <div class="card-body">
+    <h3 class="card-titulo">{{ sesion().title }}</h3>
+    <div class="card-profesional">
+      <div class="avatar">
+        @if (specialistPhoto(); as photo) {
+          <img [src]="photo" [alt]="sesion().specialistName" />
+        } @else {
+          {{ specialistInitial() }}
+        }
+      </div>
+      <span>{{ sesion().specialistName }}</span>
+    </div>
+    <p class="card-precio">
+      <span class="precio-valor">{{ formatPrice() }}</span>
+      <span class="precio-duracion"> · {{ durationLabel() }}</span>
+    </p>
+  </div>
+</div>

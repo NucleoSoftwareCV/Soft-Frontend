@@ -1,7 +1,8 @@
-import { Component, inject, signal, OnDestroy, computed, HostListener} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, PLATFORM_ID, computed, inject, signal, OnDestroy } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { EventosService } from '../../../services/eventos.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
@@ -9,23 +10,18 @@ import { EventCardResponse, EventDetailResponse, EventOccurrenceResponse } from 
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { CheckoutService } from '../../../services/checkout.service';
-
-import { EventoCardComponent } from '../../../shared/components/event-card/event-card';
-import { AppIcon } from '../../../shared/components/icon/icon';
-
-import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID } from '@angular/core';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, EventoCardComponent, AppIcon],
+  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-
 export class DetalleEvento implements OnDestroy{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -34,38 +30,8 @@ export class DetalleEvento implements OnDestroy{
   private readonly authService = inject(AuthService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
-  private carouselInterval?: ReturnType<typeof setInterval>;
-
   private readonly platformId = inject(PLATFORM_ID);
-
-private actualizarCardsPorSlide(): void {
-  if (!isPlatformBrowser(this.platformId)) {
-    return;
-  }
-
-  const width = window.innerWidth;
-
-  if (width <= 540) {
-    this.CARDS_POR_SLIDE.set(1);
-  } else if (width <= 768) {
-    this.CARDS_POR_SLIDE.set(2);
-  } else if (width <= 1024) {
-    this.CARDS_POR_SLIDE.set(3);
-  } else {
-    this.CARDS_POR_SLIDE.set(4);
-  }
-}
-
-  @HostListener('window:resize')
-  onResize(): void {
-    const cantidadAnterior = this.CARDS_POR_SLIDE();
-
-    this.actualizarCardsPorSlide();
-
-    if (cantidadAnterior !== this.CARDS_POR_SLIDE()) {
-      this.organizadorSlide.set(0);
-    }
-  }
+  private carouselInterval?: ReturnType<typeof setInterval>;
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
@@ -75,9 +41,17 @@ private actualizarCardsPorSlide(): void {
     return eventId ? this.favoritesService.favoritedEventIds().has(eventId) : false;
   });
   galleryOpen = signal(false);
+  shareModalOpen = signal(false);
+  shareLinkCopied = signal(false);
   following = signal(false);
   followLoading = signal(false);
   followError = signal<string | null>(null);
+  showUnfollowDialog = signal(false);
+  eventosSimilares = signal<EventCardResponse[]>([]);
+  eventosDelOrganizador = signal<EventCardResponse[]>([]);
+  eventosSimilaresSlide = signal(0);
+  eventosOrganizadorSlide = signal(0);
+  cardsPorSlide = signal(4);
 
   selectedImageIndex = signal(0);
   currentSlide = signal(0);
@@ -118,155 +92,75 @@ private actualizarCardsPorSlide(): void {
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
 
-  //EVENTOS SIMILARES Y DEL ORGANIZADOR
-  experienciasSimilares: EventCardResponse[] = [];
-  eventosOrganizador: EventCardResponse[] = [];
+  private galleryImages(): string[] {
+    const images = this.evento()?.images ?? [];
+    return images
+      .map(image => this.eventosService.resolveAssetUrl(image.url))
+      .filter((url): url is string => !!url);
+  }
 
-  organizadorSlide = signal(0);
-  experienciasSlide = signal(0);
-  CARDS_POR_SLIDE = signal(4);
+  hasGalleryImages(): boolean {
+    return this.galleryImages().length > 0;
+  }
 
-  
-
-  readonly fallbackImages = [
-    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
-    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
-    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
-    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&auto=format&fit=crop&q=85',
-    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop&q=85',
-    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=1200&auto=format&fit=crop&q=85',
-
-  ];
+  getTotalImagenes(): number {
+    return this.galleryImages().length;
+  }
 
   constructor() {
-    this.route.paramMap.subscribe(params => {
-      const id = Number(params.get('id'));
-
-      this.loadEvento(id);
-
-      // Reiniciar estados relacionados al evento
-      this.selectedImageIndex.set(0);
-      this.currentSlide.set(0);
-      this.organizadorSlide.set(0);
-      this.experienciasSlide.set(0);
-    });
-
     this.actualizarCardsPorSlide();
+    this.route.paramMap
+      .pipe(takeUntilDestroyed())
+      .subscribe(params => {
+        this.resetEventState();
+        this.loadEvento(Number(params.get('id')));
+      });
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    const previous = this.cardsPorSlide();
+    this.actualizarCardsPorSlide();
+    if (previous !== this.cardsPorSlide()) {
+      this.eventosSimilaresSlide.set(0);
+      this.eventosOrganizadorSlide.set(0);
+    }
   }
 
   ngOnDestroy(): void {
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
     }
-  }
-
-  cargarExperienciasSimilares(id: number) {
-    this.eventosService
-      .getExperienciasSimilares(id)
-      .subscribe({
-        next: (response) => {
-          this.experienciasSimilares = response.content;
-        },
-        error: (error) => {
-          console.error('Error al cargar eventos similares', error);
-        }
-      });
-  }
-
-  cargarEventosOrganizador(eventId: number): void {
-    this.eventosService.getEventosOrganizador(eventId).subscribe({
-      next: response => {
-        this.eventosOrganizador = response.content;
-      },
-      error: error => {
-        console.error(
-          'Error al cargar otros eventos del organizador',
-          error
-        );
-
-        this.eventosOrganizador = [];
-      }
-    });
-  }
-
-  experienciasPuedeRetroceder(): boolean {
-    return this.experienciasSlide() > 0;
-  }
-
-  experienciasPuedeAvanzar(): boolean {
-    return (
-      this.experienciasSlide() + this.CARDS_POR_SLIDE() <
-      this.experienciasSimilares.length
-    );
-  }
-
-  experienciasAnterior(): void {
-    if (this.experienciasPuedeRetroceder()) {
-      this.experienciasSlide.update(value =>
-        Math.max(0, value - this.CARDS_POR_SLIDE())
-      );
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
     }
   }
 
-  experienciasSiguiente(): void {
-    if (this.experienciasPuedeAvanzar()) {
-      this.experienciasSlide.update(value =>
-        Math.min(
-          this.experienciasSimilares.length - this.CARDS_POR_SLIDE(),
-          value + this.CARDS_POR_SLIDE()
-        )
-      );
-    }
-  }
-
-  organizadorPuedeRetroceder(): boolean {
-    return this.organizadorSlide() > 0;
-  }
-
-  organizadorPuedeAvanzar(): boolean {
-    return (
-      this.organizadorSlide() + this.CARDS_POR_SLIDE() <
-      this.eventosOrganizador.length
-    );
-  }
-
-  organizadorAnterior(): void {
-    if (this.organizadorPuedeRetroceder()) {
-      this.organizadorSlide.update(value =>
-        Math.max(0, value - this.CARDS_POR_SLIDE())
-      );
-    }
-  }
-
-  organizadorSiguiente(): void {
-    if (this.organizadorPuedeAvanzar()) {
-      this.organizadorSlide.update(value =>
-        Math.min(
-          this.eventosOrganizador.length - this.CARDS_POR_SLIDE(),
-          value + this.CARDS_POR_SLIDE()
-        )
-      );
+  @HostListener('document:keydown.escape')
+  closeShareModalOnEscape(): void {
+    if (this.shareModalOpen()) {
+      this.closeShareModal();
     }
   }
 
   getGalleryCount(): number {
-    return Math.min(this.fallbackImages.length, 5);
+    return Math.min(this.galleryImages().length, 5);
   }
 
   getImagenesGaleria(): string[] {
-    return this.fallbackImages.slice(0, 5);
+    return this.galleryImages().slice(0, 5);
   }
 
   getTodasLasImagenes(): string[] {
-    return this.fallbackImages;
+    return this.galleryImages();
   }
 
   getImagenesExtra(): number {
-    return Math.max(this.fallbackImages.length - 5, 0);
+    return Math.max(this.galleryImages().length - 5, 0);
   }
 
   hayImagenesExtra(): boolean {
-    return this.fallbackImages.length > 5;
+    return this.galleryImages().length > 5;
   }
 
   toggleFavorito(): void {
@@ -294,16 +188,75 @@ private actualizarCardsPorSlide(): void {
       return;
     }
 
+    if (this.following()) {
+      this.showUnfollowDialog.set(true);
+      return;
+    }
+
+    this.updateFollow(true);
+  }
+
+  eventosSimilaresVisibles(): EventCardResponse[] {
+    const start = this.eventosSimilaresSlide();
+    return this.eventosSimilares().slice(start, start + this.cardsPorSlide());
+  }
+
+  eventosOrganizadorVisibles(): EventCardResponse[] {
+    const start = this.eventosOrganizadorSlide();
+    return this.eventosDelOrganizador().slice(start, start + this.cardsPorSlide());
+  }
+
+  puedeRetrocederSimilares(): boolean {
+    return this.eventosSimilaresSlide() > 0;
+  }
+
+  puedeAvanzarSimilares(): boolean {
+    return this.eventosSimilaresSlide() + this.cardsPorSlide() < this.eventosSimilares().length;
+  }
+
+  moverSimilares(direction: -1 | 1): void {
+    this.eventosSimilaresSlide.update(current =>
+      this.nextCarouselPosition(current, direction, this.eventosSimilares().length)
+    );
+  }
+
+  puedeRetrocederOrganizador(): boolean {
+    return this.eventosOrganizadorSlide() > 0;
+  }
+
+  puedeAvanzarOrganizador(): boolean {
+    return this.eventosOrganizadorSlide() + this.cardsPorSlide() < this.eventosDelOrganizador().length;
+  }
+
+  moverEventosOrganizador(direction: -1 | 1): void {
+    this.eventosOrganizadorSlide.update(current =>
+      this.nextCarouselPosition(current, direction, this.eventosDelOrganizador().length)
+    );
+  }
+
+  confirmUnfollow(): void {
+    this.updateFollow(false);
+  }
+
+  cancelUnfollow(): void {
+    if (!this.followLoading()) this.showUnfollowDialog.set(false);
+  }
+
+  private updateFollow(shouldFollow: boolean): void {
+    const professionalId = this.evento()?.organizer?.id;
+    if (!professionalId || this.followLoading()) return;
+
     this.followLoading.set(true);
     this.followError.set(null);
-    const request = this.following()
-      ? this.followService.unfollow(professionalId)
-      : this.followService.follow(professionalId);
+    const request = shouldFollow
+      ? this.followService.follow(professionalId)
+      : this.followService.unfollow(professionalId);
 
     request.subscribe({
       next: response => {
         this.following.set(response.following);
         this.followLoading.set(false);
+        this.showUnfollowDialog.set(false);
       },
       error: () => {
         this.followError.set('No pudimos actualizar el seguimiento. Intentalo de nuevo.');
@@ -322,11 +275,9 @@ private actualizarCardsPorSlide(): void {
   }
 
   organizerPhotoUrl(): string {
-    return this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl)
-      ?? this.fallbackImages[0];
+    return this.eventosService.resolveAssetUrl(this.evento()?.organizer?.photoUrl) ?? '';
   }
 
-  
   formatPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
@@ -403,47 +354,66 @@ private actualizarCardsPorSlide(): void {
       return;
     }
 
-    this.loading.set(true);
-    this.error.set(null);
-
-    // Limpiar información del evento anterior
-    this.evento.set(null);
-    this.experienciasSimilares = [];
-    this.eventosOrganizador = [];
-    this.selectedOccurrence.set(null);
-    this.following.set(false);
-
     this.eventosService.getEvento(id).subscribe({
       next: event => {
-        console.log('EVENTO COMPLETO:', event);
-        console.log('ORGANIZADOR:', event.organizer);
-        console.log('SLUG:', event.organizer?.slug);
-
         this.evento.set(event);
-
         if (event.occurrences && event.occurrences.length > 0) {
-          const firstBookable = event.occurrences.find(
-            occ => this.isOccurrenceBookable(occ)
-          );
-
-          this.selectedOccurrence.set(
-            firstBookable ?? event.occurrences[0]
-          );
+          const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
+          this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
         }
-
         this.loading.set(false);
-
         this.loadFollowStatus(event.organizer?.id);
-
-        this.cargarExperienciasSimilares(id);
-        this.cargarEventosOrganizador(event.id);
+        this.loadRelatedEvents(event.id);
       },
-
       error: () => {
         this.error.set('No pudimos cargar este evento.');
         this.loading.set(false);
       },
     });
+  }
+
+  private loadRelatedEvents(eventId: number): void {
+    this.eventosService.getEventosSimilares(eventId).subscribe({
+      next: response => this.eventosSimilares.set(response.content),
+      error: () => this.eventosSimilares.set([]),
+    });
+
+    this.eventosService.getOtrosEventosDelOrganizador(eventId).subscribe({
+      next: response => this.eventosDelOrganizador.set(response.content),
+      error: () => this.eventosDelOrganizador.set([]),
+    });
+  }
+
+  private resetEventState(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.evento.set(null);
+    this.selectedOccurrence.set(null);
+    this.following.set(false);
+    this.followError.set(null);
+    this.showUnfollowDialog.set(false);
+    this.eventosSimilares.set([]);
+    this.eventosDelOrganizador.set([]);
+    this.eventosSimilaresSlide.set(0);
+    this.eventosOrganizadorSlide.set(0);
+    this.selectedImageIndex.set(0);
+    this.currentSlide.set(0);
+  }
+
+  private actualizarCardsPorSlide(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const width = window.innerWidth;
+    if (width < 560) this.cardsPorSlide.set(1);
+    else if (width < 820) this.cardsPorSlide.set(2);
+    else if (width < 1120) this.cardsPorSlide.set(3);
+    else this.cardsPorSlide.set(4);
+  }
+
+  private nextCarouselPosition(current: number, direction: -1 | 1, total: number): number {
+    const step = this.cardsPorSlide();
+    const lastStart = Math.max(0, total - step);
+    return Math.min(lastStart, Math.max(0, current + direction * step));
   }
 
   private loadFollowStatus(professionalId: number | undefined): void {
@@ -534,6 +504,75 @@ private actualizarCardsPorSlide(): void {
 
     // Restaurar scroll
     document.body.style.overflow = '';
+  }
+
+  openShareModal(): void {
+    this.shareModalOpen.set(true);
+    this.shareLinkCopied.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  closeShareModal(): void {
+    this.shareModalOpen.set(false);
+    this.shareLinkCopied.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  eventShareUrl(): string {
+    return isPlatformBrowser(this.platformId) ? window.location.href : '';
+  }
+
+  async copyEventLink(input?: HTMLInputElement): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const url = this.eventShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      if (!input) return;
+      input.select();
+      document.execCommand('copy');
+    }
+
+    this.shareLinkCopied.set(true);
+    window.setTimeout(() => this.shareLinkCopied.set(false), 2500);
+  }
+
+  shareEvent(network: 'facebook' | 'messenger' | 'x' | 'whatsapp' | 'email'): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const url = encodeURIComponent(this.eventShareUrl());
+    const title = this.evento()?.title || 'este evento';
+    const text = encodeURIComponent(`Te invito a vivir esta experiencia: ${title}`);
+    const subject = encodeURIComponent(`Invitacion: ${title}`);
+    let shareUrl: string;
+
+    switch (network) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
+        break;
+      case 'messenger':
+        shareUrl = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+          ? `fb-messenger://share/?link=${url}`
+          : 'https://www.messenger.com/';
+        void this.copyEventLink();
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${text}%0A${url}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${subject}&body=${text}%0A%0A${url}`;
+        break;
+    }
+
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
   }
 
   nextImage(images: string[]): void {

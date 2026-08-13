@@ -23,11 +23,14 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { CityService } from '../../services/city.service';
 import { EventCatalogService } from '../../services/event-catalog.service';
+import { SessionCatalogService } from '../../services/session-catalog.service';
+import { ToastService } from '../../shared/services/toast.service';
 import { CityResponse } from '../../shared/models/evento.model';
 import {
   CategoryCatalogItem,
   ExperienceTypeCatalogItem,
 } from '../../shared/models/event-catalog.model';
+import { SessionCatalogItem, SessionCatalogUpsertRequest } from '../../shared/models/one-to-one-service.model';
 import {
   PROFESSIONAL_TYPE_OPTIONS,
   ProfessionalApplicationResponse,
@@ -63,6 +66,8 @@ export class AdminComponent {
   private readonly applicationsApi = inject(ProfessionalApplicationService);
   private readonly cityService = inject(CityService);
   private readonly eventCatalogService = inject(EventCatalogService);
+  private readonly sessionCatalogService = inject(SessionCatalogService);
+  private readonly toastService = inject(ToastService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -100,12 +105,24 @@ export class AdminComponent {
   };
   cityDeleteConfirm = signal<CityResponse | null>(null);
 
-  catalogTab = signal<'categories' | 'experienceTypes'>('categories');
+  catalogTab = signal<'categories' | 'experienceTypes' | 'workTopics' | 'techniques'>('categories');
   categories = signal<CategoryCatalogItem[]>([]);
   experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   catalogFormOpen = signal(false);
   catalogDeleteConfirm = signal<CategoryCatalogItem | ExperienceTypeCatalogItem | null>(null);
   catalogForm = { id: null as number | null, name: '', description: '', emoji: '✨' };
+
+  // CRUD Temas y técnicas de sesiones 1:1
+  sessionWorkTopics = signal<SessionCatalogItem[]>([]);
+  sessionTechniques = signal<SessionCatalogItem[]>([]);
+  sessionCatalogFormOpen = signal(false);
+  sessionCatalogSaving = signal(false);
+  sessionCatalogForm = { id: null as number | null, name: '', active: true };
+  sessionCatalogDeactivateConfirm = signal<SessionCatalogItem | null>(null);
+
+  get activeSessionCatalogList(): SessionCatalogItem[] {
+    return this.catalogTab() === 'workTopics' ? this.sessionWorkTopics() : this.sessionTechniques();
+  }
   readonly categoryEmojis = [
     '🧘', '🧊', '🎨', '🏃', '💪', '🧠', '🎵', '✨',
     '🥗', '🌱', '💆', '🤰', '🚀', '🌿', '🫁', '☀️',
@@ -131,13 +148,16 @@ export class AdminComponent {
       this.loadCities();
     } else if (section === 'catalogs') {
       this.loadCatalogs();
+      this.loadSessionCatalogs();
     }
   }
 
-  selectCatalogTab(tab: 'categories' | 'experienceTypes'): void {
+  selectCatalogTab(tab: 'categories' | 'experienceTypes' | 'workTopics' | 'techniques'): void {
     this.catalogTab.set(tab);
     this.catalogFormOpen.set(false);
     this.catalogDeleteConfirm.set(null);
+    this.sessionCatalogFormOpen.set(false);
+    this.sessionCatalogDeactivateConfirm.set(null);
   }
 
   loadCatalogs(): void {
@@ -239,6 +259,104 @@ export class AdminComponent {
       error: error => {
         this.catalogDeleteConfirm.set(null);
         this.catalogFailed(error, 'No se pudo eliminar. Desactivalo si ya esta relacionado.');
+      },
+    });
+  }
+
+  loadSessionCatalogs(): void {
+    this.sessionCatalogService.getWorkTopicsForAdmin().subscribe({
+      next: items => this.sessionWorkTopics.set(items),
+      error: error => this.catalogFailed(error, 'No se pudieron cargar los temas de sesión.'),
+    });
+    this.sessionCatalogService.getTechniquesForAdmin().subscribe({
+      next: items => this.sessionTechniques.set(items),
+      error: error => this.catalogFailed(error, 'No se pudieron cargar las técnicas de sesión.'),
+    });
+  }
+
+  openNewSessionCatalogItem(): void {
+    this.sessionCatalogForm = { id: null, name: '', active: true };
+    this.sessionCatalogFormOpen.set(true);
+  }
+
+  openEditSessionCatalogItem(item: SessionCatalogItem): void {
+    this.sessionCatalogForm = { id: item.id, name: item.name, active: item.active };
+    this.sessionCatalogFormOpen.set(true);
+  }
+
+  saveSessionCatalogItem(): void {
+    const name = this.sessionCatalogForm.name.trim();
+    if (!name) {
+      this.toastService.error('El nombre es obligatorio.');
+      return;
+    }
+
+    const isWorkTopic = this.catalogTab() === 'workTopics';
+    const payload: SessionCatalogUpsertRequest = { name, active: this.sessionCatalogForm.active };
+    const request = this.sessionCatalogForm.id
+      ? (isWorkTopic
+          ? this.sessionCatalogService.updateWorkTopic(this.sessionCatalogForm.id, payload)
+          : this.sessionCatalogService.updateTechnique(this.sessionCatalogForm.id, payload))
+      : (isWorkTopic
+          ? this.sessionCatalogService.createWorkTopic(payload)
+          : this.sessionCatalogService.createTechnique(payload));
+
+    this.sessionCatalogSaving.set(true);
+    request.subscribe({
+      next: () => {
+        this.sessionCatalogSaving.set(false);
+        this.sessionCatalogFormOpen.set(false);
+        this.toastService.success(isWorkTopic ? 'Tema de sesión guardado.' : 'Técnica de sesión guardada.');
+        this.loadSessionCatalogs();
+      },
+      error: error => {
+        this.sessionCatalogSaving.set(false);
+        this.toastService.error(error?.error?.message ?? error?.error?.detail ?? 'No se pudo guardar el elemento.');
+      },
+    });
+  }
+
+  reactivateSessionCatalogItem(item: SessionCatalogItem): void {
+    const isWorkTopic = this.catalogTab() === 'workTopics';
+    const payload: SessionCatalogUpsertRequest = { name: item.name, active: true };
+    const request = isWorkTopic
+      ? this.sessionCatalogService.updateWorkTopic(item.id, payload)
+      : this.sessionCatalogService.updateTechnique(item.id, payload);
+
+    request.subscribe({
+      next: () => {
+        this.toastService.success('Elemento reactivado.');
+        this.loadSessionCatalogs();
+      },
+      error: error => this.toastService.error(error?.error?.message ?? error?.error?.detail ?? 'No se pudo reactivar.'),
+    });
+  }
+
+  confirmDeactivateSessionCatalogItem(item: SessionCatalogItem): void {
+    this.sessionCatalogDeactivateConfirm.set(item);
+  }
+
+  deactivateSessionCatalogItemConfirmed(): void {
+    const item = this.sessionCatalogDeactivateConfirm();
+    if (!item) return;
+
+    const isWorkTopic = this.catalogTab() === 'workTopics';
+    const request = isWorkTopic
+      ? this.sessionCatalogService.deactivateWorkTopic(item.id)
+      : this.sessionCatalogService.deactivateTechnique(item.id);
+
+    this.sessionCatalogSaving.set(true);
+    request.subscribe({
+      next: () => {
+        this.sessionCatalogSaving.set(false);
+        this.sessionCatalogDeactivateConfirm.set(null);
+        this.toastService.success('Elemento desactivado.');
+        this.loadSessionCatalogs();
+      },
+      error: error => {
+        this.sessionCatalogSaving.set(false);
+        this.sessionCatalogDeactivateConfirm.set(null);
+        this.toastService.error(error?.error?.message ?? error?.error?.detail ?? 'No se pudo desactivar.');
       },
     });
   }

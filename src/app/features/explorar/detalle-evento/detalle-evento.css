@@ -69,6 +69,21 @@
   margin-bottom: 32px;
 }
 
+.gallery-empty {
+  height: 320px;
+  border-radius: 1rem;
+  background: #eef4f1;
+  border: 1px solid #dbe6e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #7c8f8b;
+  text-align: center;
+  padding: 24px;
+}
+
 .gallery {
   --gap: .5rem;
   display: grid;
@@ -412,6 +427,164 @@ swiper-slide{
   color: #4a4a4a;
 }
 
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #004e59;
+}
+
+.share-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(12, 29, 28, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.share-dialog {
+  position: relative;
+  width: min(100%, 560px);
+  padding: 32px;
+  border: 1px solid #dce5df;
+  border-radius: 12px;
+  background: #f8f9f6;
+  box-shadow: 0 24px 70px rgba(0, 42, 50, 0.22);
+  color: #004257;
+}
+
+.share-dialog__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #eaf0ec;
+  color: #004257;
+  cursor: pointer;
+}
+
+.share-dialog__header {
+  padding-right: 42px;
+}
+
+.share-dialog__header > span {
+  color: #4d7944;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.share-dialog__header h2 {
+  margin: 5px 0 4px;
+  color: #004257;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.75rem;
+}
+
+.share-dialog__header p {
+  margin: 0;
+  color: #657466;
+  font-size: 0.9rem;
+}
+
+.share-dialog__networks {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.share-dialog__networks button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #38504b;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.share-dialog__network-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid #cfddd6;
+  border-radius: 50%;
+  background: #fff;
+  color: #005766;
+  font-size: 1.05rem;
+  font-weight: 700;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.share-dialog__networks button:hover .share-dialog__network-icon {
+  transform: translateY(-2px);
+  border-color: #005766;
+  background: #edf5f0;
+}
+
+.share-dialog__link {
+  position: relative;
+}
+
+.share-dialog__link input {
+  width: 100%;
+  height: 46px;
+  padding: 0 112px 0 15px;
+  border: 1px solid #cbd9d3;
+  border-radius: 8px;
+  background: #fff;
+  color: #50605a;
+  text-overflow: ellipsis;
+}
+
+.share-dialog__link button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #005766;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.share-dialog__confirmation {
+  margin: 10px 0 0;
+  color: #397f2c;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+@media (max-width: 639px) {
+  .share-dialog {
+    padding: 26px 18px 20px;
+  }
+
+  .share-dialog__networks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 8px;
+  }
+}
+
 /* LAYOUT */
 .content-layout {
   display: grid;
@@ -478,7 +651,7 @@ swiper-slide{
   background: rgb(253 230 138);
   color: rgb(146 64 14);
   height: 41px;
-  min-width: 112px;
+  min-width: 142px;
   border-radius: 999px;
   font-size: .875rem;
   font-weight: 600;
@@ -495,6 +668,16 @@ swiper-slide{
   background: #e2eeea;
   color: #004e59;
 }
+
+.follow-label-hover { display: none; }
+
+.follow-btn--active:not(:disabled):hover {
+  background: #b42318;
+  color: #fff;
+}
+
+.follow-btn--active:not(:disabled):hover .follow-label-default { display: none; }
+.follow-btn--active:not(:disabled):hover .follow-label-hover { display: inline; }
 
 .follow-btn:disabled {
   cursor: wait;
@@ -639,6 +822,116 @@ swiper-slide{
 .about-organizer,
 .similar-events {
   margin-top: 38px;
+}
+
+.organizer-name {
+  color: var(--principal, #005766);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.organizer-name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.related-events {
+  margin-top: 48px;
+}
+
+.related-events__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.related-events__header h2 {
+  margin: 0;
+  color: var(--principal, #005766);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.875rem;
+  line-height: 1.15;
+}
+
+.related-events__carousel {
+  position: relative;
+}
+
+.related-events__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.related-events__arrow {
+  position: absolute;
+  top: 42%;
+  z-index: 3;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #d7e2df;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--principal, #005766);
+  box-shadow: 0 6px 18px rgba(0, 45, 52, 0.16);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.related-events__arrow:hover {
+  box-shadow: 0 8px 22px rgba(0, 45, 52, 0.22);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.related-events__arrow svg {
+  width: 19px;
+  height: 19px;
+}
+
+.related-events__arrow--previous {
+  left: -18px;
+}
+
+.related-events__arrow--next {
+  right: -18px;
+}
+
+@media (max-width: 1119px) {
+  .related-events__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 819px) {
+  .related-events__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .related-events__arrow--previous {
+    left: -10px;
+  }
+
+  .related-events__arrow--next {
+    right: -10px;
+  }
+}
+
+@media (max-width: 559px) {
+  .related-events {
+    margin-top: 36px;
+  }
+
+  .related-events__header h2 {
+    font-size: 1.5rem;
+  }
+
+  .related-events__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .about-card {

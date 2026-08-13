@@ -5,10 +5,14 @@ export type IconName =
   | 'user'
   | 'map-pin'
   | 'search'
-  | 'carta' 
-  | 'arrow-r' 
-  | 'arrow-l' 
- 
+  | 'carta'
+  | 'arrow-r'
+  | 'phone'
+  | 'whatsapp'
+  | 'instagram'
+  | 'globe'
+  | 'languages'
+
 
 @Component({
   selector: 'app-icon',

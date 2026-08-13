@@ -708,20 +708,10 @@
             <p class="mi-espacio__subtitle-desc">Tus reservas, guardados y profesionales en un solo lugar.</p>
           </div>
           <div class="mi-espacio__header-right">
-            <button class="mi-espacio__preferences-btn" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <line x1="4" y1="21" x2="4" y2="14"></line>
-                <line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line>
-                <line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line>
-                <line x1="9" y1="8" x2="15" y2="8"></line>
-                <line x1="17" y1="16" x2="23" y2="16"></line>
-              </svg>
+            <a class="mi-espacio__preferences-btn" routerLink="/preferencias">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lineas"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>
               Mis preferencias
-            </button>
+            </a>
           </div>
         </div>
 
@@ -729,21 +719,13 @@
         <div class="mi-espacio__info-grid">
           <div class="mi-espacio__info-card">
             <div class="mi-espacio__info-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendario"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h5"></path><path d="M17.5 17.5 16 16.3V14"></path><circle cx="16" cy="16" r="6"></circle></svg>
             </div>
             <span class="mi-espacio__info-text">Próxima sesión <strong>—</strong></span>
           </div>
           <div class="mi-espacio__info-card">
             <div class="mi-espacio__info-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendariocheck"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
             </div>
             <span class="mi-espacio__info-text">Reservas activas <strong>0</strong></span>
           </div>
@@ -754,12 +736,7 @@
     <div class="mi-espacio__tabs-container">
       <div class="mi-espacio__tabs">
         <button (click)="cambiarSeccionCliente('reservas')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'reservas'" type="button">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ticket"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
           Reservas ({{ myBookings().length }})
         </button>
         <button (click)="cambiarSeccionCliente('guardados')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'guardados'" type="button">
@@ -807,7 +784,7 @@
             <p class="mi-espacio__empty-text">
               Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
             </p>
-            <a routerLink="/explorar" class="btn-primary mi-espacio__empty-btn">
+            <a routerLink="/explorar" class="boton mi-espacio__empty-btn">
               Explorar eventos
             </a>
           </div>
@@ -857,8 +834,12 @@
           </div>
         } @else if (favoritesDetails().length === 0) {
           <div class="following-state">
-            <p>Aún no tienes elementos guardados.</p>
-            <a routerLink="/explorar" class="btn-outline">Explorar experiencias</a>
+            <div class="mi-espacio__empty-icon-wrap2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="corazonicono"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+            </div>
+            <h2 class="following-h2">Guarda los eventos que te interesen</h2>
+            <p class="following-p">Pulsa el corazón en cualquier evento para guardarlo aquí.</p>
+            <a routerLink="/explorar" class="boton btn-outline">Explorar eventos</a>
           </div>
         } @else {
           <div class="mi-espacio__guardados-grid">
@@ -949,8 +930,11 @@
           </div>
         } @else if (followedProfessionals().length === 0) {
           <div class="following-state">
-            <p>Aún no sigues a ningún profesional.</p>
-            <a routerLink="/profesionales" class="btn-outline">Descubrir profesionales</a>
+            <div class="mi-espacio__empty-icon-wrap2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="estrella2icono"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg>            </div>
+          <h2 class="following-h2">Aún no sigues a ningún profesional</h2>
+            <p class="following-p2">Sigue a los profesionales que te interesen para no perderte sus eventos y novedades.</p>
+            <a routerLink="/profesionales" class="boton2 btn-outline2">Explorar profesionales</a>
           </div>
         } @else {
           <div class="mi-espacio__siguiendo-list">
@@ -1004,3 +988,14 @@
   </div>
 </div>
 }
+
+<app-confirm-dialog
+  [open]="pendingUnfollowProfessionalId() !== null"
+  title="¿Dejar de seguir a este profesional?"
+  [description]="'Dejarás de ver a ' + pendingUnfollowProfessionalName() + ' en tu lista de profesionales seguidos.'"
+  confirmLabel="Dejar de seguir"
+  cancelLabel="Mantener seguimiento"
+  [loading]="unfollowLoading()"
+  (confirmed)="confirmUnfollowProfessional()"
+  (cancelled)="cancelUnfollowProfessional()">
+</app-confirm-dialog>

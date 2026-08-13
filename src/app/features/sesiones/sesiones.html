@@ -30,55 +30,85 @@
       </div>
 
       <div class="filtros-derecha">
-        <div class="dropdown-wrapper">
-          <button class="btn-filtro" type="button" (click)="toggleDropdown('topics')">
+        <div class="dropdown-wrapper dropdown-wrapper--topics">
+          <button
+            class="btn-filtro"
+            type="button"
+            (click)="toggleDropdown('topics')"
+            [attr.aria-expanded]="openDropdown() === 'topics'"
+            aria-controls="topics-dropdown-menu"
+            aria-haspopup="true"
+            [attr.aria-label]="'Filtrar por tema: ' + selectedWorkTopicLabel()"
+          >
             {{ selectedWorkTopicLabel() }}
-            <span>⌄</span>
+            <svg lucideChevronDown class="flecha" [class.flecha--open]="openDropdown() === 'topics'" aria-hidden="true"></svg>
           </button>
-          <div class="dropdown-menu" *ngIf="openDropdown() === 'topics'">
-            <button
-              class="dropdown-item"
-              type="button"
-              [class.activo]="selectedWorkTopicId() === null"
-              (click)="selectWorkTopic(null)"
-            >
-              Todos los temas
-            </button>
-            <button
-              class="dropdown-item"
-              type="button"
-              *ngFor="let topic of workTopics()"
-              [class.activo]="selectedWorkTopicId() === topic.id"
-              (click)="selectWorkTopic(topic.id)"
-            >
-              {{ topic.name }}
-            </button>
+          <div class="dropdown-menu" id="topics-dropdown-menu" role="menu" *ngIf="openDropdown() === 'topics'">
+            <p class="dropdown-estado" *ngIf="filtersLoading()">Cargando temas…</p>
+            <p class="dropdown-estado dropdown-estado--error" *ngIf="!filtersLoading() && filtersError()">{{ filtersError() }}</p>
+            <ng-container *ngIf="!filtersLoading() && !filtersError()">
+              <button
+                class="dropdown-item"
+                type="button"
+                role="menuitem"
+                [class.activo]="selectedWorkTopicId() === null"
+                (click)="selectWorkTopic(null)"
+              >
+                Todos los temas
+              </button>
+              <button
+                class="dropdown-item"
+                type="button"
+                role="menuitem"
+                *ngFor="let topic of workTopics()"
+                [class.activo]="selectedWorkTopicId() === topic.id"
+                (click)="selectWorkTopic(topic.id)"
+              >
+                {{ topic.name }}
+              </button>
+              <p class="dropdown-estado" *ngIf="workTopics().length === 0">No hay temas disponibles.</p>
+            </ng-container>
           </div>
         </div>
 
-        <div class="dropdown-wrapper">
-          <button class="btn-filtro" type="button" (click)="toggleDropdown('techniques')">
+        <div class="dropdown-wrapper dropdown-wrapper--techniques">
+          <button
+            class="btn-filtro"
+            type="button"
+            (click)="toggleDropdown('techniques')"
+            [attr.aria-expanded]="openDropdown() === 'techniques'"
+            aria-controls="techniques-dropdown-menu"
+            aria-haspopup="true"
+            [attr.aria-label]="'Filtrar por técnica: ' + selectedTechniqueLabel()"
+          >
             {{ selectedTechniqueLabel() }}
-            <span>⌄</span>
+            <svg lucideChevronDown class="flecha" [class.flecha--open]="openDropdown() === 'techniques'" aria-hidden="true"></svg>
           </button>
-          <div class="dropdown-menu" *ngIf="openDropdown() === 'techniques'">
-            <button
-              class="dropdown-item"
-              type="button"
-              [class.activo]="selectedTechniqueId() === null"
-              (click)="selectTechnique(null)"
-            >
-              Todos los tipos
-            </button>
-            <button
-              class="dropdown-item"
-              type="button"
-              *ngFor="let technique of techniques()"
-              [class.activo]="selectedTechniqueId() === technique.id"
-              (click)="selectTechnique(technique.id)"
-            >
-              {{ technique.name }}
-            </button>
+          <div class="dropdown-menu" id="techniques-dropdown-menu" role="menu" *ngIf="openDropdown() === 'techniques'">
+            <p class="dropdown-estado" *ngIf="filtersLoading()">Cargando técnicas…</p>
+            <p class="dropdown-estado dropdown-estado--error" *ngIf="!filtersLoading() && filtersError()">{{ filtersError() }}</p>
+            <ng-container *ngIf="!filtersLoading() && !filtersError()">
+              <button
+                class="dropdown-item"
+                type="button"
+                role="menuitem"
+                [class.activo]="selectedTechniqueId() === null"
+                (click)="selectTechnique(null)"
+              >
+                Todas las técnicas
+              </button>
+              <button
+                class="dropdown-item"
+                type="button"
+                role="menuitem"
+                *ngFor="let technique of techniques()"
+                [class.activo]="selectedTechniqueId() === technique.id"
+                (click)="selectTechnique(technique.id)"
+              >
+                {{ technique.name }}
+              </button>
+              <p class="dropdown-estado" *ngIf="techniques().length === 0">No hay técnicas disponibles.</p>
+            </ng-container>
           </div>
         </div>
 

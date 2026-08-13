@@ -8,6 +8,7 @@ import { FollowedProfessionalResponse } from '../../shared/models/professional-f
 import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -41,7 +42,7 @@ interface ItemCreado {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
@@ -72,6 +73,9 @@ export class PerfilComponent implements OnInit {
   readonly followingTotalPages = signal(0);
   readonly followingTotalElements = signal(0);
   readonly followingPageSize = 5;
+  readonly pendingUnfollowProfessionalId = signal<number | null>(null);
+  readonly pendingUnfollowProfessionalName = signal('');
+  readonly unfollowLoading = signal(false);
 
   mostrarModal = signal(false);
   modalStep = signal<ModalStep>('tipo');
@@ -239,28 +243,40 @@ export class PerfilComponent implements OnInit {
 
 
   unfollowProfessional(professionalId: number): void {
-    if (confirm('¿Seguro que quieres dejar de seguir a este profesional?')) {
-      // AQUÍ ESTÁ EL CAMBIO: Usamos followService.unfollow(...)
-      this.followService.unfollow(professionalId).subscribe({
-        next: () => {
-          // Filtramos la lista actual para remover el profesional
-          this.followedProfessionals.update(list =>
-            list.filter(p => p.professionalId !== professionalId)
-          );
+    const professional = this.followedProfessionals().find(item => item.professionalId === professionalId);
+    this.pendingUnfollowProfessionalId.set(professionalId);
+    this.pendingUnfollowProfessionalName.set(professional?.publicName ?? 'este profesional');
+  }
 
-          // Descontamos 1 del total de elementos
-          this.followingTotalElements.update(total => total > 0 ? total - 1 : 0);
+  confirmUnfollowProfessional(): void {
+    const professionalId = this.pendingUnfollowProfessionalId();
+    if (!professionalId || this.unfollowLoading()) return;
 
-          // Si nos quedamos sin elementos en la página actual y no estamos en la primera, retrocedemos
-          if (this.followedProfessionals().length === 0 && this.followingPage() > 0) {
-            this.loadFollowedProfessionals(this.followingPage() - 1);
-          }
-        },
-        error: () => {
-          console.error('Error al dejar de seguir al profesional.');
+    this.unfollowLoading.set(true);
+    this.followService.unfollow(professionalId).subscribe({
+      next: () => {
+        this.followedProfessionals.update(list =>
+          list.filter(p => p.professionalId !== professionalId)
+        );
+        this.followingTotalElements.update(total => total > 0 ? total - 1 : 0);
+        this.unfollowLoading.set(false);
+        this.cancelUnfollowProfessional();
+
+        if (this.followedProfessionals().length === 0 && this.followingPage() > 0) {
+          this.loadFollowedProfessionals(this.followingPage() - 1);
         }
-      });
-    }
+      },
+      error: () => {
+        this.followingError.set('No pudimos dejar de seguir a este profesional. Inténtalo nuevamente.');
+        this.unfollowLoading.set(false);
+      },
+    });
+  }
+
+  cancelUnfollowProfessional(): void {
+    if (this.unfollowLoading()) return;
+    this.pendingUnfollowProfessionalId.set(null);
+    this.pendingUnfollowProfessionalName.set('');
   }
 
 

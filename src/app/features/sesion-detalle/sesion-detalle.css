@@ -12,6 +12,16 @@
 .specialist-line { display:flex; align-items:center; gap:10px; margin-bottom:20px; color:#55704f; font:500 .9rem Arial,sans-serif; }
 .specialist-avatar { width:36px; height:36px; display:grid; place-items:center; overflow:hidden; border-radius:50%; background:#e8ece5; font-weight:700; }
 .specialist-avatar img { width:100%; height:100%; object-fit:cover; }
+.session-follow-button { min-width:142px; min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; margin:0 0 18px; padding:0 18px; border:0; border-radius:999px; background:#fde68a; color:#92400e; font:600 .86rem Arial,sans-serif; cursor:pointer; transition:background .2s,color .2s; }
+.session-follow-button svg { width:16px; height:16px; }
+.session-follow-button:hover { background:#fcd34d; }
+.session-follow-button--active { background:#e2eeea; color:#004e59; }
+.session-follow-button--active:not(:disabled):hover { background:#b42318; color:#fff; }
+.follow-label-hover { display:none; }
+.session-follow-button--active:not(:disabled):hover .follow-label-default { display:none; }
+.session-follow-button--active:not(:disabled):hover .follow-label-hover { display:inline; }
+.session-follow-button:disabled { cursor:wait; opacity:.65; }
+.session-follow-error { margin:-10px 0 16px; color:#a83232; font:500 .8rem Arial,sans-serif; }
 .session-meta { display:flex; align-items:center; flex-wrap:wrap; gap:18px; margin-bottom:22px; color:#65775d; font:500 .9rem Arial,sans-serif; }
 .session-meta strong { color:#07515d; }
 .session-meta span { display:inline-flex; align-items:center; gap:6px; }

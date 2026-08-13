@@ -15,6 +15,17 @@ export interface OneToOneFilterOption {
   name: string;
 }
 
+export interface SessionCatalogItem {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
+export interface SessionCatalogUpsertRequest {
+  name: string;
+  active: boolean;
+}
+
 export interface OneToOneServiceCardResponse {
   id: number;
   title: string;
@@ -56,6 +67,7 @@ export interface OneToOneServicePageParams {
   search?: string;
   workTopicId?: number | null;
   techniqueId?: number | null;
+  specialistId?: number | null;
 }
 
 export interface OneToOneServiceRequest {
