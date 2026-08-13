@@ -10,6 +10,7 @@ interface CalendarDay {
   dayNumber: number;
   inCurrentMonth: boolean;
   isToday: boolean;
+  isPast: boolean;
   occurrence?: EventOccurrenceCalendarResponse;
 }
 
@@ -108,11 +109,13 @@ export class EventoCalendarComponent implements OnInit {
     for (let i = 0; i < totalCells; i++) {
       const date = new Date(year, month, 1 - leadingOffset + i);
       const key = toIsoDate(date);
+      const inCurrentMonth = date.getMonth() === month;
       days.push({
         date,
         dayNumber: date.getDate(),
-        inCurrentMonth: date.getMonth() === month,
+        inCurrentMonth,
         isToday: sameDay(date, this.today),
+        isPast: inCurrentMonth && date < this.today,
         occurrence: occurrenceByDay.get(key),
       });
     }

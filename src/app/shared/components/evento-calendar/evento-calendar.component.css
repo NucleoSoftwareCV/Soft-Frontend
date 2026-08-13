@@ -4,15 +4,15 @@
   background: #fff;
   border: 1px solid hsl(100deg 30% 94%);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 16px;
 }
 
 .calendar-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .calendar-nav__btn {
@@ -24,10 +24,13 @@
   border-radius: 8px;
   background: transparent;
   color: var(--principal);
-  font-size: 1.3rem;
-  line-height: 1;
   cursor: pointer;
   transition: background-color 0.15s ease;
+}
+
+.calendar-nav__btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .calendar-nav__btn:hover:not(:disabled) {
@@ -40,8 +43,8 @@
 }
 
 .calendar-nav__title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 700;
   color: var(--principal);
   text-transform: capitalize;
   margin: 0;
@@ -75,6 +78,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
+  min-height: 52px;
+  padding-top: 2px;
+}
+
+.calendar-day--past {
+  opacity: 0.4;
 }
 
 .calendar-day__link {
@@ -83,8 +93,6 @@
   align-items: center;
   gap: 4px;
   width: 100%;
-  min-height: 56px;
-  padding-top: 2px;
   border-radius: 10px;
   text-decoration: none;
   transition: background-color 0.15s ease;
@@ -98,17 +106,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 8px;
-  font-size: 0.8rem;
-  color: var(--principal);
+  font-size: 0.75rem;
+  color: rgba(0, 66, 87, 0.8);
 }
 
 .calendar-day__number--today {
   background: var(--principal);
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .calendar-day__number--faded {
@@ -118,8 +126,8 @@
 
 .calendar-day__thumb {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 0 0 2px #fff;
@@ -137,8 +145,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid hsl(100deg 30% 94%);
 }
 
@@ -147,9 +155,9 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--secundary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(0, 66, 87, 0.8);
 }
 
 .calendar-footer__organizer img {
@@ -169,25 +177,39 @@
 
 .calendar-footer__brand {
   flex-shrink: 0;
-  font-family: 'Georgia', serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--principal);
-  text-decoration: none;
+  line-height: 0;
 }
 
-@media (max-width: 768px) {
+.calendar-footer__brand img {
+  height: 16px;
+  width: auto;
+}
+
+@media (min-width: 640px) {
   .calendar-card {
-    padding: 16px;
+    padding: 24px;
   }
 
-  .calendar-day__link {
-    min-height: 48px;
+  .calendar-nav {
+    margin-bottom: 16px;
   }
 
-  .calendar-day__number,
+  .calendar-nav__title {
+    font-size: 1.25rem;
+  }
+
+  .calendar-day {
+    min-height: 64px;
+  }
+
+  .calendar-day__number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+  }
+
   .calendar-day__thumb {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
   }
 }
