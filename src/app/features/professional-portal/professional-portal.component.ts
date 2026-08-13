@@ -18,6 +18,7 @@ import {
   LucideEye,
   LucideExternalLink,
   LucideGlobe2,
+  LucideImages,
   LucideLanguages,
   LucideLayoutDashboard,
   LucideLink2,
@@ -46,6 +47,7 @@ import {
 } from '../../services/profesionales.service';
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import {
+  EventGalleryImage,
   EventManagementResponse,
   EventOccurrenceManagement,
   EventOccurrenceRequest,
@@ -68,6 +70,37 @@ import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.mod
 type PortalSection = 'summary' | 'profile' | 'events' | 'sessions';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
+type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
+
+interface CropConfig {
+  aspect: number;
+  frameWidth: number;
+  frameHeight: number;
+  outputWidth: number;
+  outputHeight: number;
+  round: boolean;
+  label: string;
+  guidance: string;
+}
+
+const CROP_CONFIG: Record<CropAsset, CropConfig> = {
+  photo: {
+    aspect: 1, frameWidth: 360, frameHeight: 360, outputWidth: 512, outputHeight: 512,
+    round: true, label: 'foto', guidance: 'Ajusta tu foto dentro del circulo',
+  },
+  banner: {
+    aspect: 1248 / 256, frameWidth: 780, frameHeight: 160, outputWidth: 1248, outputHeight: 256,
+    round: false, label: 'banner', guidance: 'El area clara sera visible como portada',
+  },
+  eventCover: {
+    aspect: 4 / 3, frameWidth: 480, frameHeight: 360, outputWidth: 1200, outputHeight: 900,
+    round: false, label: 'imagen del evento', guidance: 'Esta imagen se vera en las tarjetas del evento',
+  },
+  sessionCover: {
+    aspect: 4 / 3, frameWidth: 480, frameHeight: 360, outputWidth: 1200, outputHeight: 900,
+    round: false, label: 'imagen de la sesión', guidance: 'Esta imagen se vera en las tarjetas de la sesión',
+  },
+};
 
 interface EventForm {
   id: number | null;
@@ -93,6 +126,7 @@ interface EventForm {
   addressLine1: string;
   cityId: number | null;
   status: 'BORRADOR' | 'PUBLICADO';
+  images: EventGalleryImage[];
 }
 
 interface SessionForm {
@@ -136,6 +170,7 @@ interface OccurrenceForm {
     LucideEye,
     LucideExternalLink,
     LucideGlobe2,
+    LucideImages,
     LucideLanguages,
     LucideLayoutDashboard,
     LucideLink2,
@@ -192,7 +227,10 @@ export class ProfessionalPortalComponent {
   sidebarCollapsed = signal(false);
   mobileNavOpen = signal(false);
   logoutConfirm = signal(false);
-  cropAsset = signal<'photo' | 'banner' | null>(null);
+  cropAsset = signal<CropAsset | null>(null);
+  profilePhotoFailed = signal(false);
+  uploadingGalleryImage = signal(false);
+  previewImageUrl = signal<string | null>(null);
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -495,6 +533,75 @@ export class ProfessionalPortalComponent {
     });
   }
 
+  selectGalleryImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.failed('El archivo debe ser una imagen.');
+      return;
+    }
+
+    this.uploadingGalleryImage.set(true);
+    this.profileApi.uploadGalleryImage(file).subscribe({
+      next: profile => {
+        this.profile.set(profile);
+        this.uploadingGalleryImage.set(false);
+        this.succeeded('Imagen añadida a tu galería.');
+      },
+      error: error => {
+        this.uploadingGalleryImage.set(false);
+        this.failed(this.apiError(error, 'No se pudo subir la imagen.'));
+      },
+    });
+  }
+
+  deleteGalleryImage(imageId: number): void {
+    this.profileApi.deleteGalleryImage(imageId).subscribe({
+      next: () => this.loadProfile(),
+      error: () => this.failed('No se pudo eliminar la imagen.'),
+    });
+  }
+
+  deleteEventImage(imageId: number): void {
+    if (!this.eventForm.id) return;
+    this.eventsApi.deleteImage(this.eventForm.id, imageId).subscribe({
+      next: response => {
+        this.eventForm = { ...this.eventForm, images: response.event.images };
+        this.succeeded('Imagen eliminada.');
+        this.loadEvents();
+      },
+      error: error => this.failed(this.apiError(error, 'No se pudo eliminar la imagen.')),
+    });
+  }
+
+  openImagePreview(url: string): void {
+    this.previewImageUrl.set(this.profileAssetUrl(url));
+  }
+
+  closeImagePreview(): void {
+    this.previewImageUrl.set(null);
+  }
+
+  toggleSectionVisibility(
+    field: 'showUpcomingEvents' | 'showOneToOneSessions' | 'showGallery'
+  ): void {
+    const profile = this.profile();
+    if (!profile) return;
+
+    this.profileApi.updateMine({ [field]: !profile[field] }).subscribe({
+      next: updated => {
+        this.profile.set(updated);
+        this.succeeded('Preferencias del perfil público actualizadas.');
+      },
+      error: error => this.failed(
+        this.apiError(error, 'No se pudo actualizar la visibilidad.')
+      ),
+    });
+  }
+
   toggleProfilePublication(): void {
     const profile = this.profile();
     if (!profile) return;
@@ -518,17 +625,20 @@ export class ProfessionalPortalComponent {
     });
   }
 
-  selectProfileAsset(event: Event, asset: 'photo' | 'banner'): void {
+  selectProfileAsset(event: Event, asset: CropAsset): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
+    if (!this.assertCoverTargetSaved(asset)) return;
 
     this.openImageCropper(asset, file);
-    input.value = '';
   }
 
-  dropProfileAsset(event: DragEvent, asset: 'photo' | 'banner'): void {
+  dropProfileAsset(event: DragEvent, asset: CropAsset): void {
     event.preventDefault();
+    if (!this.assertCoverTargetSaved(asset)) return;
+
     const file = Array.from(event.dataTransfer?.files ?? [])
       .find(candidate => candidate.type.startsWith('image/'));
 
@@ -548,6 +658,25 @@ export class ProfessionalPortalComponent {
     this.cropImageFile.set(null);
     this.cropImageUrl.set(imageUrl);
     this.resetCropper();
+  }
+
+  /** Los eventos y sesiones necesitan estar guardados (tener ID) antes de poder subirles una imagen. */
+  private assertCoverTargetSaved(asset: CropAsset): boolean {
+    if (asset === 'eventCover') {
+      if (!this.eventForm.id) {
+        this.failed('Guarda el evento antes de agregar una imagen.');
+        return false;
+      }
+      if (this.eventForm.images.length >= 8) {
+        this.failed('Ya alcanzaste el máximo de 8 imágenes para este evento.');
+        return false;
+      }
+    }
+    if (asset === 'sessionCover' && !this.sessionForm.id) {
+      this.failed('Guarda la sesión antes de agregar una imagen de portada.');
+      return false;
+    }
+    return true;
   }
 
   allowAssetDrop(event: DragEvent): void {
@@ -574,6 +703,10 @@ export class ProfessionalPortalComponent {
 
   profileAssetUrl(url?: string): string {
     return resolveAssetUrl(url);
+  }
+
+  handleProfilePhotoError(): void {
+    this.profilePhotoFailed.set(true);
   }
 
   imageCropped(event: ImageCroppedEvent): void {
@@ -607,28 +740,62 @@ export class ProfessionalPortalComponent {
       this.failed('Ajusta la imagen antes de confirmar el recorte.');
       return;
     }
+    if (!this.assertCoverTargetSaved(asset)) return;
 
-    const file = new File(
-      [this.croppedImage],
-      asset === 'photo' ? 'profile-photo.jpg' : 'profile-banner.jpg',
-      { type: 'image/jpeg' }
-    );
+    const file = new File([this.croppedImage], `${asset}.jpg`, { type: 'image/jpeg' });
 
-    this.saving.set(true);
     this.clearMessages();
-    const operation = asset === 'photo'
-      ? this.profileApi.uploadPhoto(file)
-      : this.profileApi.uploadBanner(file);
+    this.saving.set(true);
 
-    operation.subscribe({
-      next: profile => {
-        this.profile.set(profile);
+    if (asset === 'photo' || asset === 'banner') {
+      const operation = asset === 'photo'
+        ? this.profileApi.uploadPhoto(file)
+        : this.profileApi.uploadBanner(file);
+
+      operation.subscribe({
+        next: profile => {
+          this.profile.set(profile);
+          if (asset === 'photo') this.profilePhotoFailed.set(false);
+          this.saving.set(false);
+          this.closeImageCropper();
+          this.succeeded(asset === 'photo' ? 'Foto actualizada.' : 'Banner actualizado.');
+        },
+        error: error => {
+          this.saving.set(false);
+          this.failed(this.apiError(error, `No se pudo subir ${asset === 'photo' ? 'la foto' : 'el banner'}.`));
+        },
+      });
+      return;
+    }
+
+    if (asset === 'eventCover') {
+      this.eventsApi.addImage(this.eventForm.id!, file).subscribe({
+        next: response => {
+          this.eventForm = { ...this.eventForm, images: response.event.images };
+          this.saving.set(false);
+          this.closeImageCropper();
+          this.succeeded('Imagen añadida a la galería del evento.');
+          this.loadEvents();
+        },
+        error: error => {
+          this.saving.set(false);
+          this.failed(this.apiError(error, 'No se pudo subir la imagen del evento.'));
+        },
+      });
+      return;
+    }
+
+    this.sessionsApi.uploadImage(this.sessionForm.id!, file).subscribe({
+      next: response => {
+        this.sessionForm = { ...this.sessionForm, imageUrl: response.imageUrl ?? '' };
         this.saving.set(false);
         this.closeImageCropper();
-        this.succeeded(asset === 'photo' ? 'Foto actualizada.' : 'Banner actualizado.');
+        this.succeeded('Imagen de la sesión actualizada.');
+        this.loadSessions();
       },
       error: error => {
-        this.failed(this.apiError(error, `No se pudo subir ${asset === 'photo' ? 'la foto' : 'el banner'}.`));
+        this.saving.set(false);
+        this.failed(this.apiError(error, 'No se pudo subir la imagen de la sesión.'));
       },
     });
   }
@@ -640,16 +807,40 @@ export class ProfessionalPortalComponent {
     this.resetCropper();
   }
 
+  private cropConfig(): CropConfig {
+    return CROP_CONFIG[this.cropAsset() ?? 'photo'];
+  }
+
   cropAspectRatio(): number {
-    return this.cropAsset() === 'photo' ? 1 : 1248 / 256;
+    return this.cropConfig().aspect;
+  }
+
+  cropFrameWidth(): number {
+    return this.cropConfig().frameWidth;
+  }
+
+  cropFrameHeight(): number {
+    return this.cropConfig().frameHeight;
   }
 
   cropWidth(): number {
-    return this.cropAsset() === 'photo' ? 126 : 1248;
+    return this.cropConfig().outputWidth;
   }
 
   cropHeight(): number {
-    return this.cropAsset() === 'photo' ? 126 : 256;
+    return this.cropConfig().outputHeight;
+  }
+
+  cropIsRound(): boolean {
+    return this.cropConfig().round;
+  }
+
+  cropLabel(): string {
+    return this.cropConfig().label;
+  }
+
+  cropGuidance(): string {
+    return this.cropConfig().guidance;
   }
 
   openNewEvent(): void {
@@ -685,6 +876,7 @@ export class ProfessionalPortalComponent {
       addressLine1: occurrence?.location?.address ?? '',
       cityId: this.allCities().find(city => city.name === occurrence?.location?.cityName)?.id ?? null,
       status: item.status === 'PUBLICADO' ? 'PUBLICADO' : 'BORRADOR',
+      images: event.images ?? [],
     };
     this.eventStepIndex.set(0);
     this.showEventForm.set(true);
@@ -989,6 +1181,7 @@ export class ProfessionalPortalComponent {
     this.profileApi.getMine().subscribe({
       next: profile => {
         this.profile.set(profile);
+        this.profilePhotoFailed.set(false);
         Object.assign(this.profileForm, {
           publicName: profile.publicName,
           profileCategory: profile.profileCategory,
@@ -1089,6 +1282,7 @@ export class ProfessionalPortalComponent {
       addressLine1: '',
       cityId: null,
       status: 'PUBLICADO',
+      images: [],
     };
   }
 
@@ -1187,7 +1381,7 @@ export class ProfessionalPortalComponent {
     return new Date(date.getTime() - offset).toISOString().slice(0, 16);
   }
 
-  private openImageCropper(asset: 'photo' | 'banner', file: File): void {
+  private openImageCropper(asset: CropAsset, file: File): void {
     if (!file.type.startsWith('image/')) {
       this.failed('El archivo seleccionado debe ser una imagen.');
       return;

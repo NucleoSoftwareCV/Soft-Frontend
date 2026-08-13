@@ -137,6 +137,13 @@
   box-shadow: var(--shadow-sm);
 }
 
+.login-google-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+}
+
 /* ── Divisor ── */
 .login-divider {
   display: flex;

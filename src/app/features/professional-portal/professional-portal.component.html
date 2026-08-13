@@ -114,15 +114,15 @@
         <section class="profile-sheet">
           <div class="profile-sheet__identity profile-banner-control"
                [class.profile-sheet__identity--with-banner]="profile()?.bannerUrl"
-               [style.background-image]="profile()?.bannerUrl ? 'linear-gradient(90deg, rgba(9,39,41,.78), rgba(9,39,41,.3)), url(' + profileAssetUrl(profile()?.bannerUrl) + ')' : null"
+               [style.background-image]="profile()?.bannerUrl ? 'linear-gradient(90deg, rgba(7,35,38,.9) 0%, rgba(7,35,38,.68) 48%, rgba(7,35,38,.4) 100%), url(' + profileAssetUrl(profile()?.bannerUrl) + ')' : null"
                (dragover)="allowAssetDrop($event)"
                (drop)="dropProfileAsset($event, 'banner')">
             <label class="profile-avatar profile-avatar-control" (dragover)="allowAssetDrop($event)" (drop)="$event.stopPropagation(); dropProfileAsset($event, 'photo')">
-              @if (profile()?.photoUrl) { <img [src]="profileAssetUrl(profile()?.photoUrl)" alt="Foto de {{ profile()?.publicName }}"> } @else { {{ (profile()?.publicName || 'P').charAt(0) }} }
+              @if (profile()?.photoUrl && !profilePhotoFailed()) { <img [src]="profileAssetUrl(profile()?.photoUrl)" alt="Foto de {{ profile()?.publicName }}" (error)="handleProfilePhotoError()"> } @else { {{ (profile()?.publicName || 'P').charAt(0) }} }
               <span class="profile-image-overlay"><svg lucideUpload aria-hidden="true"></svg>{{ profile()?.photoUrl ? 'Cambiar foto' : 'Agregar foto' }}</span>
               <input type="file" accept="image/*" [disabled]="saving()" (change)="selectProfileAsset($event, 'photo')">
             </label>
-            <div>
+            <div class="profile-identity-copy">
               <span class="profile-kicker">{{ profile()?.profileCategory === 'CENTRO' ? 'Centro de bienestar' : profile()?.profileCategory === 'ORGANIZADOR' ? 'Organizador' : 'Profesional' }}</span>
               <h2>{{ profile()?.publicName }}</h2>
               <p>{{ profile()?.biography || 'Añade una biografía breve para explicar tu enfoque profesional.' }}</p>
@@ -162,6 +162,40 @@
               @for (link of profile()?.socialLinks || []; track link.id) {
                 <span>{{ link.platform }} <button type="button" (click)="deleteSocialLink(link.platform)" aria-label="Eliminar red social">×</button></span>
               } @empty { <small>No hay redes registradas.</small> }
+            </div>
+          </section>
+          <section class="compact-section compact-section--wide">
+            <header>
+              <div><svg lucideImages aria-hidden="true"></svg><span><strong>Galería</strong><small>Hasta 12 fotos visibles en tu perfil público</small></span></div>
+              <label class="icon-action" title="Subir foto">
+                <svg lucidePlus></svg>
+                <input type="file" accept="image/*" style="display:none" [disabled]="uploadingGalleryImage()" (change)="selectGalleryImage($event)">
+              </label>
+            </header>
+            <div class="gallery-thumb-grid">
+              @for (image of profile()?.galleryImages || []; track image.id) {
+                <div class="gallery-thumb">
+                  <img [src]="profileAssetUrl(image.imageUrl)" alt="Foto de galería">
+                  <button type="button" (click)="deleteGalleryImage(image.id)" aria-label="Eliminar imagen">×</button>
+                </div>
+              } @empty { <small>No hay fotos en tu galería.</small> }
+            </div>
+          </section>
+          <section class="compact-section compact-section--wide">
+            <header><div><svg lucideEye aria-hidden="true"></svg><span><strong>Secciones visibles</strong><small>Elige qué aparece en tu perfil público</small></span></div></header>
+            <div class="visibility-toggle-list">
+              <label class="visibility-toggle">
+                <span>Próximos eventos</span>
+                <input type="checkbox" [checked]="profile()?.showUpcomingEvents" (change)="toggleSectionVisibility('showUpcomingEvents')">
+              </label>
+              <label class="visibility-toggle">
+                <span>Sesiones 1:1</span>
+                <input type="checkbox" [checked]="profile()?.showOneToOneSessions" (change)="toggleSectionVisibility('showOneToOneSessions')">
+              </label>
+              <label class="visibility-toggle">
+                <span>Galería</span>
+                <input type="checkbox" [checked]="profile()?.showGallery" (change)="toggleSectionVisibility('showGallery')">
+              </label>
             </div>
           </section>
         </div>
@@ -306,18 +340,25 @@
     <button class="modal-backdrop crop-backdrop" aria-label="Cancelar recorte" (click)="closeImageCropper()"></button>
     <section class="modal crop-modal" role="dialog" aria-modal="true" aria-labelledby="crop-title">
       <header>
-        <div><span>Imagen del perfil</span><h2 id="crop-title">Recortar {{ cropAsset() === 'photo' ? 'foto' : 'banner' }}</h2></div>
+        <div><span>Imagen</span><h2 id="crop-title">Recortar {{ cropLabel() }}</h2></div>
         <button type="button" aria-label="Cerrar" (click)="closeImageCropper()">×</button>
       </header>
       <div class="crop-workspace">
+        <div class="crop-guidance">
+          <strong>{{ cropGuidance() }}</strong>
+          <span>Arrastra la imagen para encuadrarla y usa el zoom si necesitas acercarla.</span>
+        </div>
         <image-cropper
           [imageFile]="cropImageFile() || undefined"
           [imageURL]="cropImageUrl() || ''"
           [maintainAspectRatio]="true"
           [aspectRatio]="cropAspectRatio()"
+          [cropperStaticWidth]="cropFrameWidth()"
+          [cropperStaticHeight]="cropFrameHeight()"
+          [hideResizeSquares]="true"
           [resizeToWidth]="cropWidth()"
           [resizeToHeight]="cropHeight()"
-          [roundCropper]="cropAsset() === 'photo'"
+          [roundCropper]="cropIsRound()"
           [allowMoveImage]="true"
           [transform]="cropTransform"
           [backgroundColor]="'#ffffff'"
@@ -330,12 +371,20 @@
           (loadImageFailed)="cropImageLoadFailed()"
         ></image-cropper>
         <div class="crop-controls">
-          <label><svg lucideZoomIn aria-hidden="true"></svg><span>Zoom</span><input type="range" min="1" max="3" step="0.05" [value]="cropTransform.scale || 1" (input)="updateCropZoom($event)"></label>
+          <label><svg lucideZoomIn aria-hidden="true"></svg><span>Zoom</span><input type="range" min="1" max="4" step="0.05" [value]="cropTransform.scale || 1" (input)="updateCropZoom($event)" aria-label="Nivel de zoom de la imagen"></label>
           <button class="icon-action" type="button" title="Girar imagen" aria-label="Girar imagen" (click)="rotateCropImage()"><svg lucideRotateCw aria-hidden="true"></svg></button>
         </div>
       </div>
       <footer><span>El archivo final tendrá {{ cropWidth() }} × {{ cropHeight() }} px.</span><button type="button" (click)="closeImageCropper()">Cancelar</button><button class="primary" type="button" [disabled]="saving() || !croppedImage" (click)="confirmImageCrop()">Usar imagen</button></footer>
     </section>
+  }
+
+  @if (previewImageUrl()) {
+    <button class="modal-backdrop" aria-label="Cerrar vista previa" (click)="closeImagePreview()"></button>
+    <div class="image-preview-modal" role="dialog" aria-modal="true" aria-label="Vista previa de la imagen">
+      <button type="button" class="image-preview-close" aria-label="Cerrar" (click)="closeImagePreview()">×</button>
+      <img [src]="previewImageUrl()" alt="Vista previa">
+    </div>
   }
 
   @if (showLanguageForm()) {
@@ -386,6 +435,29 @@
           @if (currentEventStepKey() === 'info') {
             <section class="form-section">
               <div class="form-section__heading"><strong>Información principal</strong><small>Lo esencial para reconocer el evento.</small></div>
+              <div class="event-gallery-control"
+                   (dragover)="allowAssetDrop($event)"
+                   (drop)="dropProfileAsset($event, 'eventCover')">
+                <div class="event-gallery-heading">
+                  <strong>Galería del evento</strong>
+                  <small>{{ eventForm.images.length }}/8 imágenes · se recomienda al menos 1</small>
+                </div>
+                <div class="gallery-thumb-grid">
+                  @for (image of eventForm.images; track image.id) {
+                    <div class="gallery-thumb">
+                      <img [src]="profileAssetUrl(image.url)" alt="Imagen del evento" (click)="openImagePreview(image.url)">
+                      <button type="button" (click)="deleteEventImage(image.id)" aria-label="Eliminar imagen">×</button>
+                    </div>
+                  }
+                  @if (eventForm.images.length < 8) {
+                    <label class="gallery-thumb gallery-thumb--add" [class.gallery-thumb--disabled]="!eventForm.id">
+                      <svg lucideUpload aria-hidden="true"></svg>
+                      <span>{{ eventForm.id ? 'Agregar' : 'Guarda para agregar' }}</span>
+                      <input type="file" accept="image/*" [disabled]="saving() || !eventForm.id" (change)="selectProfileAsset($event, 'eventCover')">
+                    </label>
+                  }
+                </div>
+              </div>
               <div class="form-grid form-grid--section">
                 <label class="wide">Título<input name="eventTitle" [(ngModel)]="eventForm.title" required maxlength="180" placeholder="Ej. Taller de yoga y respiración"></label>
                 <label>Categoría<select name="eventCategory" [(ngModel)]="eventForm.categoryId" required><option [ngValue]="null" disabled>Selecciona una categoría</option>@for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }</select></label>
@@ -604,10 +676,23 @@
           @if (currentSessionStepKey() === 'info') {
             <section class="form-section">
               <div class="form-section__heading"><strong>Información principal</strong><small>Así se mostrará la sesión en el catálogo.</small></div>
+              <div class="cover-image-control"
+                   [class.cover-image-control--disabled]="!sessionForm.id"
+                   [style.background-image]="sessionForm.imageUrl ? 'url(' + profileAssetUrl(sessionForm.imageUrl) + ')' : null"
+                   (dragover)="allowAssetDrop($event)"
+                   (drop)="dropProfileAsset($event, 'sessionCover')">
+                @if (!sessionForm.imageUrl) {
+                  <span class="cover-image-placeholder">{{ sessionForm.id ? 'Sin imagen todavía' : 'Guarda la sesión para agregar una imagen' }}</span>
+                }
+                <label class="cover-image-label">
+                  <svg lucideUpload aria-hidden="true"></svg>
+                  <span>{{ sessionForm.imageUrl ? 'Cambiar imagen' : 'Agregar imagen' }}</span>
+                  <input type="file" accept="image/*" [disabled]="saving() || !sessionForm.id" (change)="selectProfileAsset($event, 'sessionCover')">
+                </label>
+              </div>
               <div class="form-grid form-grid--section">
                 <label class="wide">Título<input name="sessionTitle" [(ngModel)]="sessionForm.title" required maxlength="180" placeholder="Ej. Sesión de claridad y bienestar emocional"></label>
                 <label class="wide">Descripción<textarea name="sessionDescription" [(ngModel)]="sessionForm.description" rows="5" required placeholder="Explica el enfoque, qué incluye y para quién es esta sesión"></textarea></label>
-                <label class="wide">Imagen de portada<input name="sessionImage" type="url" [(ngModel)]="sessionForm.imageUrl" placeholder="https://..."><small class="field-help">Opcional. Debe ser una URL pública de imagen.</small></label>
               </div>
             </section>
           }

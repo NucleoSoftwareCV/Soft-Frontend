@@ -161,6 +161,24 @@ export const routes: Routes = [
     title: 'Mi Perfil - Oona',
   },
 
+  {
+    path: 'onboarding',
+    canActivate: [roleGuard('USER')],
+    loadComponent: () =>
+      import('./features/onboarding/onboarding.component')
+        .then(m => m.OnboardingComponent),
+    title: 'Personaliza tu experiencia - Oona',
+  },
+
+  {
+    path: 'preferencias',
+    canActivate: [roleGuard('USER')],
+    loadComponent: () =>
+      import('./features/preferences/preferences.component')
+        .then(m => m.PreferencesComponent),
+    title: 'Mis preferencias - Oona',
+  },
+
   // =========================
   // ADMIN
   // =========================

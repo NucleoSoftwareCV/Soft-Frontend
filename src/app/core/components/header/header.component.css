@@ -321,6 +321,11 @@
 
 .header__results-avatar--round { border-radius: 50%; }
 
+.header__results-avatar--empty {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-divider);
+}
+
 .header__results-row-body {
   flex: 1;
   min-width: 0;
@@ -381,11 +386,9 @@
 }
 
 /* Popover de interés por ciudad (funciona en desktop, tablet y móvil) */
+/* top/left se calculan en TS a partir del boton que lo abrio, para que quede anclado a el */
 .header__city-popover {
   position: fixed;
-  top: 72px;
-  right: 24px;
-  left: auto;
   width: 280px;
   max-width: calc(100vw - 32px);
   background-color: var(--color-bg-card, #fff);
@@ -395,6 +398,11 @@
   z-index: 300;
   border: 1px solid var(--color-divider);
   animation: fadeDown 0.15s ease;
+}
+
+.header__city-popover--fallback {
+  top: 72px;
+  right: 24px;
 }
 
 .header__city-popover-close {

@@ -136,7 +136,7 @@ export class CirculoOonaComponent implements OnInit {
     this.authService.refreshToken().subscribe({
       next: () => {
         this.submitting.set(false);
-        this.router.navigate(['/perfil']);
+        this.router.navigate(['/profesional']);
       },
       error: error => {
         this.showError(this.readError(error, 'No se pudo actualizar tu sesion.'));

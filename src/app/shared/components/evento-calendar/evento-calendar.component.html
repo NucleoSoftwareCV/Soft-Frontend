@@ -1,0 +1,74 @@
+<div class="calendar-card">
+
+  <div class="calendar-nav">
+    <button
+      type="button"
+      class="calendar-nav__btn"
+      [disabled]="!isPrevEnabled()"
+      (click)="previousMonth()"
+      aria-label="Mes anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+
+    <h3 class="calendar-nav__title">{{ monthLabel() }}</h3>
+
+    <button
+      type="button"
+      class="calendar-nav__btn"
+      (click)="nextMonth()"
+      aria-label="Mes siguiente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+    </button>
+  </div>
+
+  <div class="calendar-weekdays">
+    @for (label of weekdayLabels; track label) {
+      <div class="calendar-weekdays__cell">{{ label }}</div>
+    }
+  </div>
+
+  <div class="calendar-grid">
+    @for (week of weeks(); track $index) {
+      @for (day of week; track day.date.getTime()) {
+        <div class="calendar-day" [class.calendar-day--past]="day.isPast">
+          @if (day.occurrence) {
+            <a
+              class="calendar-day__link"
+              [routerLink]="['/evento', day.occurrence.eventId]"
+              [attr.aria-label]="day.occurrence.eventTitle">
+              <span
+                class="calendar-day__number"
+                [class.calendar-day__number--today]="day.isToday"
+                [class.calendar-day__number--faded]="!day.inCurrentMonth">
+                {{ day.dayNumber }}
+              </span>
+              <span class="calendar-day__thumb">
+                <img [src]="assetUrl(day.occurrence.coverImageUrl)" [alt]="day.occurrence.eventTitle">
+              </span>
+            </a>
+          } @else {
+            <span
+              class="calendar-day__number"
+              [class.calendar-day__number--today]="day.isToday"
+              [class.calendar-day__number--faded]="!day.inCurrentMonth">
+              {{ day.dayNumber }}
+            </span>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <div class="calendar-footer">
+    <span class="calendar-footer__organizer">
+      @if (organizerPhotoUrl()) {
+        <img [src]="assetUrl(organizerPhotoUrl())" alt="">
+      }
+      <span>{{ organizerName() }}</span>
+    </span>
+    <a routerLink="/" class="calendar-footer__brand" aria-label="Ir a la página principal de Oona">
+      <img src="/assets/oona-logo.webp" alt="Oona">
+    </a>
+  </div>
+
+</div>

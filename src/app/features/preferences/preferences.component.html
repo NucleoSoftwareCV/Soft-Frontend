@@ -1,0 +1,202 @@
+<main class="preferences-page">
+  <div class="preferences-page__shell">
+    <div class="preferences-page__content">
+      <a class="preferences-page__back" routerLink="/explorar">&larr; Ver eventos</a>
+
+      <nav class="preferences-tabs" aria-label="Secciones de mi cuenta">
+        <a routerLink="/perfil">Mi espacio</a>
+        <a class="preferences-tabs__active" aria-current="page">Mis preferencias</a>
+      </nav>
+
+      @if (loading()) {
+        <section class="preferences-state" aria-live="polite">
+          <span class="preferences-state__spinner"></span>
+          <h1>Cargando tus preferencias</h1>
+          <p>Estamos preparando tus opciones.</p>
+        </section>
+      } @else if (loadError()) {
+        <section class="preferences-state" role="alert">
+          <h1>No pudimos cargar esta pagina</h1>
+          <p>{{ loadError() }}</p>
+          <button type="button" (click)="loadPreferences()">Reintentar</button>
+        </section>
+      } @else {
+        <form class="preferences-form" (ngSubmit)="save()">
+        <header class="preferences-form__header">
+          <h1>Mis preferencias</h1>
+          <p>Personaliza los eventos y comunicaciones que quieres recibir.</p>
+        </header>
+
+        <section class="preferences-section" aria-labelledby="interests-title">
+          <div class="preferences-section__heading">
+            <h2 id="interests-title">Temas que te interesan</h2>
+            <span>Selecciona uno o varios</span>
+          </div>
+          <div class="choice-list">
+            @for (category of categories(); track category.id) {
+              <button
+                type="button"
+                class="choice-chip choice-chip--category"
+                [class.choice-chip--selected]="selectedCategoryIds().has(category.id)"
+                [attr.aria-pressed]="selectedCategoryIds().has(category.id)"
+                (click)="toggleCategory(category.id)"
+              >
+                <span aria-hidden="true">{{ category.emoji || '✨' }}</span>
+                {{ category.name }}
+                @if (selectedCategoryIds().has(category.id)) {
+                  <svg lucideCheck aria-hidden="true"></svg>
+                }
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="preferences-section" aria-labelledby="city-title">
+          <div class="preferences-section__heading">
+            <h2 id="city-title">Tu ciudad</h2>
+            <span>Para mostrarte planes cerca de ti</span>
+          </div>
+          <div class="choice-list">
+            @for (city of featuredCities(); track city.id) {
+              <button
+                type="button"
+                class="choice-chip"
+                [class.choice-chip--selected]="selectedCityId() === city.id"
+                [attr.aria-pressed]="selectedCityId() === city.id"
+                (click)="selectCity(city.id)"
+              >
+                {{ city.name }}
+                @if (selectedCityId() === city.id) {
+                  <svg lucideCheck aria-hidden="true"></svg>
+                }
+              </button>
+            }
+          </div>
+          @if (additionalCities().length) {
+            <label class="preferences-select">
+              <svg lucideMapPin aria-hidden="true"></svg>
+              <select
+                aria-label="Seleccionar otra ciudad"
+                [ngModel]="selectedAdditionalCity()"
+                (ngModelChange)="selectCity($event)"
+                name="additionalCity"
+              >
+                <option [ngValue]="null">Otra ciudad...</option>
+                @for (city of additionalCities(); track city.id) {
+                  <option [ngValue]="city.id">{{ city.name }}</option>
+                }
+              </select>
+            </label>
+          }
+        </section>
+
+        <section class="preferences-section" aria-labelledby="types-title">
+          <div class="preferences-section__heading">
+            <h2 id="types-title">Tipo de evento preferido</h2>
+            <span>Puedes seleccionar varios</span>
+          </div>
+          <div class="choice-list">
+            @for (type of experienceTypes(); track type.id) {
+              <button
+                type="button"
+                class="choice-chip"
+                [class.choice-chip--selected]="selectedExperienceTypeIds().has(type.id)"
+                [attr.aria-pressed]="selectedExperienceTypeIds().has(type.id)"
+                (click)="toggleExperienceType(type.id)"
+              >
+                {{ type.name }}
+                @if (selectedExperienceTypeIds().has(type.id)) {
+                  <svg lucideCheck aria-hidden="true"></svg>
+                }
+              </button>
+            }
+          </div>
+        </section>
+
+        <section class="preferences-section" aria-labelledby="modality-title">
+          <div class="preferences-section__heading">
+            <h2 id="modality-title">Modalidad preferida</h2>
+            <span>Elige como prefieres participar</span>
+          </div>
+          <div class="choice-list">
+            <button
+              type="button"
+              class="choice-chip choice-chip--icon"
+              [class.choice-chip--selected]="selectedModality() === EventModality.PRESENCIAL"
+              (click)="selectedModality.set(EventModality.PRESENCIAL)"
+            >
+              <svg lucideMapPin aria-hidden="true"></svg> Presencial
+            </button>
+            <button
+              type="button"
+              class="choice-chip choice-chip--icon"
+              [class.choice-chip--selected]="selectedModality() === EventModality.ONLINE"
+              (click)="selectedModality.set(EventModality.ONLINE)"
+            >
+              <svg lucideLaptop aria-hidden="true"></svg> Online
+            </button>
+            <button
+              type="button"
+              class="choice-chip choice-chip--icon"
+              [class.choice-chip--selected]="selectedModality() === EventModality.HIBRIDA"
+              (click)="selectedModality.set(EventModality.HIBRIDA)"
+            >
+              <svg lucideUsers aria-hidden="true"></svg> Ambos
+            </button>
+          </div>
+        </section>
+
+        <section class="preferences-section preferences-section--communications" aria-labelledby="communications-title">
+          <div class="preferences-section__heading">
+            <h2 id="communications-title">Comunicaciones</h2>
+            <span>Como quieres que te avisemos</span>
+          </div>
+
+          <label class="field-label" for="communication-email">
+            <span><svg lucideMail aria-hidden="true"></svg>Email</span>
+          </label>
+          <input
+            id="communication-email"
+            class="text-field"
+            type="email"
+            name="communicationEmail"
+            [(ngModel)]="communicationEmail"
+            autocomplete="email"
+            required
+          >
+
+          <div class="notification-list">
+            <label><input type="checkbox" name="savedEvents" [(ngModel)]="receiveSavedEventConfirmations"><span>Recordatorio de eventos guardados</span></label>
+            <label><input type="checkbox" name="recommendations" [(ngModel)]="receivePersonalizedRecommendations"><span>Recomendaciones personalizadas</span></label>
+            <label><input type="checkbox" name="reservationConfirmations" [(ngModel)]="receiveReservationConfirmations"><span>Confirmacion de reserva</span></label>
+            <label><input type="checkbox" name="weeklySummary" [(ngModel)]="receiveWeeklySummary"><span>Resumen semanal</span></label>
+          </div>
+
+          <label class="field-label" for="whatsapp-phone">
+            <span><svg lucideMessageCircle aria-hidden="true"></svg>WhatsApp <small>(opcional)</small></span>
+          </label>
+          <input
+            id="whatsapp-phone"
+            class="text-field"
+            type="tel"
+            name="whatsappPhone"
+            [ngModel]="whatsappPhone"
+            (input)="sanitizeWhatsapp($event)"
+            inputmode="tel"
+            maxlength="16"
+            placeholder="+34 600 000 000"
+          >
+          <p class="preferences-section__note">Puedes cambiar esto en cualquier momento. No compartiremos tus datos con terceros.</p>
+        </section>
+
+        <div class="preferences-form__actions">
+          <button class="save-button" type="submit" [disabled]="saving()">
+            <svg lucideSave aria-hidden="true"></svg>
+            {{ saving() ? 'Guardando...' : 'Guardar preferencias' }}
+          </button>
+        </div>
+        </form>
+      }
+    </div>
+  </div>
+</main>

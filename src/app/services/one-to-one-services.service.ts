@@ -36,6 +36,10 @@ export class OneToOneServicesService {
     return this.http.get<OneToOneServiceDetailResponse>(`${this.BASE}/${id}`);
   }
 
+  getServicesBySpecialist(specialistId: number): Observable<SpringPage<OneToOneServiceCardResponse>> {
+    return this.getPublicServices({ specialistId, page: 0, size: 100 });
+  }
+
   getActiveWorkTopics(): Observable<OneToOneFilterOption[]> {
     return this.http.get<OneToOneFilterOption[]>(`${this.WORK_TOPICS}/active`);
   }
@@ -78,5 +82,11 @@ export class OneToOneServicesService {
       null,
       { params: { status } }
     );
+  }
+
+  uploadImage(id: number, file: File): Observable<OneToOneServiceDetailResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<OneToOneServiceDetailResponse>(`${this.BASE}/${id}/image`, formData);
   }
 }

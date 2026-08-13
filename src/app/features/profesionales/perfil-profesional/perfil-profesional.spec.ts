@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 
 import { PerfilProfesional } from './perfil-profesional';
 import { SpecialistProfileService } from '../../../services/profesionales.service';
+import { OneToOneServicesService } from '../../../services/one-to-one-services.service';
 
 describe('PerfilProfesional', () => {
   let component: PerfilProfesional;
@@ -37,6 +38,23 @@ describe('PerfilProfesional', () => {
               publicEmail: null,
               website: null,
               socialLinks: [],
+              languages: [],
+              galleryImages: [],
+              showUpcomingEvents: true,
+              showOneToOneSessions: true,
+              showGallery: true,
+            })),
+          },
+        },
+        {
+          provide: OneToOneServicesService,
+          useValue: {
+            getServicesBySpecialist: vi.fn(() => of({
+              content: [],
+              totalElements: 0,
+              totalPages: 0,
+              size: 0,
+              number: 0,
             })),
           },
         },

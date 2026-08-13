@@ -61,4 +61,32 @@ describe('EventosService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ id: 42, title: 'Yoga' });
   });
+
+  it('requests similar events ordered by the next occurrence', () => {
+    service.getEventosSimilares(42).subscribe();
+
+    const req = http.expectOne(request =>
+      request.url.endsWith('/events/42/similar') &&
+      request.params.get('page') === '0' &&
+      request.params.get('size') === '12' &&
+      request.params.get('sort') === 'startsAt,asc'
+    );
+
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: [], totalElements: 0, number: 0, size: 12 });
+  });
+
+  it('requests other events from the current event organizer', () => {
+    service.getOtrosEventosDelOrganizador(42).subscribe();
+
+    const req = http.expectOne(request =>
+      request.url.endsWith('/events/42/organizer-events') &&
+      request.params.get('page') === '0' &&
+      request.params.get('size') === '12' &&
+      request.params.get('sort') === 'startsAt,asc'
+    );
+
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: [], totalElements: 0, number: 0, size: 12 });
+  });
 });

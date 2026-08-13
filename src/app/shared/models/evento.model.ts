@@ -23,6 +23,14 @@ export interface EventOccurrencePublicResponse {
   status: string;
 }
 
+export interface EventOccurrenceCalendarResponse {
+  occurrenceId: number;
+  eventId: number;
+  eventTitle: string;
+  coverImageUrl: string | null;
+  startsAt: string;
+}
+
 export interface CategoryResponse {
   id: number;
   name: string;
@@ -81,6 +89,7 @@ export interface EventCardResponse {
 
 export interface EventOrganizerResponse {
   id: number;
+  slug: string | null;
   publicName: string;
   biography: string | null;
   photoUrl: string | null;
@@ -118,6 +127,8 @@ export interface EventDetailResponse {
   isRecurring: boolean;
   createdAt: string;
   updatedAt: string;
+  coverImageUrl: string | null;
+  images: { id: number; url: string }[];
 }
 
 export interface SpringPage<T> {
