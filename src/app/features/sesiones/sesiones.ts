@@ -132,7 +132,7 @@ export class SesionesComponent implements OnInit {
 
   selectedTechniqueLabel(): string {
     const selectedId = this.selectedTechniqueId();
-    return this.techniques().find(technique => technique.id === selectedId)?.name ?? 'Técnicas';
+    return this.techniques().find(technique => technique.id === selectedId)?.name ?? 'Tipos';
   }
 
   hasMorePages(): boolean {
@@ -196,7 +196,7 @@ export class SesionesComponent implements OnInit {
       },
       error: () => {
         this.filtersLoading.set(false);
-        this.filtersError.set('No se pudieron cargar los filtros de temas y técnicas.');
+        this.filtersError.set('No se pudieron cargar los filtros de temas y tipos.');
       },
     });
   }

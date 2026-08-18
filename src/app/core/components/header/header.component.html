@@ -212,7 +212,8 @@
         </svg>
       </a>
 
-      <!-- Perfil / Usuario -->
+      <!-- Perfil / Usuario + burger agrupados (visual único en móvil) -->
+      <div class="header__account-group">
       <div class="header__profile-container">
         @if (!authService.isLoggedIn) {
         <!-- Enlace normal a login si no está logueado -->
@@ -447,15 +448,16 @@
           <span></span><span></span><span></span>
         </button>
       } @else {
-        <button 
-          class="header__burger" 
-          [class.header__burger--open]="isMobileMenuOpen()" 
-          (click)="toggleMobileMenu()" 
-          type="button" 
+        <button
+          class="header__burger"
+          [class.header__burger--open]="isMobileMenuOpen()"
+          (click)="toggleMobileMenu()"
+          type="button"
           aria-label="Abrir menú">
           <span></span><span></span><span></span>
         </button>
       }
+      </div>
     </div>
   </div>
 </header>
