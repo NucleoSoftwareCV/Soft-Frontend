@@ -79,13 +79,13 @@
             [attr.aria-expanded]="openDropdown() === 'techniques'"
             aria-controls="techniques-dropdown-menu"
             aria-haspopup="true"
-            [attr.aria-label]="'Filtrar por técnica: ' + selectedTechniqueLabel()"
+            [attr.aria-label]="'Filtrar por tipo: ' + selectedTechniqueLabel()"
           >
             {{ selectedTechniqueLabel() }}
             <svg lucideChevronDown class="flecha" [class.flecha--open]="openDropdown() === 'techniques'" aria-hidden="true"></svg>
           </button>
           <div class="dropdown-menu" id="techniques-dropdown-menu" role="menu" *ngIf="openDropdown() === 'techniques'">
-            <p class="dropdown-estado" *ngIf="filtersLoading()">Cargando técnicas…</p>
+            <p class="dropdown-estado" *ngIf="filtersLoading()">Cargando tipos…</p>
             <p class="dropdown-estado dropdown-estado--error" *ngIf="!filtersLoading() && filtersError()">{{ filtersError() }}</p>
             <ng-container *ngIf="!filtersLoading() && !filtersError()">
               <button
@@ -95,7 +95,7 @@
                 [class.activo]="selectedTechniqueId() === null"
                 (click)="selectTechnique(null)"
               >
-                Todas las técnicas
+                Todos los tipos
               </button>
               <button
                 class="dropdown-item"
@@ -107,7 +107,7 @@
               >
                 {{ technique.name }}
               </button>
-              <p class="dropdown-estado" *ngIf="techniques().length === 0">No hay técnicas disponibles.</p>
+              <p class="dropdown-estado" *ngIf="techniques().length === 0">No hay tipos disponibles.</p>
             </ng-container>
           </div>
         </div>

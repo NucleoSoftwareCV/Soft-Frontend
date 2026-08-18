@@ -42,8 +42,8 @@ describe('Sesiones', () => {
     expect(component).toBeTruthy();
   });
 
-  it('defaults the technique filter label to "Técnicas" instead of "Tipos"', () => {
-    expect(component.selectedTechniqueLabel()).toBe('Técnicas');
+  it('defaults the technique filter label to "Tipos"', () => {
+    expect(component.selectedTechniqueLabel()).toBe('Tipos');
   });
 
   it('closes an open dropdown when Escape is pressed', () => {

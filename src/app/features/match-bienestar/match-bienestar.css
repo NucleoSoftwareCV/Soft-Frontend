@@ -122,8 +122,8 @@ main {
 
 .match-banner__title {
   display: block;
-  width: 640px;
-  height: 144px;
+  width: min(640px, 100%);
+  height: auto;
   margin: 16px 0 0 0;
   margin-top: 20px;
   box-sizing: border-box;
@@ -180,7 +180,7 @@ main {
 
 .formlogin {
   display: block;
-  width: 672px;
+  width: min(672px, 100%);
   margin-top: -32px;
   padding: 32px;
   /* Respiración interna */
@@ -564,6 +564,6 @@ main {
   font-size: 12px;
   color: rgb(97, 117, 87);
   text-align: center;
-  width:606px;
+  width: min(606px, 100%);
   line-height: 1.4;
 }
