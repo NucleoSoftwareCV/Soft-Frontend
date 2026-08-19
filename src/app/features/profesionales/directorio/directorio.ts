@@ -36,6 +36,8 @@ export class Directorio implements OnInit {
   searchQuery =
     signal('');
 
+   isDropdownOpen =
+    signal(false);
   private readonly listado =
     signal<TarjetaDirectorio[]>([]);
 

@@ -4,9 +4,9 @@
 
     <!-- Hero -->
     <section class="directory-hero">
-      <h1 class="directory-hero__title">
+      <h2 class="directory-hero__title">
         Descubre a Nuestros Profesionales
-      </h1>
+      </h2>
 
       <p class="directory-hero__subtitle">
         Explora perfiles de guías y centros especializados en bienestar
@@ -17,17 +17,7 @@
     <div class="directory-controls__wrapper">
 
       <div class="directory-search">
-        <svg class="directory-search__icon"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2">
-
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lupa"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
 
         <input
           type="text"
@@ -37,19 +27,67 @@
         >
       </div>
 
-      <div class="directory-select-wrapper">
-        <select
-          class="directory-select"
-          (change)="actualizarCategoria($any($event.target).value)">
+      <div class="directory-select-container">
+        <button 
+          type="button" 
+          class="directory-select-btn" 
+          (click)="isDropdownOpen.set(!isDropdownOpen())"
+          [attr.aria-expanded]="isDropdownOpen()"
+        >
+          <span class="directory-select-btn__label">
+            {{ categoriaActiva() === 'todos' ? 'Todos' : 
+               categoriaActiva() === 'profesionales' ? 'Profesionales' : 
+               categoriaActiva() === 'centros' ? 'Centros' : 'Organizadores' }}
+          </span>
+          <svg class="directory-select-btn__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
 
-          <option value="todos">Todos</option>
-          <option value="profesionales">Profesionales</option>
-          <option value="centros">Centros</option>
-          <option value="organizadores">
-            Organizadores de eventos
-          </option>
+          @if (isDropdownOpen()) {
+            <!-- Fondo transparente para cerrar al hacer clic fuera -->
+            <div class="dropdown-backdrop" (click)="$event.stopPropagation(); isDropdownOpen.set(false)"></div>
+            
+            <!-- Menú Desplegable Custom -->
+            <div class="directory-dropdown-panel" (click)="$event.stopPropagation()">
+              
+              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'todos'" (click)="actualizarCategoria('todos'); isDropdownOpen.set(false)">
+                <span class="check-icon">
+                  @if (categoriaActiva() === 'todos') {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  }
+                </span>
+                Todos
+              </div>
 
-        </select>
+              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'profesionales'" (click)="actualizarCategoria('profesionales'); isDropdownOpen.set(false)">
+                <span class="check-icon">
+                  @if (categoriaActiva() === 'profesionales') {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  }
+                </span>
+                Profesionales
+              </div>
+
+              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'centros'" (click)="actualizarCategoria('centros'); isDropdownOpen.set(false)">
+                <span class="check-icon">
+                  @if (categoriaActiva() === 'centros') {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  }
+                </span>
+                Centros
+              </div>
+
+              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'organizadores'" (click)="actualizarCategoria('organizadores'); isDropdownOpen.set(false)">
+                <span class="check-icon">
+                  @if (categoriaActiva() === 'organizadores') {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  }
+                </span>
+                Organizadores
+              </div>
+            </div>
+          }
+        </button>
       </div>
 
     </div>
@@ -101,10 +139,7 @@
         [class.directory-tab--active]="categoriaActiva() === 'organizadores'"
         (click)="actualizarCategoria('organizadores')">
 
-        <app-icon
-          name="user"
-          [size]="16">
-        </app-icon>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personas"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         Organizadores de eventos
 
       </button>

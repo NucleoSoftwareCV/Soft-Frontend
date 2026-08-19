@@ -57,6 +57,7 @@ export class PreferencesComponent implements OnInit {
   readonly selectedCategoryIds = signal<Set<number>>(new Set());
   readonly selectedExperienceTypeIds = signal<Set<number>>(new Set());
   readonly selectedCityId = signal<number | null>(null);
+  readonly additionalCityName = signal('');
   readonly selectedModality = signal<EventModality | null>(null);
   readonly profile = signal<ClientProfilePreferencesResponse | null>(null);
 
@@ -122,9 +123,20 @@ export class PreferencesComponent implements OnInit {
 
   selectCity(value: number | string | null): void {
     if (value === null || value === '') return;
-    this.selectedCityId.set(Number(value));
-  }
 
+    this.selectedCityId.set(Number(value));
+    this.additionalCityName.set('');
+  }
+  onAdditionalCityInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+
+    this.additionalCityName.set(value);
+
+    if (value.trim()) {
+      this.selectedCityId.set(null);
+    }
+  }
   sanitizeWhatsapp(event: Event): void {
     const input = event.target as HTMLInputElement;
     const startsWithPlus = input.value.trim().startsWith('+');
