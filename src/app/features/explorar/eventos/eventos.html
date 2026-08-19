@@ -78,7 +78,7 @@
     }
 
     <div class="results-header">
-      <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'evento' : 'eventos' }} cerca de ti</strong>
+      <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'experiencia' : 'experiencias' }} cerca de ti</strong>
       <div class="results-actions">
         @if (activeFilterCount > 0) {
           <button class="filter-clear-btn" (click)="clearFilters()">Limpiar filtros</button>
@@ -86,7 +86,7 @@
 
         <div class="sort-wrapper">
           <button class="sort-btn" type="button" (click)="toggleSortMenu()">
-            <span class="sort-icon">↕</span>
+            <span class="sort-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flechas"><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path></svg></span>
             {{ selectedSort().label }}
           </button>
 
