@@ -13,7 +13,11 @@ export const serverRoutes: ServerRoute[] = [
     path: 'profesionales',
     renderMode: RenderMode.Client
   },
-   {
+  {
+    path: 'retiros',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'profesionales/:slug',
     renderMode: RenderMode.Server
   },

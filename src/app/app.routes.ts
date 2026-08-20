@@ -61,6 +61,13 @@ export const routes: Routes = [
         .then(m => m.PerfilProfesional),
   },
 
+  {
+    path: 'retiros',
+    loadComponent: () =>
+      import('./features/retiros/retiros')
+        .then(m => m.Retiros),
+  },
+  
   // =========================
   // MATCH DE BIENESTAR
   // =========================

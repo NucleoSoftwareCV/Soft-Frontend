@@ -1,0 +1,339 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --cream: #eef4e9;
+  --white: #f7f7f4;
+  --teal: #005c73;
+  --green: #579d1d;
+  --dark: #153e49;
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "DM Sans", Arial, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--teal);
+  font-family: var(--sans);
+  line-height: 1.65;
+}
+
+/* HERO */
+.hero {
+  min-height: 640px;
+  position: relative;
+  background: red center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  color: #fff;
+  width: min(1100px, 90%);
+}
+
+.eyebrow {
+  display: block;
+  font-size: 14px;
+  letter-spacing: 5px;
+  margin-bottom: 12px;
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(42px, 4vw, 64px);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.hero-box {
+  width: fit-content;
+  max-width: 720px;
+  margin: 28px auto 0;
+  padding: 10px 30px;
+  border-radius: 13px;
+  background: rgba(70, 70, 70, 0.52);
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* SECCIONES DIVIDIDAS */
+.split-section {
+  min-height: 690px;
+  padding: 90px max(7vw, 50px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(70px, 8vw, 130px);
+}
+
+.green {
+  background: var(--cream);
+}
+
+.white {
+  background: var(--white);
+}
+
+.text-column,
+.image-column {
+  width: min(560px, 45%);
+}
+
+.text-column h2,
+.benefits h2,
+.retreats h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  color: var(--teal);
+  line-height: 1.12;
+}
+
+.text-column h2 {
+  font-size: clamp(35px, 3vw, 46px);
+  margin-bottom: 27px;
+}
+
+.text-column p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.text-column p span,
+.green-text {
+  color: var(--green);
+}
+
+.image-column img {
+  display: block;
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(30, 50, 40, 0.12);
+}
+
+.reverse {
+  gap: clamp(45px, 6vw, 90px);
+}
+
+/* BENEFICIOS */
+.benefits {
+  min-height: 440px;
+  padding: 80px 25px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.benefits h2 {
+  font-size: clamp(38px, 3.2vw, 48px);
+  margin-bottom: 18px;
+}
+
+.benefits p {
+  font-size: 18px;
+  margin-bottom: 26px;
+}
+
+.benefits h3 {
+  color: var(--dark);
+  font-size: 23px;
+}
+
+/* RETIROS */
+.retreats {
+  min-height: 650px;
+  padding: 90px 30px 100px;
+}
+
+.retreats-inner {
+  width: min(900px, 90%);
+  margin: auto;
+}
+
+.retreats h2 {
+  text-align: center;
+  font-size: clamp(38px, 3.2vw, 50px);
+  margin-bottom: 28px;
+}
+
+.retreats-inner > p {
+  font-size: 18px;
+  margin-bottom: 27px;
+}
+
+.info-box {
+  background: #edf4e8;
+  border-radius: 14px;
+  padding: 23px 25px;
+  margin-top: 25px;
+}
+
+.info-box h3 {
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.info-box ul {
+  padding-left: 22px;
+}
+
+.info-box li {
+  margin: 3px 0;
+  font-size: 17px;
+}
+
+.closing {
+  text-align: center;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 19px !important;
+  margin-top: 35px;
+}
+
+/* TABLET */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 600px;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .hero-box {
+    font-size: 16px;
+  }
+
+  .desktop {
+    display: none;
+  }
+
+  .split-section,
+  .reverse {
+    min-height: auto;
+    padding: 70px 35px;
+    flex-direction: column;
+    gap: 45px;
+  }
+
+  .text-column,
+  .image-column {
+    width: 100%;
+    max-width: 650px;
+  }
+
+  .reverse .image-column {
+    order: 1;
+  }
+
+  .reverse .text-column {
+    order: 2;
+  }
+
+  .image-column img {
+    height: 430px;
+  }
+}
+
+/* CELULAR */
+@media (max-width: 600px) {
+  .hero {
+    min-height: 570px;
+    background-position: 53% center;
+  }
+
+  .hero-content {
+    width: 92%;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+    line-height: 1.05;
+  }
+
+  .hero-box {
+    margin-top: 24px;
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+
+  .split-section {
+    padding: 60px 24px;
+  }
+
+  .text-column h2 {
+    font-size: 34px;
+  }
+
+  .text-column p,
+  .retreats-inner > p,
+  .benefits p {
+    font-size: 16px;
+  }
+
+  .image-column img {
+    height: 320px;
+    border-radius: 13px;
+  }
+
+  .benefits {
+    min-height: 350px;
+    padding: 60px 24px;
+  }
+
+  .benefits h2 {
+    font-size: 36px;
+  }
+
+  .benefits h3 {
+    font-size: 19px;
+  }
+
+  .retreats {
+    padding: 65px 20px 75px;
+  }
+
+  .retreats-inner {
+    width: 94%;
+  }
+
+  .retreats h2 {
+    font-size: 36px;
+  }
+
+  .info-box {
+    padding: 20px;
+  }
+
+  .info-box li {
+    font-size: 15px;
+  }
+}
