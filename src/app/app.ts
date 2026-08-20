@@ -20,7 +20,8 @@ export class App {
   private readonly initialUrl = this.document.location?.pathname || this.router.url;
 
   /** Rutas operativas que no deben mostrar el header/footer global. */
-  private readonly SHELLLESS_ROUTES = ['/admin', '/profesional', '/onboarding'];
+  // 👇 AÑADIMOS '/grupo-whatsapp' AQUÍ 👇
+  private readonly SHELLLESS_ROUTES = ['/admin', '/profesional', '/onboarding', '/grupo-whatsapp'];
 
   /** URL actual como señal reactiva */
   private readonly currentUrl = toSignal(
@@ -32,7 +33,6 @@ export class App {
     { initialValue: this.initialUrl }
   );
 
-  /** true cuando estamos en una página de autenticación */
   readonly isAuthRoute = computed(() =>
     this.currentUrl().startsWith('/auth')
       || this.currentUrl().startsWith('/login')

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { GrupoWhatsAppComponent } from './features/whatsapp/grupowhatsapp';
 
 export const routes: Routes = [
   {
@@ -208,7 +209,13 @@ export const routes: Routes = [
         .then(m => m.ProfessionalPortalComponent),
     title: 'Panel profesional - Oona',
   },
-
+  {
+    path: 'grupo-whatsapp',
+    loadComponent: () =>
+      import('./features/whatsapp/grupowhatsapp')
+        .then(m => m.GrupoWhatsAppComponent),
+    title: 'Grupo de WhatsApp - Oona',
+  },
   {
     path: '**',
     redirectTo: '',
