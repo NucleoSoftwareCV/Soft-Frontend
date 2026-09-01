@@ -145,6 +145,7 @@ export type TimeFilter = 'MANANA' | 'MEDIODIA' | 'TARDE' | 'NOCHE';
 export interface EventFilterParams {
   search?: string;
   categoryId?: number;
+  categoryIds?: number[];
   experienceTypeId?: number;
   modality?: EventModality;
   cityName?: string;

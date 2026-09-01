@@ -52,7 +52,13 @@ export class EventosService {
   getEventos(filters: EventFilterParams = {}): Observable<SpringPage<EventCardResponse>> {
     let params = new HttpParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (value === undefined || value === null || value === '') return;
+      if (Array.isArray(value)) {
+        if (value.length === 0) return;
+        value.forEach(item => {
+          params = params.append(key, String(item));
+        });
+      } else {
         params = params.set(key, String(value));
       }
     });

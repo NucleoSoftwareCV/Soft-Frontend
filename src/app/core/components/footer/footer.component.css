@@ -56,7 +56,7 @@
 .footer__tagline {
   box-sizing: border-box;
   display: block;
-  width: 200px;
+  width: 260px;
   font-family: Sunset, Georgia, serif;
   font-size: 1.05rem;
   color: rgba(255, 255, 255, 0.85);
@@ -184,7 +184,7 @@
 .footer__pin-icon {
   width: 15px;
   height: 15px;
-  stroke: #ffffff !important;
+  stroke: rgba(255, 255, 255, 0.6) !important;
 }
 
 .footer__legal-links {

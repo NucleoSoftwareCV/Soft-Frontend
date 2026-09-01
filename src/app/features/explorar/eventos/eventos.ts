@@ -7,13 +7,11 @@ import { FiltrosService } from '../../../services/filtros.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
-  CategoryResponse,
   EventCardResponse,
   EventFilterParams,
   EventModality,
 } from '../../../shared/models/evento.model';
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
-import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 
 interface EventSortOption {
   label: string;
@@ -24,7 +22,7 @@ interface EventSortOption {
   selector: 'app-eventos',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  
+
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -38,12 +36,10 @@ export class Eventos {
 
   searchQuery = signal<string>('');
   eventos = signal<EventCardResponse[]>([]);
-  categorias = signal<CategoryResponse[]>([]);
-  experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
   totalEventos = signal(0);
   loading = signal(false);
   error = signal<string | null>(null);
-  
+
   readonly favoritesService = inject(FavoritesService);
   readonly authService = inject(AuthService);
   readonly favoritos = this.favoritesService.favoritedEventIds;
@@ -70,13 +66,12 @@ export class Eventos {
   }
 
   constructor() {
-    this.loadCategorias();
-    this.loadExperienceTypes();
     this.searchQuery.set(this.route.snapshot.queryParamMap.get('q') ?? '');
 
     effect(() => {
       const criteria = {
-        categoryCatalog: this.categorias().map(category => category.id).join('|'),
+        catalog: this.filtrosService.categories().map(c => c.id).join('|')
+          + '/' + this.filtrosService.experienceTypes().map(t => t.id).join('|'),
         when: this.filterWhen(),
         categories: this.filterCategories().join('|'),
         types: this.filterTypes().join('|'),
@@ -84,6 +79,7 @@ export class Eventos {
         timeOfDay: this.filterTimeOfDay(),
         modality: this.filterModality(),
         recurrence: this.filterRecurrence(),
+        price: this.filterPrice(),
         search: this.searchQuery(),
         sort: this.selectedSort().sort,
       };
@@ -103,6 +99,7 @@ export class Eventos {
   get filterTimeOfDay()  { return this.filtrosService.filterTimeOfDay; }
   get filterModality()   { return this.filtrosService.filterModality; }
   get filterRecurrence() { return this.filtrosService.filterRecurrence; }
+  get filterPrice()      { return this.filtrosService.filterPrice; }
   get activeFilterCount(): number { return this.filtrosService.activeFilterCount; }
 
   openHeaderFilter() {
@@ -110,7 +107,9 @@ export class Eventos {
       window.dispatchEvent(new CustomEvent('oona:open-filter'));
     }
   }
-
+  openHeaderDateModal(): void {
+  window.dispatchEvent(new CustomEvent('oona:open-date-modal'));
+  }
   selectWhen(option: string) {
     this.showDatePicker.set(false);
     this.filtrosService.selectWhen(option);
@@ -215,13 +214,6 @@ export class Eventos {
     }).format(item.priceFrom);
   }
 
-  private loadCategorias(): void {
-    this.eventosService.getCategorias().subscribe({
-      next: categorias => this.categorias.set(categorias.filter(categoria => categoria.active)),
-      error: () => this.categorias.set([]),
-    });
-  }
-
   private loadEventos(criteria: Record<string, string | null>): void {
     const requestKey = JSON.stringify(criteria);
     if (requestKey === this.lastRequestKey) return;
@@ -245,93 +237,17 @@ export class Eventos {
     });
   }
 
+  /**
+   * Mismos parámetros que usa el contador en vivo del modal del header
+   * (FiltrosService.buildEventFilterParams), garantizando que el número
+   * del botón y este listado siempre coincidan.
+   */
   private buildFilters(): EventFilterParams {
     return {
       size: 24,
-      search: this.searchQuery().trim() || undefined,
-      ...this.dateRangeFor(this.filterWhen()),
-      ...this.timeRangeFor(this.filterTimeOfDay()),
-      categoryId: this.categoryIdFor(this.filterCategories()[0]),
-      experienceTypeId: this.experienceTypeIdFor(this.filterTypes()[0]),
-      cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
-      modality: this.modalityFor(this.filterModality()),
-      isRecurring: this.recurrenceFor(this.filterRecurrence()),
       sort: this.selectedSort().sort,
-    };
-  }
-
-  private categoryIdFor(name: string | undefined): number | undefined {
-    return this.categorias().find(categoria => categoria.name === name)?.id;
-  }
-
-  private modalityFor(value: string | null): EventModality | undefined {
-    if (!value) return undefined;
-    if (value.toLowerCase() === 'online') return EventModality.ONLINE;
-    return EventModality.PRESENCIAL;
-  }
-
-  private recurrenceFor(value: string | null): boolean | undefined {
-    if (!value) return undefined;
-    return value === 'Recurrente';
-  }
-
-  private experienceTypeIdFor(value: string | undefined): number | undefined {
-    return this.experienceTypes().find(type => type.name === value)?.id;
-  }
-
-  private loadExperienceTypes(): void {
-    this.eventosService.getExperienceTypes().subscribe({
-      next: types => {
-        this.experienceTypes.set(types);
-      },
-      error: () => this.experienceTypes.set([]),
-    });
-  }
-
-  private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {
-    const map: Record<string, Pick<EventFilterParams, 'hourFrom' | 'hourTo'>> = {
-      'Manana': { hourFrom: 6, hourTo: 12 },
-      'Mañana': { hourFrom: 6, hourTo: 12 },
-      'Mediodia': { hourFrom: 12, hourTo: 16 },
-      'Mediodía': { hourFrom: 12, hourTo: 16 },
-      'Tarde': { hourFrom: 16, hourTo: 20 },
-      'Noche': { hourFrom: 20, hourTo: 23 },
-    };
-    return value ? map[value] ?? {} : {};
-  }
-
-  private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {
-    if (!value) return {};
-    if (value.startsWith('RANGO:')) {
-      const [, dateFrom, dateTo] = value.split(':');
-      return {
-        dateFrom,
-        dateTo: dateTo || dateFrom,
-      };
-    }
-
-    const today = new Date();
-    const start = new Date(today);
-    const end = new Date(today);
-
-    if (value === 'Mañana' || value === 'Manana') {
-      start.setDate(today.getDate() + 1);
-      end.setDate(today.getDate() + 1);
-    } else if (value === 'Este finde') {
-      const day = today.getDay();
-      const daysUntilSaturday = day === 6 ? 0 : day === 0 ? -1 : 6 - day;
-      start.setDate(today.getDate() + daysUntilSaturday);
-      end.setDate(start.getDate() + 1);
-    } else if (value === 'Esta semana') {
-      end.setDate(today.getDate() + 7);
-    } else if (value === 'Próxima semana' || value === 'Proxima semana') {
-      start.setDate(today.getDate() + 7);
-      end.setDate(today.getDate() + 14);
-    }
-
-    return {
-      dateFrom: this.toDateParam(start),
-      dateTo: this.toDateParam(end),
+      search: this.searchQuery().trim() || undefined,
+      ...this.filtrosService.buildEventFilterParams(this.filtrosService.snapshot()),
     };
   }
 
