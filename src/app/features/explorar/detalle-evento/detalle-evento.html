@@ -393,16 +393,17 @@
               }
               <p>Organizador de este evento</p>
             </div>
-          </div>
 
-          @if (event.organizer?.slug) {
-            <a class="profile-btn" [routerLink]="['/profesionales', event.organizer?.slug]">
-              Ver perfil
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-            </a>
-          }
+            @if (event.organizer?.slug) {
+              <a class="profile-btn" [routerLink]="['/profesionales', event.organizer?.slug]">
+                Ver perfil
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+            }
+          </div>
+        </div>
           
-          <a
+          <!--<a
             *ngIf="whatsappUrl() as contactUrl; else contactoNoDisponible"
             class="question-box"
             [href]="contactUrl"
@@ -427,8 +428,7 @@
                 <small>El organizador no ha publicado su WhatsApp.</small>
               </div>
             </div>
-          </ng-template>
-        </div>
+          </ng-template>-->
       </section>
 
       @if (eventosSimilares().length > 0) {
@@ -457,9 +457,9 @@
       }
 
       @if (eventosDelOrganizador().length > 0) {
-        <section class="related-events" aria-labelledby="organizer-events-title">
+        <section class="related-events">
           <div class="related-events__header">
-            <h2 id="organizer-events-title">Otros eventos de este organizador</h2>
+            <h2 class="organizer-events-title">Otros eventos de este organizador</h2>
           </div>
           <div class="related-events__carousel">
             @if (puedeRetrocederOrganizador()) {

@@ -52,7 +52,13 @@ Ver eventos</a>
 
         <section class="preferences-section" aria-labelledby="city-title">
           <div class="preferences-section__heading">
-            <h2 id="city-title">Tu ciudad</h2>
+            <div class="preferences-section__title-row">
+              <h2 id="city-title">Tu ciudad
+              @if (!selectedCityId() && !additionalCityName().trim()) {
+                <div class="section-pending">Pendiente</div>
+              }
+              </h2>
+            </div>
           </div>
 
           <div class="choice-list">
@@ -85,7 +91,13 @@ Ver eventos</a>
 
         <section class="preferences-section" aria-labelledby="types-title">
           <div class="preferences-section__heading">
-            <h2 id="types-title">Tipo de evento preferido</h2>
+            <div class="preferences-section__title-row">
+              <h2 id="types-title">Tipo de evento preferido
+              @if (selectedExperienceTypeIds().size === 0) {
+                <div class="section-pending">Pendiente</div>
+              }
+              </h2>
+            </div>
           </div>
           <div class="choice-list">
             @for (type of experienceTypes(); track type.id) {
@@ -108,31 +120,37 @@ Ver eventos</a>
 
         <section class="preferences-section" aria-labelledby="modality-title">
           <div class="preferences-section__heading">
-            <h2 id="modality-title">Modalidad preferida</h2>
+            <div class="preferences-section__title-row">
+              <h2 id="modality-title">Modalidad preferida
+              @if (!selectedModality()) {
+                <div class="section-pending">Pendiente</div>
+              }
+              </h2>
+            </div>
           </div>
           <div class="choice-list">
             <button
               type="button"
               class="choice-chip choice-chip--icon"
               [class.choice-chip--selected2]="selectedModality() === EventModality.PRESENCIAL"
-              (click)="selectedModality.set(EventModality.PRESENCIAL)"
-            >
+              [attr.aria-pressed]="selectedModality() === EventModality.PRESENCIAL"
+              (click)="selectModality(EventModality.PRESENCIAL)">
               📍 Presencial
             </button>
             <button
               type="button"
               class="choice-chip choice-chip--icon"
               [class.choice-chip--selected2]="selectedModality() === EventModality.ONLINE"
-              (click)="selectedModality.set(EventModality.ONLINE)"
-            >
+              [attr.aria-pressed]="selectedModality() === EventModality.ONLINE"
+              (click)="selectModality(EventModality.ONLINE)">
               💻 Online
             </button>
             <button
               type="button"
               class="choice-chip choice-chip--icon"
               [class.choice-chip--selected2]="selectedModality() === EventModality.HIBRIDA"
-              (click)="selectedModality.set(EventModality.HIBRIDA)"
-            >
+              [attr.aria-pressed]="selectedModality() === EventModality.HIBRIDA"
+              (click)="selectModality(EventModality.HIBRIDA)">
               🌐 Ambos
             </button>
           </div>

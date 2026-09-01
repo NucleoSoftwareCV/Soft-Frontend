@@ -583,27 +583,44 @@
 .filter-overlay {
   position: fixed;
   inset: 0;
-  z-index: 500;
-  background-color: rgba(0, 0, 0, 0.38);
+  z-index: 50;
+
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 80px;
-  padding-inline: 1rem;
-  animation: fadeIn 0.18s ease;
+  padding: 24px;
+  box-sizing: border-box;
+
+  background-color: rgba(0, 0, 0, 0.8);
+  color: rgb(0, 66, 87);
+  pointer-events: auto;
+
+  animation: fadeIn 0.15s ease;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
 }
 
 .filter-modal {
-  width: 100%;
-  max-width: 640px;
-  max-height: calc(100vh - 100px);
-  background-color: var(--color-bg);
-  border-radius: 1rem;
   display: flex;
   flex-direction: column;
+  width: 640px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  box-sizing: border-box;
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.2s ease;
+
+  background-color: rgb(243, 244, 240);
+  border: 0.666667px solid rgb(238, 244, 235);
+  border-radius: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  color: rgb(0, 66, 87);
+  pointer-events: auto;
+
+  animation: modalScaleUp 0.2s ease;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
 }
 
 .filter-modal__head {
@@ -615,17 +632,33 @@
 }
 
 .filter-modal__title {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--color-ink);
-  line-height: 1;
+  display: block;
+  margin: 0;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 78, 89);
+  pointer-events: auto;
+
+  font-family: Sunset, Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 30px;
 }
 
 .filter-modal__subtitle {
-  font-size: 0.82rem;
-  color: var(--color-muted);
-  margin-top: 0.25rem;
+  display: block;
+  width: auto;
+  margin: 2px 0 0 0;
+  box-sizing: border-box;
+
+  border: 0px solid rgb(238, 244, 235);
+  color: rgba(0, 66, 87, 0.6);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .filter-modal__close {
@@ -660,11 +693,22 @@
 }
 
 .filter-section__title {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--color-sage);
-  margin-bottom: 0.85rem;
+display: block;
+width: 636.667px;
+height: 16.5px;
+margin: 0 0 12px 0;
+box-sizing: border-box;
+
+border: 0px solid rgb(238, 244, 235);
+color: rgba(0, 78, 89, 0.7);
+pointer-events: auto;
+
+font-family: Sunset, Georgia, serif;
+font-size: 11px;
+font-weight: 700;
+line-height: 16.5px;
+letter-spacing: 1.32px;
+text-transform: uppercase;
 }
 
 .filter-divider {
@@ -679,16 +723,33 @@
 }
 
 .filter-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
-  border: 1.5px solid var(--color-divider);
-  border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  color: var(--color-ink);
-  background-color: var(--color-bg-card);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: auto;
+  height: 32px;
+  margin: 0;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background-color: rgb(255, 255, 255);
+  border: 0.666667px solid rgba(0, 66, 87, 0.15);
+  border-radius: 9999px;
+  color: rgb(0, 78, 89);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 19.5px;
+  text-align: center;
+  white-space: nowrap;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .filter-chip:hover {
@@ -712,15 +773,31 @@
 }
 
 .filter-time-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 0.75rem 0.5rem;
-  border: 1.5px solid var(--color-divider);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-card);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+
+width: 130px;
+height: 52.0833px;
+margin: 0;
+padding: 10px 8px;
+box-sizing: border-box;
+
+appearance: button;
+cursor: pointer;
+background-color: rgb(255, 255, 255);
+border: 0.666667px solid rgba(0, 66, 87, 0.15);
+border-radius: 16px;
+color: rgb(0, 78, 89);
+pointer-events: auto;
+
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+font-size: 16px;
+font-weight: 400;
+line-height: 24px;
+text-align: center;
+transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .filter-time-card:hover {
@@ -733,14 +810,41 @@
 }
 
 .filter-time-card__label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-ink);
+  display: block;
+  width: 50.3021px;
+  height: 16.25px;
+  box-sizing: border-box;
+
+  cursor: pointer;
+  border: 0px solid rgb(238, 244, 235);
+  color: rgb(0, 78, 89);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16.25px;
+  text-align: center;
 }
 
 .filter-time-card__sub {
-  font-size: 0.72rem;
-  color: var(--color-muted);
+  display: block;
+  width: 38.8229px;
+  height: 12.5px;
+  margin-top: 2px;
+  box-sizing: border-box;
+
+  cursor: pointer;
+  border: 0px solid rgb(238, 244, 235);
+  color: rgba(0, 66, 87, 0.55);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12.5px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .filter-modal__footer {
@@ -751,27 +855,93 @@
   border-top: 1px solid var(--color-divider);
   flex-shrink: 0;
 }
+.tacho {
+  box-sizing: border-box;
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tacho:disabled{
+  cursor: not-allowed;
+  color: rgba(0, 66, 87, 0.3);  
+}
 
 .filter-modal__clear {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.875rem;
-  color: var(--color-muted);
-  transition: color var(--transition-fast);
+  flex-shrink: 0;
+  gap: 6px;
+
+  width: 105.156px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background-color: transparent;
+  border: 0px solid rgb(238, 244, 235);
+  color: rgba(0, 66, 87, 0.7);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
 }
 
 .filter-modal__clear:hover:not(:disabled) {
-  color: var(--color-ink);
+  color: rgba(0, 66, 87);
 }
 
 .filter-modal__clear:disabled {
   opacity: 0.4;
-  cursor: default;
+  cursor: not-allowed;
 }
 
 .filter-modal__apply {
-  padding: 0.65rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: auto;
+  min-width: 227px;
+  height: 44px;
+  margin: 0;
+  padding: 8px 20px;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background-color: rgb(0, 78, 89);
+  border: 0px solid rgb(238, 244, 235);
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px 0 rgba(0, 78, 89, 0.22);
+  color: rgb(255, 255, 255);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .city-overlay {
@@ -1652,3 +1822,397 @@
 }
 
 
+
+/* ══════════════════════════════════════
+   FILTRO DE PRECIO + CONTADOR EN VIVO
+══════════════════════════════════════ */
+
+/* Spinner del botón mientras se consulta el número de resultados */
+.filter-modal__apply-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: filter-apply-spin 0.7s linear infinite;
+}
+
+@keyframes filter-apply-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pills de precio: mismo look que el resto de chips del modal,
+   con números tabulares para que los importes no "bailen" */
+.filter-chip--price {
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-chip--price:hover {
+  border-color: var(--color-sage);
+}
+
+
+/* ══════════════════════════════════════
+   MODAL DE FECHA ("Elegir fecha")
+   Diseño según imagen de referencia: modal centrado sobre overlay
+   oscuro, atajos pill, calendario mensual con semana L-D y footer
+   Borrar / Mostrar N experiencias.
+══════════════════════════════════════ */
+
+.date-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.15s ease;
+}
+
+.date-modal {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  box-sizing: border-box;
+  overflow: hidden;
+
+  background-color: #F3F4F0;
+  border: 0.666667px solid rgb(238, 244, 235);
+  border-radius: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  color: rgb(0, 66, 87);
+  pointer-events: auto;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  line-height: 24px;
+
+  animation: slideUp 0.2s ease;
+}
+
+/* ── Cabecera: "Fecha" + cerrar ── */
+.date-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 1.75rem 1rem;
+  flex-shrink: 0;
+}
+
+.date-modal__title {
+  margin: 0;
+  color: rgb(0, 78, 89);
+
+  font-family: Sunset, Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.date-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: rgba(0, 78, 89, 0.55);
+  border: 0;
+  background: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.date-modal__close:hover {
+  color: rgb(0, 78, 89);
+  background-color: rgba(0, 66, 87, 0.08);
+}
+
+/* ── Cuerpo: atajos + calendario ── */
+.date-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1.5rem 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-divider) transparent;
+}
+
+.date-modal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: 1rem;
+}
+
+/* Pills de atajos (mismo look que .filter-chip, sin depender de él) */
+.date-chip {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background-color: rgb(255, 255, 255);
+  border: 0.666667px solid rgba(0, 66, 87, 0.15);
+  border-radius: 9999px;
+  color: rgb(0, 78, 89);
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 19.5px;
+  text-align: center;
+  white-space: nowrap;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.date-chip:hover {
+  border-color: var(--color-sage);
+}
+
+.date-chip--active {
+  border-color: var(--color-sage);
+  background-color: var(--color-sage);
+  color: #fff;
+}
+
+/* ── Calendario ── */
+.date-calendar {
+  padding-bottom: 0.5rem;
+}
+
+.date-calendar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.25rem 0.75rem;
+}
+
+.date-calendar__nav-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-calendar__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: rgba(0, 78, 89, 0.75);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.date-calendar__nav-btn:hover:not(:disabled) {
+  background-color: rgba(0, 66, 87, 0.08);
+}
+
+.date-calendar__nav-btn:disabled {
+  color: rgba(0, 66, 87, 0.25);
+  cursor: default;
+}
+
+.date-calendar__month {
+  color: rgb(0, 78, 89);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-calendar__weekdays,
+.date-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.date-calendar__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  color: var(--secundary, #637557);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.date-calendar__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  max-height: 44px;
+  margin: auto;
+  width: 100%;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: rgb(0, 66, 87);
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+
+  transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.date-calendar__day:hover:not(:disabled) {
+  background-color: rgba(0, 66, 87, 0.08);
+}
+
+/* Días de otros meses (borde gris del calendario) */
+.date-calendar__day--out {
+  color: #8B8B8B;
+}
+
+/* Hoy: círculo gris claro */
+.date-calendar__day--today:not(:disabled) {
+  background-color: #DCE4E1;
+}
+
+/* Día seleccionado: anillo teal fino y claro (como la imagen) */
+.date-calendar__day--selected {
+  box-shadow: inset 0 0 0 1.5px rgba(0, 78, 89, 0.45);
+  color: rgb(0, 78, 89);
+  font-weight: 600;
+}
+
+/* Días pasados: deshabilitados */
+.date-calendar__day--past {
+  color: rgba(0, 66, 87, 0.25);
+  cursor: default;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Footer: Borrar + Mostrar N experiencias ── */
+.date-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.9rem 1.5rem;
+  border-top: 1px solid var(--color-divider);
+  flex-shrink: 0;
+}
+
+.date-modal__clear {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  height: 20px;
+  padding: 0;
+
+  appearance: button;
+  background: transparent;
+  border: 0;
+  color: rgba(0, 66, 87, 0.7);
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+
+  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+
+.date-modal__clear:hover:not(:disabled) {
+  color: rgba(0, 66, 87);
+}
+
+.date-modal__clear:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.date-modal__apply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-width: 210px;
+  height: 44px;
+  padding: 8px 20px;
+  box-sizing: border-box;
+
+  appearance: button;
+  cursor: pointer;
+  background-color: rgb(0, 78, 89);
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px 0 rgba(0, 78, 89, 0.22);
+  color: rgb(255, 255, 255);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.date-modal__apply svg {
+  flex-shrink: 0;
+}
+
+/* Spinner del botón mientras se consulta el número de experiencias */
+.date-modal__apply-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: filter-apply-spin 0.7s linear infinite;
+}
+
+/* ── Responsive ── */
+@media (max-width: 639px) {
+  .date-overlay {
+    padding: 12px;
+  }
+
+  .date-modal {
+    max-height: calc(100vh - 24px);
+  }
+
+  .date-modal__apply {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .date-calendar__day {
+    font-size: 13px;
+  }
+}

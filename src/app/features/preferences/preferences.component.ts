@@ -120,11 +120,13 @@ export class PreferencesComponent implements OnInit {
   toggleExperienceType(id: number): void {
     this.selectedExperienceTypeIds.update(current => this.toggleSet(current, id));
   }
-
+  selectModality(modality: EventModality): void {
+  this.selectedModality.update(current => (current === modality ? null : modality));
+  }
   selectCity(value: number | string | null): void {
     if (value === null || value === '') return;
-
-    this.selectedCityId.set(Number(value));
+    const id = Number(value);
+    this.selectedCityId.update(current => (current === id ? null : id));
     this.additionalCityName.set('');
   }
   onAdditionalCityInput(event: Event): void {

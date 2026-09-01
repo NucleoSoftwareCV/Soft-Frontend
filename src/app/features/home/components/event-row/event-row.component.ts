@@ -46,7 +46,7 @@ function getCardsPerPage(viewportWidth: number): number {
 export class EventRowComponent implements AfterViewInit, OnDestroy {
 
   title      = input.required<string>();
-  seeAllPath = input<string>('/eventos');
+  seeAllPath = input<string>('/explorar');
   events     = input.required<EventItem[]>();
 
   @ViewChild('trackRef')    trackRef!:    ElementRef<HTMLUListElement>;

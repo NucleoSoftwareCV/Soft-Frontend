@@ -35,12 +35,12 @@
   gap: 5px;
   color: white;
   font-size: 12px;
-  font-weight: 600;
-  background-color: rgba(20, 20, 20, 0.55);
+  font-weight: 500;
   padding: 4px 8px;
-  border-radius: 999px;
 }
-
+.location span{
+  color: rgb(255, 255, 255)
+}
 .location svg {
   flex: 0 0 auto;
 }

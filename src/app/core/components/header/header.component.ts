@@ -1,10 +1,12 @@
-import { Component, HostListener, signal, computed, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, signal, computed, effect, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { FiltrosService } from '../../../services/filtros.service';
+import { Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, map, catchError, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FiltrosEstado, FiltrosService } from '../../../services/filtros.service';
+import { EventosService } from '../../../services/eventos.service';
 import { AuthService } from '../../services/auth.service';
 import { SearchCategoryMatch, SearchResults, SearchService } from '../../../services/search.service';
 import { EventCardResponse } from '../../../shared/models/evento.model';
@@ -15,6 +17,15 @@ import { CityInterestService } from '../../../services/city-interest.service';
 import { ToastService } from '../../../shared/services/toast.service';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface CalendarDayCell {
+  date: string;
+  day: number;
+  inMonth: boolean;
+  isToday: boolean;
+  isPast: boolean;
+  isSelected: boolean;
+}
 
 @Component({
   selector: 'app-header',
@@ -32,11 +43,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly searchService = inject(SearchService);
   private readonly cityInterestService = inject(CityInterestService);
   private readonly toastService = inject(ToastService);
+  private readonly eventosService = inject(EventosService);
 
   isScrolled       = signal(false);
   isMobileMenuOpen = signal(false);
   isSearchFocused  = signal(false);
   isFilterOpen     = signal(false);
+  isDateModalOpen  = signal(false);
   isCityOpen       = signal(false);
   cityPopoverPosition = signal<{ top: number; left: number } | null>(null);
   isProfilePopoverOpen = signal(false);
@@ -45,6 +58,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   searchResults    = signal<SearchResults | null>(null);
   searching        = signal(false);
   private readonly searchInput$ = new Subject<string>();
+
+  resultCount  = signal<number | null>(null);
+  countLoading = signal(false);
+  private readonly countInput$ = new Subject<void>();
 
   cityInterestEmail      = signal('');
   cityInterestSubmitting = signal(false);
@@ -76,6 +93,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   pendingTimeOfDay  = signal<string | null>(null);
   pendingModality   = signal<string | null>(null);
   pendingRecurrence = signal<string | null>(null);
+  pendingPrice      = signal<string | null>(null);
+
+  calendarView = signal<{ year: number; month: number } | null>(null);
+
+  dateQuickOptions = ['Esta semana', 'Este finde', 'Próxima semana'];
+  weekDayLabels = ['LU', 'MA', 'MI', 'JU', 'VI', 'SÁ', 'DO'];
 
   get whenOptions()     { return this.filtrosService.whenOptions; }
   get categoryOptions() { return this.filtrosService.categoryOptions; }
@@ -84,6 +107,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   get timeOptions()     { return this.filtrosService.timeOptions; }
   get modalityOptions() { return this.filtrosService.modalityOptions; }
   get recurrenceOptions() { return this.filtrosService.recurrenceOptions; }
+  get priceOptions()    { return this.filtrosService.priceOptions; }
 
   get activeFilterCount(): number {
     return this.filtrosService.activeFilterCount;
@@ -97,14 +121,87 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.pendingCity() !== 'Todas' ? 1 : 0) +
       (this.pendingTimeOfDay() ? 1 : 0) +
       (this.pendingModality() ? 1 : 0) +
-      (this.pendingRecurrence() ? 1 : 0)
+      (this.pendingRecurrence() ? 1 : 0) +
+      (this.pendingPrice() ? 1 : 0)
     );
   }
 
-  ngOnInit(): void {
+  readonly applyButtonLabel = computed(() => {
+    if (this.countLoading()) return 'Buscando…';
+    const total = this.resultCount();
+    if (total === null) return 'Mostrar resultados →';
+    return `Mostrar ${total} ${total === 1 ? 'resultado' : 'resultados'} →`;
+  });
+
+  readonly selectedDateKey = computed<string | null>(() => {
+    const when = this.pendingWhen();
+    if (!when?.startsWith('RANGO:')) return null;
+    return when.split(':')[1] ?? null;
+  });
+
+  readonly calendarDays = computed<CalendarDayCell[]>(() => {
+    const view = this.calendarView();
+    if (!view) return [];
+    const first = new Date(view.year, view.month, 1);
+    const offset = (first.getDay() + 6) % 7;
+    const start = new Date(view.year, view.month, 1 - offset);
+    const today = this.localDateKey(new Date());
+    const selected = this.selectedDateKey();
+    const cells: CalendarDayCell[] = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const key = this.localDateKey(d);
+      cells.push({
+        date: key,
+        day: d.getDate(),
+        inMonth: d.getMonth() === view.month,
+        isToday: key === today,
+        isPast: key < today,
+        isSelected: key === selected,
+      });
+    }
+    return cells;
+  });
+
+  readonly monthLabel = computed(() => {
+    const view = this.calendarView();
+    if (!view) return '';
+    const month = new Intl.DateTimeFormat('es-ES', { month: 'long' })
+      .format(new Date(view.year, view.month, 1));
+    return `${month.charAt(0).toUpperCase()}${month.slice(1)} ${view.year}`;
+  });
+
+  readonly canGoToPrevMonth = computed(() => {
+    const view = this.calendarView();
+    if (!view) return false;
+    const now = new Date();
+    return view.year > now.getFullYear()
+      || (view.year === now.getFullYear() && view.month > now.getMonth());
+  });
+
+  readonly dateButtonLabel = computed(() => {
+    if (this.countLoading()) return 'Buscando…';
+    const total = this.resultCount();
+    if (total === null) return 'Mostrar experiencias';
+    return `Mostrar ${total} ${total === 1 ? 'experiencia' : 'experiencias'}`;
+  });
+
+  readonly isCustomDatePending = computed(() => this.pendingWhen()?.startsWith('RANGO:') ?? false);
+
+  readonly pendingDateChipLabel = computed(() => {
+    const when = this.pendingWhen();
+    if (!when?.startsWith('RANGO:')) return 'Elegir fecha';
+    const [, from, to] = when.split(':');
+    const fmt = (value: string) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
+      .format(this.parseDateKey(value));
+    return from === to ? fmt(from) : `${fmt(from)} – ${fmt(to)}`;
+  });
+
+ngOnInit(): void {
     this.filtrosService.refreshCatalogs();
     if (this.isBrowser) {
       window.addEventListener('oona:open-filter', this.openFilterListener);
+      window.addEventListener('oona:open-date-modal', this.openDatePickerListener);
     }
 
     this.searchInput$
@@ -127,14 +224,51 @@ export class HeaderComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy(): void {
-    if (this.isBrowser) {
-      window.removeEventListener('oona:open-filter', this.openFilterListener);
-    }
+ngOnDestroy(): void {
+  if (this.isBrowser) {
+    window.removeEventListener('oona:open-filter', this.openFilterListener);
+    window.removeEventListener('oona:open-date-modal', this.openDatePickerListener);
+    document.body.style.overflow = '';
   }
+}
 
   private readonly openFilterListener = () => this.openFilter();
+  private readonly openDatePickerListener = () => this.openDatePickerFromEvent();
+  private readonly overlayOpen = computed(() =>
+    this.isFilterOpen() ||
+    this.isDateModalOpen() ||
+    this.isCityOpen() ||
+    this.isMobileMenuOpen() ||
+    this.showLogoutConfirm()
+  );
 
+  constructor() {
+    effect(() => {
+      if (this.isBrowser) {
+        document.body.style.overflow = this.overlayOpen() ? 'hidden' : '';
+      }
+    });
+
+    this.countInput$
+      .pipe(
+        tap(() => this.countLoading.set(true)),
+        debounceTime(250),
+        switchMap(() => {
+          const params = this.filtrosService.buildEventFilterParams(this.pendingSnapshot());
+          return this.eventosService.getEventos({ ...params, size: 1, sort: 'priceFrom,asc' }).pipe(
+            map(page => page.totalElements ?? 0),
+            catchError(() => of<number | null>(null)),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe(total => {
+        this.countLoading.set(false);
+        if (total !== null) {
+          this.resultCount.set(total);
+        }
+      });
+  }
   @HostListener('window:scroll')
   onScroll(): void {
     if (this.isBrowser) {
@@ -144,6 +278,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.isDateModalOpen()) {
+      this.isDateModalOpen.set(false);
+      return;
+    }
     this.isFilterOpen.set(false);
     this.isCityOpen.set(false);
     this.isMobileMenuOpen.set(false);
@@ -152,7 +290,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.showLogoutConfirm.set(false);
   }
 
-  @HostListener('document:click', ['$event'])
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event): void {
     if (this.isProfilePopoverOpen()) {
@@ -338,53 +475,81 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingTimeOfDay.set(this.filtrosService.filterTimeOfDay());
     this.pendingModality.set(this.filtrosService.filterModality());
     this.pendingRecurrence.set(this.filtrosService.filterRecurrence());
+    this.pendingPrice.set(this.filtrosService.filterPrice());
     this.isFilterOpen.set(true);
     this.isCityOpen.set(false);
+    this.countInput$.next();
   }
 
   applyFilters(): void {
-    this.filtrosService.filterWhen.set(this.pendingWhen());
-    this.filtrosService.filterCategories.set([...this.pendingCategories()]);
-    this.filtrosService.filterTypes.set([...this.pendingTypes()]);
-    this.filtrosService.filterCity.set(this.pendingCity());
-    this.filtrosService.filterTimeOfDay.set(this.pendingTimeOfDay());
-    this.filtrosService.filterModality.set(this.pendingModality());
-    this.filtrosService.filterRecurrence.set(this.pendingRecurrence());
+    this.commitPending();
     this.isFilterOpen.set(false);
+    this.router.navigate(['/explorar'], { queryParamsHandling: 'preserve' });
   }
 
   closeFilter(): void {
     this.isFilterOpen.set(false);
   }
 
+
+  private commitPending(): void {
+    this.filtrosService.applySnapshot(this.pendingSnapshot());
+    this.countInput$.next();
+  }
+
+  private pendingSnapshot(): FiltrosEstado {
+    return {
+      when: this.pendingWhen(),
+      categories: this.pendingCategories(),
+      types: this.pendingTypes(),
+      city: this.pendingCity(),
+      timeOfDay: this.pendingTimeOfDay(),
+      modality: this.pendingModality(),
+      recurrence: this.pendingRecurrence(),
+      price: this.pendingPrice(),
+    };
+  }
+
   pendingSelectWhen(opt: string): void {
     this.pendingWhen.set(this.pendingWhen() === opt ? null : opt);
+    this.commitPending();
   }
 
   pendingToggleCategory(cat: string): void {
     const c = this.pendingCategories();
     this.pendingCategories.set(c.includes(cat) ? c.filter(x => x !== cat) : [...c, cat]);
+    this.commitPending();
   }
 
   pendingToggleType(t: string): void {
     const c = this.pendingTypes();
     this.pendingTypes.set(c.includes(t) ? c.filter(x => x !== t) : [...c, t]);
+    this.commitPending();
   }
 
   pendingSelectCity(city: string): void {
     this.pendingCity.set(city);
+    this.commitPending();
   }
 
   pendingSelectTimeOfDay(t: string): void {
     this.pendingTimeOfDay.set(this.pendingTimeOfDay() === t ? null : t);
+    this.commitPending();
   }
 
   pendingSelectModality(m: string): void {
     this.pendingModality.set(this.pendingModality() === m ? null : m);
+    this.commitPending();
   }
 
   pendingSelectRecurrence(r: string): void {
     this.pendingRecurrence.set(this.pendingRecurrence() === r ? null : r);
+    this.commitPending();
+  }
+
+  pendingSelectPrice(price: string): void {
+    this.pendingPrice.set(this.pendingPrice() === price ? null : price);
+    this.commitPending();
   }
 
   pendingClearFilters(): void {
@@ -395,5 +560,87 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingTimeOfDay.set(null);
     this.pendingModality.set(null);
     this.pendingRecurrence.set(null);
+    this.pendingPrice.set(null);
+    this.isDateModalOpen.set(false);
+    this.commitPending();
+  }
+
+  openDatePicker(): void {
+    const when = this.pendingWhen();
+    if (when?.startsWith('RANGO:')) {
+      const selected = this.parseDateKey(when.split(':')[1]);
+      this.calendarView.set({ year: selected.getFullYear(), month: selected.getMonth() });
+    } else {
+      const now = new Date();
+      this.calendarView.set({ year: now.getFullYear(), month: now.getMonth() });
+    }
+    this.isDateModalOpen.set(true);
+    this.countInput$.next();
+  }
+  openDatePickerFromEvent(): void {
+    this.syncPendingFromService();
+    this.openDatePicker();
+  }
+
+  private syncPendingFromService(): void {
+    this.pendingWhen.set(this.filtrosService.filterWhen());
+    this.pendingCategories.set([...this.filtrosService.filterCategories()]);
+    this.pendingTypes.set([...this.filtrosService.filterTypes()]);
+    this.pendingCity.set(this.filtrosService.filterCity());
+    this.pendingTimeOfDay.set(this.filtrosService.filterTimeOfDay());
+    this.pendingModality.set(this.filtrosService.filterModality());
+    this.pendingRecurrence.set(this.filtrosService.filterRecurrence());
+    this.pendingPrice.set(this.filtrosService.filterPrice());
+  }
+  closeDatePicker(): void {
+    this.isDateModalOpen.set(false);
+  }
+
+  prevMonth(): void { this.shiftCalendarMonth(-1); }
+  nextMonth(): void { this.shiftCalendarMonth(1); }
+
+  selectCalendarDay(cell: CalendarDayCell): void {
+    if (cell.isPast) return;
+    this.pendingWhen.set(cell.isSelected ? null : `RANGO:${cell.date}:${cell.date}`);
+    if (!cell.inMonth) {
+      const d = this.parseDateKey(cell.date);
+      this.calendarView.set({ year: d.getFullYear(), month: d.getMonth() });
+    }
+    this.commitPending();
+  }
+
+  selectDateQuick(option: string): void {
+    this.pendingWhen.set(this.pendingWhen() === option ? null : option);
+    this.commitPending();
+  }
+
+  clearDateSelection(): void {
+    this.pendingWhen.set(null);
+    this.commitPending();
+  }
+
+  applyDateSelection(): void {
+    this.commitPending();
+    this.isDateModalOpen.set(false);
+    this.isFilterOpen.set(false);
+    this.router.navigate(['/explorar'], { queryParamsHandling: 'preserve' });
+  }
+
+  private shiftCalendarMonth(delta: number): void {
+    const view = this.calendarView();
+    if (!view) return;
+    const shifted = new Date(view.year, view.month + delta, 1);
+    this.calendarView.set({ year: shifted.getFullYear(), month: shifted.getMonth() });
+  }
+
+  private localDateKey(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+  }
+
+  private parseDateKey(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 }

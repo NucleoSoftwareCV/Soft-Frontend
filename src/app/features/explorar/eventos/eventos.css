@@ -533,7 +533,7 @@
 }
 
 .location span {
-  color: inherit;
+  color: rgb(255, 255, 255) !important;
 }
 
 .card-body {
