@@ -1,148 +1,410 @@
+
 <section class="er-section">
   <div class="er-wrapper">
 
     <!-- Cabecera -->
     <div class="er-section__head">
-      <h2  class="er-section__title">{{ title() }}</h2>
-      <a [routerLink]="seeAllPath()" class="er-section__see-all">
-        Ver todo 
+
+      <h2 class="er-section__title">
+        {{ title() }}
+      </h2>
+
+      <a
+        [routerLink]="seeAllPath()"
+        class="er-section__see-all"
+      >
+        Ver todo
+
         <app-icon
           name="arrow-r"
-          [size]="16">
-        </app-icon>
+          [size]="16"
+        ></app-icon>
       </a>
-      
+
     </div>
+
 
     <!-- Carrusel con flechas -->
     <div class="er-carousel">
 
-      <!-- Flecha ANTERIOR — se muestra cuando hay páginas previas -->
+      <!-- Flecha ANTERIOR -->
       @if (canPrev()) {
+
         <button
           class="er-arrow er-arrow--prev"
           type="button"
           aria-label="Ver eventos anteriores"
           (click)="prev()"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            aria-hidden="true"
+          >
+
             <polyline points="15 18 9 12 15 6"/>
+
           </svg>
+
         </button>
+
       }
 
-      <!-- Viewport: el área visible del carrusel -->
-      <div class="er-viewport" #viewportRef>
-        <ul class="er-track" role="list" #trackRef>
+
+      <!-- Viewport -->
+      <div
+        class="er-viewport"
+        #viewportRef
+      >
+
+        <ul
+          class="er-track"
+          role="list"
+          #trackRef
+        >
+
           @for (event of events(); track event.id) {
+
             <li
               class="er-card-item"
               [style.width.px]="cardWidth()"
               [style.min-width.px]="cardWidth()"
             >
+
               <article class="er-card">
 
+
                 <!-- Imagen -->
-                <a
-                  [routerLink]="['/evento', event.id]"
-                  class="er-card__img-wrap"
-                  aria-hidden="true"
-                  tabindex="-1"
-                >
-                  <img
-                    [src]="event.image"
-                    [alt]="event.title"
-                    class="er-card__img"
-                    loading="lazy"
-                  />
+                <div class="er-card__img-wrap">
+
+                  <a
+                    [routerLink]="['/evento', event.id]"
+                    aria-hidden="true"
+                    tabindex="-1"
+                  >
+
+                    <img
+                      [src]="event.image"
+                      [alt]="event.title"
+                      class="er-card__img"
+                      loading="lazy"
+                    />
+
+                  </a>
+
+
                   <!-- Chip ubicación -->
                   <span class="er-card__location">
-                    <svg width="11" height="11" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
+
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      aria-hidden="true"
+                    >
+
+                      <path
+                        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                      />
+
+                      <circle
+                        cx="12"
+                        cy="10"
+                        r="3"
+                      />
+
                     </svg>
+
                     {{ event.location }}
+
                   </span>
-                  <!-- Favorito -->
+
+
+                  <!-- FAVORITO -->
                   <button
                     class="er-card__fav"
                     type="button"
-                    aria-label="Guardar en favoritos"
-                    (click)="$event.preventDefault(); $event.stopPropagation()"
+                    [class.er-card__fav--active]="isFavorito(event)"
+                    [attr.aria-label]="
+                      isFavorito(event)
+                        ? 'Quitar de favoritos'
+                        : 'Guardar en favoritos'
+                    "
+                    (click)="
+                      toggleFavorito(event);
+                      $event.preventDefault();
+                      $event.stopPropagation()
+                    "
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
-                               a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                               1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      [attr.fill]="
+                        isFavorito(event)
+                          ? 'currentColor'
+                          : 'none'
+                      "
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                           a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                           1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+
                     </svg>
+
                   </button>
-                </a>
+
+                </div>
+
 
                 <!-- Cuerpo -->
                 <div class="er-card__body">
+
                   <!-- Fecha + recurrencia -->
                   <div class="er-card__meta-top">
-                    <span class="er-card__date">{{ event.dateLabel }}</span>
+
+                    <span class="er-card__date">
+                      {{ event.dateLabel }}
+                    </span>
+
                     @if (event.recurrent) {
-                      <span class="er-card__recurrent" aria-label="Semanal">
-                        <svg width="11" height="11" viewBox="0 0 24 24"
-                             fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+
+                      <span
+                        class="er-card__recurrent"
+                        aria-label="Semanal"
+                      >
+
+                        <svg
+                          width="11"
+                          height="11"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          aria-hidden="true"
+                        >
+
                           <polyline points="17 1 21 5 17 9"/>
-                          <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+
+                          <path
+                            d="M3 11V9a4 4 0 0 1 4-4h14"
+                          />
+
                           <polyline points="7 23 3 19 7 15"/>
-                          <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+
+                          <path
+                            d="M21 13v2a4 4 0 0 1-4 4H3"
+                          />
+
                         </svg>
+
                         SEMANAL
+
                       </span>
+
                     }
+
                   </div>
+
+
                   <!-- Título -->
-                  <a [routerLink]="['/evento', event.id]" class="er-card__title-link">
-                    <h3 class="er-card__title">{{ event.title }}</h3>
+                  <a
+                    [routerLink]="['/evento', event.id]"
+                    class="er-card__title-link"
+                  >
+
+                    <h3 class="er-card__title">
+                      {{ event.title }}
+                    </h3>
+
                   </a>
+
+
                   <!-- Host + plazas -->
                   <div class="er-card__footer">
+
                     <div class="er-card__host">
+
                       <img
                         [src]="event.hostAvatar"
                         [alt]="event.host"
                         class="er-card__avatar"
-                        width="24" height="24"
+                        width="24"
+                        height="24"
                         loading="lazy"
                       />
-                      <span class="er-card__host-name">{{ event.host }}</span>
+
+                      <span class="er-card__host-name">
+                        {{ event.host }}
+                      </span>
+
                     </div>
+
+
                     @if (event.spotsLeft !== null) {
-                      <span class="er-card__spots">● Quedan {{ event.spotsLeft }} plazas</span>
+
+                      <span class="er-card__spots">
+                        ● Quedan {{ event.spotsLeft }} plazas
+                      </span>
+
                     }
+
                   </div>
+
                 </div>
 
               </article>
+
             </li>
+
           }
+
         </ul>
+
       </div>
 
-      <!-- Flecha SIGUIENTE — se muestra cuando hay más páginas -->
+
+      <!-- Flecha SIGUIENTE -->
       @if (canNext()) {
+
         <button
           class="er-arrow er-arrow--next"
           type="button"
           aria-label="Ver más eventos"
           (click)="next()"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            aria-hidden="true"
+          >
+
             <polyline points="9 18 15 12 9 6"/>
+
           </svg>
+
         </button>
+
       }
 
-    </div><!-- /er-carousel -->
+    </div>
 
-  </div><!-- /er-wrapper -->
+  </div>
 </section>
+
+
+<!-- =========================================================
+     CARD FLOTANTE — USUARIO NO AUTENTICADO
+     ========================================================= -->
+
+@if (showFavoriteLoginCard()) {
+
+  <div
+    class="favorite-login-overlay"
+    role="presentation"
+    (click)="cerrarFavoriteLoginCard()"
+  >
+
+    <div
+      class="favorite-login-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="favorite-login-title"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Cerrar -->
+      <button
+        type="button"
+        class="favorite-login-card__close"
+        aria-label="Cerrar"
+        (click)="cerrarFavoriteLoginCard()"
+      >
+        ×
+      </button>
+
+
+      <!-- Icono -->
+      <div class="favorite-login-card__icon">
+
+        <svg
+          width="42"
+          height="42"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+               a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+               1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
+
+        </svg>
+
+      </div>
+
+
+      <h2
+        id="favorite-login-title"
+        class="favorite-login-card__title"
+      >
+        Guarda tus eventos favoritos
+      </h2>
+
+
+      <p class="favorite-login-card__text">
+        Crea una cuenta gratuita para guardar eventos
+        y recibir recomendaciones personalizadas.
+      </p>
+
+
+      <div class="favorite-login-card__actions">
+
+        <button
+          type="button"
+          class="favorite-login-card__button favorite-login-card__button--primary"
+          (click)="irAAuthLogin()"
+        >
+          Iniciar sesión
+        </button>
+
+
+        <button
+          type="button"
+          class="favorite-login-card__button favorite-login-card__button--secondary"
+          (click)="irAAuthLogin()"
+        >
+          Crear una cuenta
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}

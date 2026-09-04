@@ -1,0 +1,50 @@
+<div class="favoritos-page">
+
+  @if (!authService.isLoggedIn) {
+
+    <main class="favoritos-content">
+
+      <section class="favoritos-card" aria-labelledby="favoritos-title">
+
+        <div class="favoritos-icon" aria-hidden="true">
+          ♥
+        </div>
+
+        <div class="favoritos-subtitle">
+          TU ESPACIO
+        </div>
+
+        <h1 id="favoritos-title">
+          Tus eventos, en un solo lugar
+        </h1>
+
+        <p>
+          Inicia sesión para ver tus reservas, guardar lo que te inspira
+          y seguir a los profesionales que más conectan contigo.
+        </p>
+
+        <div class="favoritos-actions">
+
+          <a
+            routerLink="/auth/login"
+            class="favoritos-button favoritos-button--primary"
+          >
+            Iniciar sesión
+          </a>
+
+          <div class="favoritos-register">
+            ¿Aún no tienes cuenta?
+            <a routerLink="/auth/login">
+              Crea una
+            </a>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  }
+
+</div>

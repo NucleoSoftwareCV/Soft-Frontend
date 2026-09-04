@@ -4,17 +4,17 @@
       alt="Dos chicas disfrutando de la naturaleza en un plan de bienestar" class="imagen">
     <div class="match-banner"></div>
     <div class="match-banner__content">
-      <span class="match-banner__pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+      <span class="match-banner__pill">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round" class="estrella">
-          <path
-            d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z">
-          </path>
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
           <path d="M20 3v4"></path>
           <path d="M22 5h-4"></path>
           <path d="M4 17v2"></path>
           <path d="M5 18H3"></path>
-        </svg> Match de bienestar</span>
+        </svg> Match de bienestar
+      </span>
       <h1 class="match-banner__title">¿Quieres que te hagamos match con personas afines para planes de bienestar?</h1>
       <p class="match-banner__subtitle">
         Dinos qué te gusta, cuándo tienes tiempo y dónde estás. Nosotros te conectamos con planes de bienestar
@@ -22,28 +22,13 @@
       </p>
     </div>
   </section>
-  <section class="section2">
-    <!-- Contenedor del Formulario -->
-    <div class="match-container">
-      <!--<div class="match-card">-->
-      <div class="formlogin">
-        <!-- CASO: NO LOGUEADO -->
-        @if (!authService.isLoggedIn) {
-        <div class="match-auth-gate">
-          <div class="match-auth-gate__icon">🔒</div>
-          <h2 class="match-auth-gate__title">Inicia sesión para participar</h2>
-          <p class="match-auth-gate__text">
-            Para registrar tu solicitud y permitirnos encontrar personas y planes de bienestar afines a ti en tu zona,
-            necesitas iniciar sesión o registrarte en Oona.
-          </p>
-          <a routerLink="/auth/login" class="btn-primary match-auth-gate__btn">
-            Iniciar sesión / Registrarse
-          </a>
-        </div>
-        }
 
-        <!-- CASO: LOGUEADO Y ÉXITO -->
-        @else if (submitSuccess()) {
+  <section class="section2">
+    <div class="match-container">
+      <div class="formlogin">
+
+        <!-- CASO: ÉXITO AL ENVIAR -->
+        @if (submitSuccess()) {
         <div class="match-success">
           <div class="match-success__icon">✨</div>
           <h2 class="match-success__title">¡Todo listo!</h2>
@@ -54,14 +39,13 @@
         </div>
         }
 
-        <!-- CASO: LOGUEADO Y FORMULARIO -->
+        <!-- CASO: FORMULARIO DIRECTO (Sin bloqueo de login) -->
         @else {
         <form (ngSubmit)="onSubmit()" #matchForm="ngForm" class="match-form">
           <div class="match-form__section-head">
             <span class="estrella2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-5 w-5 text-primary"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg>  
-          </span>   
-            <!--<span class="match-form__section-icon">✨</span>-->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-5 w-5 text-primary"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg>  
+            </span>   
             <h2 class="match-form__section-title">Tus datos</h2>
           </div>
 
@@ -160,8 +144,7 @@
 
           <!-- Expectativas -->
           <div class="match-form__group match-form__group--full">
-            <label for="expectations" class="match-form__label">¿Qué buscas de este encuentro? Cuéntanos tus
-              expectativas *</label>
+            <label for="expectations" class="match-form__label">¿Qué buscas de este encuentro? Cuéntanos tus expectativas *</label>
             <textarea id="expectations" name="expectations" [(ngModel)]="expectations" required maxlength="2000"
               placeholder="Ej: Conocer gente para hacer yoga al aire libre, desconectar de la rutina..."
               class="match-form__textarea"></textarea>
@@ -197,7 +180,7 @@
               @if (loadingSubmit()) {
               Buscando afinidades...
               } @else {
-              Quiero hacer match ✨
+              Quiero hacer match 
               }
             </button>
             <p class="match-form__disclaimer">
@@ -211,5 +194,4 @@
       </div>
     </div>
   </section>
-  <!--</div>-->
 </main>

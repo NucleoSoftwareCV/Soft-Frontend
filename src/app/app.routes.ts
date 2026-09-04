@@ -4,6 +4,11 @@ import { adminGuard } from './core/guards/admin.guard';
 import { GrupoWhatsAppComponent } from './features/whatsapp/grupowhatsapp';
 
 export const routes: Routes = [
+
+  // =========================
+  // SESIONES
+  // =========================
+
   {
     path: 'sesiones',
     loadComponent: () =>
@@ -17,6 +22,10 @@ export const routes: Routes = [
       import('./features/sesion-detalle/sesion-detalle')
         .then(m => m.SesionDetalleComponent),
   },
+
+  // =========================
+  // HOME
+  // =========================
 
   {
     path: '',
@@ -62,13 +71,17 @@ export const routes: Routes = [
         .then(m => m.PerfilProfesional),
   },
 
+  // =========================
+  // RETIROS
+  // =========================
+
   {
     path: 'retiros',
     loadComponent: () =>
       import('./features/retiros/retiros')
         .then(m => m.Retiros),
   },
-  
+
   // =========================
   // MATCH DE BIENESTAR
   // =========================
@@ -87,6 +100,10 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
 
+  // =========================
+  // CÍRCULO OONA
+  // =========================
+
   {
     path: 'circulo-oona',
     loadComponent: () =>
@@ -94,7 +111,37 @@ export const routes: Routes = [
         .then(m => m.CirculoOonaComponent),
     title: 'Circulo Oona | Solicitud profesional',
   },
+// =========================
+// PÁGINAS LEGALES
+// =========================
 
+{
+  path: 'aviso-legal',
+  loadComponent: () =>
+    import('./features/legales/aviso-legal/aviso-legal')
+      .then(m => m.AvisoLegalComponent),
+},
+
+{
+  path: 'privacidad',
+  loadComponent: () =>
+    import('./features/legales/privacidad/privacidad')
+      .then(m => m.PrivacidadComponent),
+},
+
+{
+  path: 'cookies',
+  loadComponent: () =>
+    import('./features/legales/cookies/cookies')
+      .then(m => m.CookiesComponent),
+},
+
+{
+  path: 'terminos',
+  loadComponent: () =>
+    import('./features/legales/terminos/terminos')
+      .then(m => m.TerminosComponent),
+},
   // =========================
   // AUTENTICACIÓN
   // =========================
@@ -114,6 +161,7 @@ export const routes: Routes = [
         .then(m => m.AuthShellComponent),
 
     children: [
+
       {
         path: 'login',
         loadComponent: () =>
@@ -156,8 +204,9 @@ export const routes: Routes = [
   },
 
   // =========================
-  // PERFIL
+  // ESPACIO PERSONAL
   // =========================
+
 
   {
     path: 'perfil',
@@ -177,7 +226,13 @@ export const routes: Routes = [
         .then(m => m.OnboardingComponent),
     title: 'Personaliza tu experiencia - Oona',
   },
-
+{
+  path: 'favoritos',
+  loadComponent: () =>
+    import('./features/favoritos/favoritos')
+      .then(m => m.FavoritosComponent),
+  title: 'Guardados - Oona',
+},
   {
     path: 'preferencias',
     canActivate: [roleGuard('USER')],
@@ -201,6 +256,10 @@ export const routes: Routes = [
     title: 'Panel de Administracion - Oona',
   },
 
+  // =========================
+  // PANEL PROFESIONAL
+  // =========================
+
   {
     path: 'profesional',
     canActivate: [roleGuard('PROFESSIONAL')],
@@ -209,6 +268,11 @@ export const routes: Routes = [
         .then(m => m.ProfessionalPortalComponent),
     title: 'Panel profesional - Oona',
   },
+
+  // =========================
+  // GRUPO WHATSAPP
+  // =========================
+
   {
     path: 'grupo-whatsapp',
     loadComponent: () =>
@@ -216,6 +280,11 @@ export const routes: Routes = [
         .then(m => m.GrupoWhatsAppComponent),
     title: 'Grupo de WhatsApp - Oona',
   },
+
+  // =========================
+  // RUTA NO ENCONTRADA
+  // =========================
+
   {
     path: '**',
     redirectTo: '',

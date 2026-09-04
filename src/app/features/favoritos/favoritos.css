@@ -1,0 +1,103 @@
+.favoritos-page {
+  width: 100%;
+  background: #f5f6f2;
+}
+
+
+.favoritos-content {
+  min-height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+.favoritos-card {
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+  padding: 30px 32px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.favoritos-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #dcebd4;
+  font-size: 32px;
+}
+
+.favoritos-card h1,
+.favoritos-logged h1 {
+  margin: 0 0 14px;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #004f5a;
+}
+
+.favoritos-card p,
+.favoritos-logged p {
+  margin: 0 auto;
+  max-width: 450px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #527078;
+}
+.favoritos-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.favoritos-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 490px;
+  box-sizing: border-box;
+  padding: 13px 22px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.favoritos-button--primary {
+  background: #005d66;
+  color: #ffffff;
+}
+
+.favoritos-button--primary:hover {
+  background: #004f57;
+  transform: translateY(-1px);
+}
+
+.favoritos-button--secondary {
+  background: #ffffff;
+  color: #005d66;
+  border: 1px solid #005d66;
+}
+
+.favoritos-button--secondary:hover {
+  background: #f3f8f7;
+}
+
+.favoritos-logged {
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+}

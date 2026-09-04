@@ -25,11 +25,10 @@ body {
   line-height: 1.65;
 }
 
-/* HERO */
 .hero {
   min-height: 640px;
   position: relative;
-  background: red center / cover no-repeat;
+  background: url('/assets/retiro.png') center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -38,7 +37,7 @@ body {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .hero-content {
@@ -53,6 +52,7 @@ body {
   font-size: 14px;
   letter-spacing: 5px;
   margin-bottom: 12px;
+  color: #fff;
 }
 
 .hero h1 {
@@ -60,21 +60,24 @@ body {
   font-size: clamp(42px, 4vw, 64px);
   font-weight: 500;
   line-height: 0.98;
+  color: #fff;
 }
 
 .hero-box {
   width: fit-content;
   max-width: 720px;
   margin: 28px auto 0;
-  padding: 10px 30px;
+  padding: 12px 30px;
   border-radius: 13px;
-  background: rgba(70, 70, 70, 0.52);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   font-size: 18px;
   line-height: 1.45;
-  font-weight: 600;
+  font-weight: 500;
+  color: #fff;
 }
 
-/* SECCIONES DIVIDIDAS */
 .split-section {
   min-height: 690px;
   padding: 90px max(7vw, 50px);
@@ -134,7 +137,6 @@ body {
   gap: clamp(45px, 6vw, 90px);
 }
 
-/* BENEFICIOS */
 .benefits {
   min-height: 440px;
   padding: 80px 25px;
@@ -143,6 +145,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: #e4ece0;
+}
+
+.benefits-container {
+  max-width: 800px;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .benefits h2 {
@@ -160,10 +169,8 @@ body {
   font-size: 23px;
 }
 
-/* RETIROS */
 .retreats {
-  min-height: 650px;
-  padding: 90px 30px 100px;
+  padding: 90px 30px 40px;
 }
 
 .retreats-inner {
@@ -213,7 +220,92 @@ body {
   margin-top: 35px;
 }
 
-/* TABLET */
+/* --- CONTENEDOR AMPLIO DE TARJETAS (ESTILO EXPLORAR) --- */
+.retreats-cards-section {
+  padding: 20px 40px 80px;
+}
+
+.cards-wide-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* --- SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) --- */
+.faq-section {
+  padding: 60px 30px 100px;
+  background: var(--white);
+}
+
+.faq-inner {
+  width: min(900px, 90%);
+  margin: auto;
+}
+
+.faq-section h2 {
+  text-align: center;
+  font-family: var(--serif);
+  font-size: clamp(34px, 3vw, 44px);
+  font-weight: 500;
+  color: var(--teal);
+  margin-bottom: 45px;
+}
+
+.faq-card {
+  background: #edf4e8;
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.faq-card h3 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--teal);
+  margin-bottom: 10px;
+}
+
+.faq-card p {
+  font-size: 17px;
+  color: var(--teal);
+  line-height: 1.6;
+}
+
+/* --- SECCIÓN "ANTES DE IRTE" (DISEÑO EXACTO SEGÚN IMAGEN) --- */
+.before-leaving-section {
+  padding: 90px 30px 110px;
+  background: var(--cream);
+  text-align: center;
+}
+
+.before-leaving-inner {
+  width: min(900px, 90%);
+  margin: auto;
+}
+
+.before-leaving-section h2 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 3vw, 42px);
+  font-weight: 500;
+  color: var(--teal);
+  margin-bottom: 32px;
+}
+
+.before-leaving-section p {
+  font-size: 18px;
+  color: var(--teal);
+  line-height: 1.7;
+  margin-bottom: 22px;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.before-leaving-section p span {
+  color: var(--green);
+}
+
 @media (max-width: 900px) {
   .hero {
     min-height: 600px;
@@ -256,9 +348,12 @@ body {
   .image-column img {
     height: 430px;
   }
+  
+  .retreats-cards-section {
+    padding: 10px 20px 60px;
+  }
 }
 
-/* CELULAR */
 @media (max-width: 600px) {
   .hero {
     min-height: 570px;
@@ -318,7 +413,7 @@ body {
   }
 
   .retreats {
-    padding: 65px 20px 75px;
+    padding: 65px 20px 20px;
   }
 
   .retreats-inner {
@@ -335,5 +430,25 @@ body {
 
   .info-box li {
     font-size: 15px;
+  }
+
+  .faq-section {
+    padding: 40px 20px 80px;
+  }
+
+  .faq-card {
+    padding: 20px 22px;
+  }
+
+  .faq-card p {
+    font-size: 15px;
+  }
+
+  .before-leaving-section {
+    padding: 60px 20px 90px;
+  }
+  
+  .before-leaving-section p {
+    font-size: 16px;
   }
 }

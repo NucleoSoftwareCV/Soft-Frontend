@@ -285,3 +285,213 @@
   /* Card ocupa casi todo el ancho: imagen en 16/9 para no ser tan alta */
   .er-card__img-wrap { aspect-ratio: 16/9; }
 }
+
+/* =========================================================
+   CARD LOGIN FAVORITOS
+   Se muestra cuando el usuario intenta guardar
+   un evento sin haber iniciado sesión.
+   ========================================================= */
+
+.favorite-login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1.5rem;
+
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+
+.favorite-login-card {
+  position: relative;
+
+  width: min(100%, 420px);
+
+  padding: 2rem;
+
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--shadow-lg);
+
+  text-align: center;
+
+  animation: favoriteCardIn 0.2s ease-out;
+}
+
+
+.favorite-login-card__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--color-ink-light);
+
+  font-size: 1.5rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.favorite-login-card__close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: var(--color-ink);
+}
+
+
+.favorite-login-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 1rem;
+
+  border-radius: 50%;
+
+  color: var(--color-coral);
+  background-color: rgba(201, 125, 32, 0.10);
+}
+
+
+.favorite-login-card__title {
+  margin: 0 0 0.65rem;
+
+  font-family: Sunset, Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+
+  color: var(--color-ink);
+}
+
+
+.favorite-login-card__text {
+  margin: 0 auto 1.5rem;
+
+  max-width: 340px;
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  color: var(--color-ink-light);
+}
+
+
+.favorite-login-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+
+.favorite-login-card__button {
+  width: 100%;
+
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+
+  border-radius: var(--radius-full);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+
+.favorite-login-card__button:hover {
+  transform: translateY(-1px);
+}
+
+
+.favorite-login-card__button--primary {
+  border: 1px solid var(--primary);
+
+  background-color: var(--primary);
+  color: #fff;
+}
+
+
+.favorite-login-card__button--primary:hover {
+  background-color: hsl(100deg 53% 30%);
+}
+
+
+.favorite-login-card__button--secondary {
+  border: 1px solid var(--primary);
+
+  background-color: transparent;
+  color: var(--primary);
+}
+
+
+.favorite-login-card__button--secondary:hover {
+  background-color: rgba(100, 160, 70, 0.08);
+}
+
+
+@keyframes favoriteCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE CARD LOGIN
+   ========================================================= */
+
+@media (max-width: 499px) {
+
+  .favorite-login-overlay {
+    padding: 1rem;
+  }
+
+  .favorite-login-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .favorite-login-card__title {
+    font-size: 1.35rem;
+  }
+
+}

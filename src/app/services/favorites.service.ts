@@ -1,13 +1,13 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, tap, throwError } from 'rxjs';
-
+import { forkJoin, map, Observable, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   FavoriteEntityType,
   FavoriteResponse,
 } from '../shared/models/favorites.model';
 import { AuthService } from '../core/services/auth.service';
+import { EventosService } from './eventos.service';
 
 interface EventFavoriteApiResponse {
   id: number;
@@ -31,6 +31,8 @@ interface EventFavoriteStatusApiResponse {
 export class FavoritesService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly eventosService = inject(EventosService);
+
   private readonly eventFavoritesUrl =
     `${environment.apiUrl}/interactions/me/event-favorites`;
 
@@ -67,6 +69,7 @@ export class FavoritesService {
     entityType: FavoriteEntityType,
     entityId: number
   ): Observable<{ favorited: boolean }> {
+
     if (entityType !== 'EVENTO') {
       return throwError(
         () => new Error('El backend actual solo admite favoritos de eventos.')
@@ -74,6 +77,7 @@ export class FavoritesService {
     }
 
     const isFavorite = this.favoritedEventIds().has(entityId);
+
     const request = isFavorite
       ? this.http.delete<EventFavoriteStatusApiResponse>(
           `${this.eventFavoritesUrl}/${entityId}`
@@ -88,7 +92,11 @@ export class FavoritesService {
       tap(response => {
         this.favoritedEventIds.update(current => {
           const next = new Set(current);
-          response.favorited ? next.add(entityId) : next.delete(entityId);
+
+          response.favorited
+            ? next.add(entityId)
+            : next.delete(entityId);
+
           return next;
         });
       })
@@ -96,22 +104,63 @@ export class FavoritesService {
   }
 
   getFavorites(): Observable<FavoriteResponse[]> {
+
     return this.getFavoriteEvents().pipe(
+
       map(favorites =>
-        favorites.map(favorite => ({
-          entityType: 'EVENTO' as const,
-          entityId: favorite.eventId,
-          title: favorite.title,
-          categoryName: favorite.categoryName,
-          price: favorite.priceFrom,
-          currency: favorite.currency,
-        }))
+        favorites.map(favorite =>
+
+          this.eventosService.getEvento(favorite.eventId).pipe(
+
+            map(evento => ({
+              entityType: 'EVENTO' as const,
+              entityId: favorite.eventId,
+
+              title: favorite.title,
+
+              imageUrl: evento.coverImageUrl ?? undefined,
+
+              categoryName: favorite.categoryName,
+
+              locationName:
+                evento.occurrences?.[0]?.location?.cityName ??
+                undefined,
+
+              price: favorite.priceFrom,
+
+              currency: favorite.currency,
+
+              organizerName:
+                evento.organizer?.publicName ??
+                undefined,
+
+              startsAt:
+                evento.occurrences?.[0]?.startsAt ??
+                undefined,
+
+              recurrenceLabel:
+                evento.isRecurring
+                  ? 'Recurrente'
+                  : undefined,
+            }))
+
+          )
+
+        )
+      ),
+
+     
+      switchMap(requests =>
+        forkJoin(requests)
       )
+
     );
   }
 
   private getFavoriteEvents(): Observable<EventFavoriteApiResponse[]> {
-    return this.http.get<EventFavoriteApiResponse[]>(this.eventFavoritesUrl);
+    return this.http.get<EventFavoriteApiResponse[]>(
+      this.eventFavoritesUrl
+    );
   }
 
   private clearFavorites(): void {

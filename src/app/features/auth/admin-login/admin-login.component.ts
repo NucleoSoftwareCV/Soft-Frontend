@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import {
   LucideArrowRight,
   LucideKeyRound,
@@ -26,35 +27,52 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './admin-login.component.css',
 })
 export class AdminLoginComponent {
+
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   username = '';
   password = '';
+
   loading = signal(false);
   error = signal<string | null>(null);
+
   sessionExpired = signal(
     this.route.snapshot.queryParamMap.get('expired') === 'true'
   );
 
+  // Controla la pantalla de login en móvil
+  showMobileLogin = false;
+
   submit(): void {
-    if (!this.username.trim() || !this.password) return;
+
+    if (!this.username.trim() || !this.password) {
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
     this.sessionExpired.set(false);
+
     this.auth.adminLogin({
       username: this.username.trim(),
       password: this.password,
     }).subscribe({
+
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/admin']);
       },
+
       error: () => {
         this.loading.set(false);
-        this.error.set('No se pudo iniciar sesión con estas credenciales.');
+        this.error.set(
+          'No se pudo iniciar sesión con estas credenciales.'
+        );
       },
+
     });
+
   }
 }

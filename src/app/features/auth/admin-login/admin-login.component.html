@@ -1,66 +1,219 @@
 <main class="erp-login">
-  <section class="erp-login__context" aria-label="Acceso Oona ERP">
-    <a class="erp-login__brand" href="/">oona.</a>
+
+  <!-- =====================================================
+        PANTALLA / PRESENTACIÓN OONA
+        ===================================================== -->
+
+  <section
+    class="erp-login__context"
+    [class.erp-login__context--hidden]="showMobileLogin"
+    aria-label="Acceso Oona ERP">
+
+    <a class="erp-login__brand" href="/">
+      oona.
+    </a>
+
     <div class="erp-login__context-copy">
+
       <span class="erp-login__badge">
         <svg lucideShieldCheck aria-hidden="true"></svg>
         Entorno administrativo
       </span>
-      <h1>Gestion interna,<br>sin distracciones.</h1>
-      <p>Revisa solicitudes profesionales y administra el acceso operativo desde un espacio separado.</p>
+
+      <h1>
+        Gestión interna,<br>
+        sin distracciones.
+      </h1>
+
+      <p>
+        Revisa solicitudes profesionales y administra el acceso
+        operativo desde un espacio separado.
+      </p>
+
+
+      <!-- =================================================
+            BOTÓN SOLO PARA MOBILE
+            ================================================= -->
+
+      <button
+        type="button"
+        class="erp-login__mobile-button"
+        (click)="showMobileLogin = true">
+
+        <svg
+          lucideLockKeyhole
+          aria-hidden="true">
+        </svg>
+
+        <span>
+          Iniciar sesión en el ERP
+        </span>
+
+      </button>
+
     </div>
-    <small>Acceso restringido a personal autorizado.</small>
+
+    <small>
+      Acceso restringido a personal autorizado.
+    </small>
+
   </section>
 
-  <section class="erp-login__access">
-    <form (ngSubmit)="submit()" class="erp-login__panel" aria-labelledby="erp-title">
-      <div class="erp-login__lock"><svg lucideLockKeyhole aria-hidden="true"></svg></div>
-      <div class="erp-login__heading">
-        <span>Acceso interno</span>
-        <h2 id="erp-title">Iniciar sesion en ERP</h2>
-        <p>Usa tus credenciales administrativas.</p>
+
+  <!-- =====================================================
+        ÁREA DE LOGIN
+        ===================================================== -->
+
+  <section
+    class="erp-login__access"
+    [class.erp-login__access--mobile-visible]="showMobileLogin">
+
+    <form
+      (ngSubmit)="submit()"
+      class="erp-login__panel"
+      aria-labelledby="erp-title">
+
+      <!-- =================================================
+            BOTÓN DE RETORNO MÓVIL
+            ================================================= -->
+      <button
+        type="button"
+        class="erp-login__back-button"
+        (click)="showMobileLogin = false"
+        aria-label="Volver">
+        <svg lucideArrowRight style="transform: rotate(180deg);" aria-hidden="true"></svg>
+        <span>Volver</span>
+      </button>
+
+
+      <!-- ICONO -->
+      <div class="erp-login__lock">
+        <svg
+          lucideLockKeyhole
+          aria-hidden="true">
+        </svg>
       </div>
 
+
+      <!-- TÍTULO -->
+      <div class="erp-login__heading">
+
+        <span>
+          Acceso interno
+        </span>
+
+        <h2 id="erp-title">
+          Iniciar sesión en ERP
+        </h2>
+
+        <p>
+          Usa tus credenciales administrativas.
+        </p>
+
+      </div>
+
+
+      <!-- SESIÓN EXPIRADA -->
       @if (sessionExpired()) {
-        <div class="erp-login__notice" role="status">
-          <strong>Tu sesion ha expirado.</strong>
-          <span>Inicia sesion nuevamente para continuar en el ERP.</span>
+
+        <div
+          class="erp-login__notice"
+          role="status">
+
+          <strong>
+            Tu sesión ha expirado.
+          </strong>
+
+          <span>
+            Inicia sesión nuevamente para continuar en el ERP.
+          </span>
+
         </div>
+
       }
 
+
+      <!-- USUARIO -->
       <label>
+
         Email o usuario
+
         <span class="field">
-          <svg lucideUserRound aria-hidden="true"></svg>
+
+          <svg
+            lucideUserRound
+            aria-hidden="true">
+          </svg>
+
           <input
             name="username"
             type="text"
             autocomplete="username"
             [(ngModel)]="username"
             required>
+
         </span>
+
       </label>
+
+
+      <!-- CONTRASEÑA -->
       <label>
-        Contrasena
+
+        Contraseña
+
         <span class="field">
-          <svg lucideKeyRound aria-hidden="true"></svg>
+
+          <svg
+            lucideKeyRound
+            aria-hidden="true">
+          </svg>
+
           <input
             name="password"
             type="password"
             autocomplete="current-password"
             [(ngModel)]="password"
             required>
+
         </span>
+
       </label>
 
+
+      <!-- ERROR -->
       @if (error()) {
-        <p class="erp-login__error" role="alert">{{ error() }}</p>
+
+        <p
+          class="erp-login__error"
+          role="alert">
+
+          {{ error() }}
+
+        </p>
+
       }
 
-      <button class="erp-login__submit" type="submit" [disabled]="loading()">
-        <span>{{ loading() ? 'Verificando...' : 'Entrar al ERP' }}</span>
-        <svg lucideArrowRight aria-hidden="true"></svg>
+
+      <!-- BOTÓN ENTRAR -->
+      <button
+        class="erp-login__submit"
+        type="submit"
+        [disabled]="loading()">
+
+        <span>
+          {{ loading() ? 'Verificando...' : 'Entrar al ERP' }}
+        </span>
+
+        <svg
+          lucideArrowRight
+          aria-hidden="true">
+        </svg>
+
       </button>
+
     </form>
+
   </section>
+
 </main>

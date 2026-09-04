@@ -74,7 +74,7 @@ export class MatchBienestarComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Si el usuario está autenticado, precargamos su información
+    // Si el usuario ya ha iniciado sesión previamente, autocompletamos su email y nombre por comodidad
     if (this.authService.isLoggedIn) {
       const currentUser = this.authService.currentUser();
       if (currentUser) {
@@ -90,7 +90,6 @@ export class MatchBienestarComponent implements OnInit {
     this.loadingCategories.set(true);
     this.eventosService.getCategorias().subscribe({
       next: (cats) => {
-        // Filtrar solo categorías activas
         this.categories.set(cats.filter(c => c.active));
         this.loadingCategories.set(false);
       },
@@ -114,14 +113,13 @@ export class MatchBienestarComponent implements OnInit {
       set.add(lang);
     }
     this.selectedLanguages.set(set);
-  }
+    }
 
   toggleCategory(id: number): void {
     const set = new Set(this.selectedCategories());
     if (set.has(id)) {
       set.delete(id);
     } else {
-      // Limitar a máximo 3
       if (set.size < 3) {
         set.add(id);
       }
@@ -144,7 +142,6 @@ export class MatchBienestarComponent implements OnInit {
     if (set.has(desc)) {
       set.delete(desc);
     } else {
-      // Limitar a máximo 3
       if (set.size < 3) {
         set.add(desc);
       }
@@ -152,7 +149,6 @@ export class MatchBienestarComponent implements OnInit {
     this.selectedDescriptors.set(set);
   }
 
-  // Helper to map category names to emojis
   getCategoryIcon(name: string): string {
     const norm = name
       .normalize("NFD")
@@ -177,7 +173,6 @@ export class MatchBienestarComponent implements OnInit {
     return '✨';
   }
 
-  // Form Validation
   isFormValid(): boolean {
     return (
       this.name().trim().length > 0 &&
@@ -224,15 +219,11 @@ export class MatchBienestarComponent implements OnInit {
       error: (err) => {
         this.loadingSubmit.set(false);
         console.error('Error al registrar match request:', err);
-        if (err.status === 401) {
-          this.submitError.set('Tu sesión ha expirado o no estás autenticado. Por favor, vuelve a iniciar sesión.');
-        } else {
-          this.submitError.set(
-            err.error?.detail ||
-            err.error?.message ||
-            'Ha ocurrido un error al registrar tu participación. Por favor, revisa tus datos e inténtalo de nuevo.'
-          );
-        }
+        this.submitError.set(
+          err.error?.detail ||
+          err.error?.message ||
+          'Ha ocurrido un error al registrar tu participación. Por favor, revisa tus datos e inténtalo de nuevo.'
+        );
       }
     });
   }

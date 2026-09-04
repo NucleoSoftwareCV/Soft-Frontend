@@ -2,324 +2,714 @@
 
   <div class="container">
 
-    <div class="profile-hero">
-      <img
-        [src]="
-          p.bannerUrl ||
-          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'
-        "
-        [alt]="'Banner de ' + p.nombre"
-        class="profile-hero__bg"
-      >
+<!-- =========================
+     HERO DEL PERFIL
+     ========================= -->
+<div class="profile-hero">
 
-      <div class="profile-hero__overlay" aria-hidden="true"></div>
+  <img
+    [src]="
+      p.bannerUrl ||
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'
+    "
+    [alt]="'Banner de ' + p.nombre"
+    class="profile-hero__bg"
+  >
 
-      <div class="profile-hero__content">
+  <div class="profile-hero__overlay" aria-hidden="true"></div>
 
-        <button
-          class="profile-hero__back"
-          routerLink="/profesionales">
-          <app-icon name="arrow-r" [size]="14" class="profile-hero__back-icon"></app-icon>
-          Profesionales
-        </button>
+  <div class="profile-hero__content">
 
-        <div class="profile-hero__identity">
+    <button
+      class="profile-hero__back"
+      routerLink="/profesionales"
+      type="button">
+      <app-icon
+        name="arrow-r"
+        [size]="14"
+        class="profile-hero__back-icon">
+      </app-icon>
+      Profesionales
+    </button>
 
-          @if (p.imagenUrl && !publicPhotoFailed()) {
-            <img
-              [src]="p.imagenUrl"
-              [alt]="'Foto de ' + p.nombre"
-              class="profile-avatar"
-              (error)="handlePublicPhotoError()"
-            >
-          } @else {
-            <div class="profile-avatar profile-avatar--fallback" aria-hidden="true">
-              {{ p.nombre.charAt(0) }}
-            </div>
+    <div class="profile-hero__identity">
+
+      @if (p.imagenUrl && !publicPhotoFailed()) {
+
+        <img
+          [src]="p.imagenUrl"
+          [alt]="'Foto de ' + p.nombre"
+          class="profile-avatar"
+          (error)="handlePublicPhotoError()"
+        >
+
+      } @else {
+
+        <div
+          class="profile-avatar profile-avatar--fallback"
+          aria-hidden="true">
+          {{ p.nombre.charAt(0) }}
+        </div>
+
+      }
+
+      <div class="profile-hero__info">
+
+        <h1 class="profile-name">
+          {{ p.nombre }}
+        </h1>
+
+        <span class="profile-role-badge">
+          {{ p.tipo }}
+        </span>
+
+        <p class="profile-hero__location">
+          <app-icon name="map-pin" [size]="14"></app-icon>
+          {{ p.ubicacion }}
+        </p>
+
+        <!-- =========================
+             BOTÓN SEGUIR SUPERIOR
+             ========================= -->
+        @if (!isOwnProfile()) {
+
+          <button
+            type="button"
+            class="profile-follow-btn"
+            [class.profile-follow-btn--active]="following()"
+            [disabled]="followLoading()"
+            (click)="toggleFollow()">
+
+            @if (followLoading()) {
+
+              Guardando...
+
+            } @else {
+
+              <span class="follow-label-default">
+                {{ following() ? 'Siguiendo' : 'Seguir' }}
+              </span>
+
+              @if (following()) {
+                <span class="follow-label-hover">
+                  Dejar de seguir
+                </span>
+              }
+
+            }
+
+          </button>
+
+          @if (followError()) {
+            <p
+              class="profile-follow-error"
+              role="alert">
+              {{ followError() }}
+            </p>
           }
 
-          <div class="profile-hero__info">
+        }
 
-            <h1 class="profile-name">
-              {{ p.nombre }}
-            </h1>
+      </div>
+    </div>
+  </div>
+</div>
 
-            <span class="profile-role-badge">
-              {{ p.tipo }}
+
+<!-- =========================
+     SOBRE EL PROFESIONAL
+     ========================= -->
+<section class="profile-about">
+
+  <div class="profile-about__heading">
+    <span
+      class="profile-about__bar"
+      aria-hidden="true">
+    </span>
+
+    <h2>
+      Sobre {{ p.nombre }}
+    </h2>
+  </div>
+
+  <div class="profile-about__card">
+
+    <div class="profile-about__bio">
+      <p>
+        {{ p.bio || p.cita }}
+      </p>
+    </div>
+
+    <div class="profile-about__sidebar">
+
+      <!-- Ubicación -->
+      <div class="info-block">
+
+        <h3>Ubicación</h3>
+
+        <div class="info-row">
+          <app-icon
+            name="map-pin"
+            [size]="16">
+          </app-icon>
+
+          <span>
+            {{ p.ubicacion }}
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- Idiomas -->
+      <div class="info-block">
+
+        <h3>Idiomas</h3>
+
+        @for (idioma of p.languages; track idioma) {
+
+          <div class="info-row">
+
+            <app-icon
+              name="languages"
+              [size]="16">
+            </app-icon>
+
+            <span>
+              {{ idioma }}
             </span>
 
-            <p class="profile-hero__location">
-              <app-icon name="map-pin" [size]="14"></app-icon>
-              {{ p.ubicacion }}
-            </p>
+          </div>
 
-            @if (!isOwnProfile()) {
-              <button
-                class="profile-follow-btn"
-                [class.profile-follow-btn--active]="following()"
-                [disabled]="followLoading()"
-                (click)="toggleFollow()">
-                @if (followLoading()) {
-                  Guardando...
-                } @else {
-                  <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
-                  @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
-                }
-              </button>
-              @if (followError()) {
-                <p class="profile-follow-error" role="alert">{{ followError() }}</p>
+        } @empty {
+
+          <div class="info-row">
+            <span>
+              Sin idiomas registrados
+            </span>
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- Contacto -->
+      @if (
+        p.publicEmail ||
+        p.whatsappPhone ||
+        p.phoneNumber ||
+        p.website
+      ) {
+
+        <div class="info-block">
+
+          <h3>Contacto</h3>
+
+          @if (p.whatsappPhone) {
+
+            <a
+              class="info-row info-row--link"
+              [href]="whatsappLink(p.whatsappPhone)"
+              target="_blank"
+              rel="noopener">
+
+              <app-icon
+                name="whatsapp"
+                [size]="16">
+              </app-icon>
+
+              <span>
+                Contactar WhatsApp
+              </span>
+
+            </a>
+
+          }
+
+          @if (p.phoneNumber) {
+
+            <a
+              class="info-row info-row--link"
+              [href]="'tel:' + p.phoneNumber">
+
+              <app-icon
+                name="phone"
+                [size]="16">
+              </app-icon>
+
+              <span>
+                Llamar
+              </span>
+
+            </a>
+
+          }
+
+          @if (p.publicEmail) {
+
+            <a
+              class="info-row info-row--link"
+              [href]="'mailto:' + p.publicEmail">
+
+              <app-icon
+                name="carta"
+                [size]="16">
+              </app-icon>
+
+              <span>
+                Enviar mensaje
+              </span>
+
+            </a>
+
+          }
+
+          @if (p.website) {
+
+            <a
+              class="info-row info-row--link"
+              [href]="p.website"
+              target="_blank"
+              rel="noopener">
+
+              <app-icon
+                name="globe"
+                [size]="16">
+              </app-icon>
+
+              <span>
+                Visitar web
+              </span>
+
+            </a>
+
+          }
+
+        </div>
+
+      }
+
+
+      <!-- Redes sociales -->
+      @if (
+        p.socialLinks &&
+        p.socialLinks.length > 0
+      ) {
+
+        <div class="info-block">
+
+          <h3>
+            Encuéntrame también en
+          </h3>
+
+          <div class="social-pill-list">
+
+            @for (
+              link of p.socialLinks;
+              track link.id
+            ) {
+
+              <a
+                class="social-pill"
+                [href]="link.profileUrl"
+                target="_blank"
+                rel="noopener">
+
+                {{ link.platform | titlecase }}
+
+              </a>
+
+            }
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================
+     TEMAS Y TÉCNICAS
+     ========================= -->
+<div class="topics">
+
+  @if (
+    p.temas &&
+    p.temas.length > 0
+  ) {
+
+    <div class="profile-section">
+
+      <h3 class="topics_title">
+        Temas que trabajo
+      </h3>
+
+      <div class="profile-tags">
+
+        @for (
+          tema of p.temas;
+          track tema
+        ) {
+
+          <span class="profile-tag">
+            {{ tema }}
+          </span>
+
+        }
+
+      </div>
+
+    </div>
+
   }
 
-<app-confirm-dialog
-  [open]="showUnfollowDialog()"
-  title="¿Dejar de seguir a este profesional?"
-  [description]="'Dejarás de ver a ' + (perfil()?.nombre || 'este profesional') + ' en tu lista de profesionales seguidos.'"
-  confirmLabel="Dejar de seguir"
-  cancelLabel="Mantener seguimiento"
-  [loading]="followLoading()"
-  (confirmed)="confirmUnfollow()"
-  (cancelled)="cancelUnfollow()">
-</app-confirm-dialog>
-            }
 
-          </div>
-        </div>
+  @if (
+    p.tecnicas &&
+    p.tecnicas.length > 0
+  ) {
+
+    <div class="profile-section">
+
+      <h3 class="topics_title">
+        Técnicas que ofrezco
+      </h3>
+
+      <div class="profile-tags">
+
+        @for (
+          tecnica of p.tecnicas;
+          track tecnica
+        ) {
+
+          <span class="profile-tag">
+            {{ tecnica }}
+          </span>
+
+        }
+
       </div>
+
     </div>
 
-    <section class="profile-about">
+  }
 
-      <div class="profile-about__heading">
-        <span class="profile-about__bar" aria-hidden="true"></span>
-        <h2>Sobre {{ p.nombre }}</h2>
-      </div>
+</div>
 
-      <div class="profile-about__card">
 
-        <div class="profile-about__bio">
-          <p>{{ p.bio || p.cita }}</p>
-        </div>
+<!-- =========================
+     PRÓXIMOS EVENTOS
+     ========================= -->
+@if (mostrarEventos()) {
 
-        <div class="profile-about__sidebar">
+  <section
+    class="profile-section profile-section--full">
 
-          <div class="info-block">
-            <h3>Ubicación</h3>
-            <div class="info-row">
-              <app-icon name="map-pin" [size]="16"></app-icon>
-              <span>{{ p.ubicacion }}</span>
-            </div>
-          </div>
+    <h3 class="topics_title">
+      Próximos eventos
+    </h3>
 
-          <div class="info-block">
-            <h3>Idiomas</h3>
-            @for (idioma of p.languages; track idioma) {
-              <div class="info-row">
-                <app-icon name="languages" [size]="16"></app-icon>
-                <span>{{ idioma }}</span>
-              </div>
-            } @empty {
-              <div class="info-row">
-                <span>Sin idiomas registrados</span>
-              </div>
-            }
-          </div>
+    <div class="cards-grid">
 
-          @if (p.publicEmail || p.whatsappPhone || p.phoneNumber || p.website) {
-            <div class="info-block">
-              <h3>Contacto</h3>
-
-              @if (p.whatsappPhone) {
-                <a class="info-row info-row--link" [href]="whatsappLink(p.whatsappPhone)" target="_blank" rel="noopener">
-                  <app-icon name="whatsapp" [size]="16"></app-icon>
-                  <span>Contactar WhatsApp</span>
-                </a>
-              }
-
-              @if (p.phoneNumber) {
-                <a class="info-row info-row--link" [href]="'tel:' + p.phoneNumber">
-                  <app-icon name="phone" [size]="16"></app-icon>
-                  <span>Llamar</span>
-                </a>
-              }
-
-              @if (p.publicEmail) {
-                <a class="info-row info-row--link" [href]="'mailto:' + p.publicEmail">
-                  <app-icon name="carta" [size]="16"></app-icon>
-                  <span>Enviar mensaje</span>
-                </a>
-              }
-
-              @if (p.website) {
-                <a class="info-row info-row--link" [href]="p.website" target="_blank" rel="noopener">
-                  <app-icon name="globe" [size]="16"></app-icon>
-                  <span>Visitar web</span>
-                </a>
-              }
-            </div>
-          }
-
-          @if (p.socialLinks && p.socialLinks.length > 0) {
-            <div class="info-block">
-              <h3>Encuéntrame también en</h3>
-              <div class="social-pill-list">
-                @for (link of p.socialLinks; track link.id) {
-                  <a
-                    class="social-pill"
-                    [href]="link.profileUrl"
-                    target="_blank"
-                    rel="noopener">
-                    {{ link.platform | titlecase }}
-                  </a>
-                }
-              </div>
-            </div>
-          }
-
-        </div>
-      </div>
-    </section>
-
-    <div class="topics">
-
-      @if (
-        p.temas &&
-        p.temas.length > 0
+      @for (
+        evento of eventos();
+        track evento.id
       ) {
 
-        <div class="profile-section">
-
-          <h3 class="topics_title">
-            Temas que trabajo
-          </h3>
-
-          <div class="profile-tags">
-
-            @for (
-              tema of p.temas;
-              track tema
-            ) {
-
-              <span class="profile-tag">
-                {{ tema }}
-              </span>
-
-            }
-          </div>
-
-        </div>
+        <app-evento-card
+          [evento]="evento">
+        </app-evento-card>
 
       }
 
-      @if (
-        p.tecnicas &&
-        p.tecnicas.length > 0
-      ) {
-
-        <div class="profile-section">
-
-          <h3 class="topics_title">
-            Técnicas que ofrezco
-          </h3>
-
-          <div class="profile-tags">
-
-            @for (
-
-              tecnica of p.tecnicas;
-              track tecnica
-
-            ) {
-
-              <span class="profile-tag">
-                {{ tecnica }}
-              </span>
-            }
-          </div>
-        </div>
-      }
     </div>
 
-    @if (mostrarEventos()) {
-      <section class="profile-section profile-section--full">
-        <h3 class="topics_title">Próximos eventos</h3>
-        <div class="cards-grid">
-          @for (evento of eventos(); track evento.id) {
-            <app-evento-card [evento]="evento"></app-evento-card>
-          }
-        </div>
-      </section>
+  </section>
 
-      <section class="profile-section profile-section--full">
-        <h3 class="topics_title">Calendario de eventos</h3>
-        <app-evento-calendar
-          [specialistId]="p.id"
-          [organizerName]="p.nombre"
-          [organizerPhotoUrl]="p.imagenUrl">
-        </app-evento-calendar>
-      </section>
-    }
 
-    @if (mostrarSesiones()) {
-      <section class="profile-section profile-section--full">
-        <h3 class="topics_title">Sesiones 1 a 1</h3>
-        <div class="cards-grid">
-          @for (sesion of sesiones(); track sesion.id) {
-            <app-sesion-card [sesion]="sesion"></app-sesion-card>
-          }
-        </div>
-      </section>
-    }
+  <!-- Calendario -->
+  <section
+    class="profile-section profile-section--full">
 
-    @if (mostrarGaleria()) {
-      <section class="profile-section profile-section--full">
-        <h3 class="topics_title">Galería</h3>
-        <div class="gallery-grid">
-          @for (imagen of p.galleryImages; track imagen.id; let i = $index) {
-            <button
-              type="button"
-              class="gallery-grid__item"
-              (click)="openGalleryLightbox(i)">
-              <img [src]="imagen.imageUrl" [alt]="'Foto de ' + p.nombre">
-            </button>
-          }
-        </div>
-      </section>
-    }
+    <h3 class="topics_title">
+      Calendario de eventos
+    </h3>
 
-    @if (galleryLightboxIndex() !== null) {
-      <div class="profile-lightbox" (click)="closeGalleryLightbox()">
+    <app-evento-calendar
+      [specialistId]="p.id"
+      [organizerName]="p.nombre"
+      [organizerPhotoUrl]="p.imagenUrl">
+    </app-evento-calendar>
+
+  </section>
+
+}
+
+
+<!-- =========================
+     SESIONES
+     ========================= -->
+@if (mostrarSesiones()) {
+
+  <section
+    class="profile-section profile-section--full">
+
+    <h3 class="topics_title">
+      Sesiones 1 a 1
+    </h3>
+
+    <div class="cards-grid">
+
+      @for (
+        sesion of sesiones();
+        track sesion.id
+      ) {
+
+        <app-sesion-card
+          [sesion]="sesion">
+        </app-sesion-card>
+
+      }
+
+    </div>
+
+  </section>
+
+}
+
+
+<!-- =========================
+     GALERÍA
+     ========================= -->
+@if (mostrarGaleria()) {
+
+  <section
+    class="profile-section profile-section--full">
+
+    <h3 class="topics_title">
+      Galería
+    </h3>
+
+    <div class="gallery-grid">
+
+      @for (
+        imagen of p.galleryImages;
+        track imagen.id;
+        let i = $index
+      ) {
+
         <button
           type="button"
-          class="profile-lightbox__close"
-          (click)="closeGalleryLightbox(); $event.stopPropagation()"
-          aria-label="Cerrar galería">
-          ×
+          class="gallery-grid__item"
+          (click)="openGalleryLightbox(i)">
+
+          <img
+            [src]="imagen.imageUrl"
+            [alt]="'Foto de ' + p.nombre">
+
         </button>
-        <button
-          type="button"
-          class="profile-lightbox__nav profile-lightbox__nav--prev"
-          (click)="previousGalleryImage(); $event.stopPropagation()"
-          aria-label="Imagen anterior">
-          ‹
-        </button>
-        <img
-          [src]="p.galleryImages![galleryLightboxIndex()!].imageUrl"
-          [alt]="'Foto de ' + p.nombre"
-          (click)="$event.stopPropagation()">
-        <button
-          type="button"
-          class="profile-lightbox__nav profile-lightbox__nav--next"
-          (click)="nextGalleryImage(); $event.stopPropagation()"
-          aria-label="Imagen siguiente">
-          ›
-        </button>
-      </div>
+
+      }
+
+    </div>
+
+  </section>
+
+}
+
+<!-- =========================
+     CARD FINAL - SEGUIR
+     ========================= -->
+
+@if (!isOwnProfile()) {
+
+  <section class="profile-follow-card">
+
+
+<div class="profile-follow-card__content">
+
+  <!-- Foto circular de la profesional -->
+  @if (p.imagenUrl && !publicPhotoFailed()) {
+
+    <img
+      [src]="p.imagenUrl"
+      [alt]="'Foto de ' + p.nombre"
+      class="profile-follow-card__avatar"
+    >
+
+  } @else {
+
+    <div
+      class="profile-follow-card__avatar profile-follow-card__avatar--fallback"
+      aria-hidden="true">
+
+      {{ p.nombre.charAt(0) }}
+
+    </div>
+
+  }
+
+
+  <div class="profile-follow-card__text">
+
+    @if (following()) {
+
+      <h2>
+        Ya sigues a {{ p.nombre }}
+      </h2>
+
+      <p>
+        Te avisaremos por email en cuanto publique algo nuevo.
+        Si crees que a alguien le puede encajar, compártele el perfil.
+      </p>
+
+    } @else {
+
+      <h2>
+        No te pierdas lo próximo de {{ p.nombre }}
+      </h2>
+
+      <p>
+        Síguele y te avisamos por email cada vez que publique
+        una nueva experiencia.
+      </p>
+
     }
+
   </div>
+
+</div>
+
+
+<!-- Botón inferior -->
+<button
+  type="button"
+  class="profile-follow-card__button"
+  [class.profile-follow-card__button--active]="following()"
+  [disabled]="followLoading()"
+  (click)="toggleFollow()">
+
+  @if (followLoading()) {
+
+    Guardando...
+
+  } @else {
+
+    @if (following()) {
+
+      Siguiendo
+
+    } @else {
+
+      Seguir a {{ p.nombre }}
+
+    }
+
+  }
+
+</button>
+
+
+@if (followError()) {
+
+  <p
+    class="profile-follow-card__error"
+    role="alert">
+
+    {{ followError() }}
+
+  </p>
+
+}
+
+
+  </section>
+
+}
+
+<!-- =========================
+     LIGHTBOX GALERÍA
+     ========================= -->
+
+@if (galleryLightboxIndex() !== null) {
+
+  <div
+    class="profile-lightbox"
+    (click)="closeGalleryLightbox()">
+
+<button
+  type="button"
+  class="profile-lightbox__close"
+  (click)="closeGalleryLightbox(); $event.stopPropagation()"
+  aria-label="Cerrar galería">
+
+  ×
+
+</button>
+
+
+<button
+  type="button"
+  class="profile-lightbox__nav profile-lightbox__nav--prev"
+  (click)="previousGalleryImage(); $event.stopPropagation()"
+  aria-label="Imagen anterior">
+
+  ‹
+
+</button>
+
+
+<img
+  [src]="p.galleryImages![galleryLightboxIndex()!].imageUrl"
+  [alt]="'Foto de ' + p.nombre"
+  (click)="$event.stopPropagation()"
+>
+
+
+<button
+  type="button"
+  class="profile-lightbox__nav profile-lightbox__nav--next"
+  (click)="nextGalleryImage(); $event.stopPropagation()"
+  aria-label="Imagen siguiente">
+
+  ›
+
+</button>
+
+
+  </div>
+
+}
+
+</div>
+
+<!-- =========================
+     CONFIRMAR DEJAR DE SEGUIR
+     ========================= -->
+
+<app-confirm-dialog
+[open]="showUnfollowDialog()"
+title="¿Dejar de seguir a este profesional?"
+[description]="
+'Dejarás de ver a ' +
+(perfil()?.nombre || 'este profesional') +
+' en tu lista de profesionales seguidos.'
+"
+confirmLabel="Dejar de seguir"
+cancelLabel="Mantener seguimiento"
+[loading]="followLoading()"
+(confirmed)="confirmUnfollow()"
+(cancelled)="cancelUnfollow()"> </app-confirm-dialog>
 
 } @else {
 
   <div class="loading">
     Cargando perfil...
   </div>
+
 }

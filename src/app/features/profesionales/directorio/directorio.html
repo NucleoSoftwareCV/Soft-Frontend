@@ -1,4 +1,3 @@
-
 <div class="container">
   <main class="wellness-directory">
 
@@ -17,7 +16,7 @@
     <div class="directory-controls__wrapper">
 
       <div class="directory-search">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lupa"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lupa"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
 
         <input
           type="text"
@@ -139,7 +138,7 @@
         [class.directory-tab--active]="categoriaActiva() === 'organizadores'"
         (click)="actualizarCategoria('organizadores')">
 
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personas"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personas"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         Organizadores de eventos
 
       </button>
@@ -150,95 +149,99 @@
 
       @for (perfil of perfilesFiltrados(); track perfil.id) {
 
-<article
-  class="card-item"
-  (click)="verPerfil(perfil)">
+        <article
+          class="card-item"
+          (click)="verPerfil(perfil)">
 
-  <div
-    class="card-item__image-container"
-    [class.card-item__image-container--logo]="perfil.isLogoStyle">
+          <div
+            class="card-item__image-container"
+            [class.card-item__image-container--logo]="perfil.isLogoStyle">
 
-    @if (perfil.isLogoStyle) {
+            @if (perfil.isLogoStyle) {
 
-      <div class="card-item__logo-placeholder">
+              <div class="card-item__logo-placeholder">
 
-        <span class="logo-text-brand">
-          {{ perfil.logoMarca }}
-        </span>
+                <span class="logo-text-brand">
+                  {{ perfil.logoMarca }}
+                </span>
 
-        <span class="logo-text-sub">
-          {{ perfil.logoSub }}
-        </span>
+                <span class="logo-text-sub">
+                  {{ perfil.logoSub }}
+                </span>
 
-      </div>
+              </div>
 
-    } @else {
+            } @else {
 
-      <img
-        [src]="perfil.imagenUrl"
-        [alt]="perfil.nombre"
-        class="card-item__img">
+              <img
+                [src]="perfil.imagenUrl"
+                [alt]="perfil.nombre"
+                class="card-item__img">
 
-    }
+            }
 
-    <span class="card-item__badge">
+            <span class="card-item__badge">
 
-      <app-icon
-        [name]="getIconName(perfil.tipo)"
-        [size]="12">
-      </app-icon>
+              <app-icon
+                [name]="getIconName(perfil.tipo)"
+                [size]="12">
+              </app-icon>
 
-      {{ perfil.tipo }}
+              {{ perfil.tipo }}
 
-    </span>
+            </span>
 
-  </div>
+          </div>
 
-  <div class="card-item__content">
+          <div class="card-item__content">
 
-    <h2 class="card-item__title">
-      {{ perfil.nombre }}
-    </h2>
+            <h2 class="card-item__title">
+              {{ perfil.nombre }}
+            </h2>
 
-    <div class="card-item__location">
-      <app-icon
-        name="map-pin"
-        [size]="16">
-      </app-icon>
-      {{ perfil.ubicacion }}
-    </div>
+            <div class="card-item__location">
+              <app-icon
+                name="map-pin"
+                [size]="16">
+              </app-icon>
+              {{ perfil.ubicacion }}
+            </div>
 
-    <p class="card-item__quote">
-      "{{ perfil.cita }}"
-    </p>
+            <p class="card-item__quote">
+              "{{ perfil.cita }}"
+            </p>
 
-    <div class="card-item__tags">
+            <div class="card-item__tags">
 
-      @for (tag of perfil.tags; track tag) {
+              @for (tag of perfil.tags; track tag) {
 
-        <span
-          class="card-item__tag"
-          [class.card-item__tag--more]="tag.startsWith('+')">
+                <span
+                  class="card-item__tag"
+                  [class.card-item__tag--more]="tag.startsWith('+')">
 
-          {{ tag }}
+                  {{ tag }}
 
-        </span>
+                </span>
 
-      }
+              }
 
-    </div>
+            </div>
 
-    <button
-      class="card-item__link"
-      (click)="verPerfil(perfil); $event.stopPropagation()">
+            <button
+              class="card-item__link"
+              (click)="verPerfil(perfil); $event.stopPropagation()">
 
-      Ver perfil →
+              Ver perfil 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="card-arrow-icon" style="display: inline-block; vertical-align: middle; margin-left: 4px;">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
 
-    </button>
+            </button>
 
-  </div>
+          </div>
 
-</article>
+        </article>
 
       }
 
@@ -253,12 +256,6 @@
       }
 
     </section>
-
-    <div class="directory-actions">
-      <button class="btn-load-more">
-        Cargar más perfiles
-      </button>
-    </div>
 
   </main>
 </div>

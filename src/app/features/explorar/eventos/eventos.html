@@ -1,178 +1,1181 @@
 <section class="eventos-page">
+
   <div class="container">
-    <h1 class="title">Experiencias y eventos de bienestar</h1>
-    <div class="subtitle-row" [class.expanded]="expandedDescription()">
+
+    <h1 class="title">
+      Experiencias y eventos de bienestar
+    </h1>
+
+    <div
+      class="subtitle-row"
+      [class.expanded]="expandedDescription()"
+    >
       <p class="subtitle">
-      Encuentra planes de yoga, meditación, breathwork, movimiento, retiros y talleres de bienestar.
-      Descubre experiencias para desconectar, cuidarte y conectar con otras personas.
+        Encuentra planes de yoga, meditación, breathwork,
+        movimiento, retiros y talleres de bienestar.
+        Descubre experiencias para desconectar, cuidarte
+        y conectar con otras personas.
       </p>
-      <button class="subtitle-toggle" type="button" (click)="toggleDescription()">
-        {{ expandedDescription() ? 'Ver menos' : 'Ver más' }}
-      </button>
     </div>
+
+
+    <!-- =====================================================
+         FILTROS
+         ===================================================== -->
 
     <div class="filters-row">
+
       <div class="filters-scroll">
-        <button class="filter-btn" (click)="openHeaderFilter()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+
+        <!-- FILTROS -->
+
+        <button
+          class="filter-btn"
+          type="button"
+          (click)="openHeaderFilter()"
+        >
+
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+            <line x1="10" y1="18" x2="14" y2="18"></line>
           </svg>
+
           Filtros
+
           @if (activeFilterCount > 0) {
-            <span class="filter-badge">{{ activeFilterCount }}</span>
+
+            <span class="filter-badge">
+              {{ activeFilterCount }}
+            </span>
+
           }
+
         </button>
 
-        <button class="filter-btn" [class.active]="filterWhen() === 'Hoy'" (click)="selectWhen('Hoy')">Hoy</button>
-        <button class="filter-btn" [class.active]="filterWhen() === 'Este finde'" (click)="selectWhen('Este finde')">Este finde</button>
-        <button class="filter-btn" [class.active]="filterWhen() === 'Esta semana'" (click)="selectWhen('Esta semana')">Esta semana</button>
-        <button class="filter-btn" [class.active]="filterWhen() === 'Próxima semana' || filterWhen() === 'Proxima semana'" (click)="selectWhen('Próxima semana')">Próxima semana</button>
+
+        <!-- HOY -->
+
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterWhen() === 'Hoy'"
+          (click)="selectWhen('Hoy')"
+        >
+          Hoy
+        </button>
+
+
+        <!-- ESTE FINDE -->
+
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterWhen() === 'Este finde'"
+          (click)="selectWhen('Este finde')"
+        >
+          Este finde
+        </button>
+
+
+        <!-- ESTA SEMANA -->
+
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterWhen() === 'Esta semana'"
+          (click)="selectWhen('Esta semana')"
+        >
+          Esta semana
+        </button>
+
+
+        <!-- PRÓXIMA SEMANA -->
+
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="
+            filterWhen() === 'Próxima semana' ||
+            filterWhen() === 'Proxima semana'
+          "
+          (click)="selectWhen('Próxima semana')"
+        >
+          Próxima semana
+        </button>
+
+
+        <!-- =================================================
+             ELEGIR FECHA
+             ================================================= -->
 
         <div class="date-filter-wrapper">
-          <button class="filter-btn" [class.active]="isCustomDateActive()" (click)="openHeaderDateModal(); $event.stopPropagation()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+
+          <button
+            class="filter-btn date-filter-btn"
+            type="button"
+            [class.active]="isCustomDateActive()"
+            (click)="toggleDatePicker()"
+          >
+
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="18"
+                rx="2"
+              ></rect>
+
+              <line
+                x1="16"
+                y1="2"
+                x2="16"
+                y2="6"
+              ></line>
+
+              <line
+                x1="8"
+                y1="2"
+                x2="8"
+                y2="6"
+              ></line>
+
+              <line
+                x1="3"
+                y1="10"
+                x2="21"
+                y2="10"
+              ></line>
+
             </svg>
-            {{ customDateLabel() }}
+
+            <span class="date-filter-label">
+              Elegir fecha
+            </span>
+
+            @if (isCustomDateActive()) {
+
+              <span class="filter-check">
+                ✓
+              </span>
+
+            }
+
           </button>
+
         </div>
+
       </div>
+
     </div>
 
+
+    <!-- =====================================================
+         BÚSQUEDA
+         ===================================================== -->
+
     @if (searchQuery()) {
+
       <div class="search-banner">
-        <span>Resultados para «{{ searchQuery() }}»</span>
-        <button type="button" class="search-banner-clear" (click)="clearSearchQuery()">Quitar búsqueda ×</button>
+
+        <span>
+          Resultados para «{{ searchQuery() }}»
+        </span>
+
+        <button
+          type="button"
+          class="search-banner-clear"
+          (click)="clearSearchQuery()"
+        >
+          Quitar búsqueda ×
+        </button>
+
       </div>
+
     }
 
-    <div class="results-header">
-      <strong>{{ totalEventos() }} {{ totalEventos() === 1 ? 'experiencia' : 'experiencias' }} cerca de ti</strong>
-      <div class="results-actions">
-        @if (activeFilterCount > 0) {
-          <button class="filter-clear-btn" (click)="clearFilters()">Limpiar filtros</button>
-        }
 
-        <div class="sort-wrapper">
-          <button class="sort-btn" type="button" (click)="toggleSortMenu()">
-            <span class="sort-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flechas"><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path></svg></span>
-            {{ selectedSort().label }}
+    <!-- =====================================================
+         RESULTADOS
+         ===================================================== -->
+
+    <div class="results-header">
+
+      <strong>
+
+        {{ totalEventos() }}
+
+        {{
+          totalEventos() === 1
+            ? 'experiencia'
+            : 'experiencias'
+        }}
+
+        cerca de ti
+
+      </strong>
+
+
+      <div class="results-actions">
+
+        @if (activeFilterCount > 0) {
+
+          <button
+            class="filter-clear-btn"
+            type="button"
+            (click)="clearFilters()"
+          >
+            Limpiar filtros
           </button>
 
+        }
+
+
+        <!-- ORDENAR -->
+
+        <div class="sort-wrapper">
+
+          <button
+            class="sort-btn"
+            type="button"
+            (click)="toggleSortMenu()"
+          >
+
+            <span class="sort-icon">
+
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <line
+                  x1="8"
+                  y1="6"
+                  x2="20"
+                  y2="6"
+                ></line>
+
+                <line
+                  x1="8"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                ></line>
+
+                <line
+                  x1="8"
+                  y1="18"
+                  x2="20"
+                  y2="18"
+                ></line>
+
+                <circle
+                  cx="4"
+                  cy="6"
+                  r="1"
+                  fill="currentColor"
+                ></circle>
+
+                <circle
+                  cx="4"
+                  cy="12"
+                  r="1"
+                  fill="currentColor"
+                ></circle>
+
+                <circle
+                  cx="4"
+                  cy="18"
+                  r="1"
+                  fill="currentColor"
+                ></circle>
+
+              </svg>
+
+            </span>
+
+            {{ selectedSort().label }}
+
+          </button>
+
+
           @if (showSortMenu()) {
+
             <div class="sort-menu">
-              @for (option of sortOptions; track option.sort) {
+
+              @for (
+                option of sortOptions;
+                track option.sort
+              ) {
+
                 <button
                   type="button"
                   class="sort-option"
-                  [class.active]="selectedSort().sort === option.sort"
-                  (click)="selectSort(option)">
+                  [class.active]="
+                    selectedSort().sort === option.sort
+                  "
+                  (click)="selectSort(option)"
+                >
+
                   {{ option.label }}
+
                 </button>
+
               }
+
             </div>
+
           }
+
         </div>
+
       </div>
+
     </div>
 
+
+    <!-- =====================================================
+         LOADING
+         ===================================================== -->
+
     @if (loading()) {
+
       <div class="cards-grid skeleton-grid">
-        @for (item of skeletonCards; track $index) {
+
+        @for (
+          item of skeletonCards;
+          track $index
+        ) {
+
           <article class="card skeleton-card">
+
             <div class="skeleton-image"></div>
+
             <div class="card-body">
-              <div class="skeleton-line skeleton-tag"></div>
-              <div class="skeleton-line skeleton-date"></div>
-              <div class="skeleton-line skeleton-title"></div>
+
+              <div
+                class="skeleton-line skeleton-tag"
+              ></div>
+
+              <div
+                class="skeleton-line skeleton-date"
+              ></div>
+
+              <div
+                class="skeleton-line skeleton-title"
+              ></div>
+
               <div class="skeleton-author">
+
                 <div class="skeleton-avatar"></div>
-                <div class="skeleton-line skeleton-name"></div>
-                <div class="skeleton-line skeleton-price"></div>
+
+                <div
+                  class="skeleton-line skeleton-name"
+                ></div>
+
+                <div
+                  class="skeleton-line skeleton-price"
+                ></div>
+
               </div>
+
             </div>
+
           </article>
+
         }
+
       </div>
+
+
     } @else if (error()) {
+
+
+      <!-- =================================================
+           ERROR
+           ================================================= -->
+
       <div class="empty-state backend-state">
-        <h2>Eventos no disponibles</h2>
-        <p>{{ error() }}</p>
-        <span>No se muestran datos estáticos para evitar información inventada.</span>
-        <button class="btn-outline" (click)="clearFilters()">Reintentar</button>
+
+        <h2>
+          Eventos no disponibles
+        </h2>
+
+        <p>
+          {{ error() }}
+        </p>
+
+        <span>
+          No se muestran datos estáticos para evitar
+          información inventada.
+        </span>
+
+        <button
+          class="btn-outline"
+          type="button"
+          (click)="clearFilters()"
+        >
+          Reintentar
+        </button>
+
       </div>
+
+
     } @else if (eventos().length === 0) {
+
+
+      <!-- =================================================
+           SIN RESULTADOS
+           ================================================= -->
+
       <div class="empty-state">
-        <p>No encontramos eventos con esos filtros.</p>
-        <button class="btn-outline" (click)="clearFilters()">Ver todos los eventos</button>
+
+        <p>
+          No encontramos eventos con esos filtros.
+        </p>
+
+        <button
+          class="btn-outline"
+          type="button"
+          (click)="clearFilters()"
+        >
+          Ver todos los eventos
+        </button>
+
       </div>
+
+
     } @else {
+
+
+      <!-- =================================================
+           TARJETAS
+           ================================================= -->
+
       <div class="cards-grid">
-        @for (item of eventos(); track item.id) {
-          <article class="card" [routerLink]="['/evento', item.id]">
+
+        @for (
+          item of eventos();
+          track item.id
+        ) {
+
+          <article
+            class="card"
+            [routerLink]="['/evento', item.id]"
+          >
+
+            <!-- IMAGEN -->
+
             <div class="image-box">
-              <img [src]="assetUrl(item.coverImageUrl)" [alt]="item.title" loading="lazy" />
-                <button
-                  class="heart"
-                  [class.active]="isFavorito(item)"
-                  (click)="toggleFavorito(item); $event.stopPropagation()">
+
+              <img
+                [src]="assetUrl(item.coverImageUrl)"
+                [alt]="item.title"
+                loading="lazy"
+              />
+
+
+              <!-- FAVORITO -->
+
+              <button
+                class="heart"
+                type="button"
+                [class.active]="isFavorito(item)"
+                [attr.aria-label]="
+                  isFavorito(item)
+                    ? 'Quitar de favoritos'
+                    : 'Guardar en favoritos'
+                "
+                (click)="
+                  toggleFavorito(item);
+                  $event.stopPropagation()
+                "
+              >
+
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+                  ></path>
+
+                </svg>
+
+              </button>
+
+
+              <!-- UBICACIÓN -->
+
+              <span class="location">
+
+                @if (isOnline(item)) {
 
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                    width="13"
+                    height="13"
                     viewBox="0 0 24 24"
-                    [attr.fill]="isFavorito(item) ? 'currentColor' : 'none'"
+                    fill="none"
                     stroke="currentColor"
                     stroke-width="2"
                     stroke-linecap="round"
-                    stroke-linejoin="round">
+                    stroke-linejoin="round"
+                  >
 
-                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="14"
+                      rx="2"
+                    ></rect>
+
+                    <line
+                      x1="8"
+                      y1="22"
+                      x2="16"
+                      y2="22"
+                    ></line>
+
+                    <line
+                      x1="12"
+                      y1="18"
+                      x2="12"
+                      y2="22"
+                    ></line>
+
                   </svg>
 
-                </button>
-              <span class="location">
-                @if (isOnline(item)) {
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                    <rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-                  </svg>
-                  <span>Online</span>
+                  <span>
+                    Online
+                  </span>
+
                 } @else {
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+
+                    <path
+                      d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                    ></path>
+
+                    <circle
+                      cx="12"
+                      cy="10"
+                      r="2.5"
+                    ></circle>
+
                   </svg>
-                  <span>{{ item.cityName || 'Presencial' }}</span>
+
+                  <span>
+                    {{ item.cityName || 'Presencial' }}
+                  </span>
+
                 }
+
               </span>
+
             </div>
+
+
+            <!-- CUERPO -->
 
             <div class="card-body">
-              <span class="tag">{{ categoryEmoji(item.categoryName) }} {{ item.categoryName || 'Evento' }}</span>
+
+              <!-- CATEGORÍA -->
+
+              <span class="tag">
+
+                {{ categoryEmoji(item.categoryName) }}
+
+                {{ item.categoryName || 'Evento' }}
+
+              </span>
+
+
+              <!-- FECHA -->
 
               <div class="date-row">
-                <span>{{ formatDate(item.startsAt) }}</span>
+
+                <span>
+                  {{ formatDate(item.startsAt) }}
+                </span>
+
+
                 @if (item.isRecurring) {
+
                   <span class="recurrence-badge">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                      <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+
+                      <path
+                        d="M17 1l4 4-4 4"
+                      ></path>
+
+                      <path
+                        d="M3 11V9a4 4 0 0 1 4-4h14"
+                      ></path>
+
+                      <path
+                        d="M7 23l-4-4 4-4"
+                      ></path>
+
+                      <path
+                        d="M21 13v2a4 4 0 0 1-4 4H3"
+                      ></path>
+
                     </svg>
+
                     SEMANAL
+
                   </span>
+
                 }
+
               </div>
 
-              <h2>{{ item.title }}</h2>
+
+              <!-- TÍTULO -->
+
+              <h2>
+                {{ item.title }}
+              </h2>
+
+
+              <!-- AUTOR -->
 
               <div class="card-author">
+
                 <div class="author">
-                  <img [src]="assetUrl(item.organizerPhotoUrl)" [alt]="item.organizerName || 'Organizador'" />
-                  <span>{{ item.organizerName || 'Oona' }}</span>
+
+                  <img
+                    [src]="assetUrl(item.organizerPhotoUrl)"
+                    [alt]="
+                      item.organizerName ||
+                      'Organizador'
+                    "
+                  />
+
+                  <span>
+                    {{ item.organizerName || 'Oona' }}
+                  </span>
+
                 </div>
-                <span class="precio">{{ formatPrice(item) }}</span>
+
+
+                <!-- PRECIO -->
+
+                <span class="precio">
+
+                  {{ formatPrice(item) }}
+
+                </span>
+
               </div>
+
             </div>
+
           </article>
+
         }
+
       </div>
+
     }
+
   </div>
+
+
+  <!-- =====================================================
+       CALENDARIO FLOTANTE
+       ===================================================== -->
+
+  @if (showDatePicker()) {
+
+    <div
+      class="date-calendar-overlay"
+      (click)="closeDatePicker()"
+    >
+
+      <div
+        class="date-calendar-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="date-calendar-title"
+        (click)="$event.stopPropagation()"
+      >
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <div class="date-calendar-header">
+
+          <h2 id="date-calendar-title">
+            Fecha
+          </h2>
+
+          <button
+            type="button"
+            class="date-calendar-close"
+            aria-label="Cerrar calendario"
+            (click)="closeDatePicker()"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             SELECCIONES RÁPIDAS
+             ================================================= -->
+
+        <div class="date-quick-row">
+
+
+          <!-- ESTA SEMANA -->
+
+          <button
+            type="button"
+            class="date-quick-btn"
+            [class.active]="
+              filterWhen() === 'Esta semana'
+            "
+            (click)="
+              selectQuickCalendarRange(
+                'Esta semana'
+              )
+            "
+          >
+
+            @if (
+              filterWhen() === 'Esta semana'
+            ) {
+
+              <span class="quick-check">
+                ✓
+              </span>
+
+            }
+
+            Esta semana
+
+          </button>
+
+
+          <!-- ESTE FINDE -->
+
+          <button
+            type="button"
+            class="date-quick-btn"
+            [class.active]="
+              filterWhen() === 'Este finde'
+            "
+            (click)="
+              selectQuickCalendarRange(
+                'Este finde'
+              )
+            "
+          >
+
+            @if (
+              filterWhen() === 'Este finde'
+            ) {
+
+              <span class="quick-check">
+                ✓
+              </span>
+
+            }
+
+            Este finde
+
+          </button>
+
+
+          <!-- PRÓXIMA SEMANA -->
+
+          <button
+            type="button"
+            class="date-quick-btn"
+            [class.active]="
+              filterWhen() === 'Próxima semana' ||
+              filterWhen() === 'Proxima semana'
+            "
+            (click)="
+              selectQuickCalendarRange(
+                'Próxima semana'
+              )
+            "
+          >
+
+            @if (
+              filterWhen() === 'Próxima semana' ||
+              filterWhen() === 'Proxima semana'
+            ) {
+
+              <span class="quick-check">
+                ✓
+              </span>
+
+            }
+
+            Próxima semana
+
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             NAVEGACIÓN DEL MES
+             ================================================= -->
+
+        <div class="calendar-month-header">
+
+          <h3>
+            {{ calendarMonthLabel() }}
+          </h3>
+
+
+          <div class="calendar-month-actions">
+
+            <button
+              type="button"
+              class="calendar-arrow"
+              aria-label="Mes anterior"
+              (click)="previousMonth()"
+            >
+              ‹
+            </button>
+
+
+            <button
+              type="button"
+              class="calendar-arrow"
+              aria-label="Mes siguiente"
+              (click)="nextMonth()"
+            >
+              ›
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             DÍAS DE LA SEMANA
+             ================================================= -->
+
+        <div class="calendar-weekdays">
+
+          <span>LU</span>
+          <span>MA</span>
+          <span>MI</span>
+          <span>JU</span>
+          <span>VI</span>
+          <span>SÁ</span>
+          <span>DO</span>
+
+        </div>
+
+
+        <!-- =================================================
+             CALENDARIO
+             ================================================= -->
+
+        <div
+          class="calendar-grid"
+          [class.today-filter-active]="filterWhen() === 'Hoy'"
+        >
+
+          @for (
+            day of calendarDays();
+            track day.dateKey
+          ) {
+
+            <button
+              type="button"
+              class="calendar-day"
+
+              [class.other-month]="
+                !day.currentMonth
+              "
+
+              [class.range-day]="
+                isInSelectedRange(day)
+              "
+
+              [class.range-middle]="
+                isRangeMiddle(day)
+              "
+
+              [class.range-start]="
+                isRangeStart(day)
+              "
+
+              [class.range-end]="
+                isRangeEnd(day)
+              "
+
+              [class.today]="
+                isToday(day)
+              "
+
+              [class.past-day]="
+                isPastDay(day)
+              "
+
+              (click)="
+                selectCalendarDay(day)
+              "
+            >
+
+              <span class="calendar-day-number">
+
+                {{ day.dayNumber }}
+
+              </span>
+
+            </button>
+
+          }
+
+        </div>
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+
+        <div class="date-calendar-footer">
+
+
+          <!-- BORRAR -->
+
+          <button
+            type="button"
+            class="date-clear"
+            (click)="clearDateFilter()"
+          >
+
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <polyline
+                points="3 6 5 6 21 6"
+              ></polyline>
+
+              <path
+                d="M19 6l-1 14H6L5 6"
+              ></path>
+
+              <path
+                d="M10 11v6"
+              ></path>
+
+              <path
+                d="M14 11v6"
+              ></path>
+
+              <path
+                d="M9 6V4h6v2"
+              ></path>
+
+            </svg>
+
+            Borrar
+
+          </button>
+
+
+          <!-- MOSTRAR EXPERIENCIAS -->
+
+          <button
+            type="button"
+            class="date-apply"
+            [disabled]="
+              !selectedCalendarStart()
+            "
+            (click)="applyCustomDateRange()"
+          >
+
+            Mostrar
+
+            {{ totalEventos() }}
+
+            experiencias
+
+            <span class="calendar-apply-icon">
+              📅
+            </span>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       CARD FAVORITOS — USUARIO NO AUTENTICADO
+       ===================================================== -->
+
+  @if (showFavoriteLoginCard()) {
+
+    <div
+      class="favorite-login-overlay"
+      (click)="cerrarFavoriteLoginCard()"
+    >
+
+      <div
+        class="favorite-login-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="favorite-login-title"
+        (click)="$event.stopPropagation()"
+      >
+
+
+        <!-- CERRAR -->
+
+        <button
+          type="button"
+          class="favorite-login-close"
+          aria-label="Cerrar"
+          (click)="cerrarFavoriteLoginCard()"
+        >
+          ×
+        </button>
+
+
+        <!-- ICONO -->
+
+        <div class="favorite-login-icon">
+
+          <svg
+            width="27"
+            height="27"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+            ></path>
+
+          </svg>
+
+        </div>
+
+
+        <!-- TEXTO -->
+
+        <h2 id="favorite-login-title">
+          Guarda tus eventos favoritos
+        </h2>
+
+        <p>
+          Crea una cuenta gratuita para guardar eventos
+          y recibir recomendaciones personalizadas
+        </p>
+
+
+        <!-- BOTONES -->
+
+        <div class="favorite-login-actions">
+
+          <button
+            type="button"
+            class="favorite-create-btn"
+            (click)="irAAuthLogin()"
+          >
+            Crear cuenta
+          </button>
+
+          <button
+            type="button"
+            class="favorite-login-btn"
+            (click)="irAAuthLogin()"
+          >
+            Ya tengo cuenta
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
 </section>

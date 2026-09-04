@@ -1,3 +1,7 @@
+/* =========================================================
+   HOST
+   ========================================================= */
+
 :host {
   display: block;
   min-height: 100dvh;
@@ -5,45 +9,93 @@
   background: #f4f6f5;
 }
 
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+
 .erp-login {
+  position: relative;
   min-height: 100dvh;
+
   display: grid;
-  grid-template-columns: minmax(360px, .9fr) minmax(480px, 1.1fr);
+  grid-template-columns:
+    minmax(360px, 0.9fr)
+    minmax(480px, 1.1fr);
+
+  overflow: hidden;
 }
+
+
+/* =========================================================
+   PRESENTACIÓN OONA
+   ========================================================= */
 
 .erp-login__context {
   min-height: 100dvh;
   box-sizing: border-box;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   padding: clamp(32px, 5vw, 72px);
+
   color: #eaf2f0;
   background: #123f43;
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease,
+    visibility 0.35s ease;
 }
+
+
+/* =========================================================
+   LOGO
+   ========================================================= */
 
 .erp-login__brand {
   width: max-content;
-  color: #fff;
-  font: 700 2rem Georgia, serif;
+
+  color: #ffffff;
+
+  font:
+    700 2rem Georgia, serif;
+
   text-decoration: none;
 }
+
+
+/* =========================================================
+   CONTENIDO PRESENTACIÓN
+   ========================================================= */
 
 .erp-login__context-copy {
   max-width: 500px;
 }
 
+
+/* =========================================================
+   BADGE
+   ========================================================= */
+
 .erp-login__badge {
   width: max-content;
+
   display: inline-flex;
   align-items: center;
   gap: 8px;
+
   padding: 7px 10px;
+
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 6px;
+
   color: #d9e8e5;
   background: rgb(255 255 255 / 6%);
-  font-size: .75rem;
+
+  font-size: 0.75rem;
 }
 
 .erp-login__badge svg {
@@ -51,56 +103,241 @@
   height: 16px;
 }
 
+
+/* =========================================================
+   TITULO PRESENTACIÓN
+   ========================================================= */
+
 .erp-login__context h1 {
   margin: 26px 0 16px;
-  color: #fff;
-  font: 700 clamp(2.2rem, 4vw, 4.5rem)/1 Georgia, serif;
+
+  color: #ffffff;
+
+  font:
+    700 clamp(2.2rem, 4vw, 4.5rem) / 1
+    Georgia, serif;
+
   letter-spacing: 0;
 }
 
+
+/* =========================================================
+   DESCRIPCIÓN PRESENTACIÓN
+   ========================================================= */
+
 .erp-login__context p {
   max-width: 460px;
+
   margin: 0;
+
   color: #bdd1cd;
-  font-size: .98rem;
+
+  font-size: 0.98rem;
   line-height: 1.65;
 }
 
-.erp-login__context small {
+
+/* =========================================================
+   TEXTO INFERIOR
+   ========================================================= */
+
+.erp-login__context > small {
   color: #92adaa;
 }
 
-.erp-login__access {
-  display: grid;
-  place-items: center;
-  padding: 32px;
+
+/* =========================================================
+   BOTÓN MÓVIL (Forzado a blanco puro)
+   Oculto en escritorio
+   ========================================================= */
+
+.erp-login__mobile-button {
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  width: max-content;
+  min-width: 210px;
+  min-height: 44px;
+
+  margin: 30px auto 0;
+  padding: 0 18px;
+
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 7px;
+
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 8%);
+
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.erp-login__panel {
-  width: min(420px, 100%);
+.erp-login__mobile-button span {
+  color: #ffffff !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.erp-login__mobile-button svg {
+  width: 17px;
+  height: 17px;
+
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+
+  flex: 0 0 auto;
+}
+
+.erp-login__mobile-button:hover {
+  background: rgb(255 255 255 / 14%);
+  border-color: rgb(255 255 255 / 30%);
+}
+
+.erp-login__mobile-button:hover span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.erp-login__mobile-button:hover svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.erp-login__mobile-button:active {
+  transform: scale(0.98);
+}
+
+
+/* =========================================================
+   ÁREA DE ACCESO
+   ========================================================= */
+
+.erp-login__access {
+  min-height: 100dvh;
+
+  display: grid;
+  place-items: center;
+
   box-sizing: border-box;
+
+  padding: 32px;
+
+  background: #f4f6f5;
+}
+
+
+/* =========================================================
+   PANEL LOGIN
+   ========================================================= */
+
+.erp-login__panel {
+  position: relative;
+
+  width: min(420px, 100%);
+
+  box-sizing: border-box;
+
   display: grid;
   gap: 18px;
+
   padding: 32px;
+
   border: 1px solid #dce3e1;
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 20px 55px rgb(25 49 48 / 8%);
+
+  background: #ffffff;
+
+  box-shadow:
+    0 20px 55px rgb(25 49 48 / 8%);
 }
+
+
+/* =========================================================
+   BOTÓN VOLVER
+   Oculto en escritorio
+   ========================================================= */
+
+.erp-login__back-button {
+  display: none;
+
+  align-items: center;
+  gap: 6px;
+
+  width: max-content;
+
+  padding: 0;
+
+  border: 0;
+
+  color: #61736f;
+  background: transparent;
+
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.erp-login__back-button svg {
+  width: 15px;
+  height: 15px;
+
+  color: #61736f;
+  stroke: #61736f;
+}
+
+.erp-login__back-button:hover {
+  color: #15575c;
+}
+
+.erp-login__back-button:hover svg {
+  color: #15575c;
+  stroke: #15575c;
+}
+
+
+/* =========================================================
+   CANDADO
+   ========================================================= */
 
 .erp-login__lock {
   width: 42px;
   height: 42px;
+
   display: grid;
   place-items: center;
+
   border-radius: 7px;
+
   color: #15575c;
   background: #e8f1ef;
 }
 
 .erp-login__lock svg {
   width: 20px;
+  height: 20px;
+
+  color: #15575c;
+  stroke: #15575c;
 }
+
+
+/* =========================================================
+   ENCABEZADO LOGIN
+   ========================================================= */
 
 .erp-login__heading {
   margin-bottom: 6px;
@@ -108,147 +345,545 @@
 
 .erp-login__heading span {
   color: #5a7c69;
-  font-size: .7rem;
+
+  font-size: 0.7rem;
   font-weight: 700;
+
   text-transform: uppercase;
 }
 
 .erp-login__heading h2 {
   margin: 7px 0;
-  font: 700 1.55rem/1.2 Georgia, serif;
+
+  color: #202928;
+
+  font:
+    700 1.55rem / 1.2
+    Georgia, serif;
+
   letter-spacing: 0;
 }
 
 .erp-login__heading p {
   margin: 0;
+
   color: #6e7b79;
-  font-size: .86rem;
+
+  font-size: 0.86rem;
 }
+
+
+/* =========================================================
+   LABELS
+   ========================================================= */
 
 .erp-login__panel label {
   display: grid;
   gap: 7px;
+
   color: #344846;
-  font-size: .78rem;
+
+  font-size: 0.78rem;
   font-weight: 650;
 }
 
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
 .field {
   min-height: 44px;
+
   display: flex;
   align-items: center;
   gap: 10px;
+
+  box-sizing: border-box;
+
   padding: 0 12px;
+
   border: 1px solid #cbd6d3;
   border-radius: 6px;
-  background: #fff;
+
+  color: #202928;
+  background: #ffffff;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .field:focus-within {
   border-color: #17646a;
+
   outline: 3px solid rgb(23 100 106 / 10%);
 }
 
 .field svg {
   width: 17px;
   height: 17px;
+
   flex: 0 0 auto;
+
   color: #75827f;
+  stroke: #75827f;
 }
 
 .field input {
   width: 100%;
   min-width: 0;
   min-height: 42px;
+
   padding: 0;
+
   border: 0;
   outline: 0;
+
+  color: #202928;
+  background: transparent;
+
   font: inherit;
 }
+
+.field input::placeholder {
+  color: #9aa6a3;
+}
+
+
+/* =========================================================
+   BOTÓN ENTRAR AL ERP
+   ========================================================= */
 
 .erp-login__submit {
   min-height: 44px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  box-sizing: border-box;
+
   padding: 0 14px;
+
   border: 0;
   border-radius: 6px;
-  color: #fff !important;
-  background: #15575c;
+
+  color: #ffffff !important;
+  background: #15575c !important;
+
   font: inherit;
   font-weight: 700;
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
-.erp-login__submit:hover {
-  background: #104b50;
-}
-
-.erp-login__submit span,
-.erp-login__submit svg {
-  color: #fff !important;
+.erp-login__submit span {
+  color: #ffffff !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .erp-login__submit svg {
   width: 17px;
+  height: 17px;
+
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+
+  flex: 0 0 auto;
+}
+
+.erp-login__submit:hover {
+  background: #104b50 !important;
+}
+
+.erp-login__submit:hover span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.erp-login__submit:hover svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.erp-login__submit:active {
+  transform: scale(0.99);
 }
 
 .erp-login__submit:disabled {
-  opacity: .6;
+  opacity: 0.6;
   cursor: wait;
 }
 
+.erp-login__submit:disabled span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.erp-login__submit:disabled svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
 .erp-login__error {
   margin: 0;
+
   padding: 10px 12px;
+
   border-left: 3px solid #b74242;
+
   color: #8f2929;
+
   background: #fff2f1;
-  font-size: .8rem;
+
+  font-size: 0.8rem;
 }
+
+
+/* =========================================================
+   AVISO SESIÓN EXPIRADA
+   ========================================================= */
 
 .erp-login__notice {
   display: grid;
   gap: 3px;
+
   padding: 11px 12px;
+
   border: 1px solid #d7e3df;
   border-left: 3px solid #247078;
   border-radius: 6px;
+
   color: #234b4e;
   background: #f0f7f5;
-  font-size: .8rem;
+
+  font-size: 0.8rem;
   line-height: 1.4;
+}
+
+.erp-login__notice strong {
+  color: #234b4e;
 }
 
 .erp-login__notice span {
   color: #607572;
 }
 
+
+/* =========================================================
+   TABLET / MOBILE
+   ========================================================= */
+
 @media (max-width: 840px) {
+
   .erp-login {
-    grid-template-columns: 1fr;
+    display: block;
+    min-height: 100dvh;
+    overflow: hidden;
   }
 
   .erp-login__context {
-    min-height: auto;
-    display: block;
-    padding: 22px 24px;
+    min-height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+
+    padding: 24px;
+
+    transition:
+      opacity 0.3s ease,
+      transform 0.35s ease,
+      visibility 0.35s ease;
   }
 
-  .erp-login__context-copy,
+  .erp-login__brand {
+    font-size: 1.8rem;
+  }
+
+  .erp-login__context-copy {
+    width: 100%;
+    max-width: 520px;
+
+    margin: auto 0;
+  }
+
+  .erp-login__context h1 {
+    margin: 22px 0 14px;
+
+    font-size: clamp(2.3rem, 10vw, 3.5rem);
+
+    line-height: 1.02;
+  }
+
+  .erp-login__context p {
+    max-width: 470px;
+
+    font-size: 0.92rem;
+
+    line-height: 1.6;
+  }
+
+  .erp-login__mobile-button {
+    display: inline-flex;
+
+    width: max-content;
+    min-width: 210px;
+
+    margin: 30px auto 0;
+
+    color: #ffffff !important;
+  }
+
+  .erp-login__mobile-button span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .erp-login__mobile-button svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
   .erp-login__context > small {
-    display: none;
+    display: block;
+
+    padding-bottom: 14px;
+
+    font-size: 0.72rem;
+  }
+
+  .erp-login__context--hidden {
+    opacity: 0;
+    transform: translateX(-25px);
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .erp-login__access {
-    min-height: calc(100dvh - 80px);
+    position: absolute;
+
+    inset: 0;
+
+    min-height: 100dvh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
     padding: 20px;
+
+    background: #f4f6f5;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translateX(30px);
+
+    transition:
+      opacity 0.3s ease,
+      transform 0.35s ease,
+      visibility 0.35s ease;
   }
+
+  .erp-login__access--mobile-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .erp-login__panel {
+    width: min(420px, 100%);
+    padding: 26px 22px;
+    border-radius: 9px;
+  }
+
+  .erp-login__back-button {
+    display: inline-flex;
+  }
+
+  .erp-login__lock {
+    margin: 2px auto 0;
+  }
+
+  .erp-login__heading {
+    text-align: center;
+  }
+
+  .erp-login__submit {
+    width: 100%;
+
+    color: #ffffff !important;
+    background: #15575c !important;
+  }
+
+  .erp-login__submit span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .erp-login__submit svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
 }
 
+
+/* =========================================================
+   CELULARES
+   ========================================================= */
+
 @media (max-width: 480px) {
-  .erp-login__panel {
-    padding: 24px 20px;
+
+  .erp-login__context {
+    padding: 22px 20px;
   }
+
+  .erp-login__brand {
+    font-size: 1.7rem;
+  }
+
+  .erp-login__context h1 {
+    font-size: 2.35rem;
+  }
+
+  .erp-login__context p {
+    font-size: 0.88rem;
+  }
+
+  .erp-login__mobile-button {
+    width: max-content;
+    min-width: 205px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    padding: 0 16px;
+
+    color: #ffffff !important;
+  }
+
+  .erp-login__mobile-button span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .erp-login__mobile-button svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  .erp-login__access {
+    padding: 16px;
+  }
+
+  .erp-login__panel {
+    width: 100%;
+    padding: 24px 18px;
+    gap: 16px;
+  }
+
+  .erp-login__lock {
+    width: 42px;
+    height: 42px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .erp-login__heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .erp-login__heading p {
+    font-size: 0.82rem;
+  }
+
+  .field {
+    min-height: 44px;
+  }
+
+  .erp-login__submit {
+    min-height: 44px;
+
+    color: #ffffff !important;
+    background: #15575c !important;
+  }
+
+  .erp-login__submit span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .erp-login__submit svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  .erp-login__notice {
+    font-size: 0.76rem;
+  }
+
+  .erp-login__context > small {
+    padding-bottom: 12px;
+  }
+
+}
+
+
+/* =========================================================
+   CELULARES MUY PEQUEÑOS
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  .erp-login__context {
+    padding: 20px 16px;
+  }
+
+  .erp-login__context h1 {
+    font-size: 2.05rem;
+  }
+
+  .erp-login__context p {
+    font-size: 0.84rem;
+  }
+
+  .erp-login__mobile-button {
+    min-width: 195px;
+    font-size: 0.78rem;
+    color: #ffffff !important;
+  }
+
+  .erp-login__mobile-button span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .erp-login__panel {
+    padding: 22px 16px;
+  }
+
+  .erp-login__heading h2 {
+    font-size: 1.3rem;
+  }
+
 }

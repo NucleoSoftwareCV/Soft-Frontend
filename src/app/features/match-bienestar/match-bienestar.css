@@ -20,8 +20,8 @@ main {
   position: relative;
   display: block;
   width: 100vw;
-  min-height: 380px;
-  height: 420px;
+  min-height: 480px;
+  height: auto;
   overflow: hidden;
   box-sizing: border-box;
   margin-left: 50%;
@@ -71,18 +71,14 @@ main {
 
 /* Contenido del banner */
 .match-banner__content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   max-width: 860px;
   margin: 0 auto;
-  padding: 54px 24px 120px;
+  padding: 40px 24px 60px;
   box-sizing: border-box;
   text-align: center;
   z-index: 2;
@@ -95,7 +91,7 @@ main {
   height: 34px;
   padding: 6px 18px;
   box-sizing: border-box;
-  margin-top: 30px;
+  margin-top: 20px;
   background-color: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -122,23 +118,21 @@ main {
 
 .match-banner__title {
   display: block;
-  width: min(640px, 100%);
+  width: min(900px, 100%);
   height: auto;
   margin: 16px 0 0 0;
-  margin-top: 20px;
   box-sizing: border-box;
 
   border: 0px solid rgb(238, 244, 235);
   color: rgb(255, 255, 255);
 
   font-family: Sunset, Georgia, serif;
-  font-size: 48px;
+  font-size: clamp(40px, 5vw, 56px);
   font-weight: 800;
-  line-height: 48px;
+  line-height: 1.05;
   letter-spacing: -1.2px;
   text-align: center;
-  font-feature-settings: normal;
-  font-variation-settings: normal;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 
   tab-size: 4;
   text-size-adjust: 100%;
@@ -149,17 +143,16 @@ main {
 .match-banner__subtitle {
   display: block;
   width: 100%;
-  max-width: 660px;
+  max-width: 780px;
   margin: 16px auto 0;
-  margin-top: 20px;
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.45;
   text-align: center;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* ===== SECTION 2: CONTENEDOR DEL FORMULARIO ===== */
@@ -183,12 +176,10 @@ main {
   width: min(672px, 100%);
   margin-top: -32px;
   padding: 32px;
-  /* Respiración interna */
   box-sizing: border-box;
   background-color: rgb(255, 255, 255);
   border: 2px solid rgb(238, 244, 235);
   border-radius: 24px;
-  /* Sombra para dar efecto flotante */
   color: rgb(0, 66, 87);
   position: relative;
 }
@@ -199,8 +190,7 @@ main {
   }
 }
 
-/* ===== Auth Gate & Success Screen ===== */
-.match-auth-gate,
+/* ===== Success Screen ===== */
 .match-success {
   text-align: center;
   padding: var(--space-10) 0;
@@ -208,7 +198,6 @@ main {
   margin: 0 auto;
 }
 
-.match-auth-gate__icon,
 .match-success__icon {
   font-size: 3.5rem;
   margin-bottom: var(--space-6);
@@ -217,18 +206,15 @@ main {
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-8px);
   }
 }
 
-.match-auth-gate__title,
 .match-success__title {
   font-family: var(--font-display);
   font-size: var(--text-2xl);
@@ -237,7 +223,6 @@ main {
   font-weight: 700;
 }
 
-.match-auth-gate__text,
 .match-success__text {
   font-size: var(--text-sm);
   color: var(--color-ink-light);
@@ -245,7 +230,6 @@ main {
   margin-bottom: var(--space-8);
 }
 
-.match-auth-gate__btn,
 .match-success__btn {
   display: inline-flex;
   padding: 12px 32px;
@@ -257,7 +241,7 @@ main {
 .match-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: 24px;
 }
 
 .match-form__section-head {
@@ -267,10 +251,6 @@ main {
   border-bottom: 2px solid var(--color-bg);
   padding-bottom: var(--space-3);
   margin-bottom: var(--space-2);
-}
-
-.match-form__section-icon {
-  font-size: 1.25rem;
 }
 
 .match-form__section-title {
@@ -296,8 +276,8 @@ main {
 .match-form__group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-top: -25px;
+  gap: 8px;
+  margin-top: 0;
 }
 
 .match-form__group--full {
@@ -395,13 +375,11 @@ main {
   font-size: 1.1rem;
 }
 
-/* Estilo específico para los chips de descriptores (MOVIDO AL FINAL) */
 .match-chip.match-chip--descriptor {
   color: rgb(97, 117, 87);
   font-size: 12px;
 }
 
-/* ===== Grid de Categorías ===== */
 .match-categories-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -436,7 +414,6 @@ main {
   outline: none;
   text-align: center;
 }
-
 
 .match-cat-card:hover:not(:disabled) {
   background-color: #eceee8;
@@ -508,35 +485,26 @@ main {
   border: none;
   width: 100%;
 }
-.estrella2{
+
+.estrella2 {
   display: block;
   width: 25px;
   height: 25px;
   box-sizing: border-box;
   overflow: hidden;
-  overflow-clip-margin: content-box;
-
-  /* Estilos de SVG */
   fill: none;
   stroke: rgb(76, 140, 43);
   stroke-width: 1px;
   stroke-linecap: round;
   stroke-linejoin: round;
-
   border: 0px solid rgb(238, 244, 235);
   color: rgb(76, 140, 43);
-
   font-family: Sunset, Georgia, serif;
   font-size: 15px;
   font-weight: 500;
   line-height: 2px;
-  font-feature-settings: normal;
-  font-variation-settings: normal;
-
-  tab-size: 4;
-  text-size-adjust: 100%;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
+
 @media (min-width: 600px) {
   .match-submit-btn {
     width: auto;
@@ -560,7 +528,6 @@ main {
 .match-form__disclaimer {
   box-sizing: border-box;
   display: block;
-  text-size-adjust:100%;
   font-size: 12px;
   color: rgb(97, 117, 87);
   text-align: center;
