@@ -50,7 +50,7 @@ export class PerfilProfesional implements OnInit {
   private readonly followService = inject(ProfessionalFollowService);
   private readonly eventosService = inject(EventosService);
   private readonly oneToOneServicesService = inject(OneToOneServicesService);
-
+ 
   readonly perfil = signal<TarjetaDirectorio | null>(null);
   readonly following = signal(false);
   readonly followLoading = signal(false);
@@ -78,7 +78,55 @@ export class PerfilProfesional implements OnInit {
   readonly mostrarGaleria = computed(() =>
     Boolean(this.perfil()?.showGallery) && (this.perfil()?.galleryImages?.length ?? 0) > 0
   );
+  readonly showShareDialog = signal(false);
+  readonly shareUrl = signal('');
+  readonly copied = signal(false);
 
+  openShareDialog(): void {
+    const slug = this.route.snapshot.paramMap.get('slug');
+    this.shareUrl.set(`${window.location.origin}/profesionales/${slug}`);
+    this.copied.set(false);
+    this.showShareDialog.set(true);
+  }
+
+  closeShareDialog(): void {
+    this.showShareDialog.set(false);
+  }
+
+  async copyShareUrl(): Promise<void> {
+    const url = this.shareUrl();
+    if (!url) return;
+
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
+  }
+
+  shareTargets(): { name: string; url: string }[] {
+    const url = encodeURIComponent(this.shareUrl());
+    const nombre = this.perfil()?.nombre ?? 'este profesional';
+    const text = encodeURIComponent(`Mira el perfil de ${nombre} en Oona`);
+
+    return [
+      { name: 'Facebook',  url: `https://www.facebook.com/sharer/sharer.php?u=${url}` },
+      { name: 'Messenger', url: `https://www.facebook.com/dialog/send?link=${url}&app_id=TU_FB_APP_ID&redirect_uri=${encodeURIComponent(window.location.origin)}` },
+      { name: 'X',         url: `https://twitter.com/intent/tweet?url=${url}&text=${text}` },
+      { name: 'WhatsApp',  url: `https://wa.me/?text=${text}%20${url}` },
+      { name: 'Email',     url: `mailto:?subject=${text}&body=${url}` },
+    ];
+  }
   ngOnInit(): void {
 
     const slug =

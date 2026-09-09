@@ -1,6 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal,  } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import { ProfessionalFollowService } from '../../services/professional-follow.service';
@@ -19,7 +19,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 @Component({
   selector: 'app-sesion-detalle',
   standalone: true,
-  imports: [CommonModule, LucideArrowLeft, LucideClock3, LucideMapPin, LucideMessageCircle, LucideMonitor, LucideBell, ConfirmDialogComponent],
+  imports: [CommonModule,RouterLink, LucideArrowLeft, LucideClock3, LucideMapPin, LucideMessageCircle, LucideMonitor, LucideBell, ConfirmDialogComponent],
   templateUrl: './sesion-detalle.html',
   styleUrls: ['./sesion-detalle.css']
 })
