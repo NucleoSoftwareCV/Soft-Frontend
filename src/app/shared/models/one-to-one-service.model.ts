@@ -41,6 +41,7 @@ export interface OneToOneServiceDetailResponse {
   id: number;
   specialistId: number;
   specialistName: string;
+  specialistSlug: string | null; 
   specialistPhotoUrl: string | null;
   specialistWhatsappPhone: string | null;
   slug: string;

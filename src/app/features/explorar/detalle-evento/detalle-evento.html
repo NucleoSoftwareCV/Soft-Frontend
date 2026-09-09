@@ -171,28 +171,29 @@
         <main class="main-content">
 
           <article class="organizer-card">
-            <div class="organizer-info">
-              <img [src]="organizerPhotoUrl()" [alt]="event.organizer?.publicName || 'Organizador'">
-              <div>
-                <small>Organizado por</small>
-                <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
-              </div>
+            <div class="organizadorlink">
+              <a class="organizer-info" [routerLink]="event.organizer?.slug ? ['/profesionales', event.organizer?.slug] : null">
+                <img [src]="organizerPhotoUrl()" [alt]="event.organizer?.publicName || 'Organizador'">
+                <div>
+                  <small>Organizado por</small>
+                  <strong>{{ event.organizer?.publicName || 'Oona' }}</strong>
+                </div>
+              </a>
+              <button
+                class="follow-btn"
+                type="button"
+                [class.follow-btn--active]="following()"
+                [disabled]="followLoading()"
+                (click)="toggleFollow(); $event.preventDefault()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> 
+                @if (followLoading()) {
+                  Guardando...
+                } @else {
+                  <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
+                  @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
+                }
+              </button>
             </div>
-
-            <button
-              class="follow-btn"
-              type="button"
-              [class.follow-btn--active]="following()"
-              [disabled]="followLoading()"
-              (click)="toggleFollow()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> 
-              @if (followLoading()) {
-                Guardando...
-              } @else {
-                <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
-                @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
-              }
-            </button>
           </article>
           <p class="follow-error" *ngIf="followError()">{{ followError() }}</p>
 
