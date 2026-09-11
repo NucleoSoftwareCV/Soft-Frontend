@@ -653,8 +653,11 @@ transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cub
 .tarjeta17{
 color:rgb(255, 255, 255);
 }
+.tarjeta17full--primary{
+color:rgb(255, 255, 255);
+}
 .tarjeta17--primary{
- color:rgb(0, 78, 89);
+ color:rgb(255, 255, 255);
 }
 .compartir{
 width: 16px;
@@ -876,13 +879,18 @@ height: 16px;
 .unfollow-modal__cancel:hover { color: var(--principal); }
 .tarjeta13-full{
   color: rgb(146, 64, 14) !important;
-
 }
-.tarjeta13-short {
-  color: rgb(146, 64, 14) !important;
+.tarjeta13-full--active{
+  color:rgb(255, 255, 255)!important;
+}
+.tarjeta13-short{
+  color:rgb(255, 255, 255);
   display: none;
 }
 
+.tarjeta17-short{
+  display: none;
+}
 @media (max-width: 768px) {
   .tarjeta5 {
     padding: 32px 20px;
@@ -898,11 +906,13 @@ height: 16px;
     line-height: 1.6;
   }
 
-  .tarjeta13-full { display: none; }
-  .tarjeta13-short { display: inline; }
+  .tarjeta13-full,
+  .tarjeta17-full { display: none; }
+  .tarjeta13-short,
+  .tarjeta17-short { display: inline; }
 
   .tarjeta11 {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
     gap: 10px;

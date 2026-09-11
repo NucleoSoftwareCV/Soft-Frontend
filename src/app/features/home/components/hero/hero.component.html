@@ -57,6 +57,9 @@
         </p>
 
         <div class="hero__search-outer" role="search">
+          @if (isSearchFocused()) {
+            <div class="hero__search-backdrop" (click)="isSearchFocused.set(false)" aria-hidden="true"></div>
+          }
           <div class="hero__search">
             <svg class="hero__search-icon" width="18" height="18" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -67,9 +70,11 @@
               class="hero__search-input"
               placeholder="Buscar yoga, meditación, retiros..."
               [value]="searchQuery()"
-              (input)="searchQuery.set($any($event.target).value)"
+              (input)="onSearchInput($any($event.target).value)"
+              (search)="onSearchInput($any($event.target).value)"
               (focus)="onFocus()"
               (blur)="onBlur()"
+              (keyup.enter)="goToAllResults()"
               aria-label="Buscar experiencias de bienestar"
               autocomplete="off"
             />
@@ -99,12 +104,118 @@
                     class="hero__inspiration-tag"
                     role="option"
                     type="button"
-                    (mousedown)="selectTag(tag)"
+                    (mousedown)="$event.preventDefault(); selectTag(tag)"
                   >{{ tag }}</button>
                 }
               </div>
             </div>
           }
+          @if (isSearchFocused() && searchQuery()) {
+              <div class="hero__results" role="listbox" aria-label="Resultados de búsqueda">
+                @if (searching()) {
+                  <p class="hero__results-status">Buscando…</p>
+                } @else if (searchResults(); as results) {
+                  @if (results.isEmpty) {
+                      <div class="hero__results-all">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                      </svg>
+                      <div class="busqueda">
+                      <span> <strong>{{ results.query }}</strong></span>
+                      <span>Ver todas las experiencias</span>
+                      </div>
+                       <svg class="hero__results-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                      </div>
+                  <p class="hero__results-status">Sin resultados para "{{ results.query }}"</p>
+                <p class="hero__results-status">Prueba con otra palabra o explora todas las experiencias</p>
+                  } @else {
+                    <button type="button" class="hero__results-all" (mousedown)="$event.preventDefault(); goToAllResults()">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                      </svg>
+                      <div class="busqueda">
+                      <span> <strong>{{ results.query }}</strong></span>
+                      <span>Ver todas las experiencias</span>
+                      </div>
+                      <svg class="hero__results-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+
+                    @if (results.categories.length > 0) {
+                      <div class="hero__results-section">
+                        <p class="hero__results-title">Categorías</p>
+                        <div class="hero__results-suggestions">
+                          @for (category of results.categories; track category.id) {
+                            <button type="button" class="hero__results-suggestion" (mousedown)="$event.preventDefault(); selectSearchCategory(category)">
+                              <span aria-hidden="true">{{ category.emoji }}</span>{{ category.name }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (results.events.length > 0) {
+                      <div class="hero__results-section">
+                        <p class="hero__results-title">Eventos</p>
+                        @for (event of results.events; track event.id) {
+                          <button type="button" class="hero__results-row" (mousedown)="$event.preventDefault(); selectSearchEvent(event)">
+                            @if (event.coverImageUrl) {
+                              <img class="hero__results-avatar" [src]="resolveImage(event.coverImageUrl)" alt="">
+                            } @else {
+                              <span class="hero__results-avatar hero__results-avatar--empty" aria-hidden="true"></span>
+                            }
+                            <span class="hero__results-row-body">
+                              <strong>{{ event.title }}</strong>
+                              <small>{{ formatSearchDate(event.startsAt) }}{{ event.cityName ? ' · ' + event.cityName : '' }}</small>
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    @if (results.sessions.length > 0) {
+                      <div class="hero__results-section">
+                        <p class="hero__results-title">Sesiones 1:1</p>
+                        @for (session of results.sessions; track session.id) {
+                          <button type="button" class="hero__results-row" (mousedown)="$event.preventDefault(); selectSearchSession(session)">
+                            @if (session.imageUrl) {
+                              <img class="hero__results-avatar" [src]="resolveImage(session.imageUrl)" alt="">
+                            } @else {
+                              <span class="hero__results-avatar hero__results-avatar--empty" aria-hidden="true"></span>
+                            }
+                            <span class="hero__results-row-body">
+                              <strong>{{ session.title }}</strong>
+                              <small>{{ session.specialistName }}{{ session.durationMinutes ? ' · ' + session.durationMinutes + ' min' : '' }}</small>
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    @if (results.organizers.length > 0) {
+                      <div class="hero__results-section">
+                        <p class="hero__results-title">Profesionales</p>
+                        @for (organizer of results.organizers; track organizer.id) {
+                          <button type="button" class="hero__results-row" (mousedown)="$event.preventDefault(); selectSearchOrganizer(organizer)">
+                            @if (organizer.photoUrl) {
+                              <img class="hero__results-avatar hero__results-avatar--round" [src]="resolveImage(organizer.photoUrl)" alt="">
+                            } @else {
+                              <span class="hero__results-avatar hero__results-avatar--round hero__results-avatar--empty" aria-hidden="true"></span>
+                            }
+                            <span class="hero__results-row-body">
+                              <strong>{{ organizer.publicName }}</strong>
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  }
+                }
+              </div>
+            }
         </div>
 
       </div>
