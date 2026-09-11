@@ -9,8 +9,38 @@
 .session-media img { width:100%; height:100%; display:block; object-fit:cover; }
 .session-badge { position:absolute; z-index:1; top:12px; left:12px; padding:6px 12px; border-radius:999px; background:#fff; color:#07515d; font:600 .72rem Arial,sans-serif; }
 .session-summary h1 { margin:0 0 18px; color:#004b58; font:700 clamp(1.8rem,3vw,2.35rem)/1.08 Georgia,serif; text-transform:uppercase; letter-spacing:0; overflow-wrap:anywhere; }
-.specialist-line { display:flex; align-items:center; gap:10px; margin-bottom:20px; color:#55704f; font:500 .9rem Arial,sans-serif; }
-.specialist-avatar { width:36px; height:36px; display:grid; place-items:center; overflow:hidden; border-radius:50%; background:#e8ece5; font-weight:700; }
+.specialist-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #55704f;
+  font: 500 .9rem Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.specialist-line span { color: rgb(97, 117, 87); }
+
+.specialist-line:hover span { color: rgb(76, 140, 83); }
+
+.specialist-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #e8ece5;
+  font-weight: 700;
+  transition: box-shadow .15s ease;   
+    border: 1px solid transparent;
+
+}
+.specialist-line:hover .specialist-avatar {
+    border-color: rgb(76, 140, 83);
+
+}
 .specialist-avatar img { width:100%; height:100%; object-fit:cover; }
 .session-follow-button { min-width:142px; min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; margin:0 0 18px; padding:0 18px; border:0; border-radius:999px; background:#fde68a; color:#92400e; font:600 .86rem Arial,sans-serif; cursor:pointer; transition:background .2s,color .2s; }
 .session-follow-button svg { width:16px; height:16px; }
@@ -24,7 +54,7 @@
 .session-follow-error { margin:-10px 0 16px; color:#a83232; font:500 .8rem Arial,sans-serif; }
 .session-meta { display:flex; align-items:center; flex-wrap:wrap; gap:18px; margin-bottom:22px; color:#65775d; font:500 .9rem Arial,sans-serif; }
 .session-meta strong { color:#07515d; }
-.session-meta span { display:inline-flex; align-items:center; gap:6px; }
+.session-meta span { display:inline-flex; align-items:center; gap:6px; color:rgb(97, 117, 87)}
 .session-meta svg { width:16px; height:16px; color:#4c8c2a; }
 .whatsapp-button { min-height:46px; display:flex; align-items:center; justify-content:center; gap:9px; border-radius:7px; background:#25d366; color:#fff; font:700 .95rem Arial,sans-serif; text-decoration:none; }
 .whatsapp-button:hover { background:#1fbe59; }
@@ -32,11 +62,63 @@
 .contact-unavailable { padding:12px 14px; border:1px solid #d8dfd5; border-radius:7px; color:#667467; font:500 .84rem Arial,sans-serif; }
 .detail-section { max-width:760px; margin-top:30px; }
 .detail-section h2 { margin:0 0 16px; color:#004b58; font:700 1.12rem Georgia,serif; }
-.detail-section p { margin:0 0 8px; color:#65775d; font:400 .94rem/1.55 Arial,sans-serif; }
+.detail-section p { margin:0 0 8px; color:rgb(97, 117, 87); font:400 .94rem/1.55 Arial,sans-serif; }
 .topic-list { display:flex; flex-wrap:wrap; gap:8px; }
-.topic-list span { padding:8px 13px; border-radius:999px; background:#fff; color:#07515d; font:500 .8rem Arial,sans-serif; }
-.detail-section ul { margin:0; padding-left:16px; color:#07515d; font:500 .9rem/1.7 Arial,sans-serif; }
-.detail-section li::marker { color:#4c8c2a; }
+.topic-list span { background-color: rgba(245, 249, 250, 0.3);
+border: 0.8px solid rgba(245, 249, 250, 0.4);
+border-radius: 9999px;
+box-sizing: border-box;
+color: rgb(0, 66, 87);
+display: block;
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+font-size: 14px;
+height: 33.6px;
+line-height: 20px;
+padding: 6px 12px;
+tab-size: 4;
+-webkit-text-size-adjust: 100%;
+width: 75.325px;
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);}
+.detail-section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.puntito{
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgb(76, 140, 43);
+  flex-shrink: 0;
+}
+.detail-section li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  color: rgb(0, 66, 87);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.puntito2{
+  display: inline;
+  line-height: 24px;
+}
+.detail-section span{
+box-sizing: border-box;
+color: rgb(0, 66, 87);
+display: inline;
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+font-weight: 500;
+line-height: 24px;
+list-style: none;
+tab-size: 4;
+-webkit-text-size-adjust: 100%;
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
 .detail-state { min-height:70vh; display:grid; place-content:center; justify-items:center; gap:18px; background:#f5f6f2; color:#65775d; font-family:Arial,sans-serif; }
 @media (max-width:760px) {
   .session-detail { padding:84px 16px 48px; }

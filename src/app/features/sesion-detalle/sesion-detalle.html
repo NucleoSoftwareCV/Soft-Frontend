@@ -14,15 +14,16 @@
       <div class="session-summary">
         <h1>{{ current.title }}</h1>
 
-        <div class="specialist-line">
-          <span class="specialist-avatar">
-            <img *ngIf="specialistPhoto() as photo; else detailInitial" [src]="photo" [alt]="current.specialistName" />
-            <ng-template #detailInitial>{{ specialistInitial() }}</ng-template>
-          </span>
-          <span>{{ current.specialistName }}</span>
-        </div>
+      <a class="specialist-line"
+        [routerLink]="current.specialistSlug ? ['/profesionales', current.specialistSlug] : null">
+        <span class="specialist-avatar">
+          <img *ngIf="specialistPhoto() as photo; else detailInitial" [src]="photo" [alt]="current.specialistName" />
+          <ng-template #detailInitial>{{ specialistInitial() }}</ng-template>
+        </span>
+        <span>{{ current.specialistName }}</span>
+      </a>
 
-        <button
+        <!--<button
           class="session-follow-button"
           type="button"
           [class.session-follow-button--active]="following()"
@@ -35,11 +36,11 @@
             <span class="follow-label-default">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
             @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
           }
-        </button>
+        </button>-->
         @if (followError()) { <p class="session-follow-error" role="alert">{{ followError() }}</p> }
 
         <div class="session-meta" aria-label="Información de la sesión">
-          <strong>{{ formatPrice() }}</strong>
+          <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-euro h-4 w-4 text-primary"><path d="M4 10h12"></path><path d="M4 14h9"></path><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"></path></svg><strong>{{ formatPrice() }}</strong></span>
           <span><svg lucideClock3 aria-hidden="true"></svg>{{ durationLabel() }}</span>
           <span><svg lucideMonitor aria-hidden="true"></svg>{{ modalityLabel() }}</span>
           <span *ngIf="current.locationName"><svg lucideMapPin aria-hidden="true"></svg>{{ current.locationName }}</span>
@@ -70,7 +71,12 @@
 
     <section class="detail-section" *ngIf="current.techniques.length">
       <h2>Técnicas que se utilizan</h2>
-      <ul><li *ngFor="let technique of current.techniques">{{ technique }}</li></ul>
+      <ul>
+        <li *ngFor="let technique of current.techniques">
+          <span class="puntito" aria-hidden="true"></span>
+          <span class="puntito2">{{ technique }}</span>
+        </li>
+      </ul>
     </section>
   </div>
 </main>

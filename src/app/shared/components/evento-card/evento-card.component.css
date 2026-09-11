@@ -76,7 +76,9 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-
+.date-row span{
+  color:rgb(76, 140, 43) !important;
+}
 .recurrence-badge {
   display: inline-flex;
   align-items: center;
@@ -93,7 +95,7 @@
 .card h2 {
   font-size: 1.05rem;
   color: #004e59;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: Sunset, Georgia, serif;
   font-weight: 700;
   line-height: 1.25;
   margin: 6px 0 0;
