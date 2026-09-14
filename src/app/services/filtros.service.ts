@@ -297,6 +297,9 @@ export class FiltrosService {
     } else if (value === 'Próxima semana' || value === 'Proxima semana') {
       start.setDate(today.getDate() + 7);
       end.setDate(today.getDate() + 14);
+    } else if (value === 'Próximo mes' || value === 'Proximo mes') {
+      start.setMonth(today.getMonth() + 1, 1);
+      end.setMonth(today.getMonth() + 2, 0);
     }
 
     return {
