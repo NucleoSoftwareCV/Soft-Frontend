@@ -25,15 +25,15 @@ export class ProfessionalApplicationService {
 
 
   // ============================================================
-  // SOLICITUD PÚBLICA
+  // SOLICITUD PÚBLICA (PUT /professional-applications/me)
   // ============================================================
 
-  createApplication(
+  saveMine(
     request: ProfessionalApplicationRequest
   ): Observable<ProfessionalApplicationResponse> {
 
-    return this.http.post<ProfessionalApplicationResponse>(
-      this.base,
+    return this.http.put<ProfessionalApplicationResponse>(
+      `${this.base}/me`,
       request
     );
 

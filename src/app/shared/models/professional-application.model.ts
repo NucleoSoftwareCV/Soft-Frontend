@@ -27,15 +27,15 @@ export interface ProfessionalApplicationRequest {
 
   fullName: string;
 
-  city: string;
-
-  email: string;
+  cityId: number;
 
   professionalType: ProfessionalType;
 
   whatsappPhone: string;
 
   motivation: string;
+
+  privacyAccepted: boolean;
 
 }
 
@@ -69,7 +69,9 @@ export interface ProfessionalApplicationResponse {
 
   email: string;
 
-  city: string;
+  cityId: number | null;
+
+  cityName: string | null;
 
   professionalType: ProfessionalType | null;
 

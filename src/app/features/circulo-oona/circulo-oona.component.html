@@ -83,71 +83,61 @@
         <!-- CIUDAD -->
 
         <label class="circle-form__wide">
-          <input
-            type="text"
-            name="city"
-            placeholder="Ciudad"
-            maxlength="100"
-            autocomplete="address-level2"
-            [(ngModel)]="city"
-            (input)="dismissError()"
-          />
+          <select
+            name="cityId"
+            [(ngModel)]="cityId"
+            (change)="dismissError()"
+          >
+            <option [ngValue]="null" disabled selected>Selecciona tu ciudad</option>
+            @for (city of cities(); track city.id) {
+              <option [ngValue]="city.id">{{ city.name }}</option>
+            }
+          </select>
         </label>
-<!-- TIPO PROFESIONAL -->
-
-<label class="circle-form__wide">
-  <input
-    type="text"
-    name="professionalType"
-    placeholder="Tipo profesional"
-    maxlength="150"
-    autocomplete="organization-title"
-    [(ngModel)]="professionalType"
-    (input)="dismissError()"
-  />
-</label>
 
 
-<!-- WHATSAPP -->
+        <!-- TIPO PROFESIONAL -->
 
-<label class="circle-form__wide">
-  <input
-    type="tel"
-    name="whatsapp"
-    placeholder="WhatsApp"
-    maxlength="30"
-    autocomplete="tel"
-    [(ngModel)]="whatsapp"
-    (input)="dismissError()"
-  />
-</label>
+        <label class="circle-form__wide">
+          <select
+            name="professionalType"
+            [(ngModel)]="professionalType"
+            (change)="dismissError()"
+          >
+            <option [ngValue]="''" disabled selected>Selecciona tu tipo de profesional</option>
+            @for (option of professionalTypeOptions; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
 
 
-<!-- MOTIVO -->
-
-<label class="circle-form__wide">
-  <textarea
-    name="reason"
-    placeholder="¿Por qué quieres formar parte de Círculo Oona?"
-    maxlength="500"
-    rows="4"
-    [(ngModel)]="reason"
-    (input)="dismissError()"
-  ></textarea>
-</label>
-
-        <!-- EMAIL -->
+        <!-- WHATSAPP -->
 
         <label class="circle-form__wide">
           <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            maxlength="150"
-            autocomplete="email"
-            [(ngModel)]="email"
+            type="tel"
+            name="whatsapp"
+            placeholder="WhatsApp"
+            maxlength="30"
+            autocomplete="tel"
+            [(ngModel)]="whatsapp"
             (input)="dismissError()"
           />
+        </label>
+
+
+        <!-- MOTIVO -->
+
+        <label class="circle-form__wide">
+          <textarea
+            name="reason"
+            placeholder="¿Por qué quieres formar parte de Círculo Oona?"
+            maxlength="500"
+            rows="4"
+            [(ngModel)]="reason"
+            (input)="dismissError()"
+          ></textarea>
         </label>
 
 
@@ -171,10 +161,21 @@
 
         <!-- POLÍTICA -->
 
-        <p class="circle-form-policy circle-form__wide">
-          Al marcar esta casilla aceptas la Política de Privacidad de Oona
-          y recibir comunicaciones relacionadas.
-        </p>
+        <label class="circle-check circle-form__wide">
+
+          <input
+            type="checkbox"
+            name="privacyAccepted"
+            [(ngModel)]="privacyAccepted"
+            (change)="dismissError()"
+          />
+
+          <span class="circle-checkbox-text">
+            Acepto la Política de Privacidad de Oona y recibir
+            comunicaciones relacionadas.
+          </span>
+
+        </label>
 
 
         <!-- BOTÓN -->

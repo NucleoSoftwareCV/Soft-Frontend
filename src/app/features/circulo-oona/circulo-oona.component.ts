@@ -3,8 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
+import { CityService } from '../../services/city.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CityResponse } from '../../shared/models/evento.model';
 import {
+  PROFESSIONAL_TYPE_OPTIONS,
   ProfessionalApplicationRequest,
   ProfessionalType
 } from '../../shared/models/professional-application.model';
@@ -24,22 +27,35 @@ export class CirculoOonaComponent {
   private readonly professionalApplicationService =
     inject(ProfessionalApplicationService);
 
+  private readonly cityService =
+    inject(CityService);
+
   private readonly auth =
     inject(AuthService);
 
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly cities = signal<CityResponse[]>([]);
+
+  readonly professionalTypeOptions = PROFESSIONAL_TYPE_OPTIONS;
 
   fullName = '';
-  city = '';
+  cityId: number | null = null;
   professionalType: ProfessionalType | '' = '';
   whatsapp = '';
   reason = '';
-  email = '';
   professional = false;
+  privacyAccepted = false;
 
   private errorTimeout?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    this.cityService.getCities().subscribe({
+      next: (cities) => this.cities.set(cities),
+      error: () => this.cities.set([])
+    });
+  }
 
   submit(): void {
     this.dismissError();
@@ -61,36 +77,9 @@ export class CirculoOonaComponent {
       return;
     }
 
-    const city = this.city.trim();
-
-    if (!city) {
+    if (!this.cityId) {
       this.showError(
-        'Indica la ciudad donde realizas tus actividades.'
-      );
-      return;
-    }
-
-    const email = this.email.trim().toLowerCase();
-
-    if (!email) {
-      this.showError(
-        'Indica tu email para poder contactarte.'
-      );
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      this.showError(
-        'Introduce un email válido.'
-      );
-      return;
-    }
-
-    if (!this.professional) {
-      this.showError(
-        'Debes confirmar que eres profesional del bienestar para continuar.'
+        'Selecciona la ciudad donde realizas tus actividades.'
       );
       return;
     }
@@ -120,19 +109,33 @@ export class CirculoOonaComponent {
       return;
     }
 
+    if (!this.professional) {
+      this.showError(
+        'Debes confirmar que eres profesional del bienestar para continuar.'
+      );
+      return;
+    }
+
+    if (!this.privacyAccepted) {
+      this.showError(
+        'Debes aceptar la Política de Privacidad para continuar.'
+      );
+      return;
+    }
+
     const request: ProfessionalApplicationRequest = {
       fullName,
-      city,
-      email,
+      cityId: this.cityId,
       professionalType: this.professionalType,
       whatsappPhone,
-      motivation
+      motivation,
+      privacyAccepted: this.privacyAccepted
     };
 
     this.submitting.set(true);
 
     this.professionalApplicationService
-      .createApplication(request)
+      .saveMine(request)
       .subscribe({
         next: () => {
           this.submitting.set(false);
@@ -142,12 +145,12 @@ export class CirculoOonaComponent {
           );
 
           this.fullName = '';
-          this.city = '';
-          this.email = '';
+          this.cityId = null;
           this.professionalType = '';
           this.whatsapp = '';
           this.reason = '';
           this.professional = false;
+          this.privacyAccepted = false;
         },
         error: (error: HttpErrorResponse) => {
           this.submitting.set(false);
