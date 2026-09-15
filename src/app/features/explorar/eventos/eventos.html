@@ -30,8 +30,13 @@
         <!-- FILTROS -->
 
         <button
-          class="filter-btn"
+          class="filter-btn filter-main-btn"
           type="button"
+          [class.active]="
+            activeFilterCount > 0 ||
+            !!filterWhen() ||
+            isCustomDateActive()
+          "
           (click)="openHeaderFilter()"
         >
 
@@ -123,7 +128,10 @@
           <button
             class="filter-btn date-filter-btn"
             type="button"
-            [class.active]="isCustomDateActive()"
+            [class.active]="
+              isCustomDateActive() ||
+              !!filterWhen()
+            "
             (click)="toggleDatePicker()"
           >
 
@@ -173,7 +181,10 @@
               Elegir fecha
             </span>
 
-            @if (isCustomDateActive()) {
+            @if (
+              isCustomDateActive() ||
+              !!filterWhen()
+            ) {
 
               <span class="filter-check">
                 ✓
@@ -939,7 +950,9 @@
 
         <div
           class="calendar-grid"
-          [class.today-filter-active]="filterWhen() === 'Hoy'"
+          [class.today-filter-active]="
+            filterWhen() === 'Hoy'
+          "
         >
 
           @for (
