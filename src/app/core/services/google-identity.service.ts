@@ -18,6 +18,7 @@ export class GoogleIdentityService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly ngZone = inject(NgZone);
   private scriptLoadPromise: Promise<void> | null = null;
+  private googleInitialized = false;
 
   renderButton(
     container: HTMLElement,
@@ -27,6 +28,7 @@ export class GoogleIdentityService {
     if (!this.isBrowser) {
       return;
     }
+
     if (!environment.googleClientId) {
       onError('Google Sign-In no está configurado todavía.');
       return;
@@ -34,20 +36,25 @@ export class GoogleIdentityService {
 
     this.loadScript()
       .then(() => {
-        google.accounts.id.initialize({
-          client_id: environment.googleClientId,
-          callback: (response: { credential?: string }) => {
-            this.ngZone.run(() => {
-              if (response?.credential) {
-                onToken(response.credential);
-              } else {
-                onError('No se recibió el token de Google.');
-              }
-            });
-          },
-        });
+        if (!this.googleInitialized) {
+          google.accounts.id.initialize({
+            client_id: environment.googleClientId,
+            callback: (response: { credential?: string }) => {
+              this.ngZone.run(() => {
+                if (response?.credential) {
+                  onToken(response.credential);
+                } else {
+                  onError('No se recibió el token de Google.');
+                }
+              });
+            },
+          });
+
+          this.googleInitialized = true;
+        }
 
         container.innerHTML = '';
+
         google.accounts.id.renderButton(container, {
           type: 'standard',
           theme: 'outline',
@@ -59,7 +66,9 @@ export class GoogleIdentityService {
         });
       })
       .catch(() => {
-        this.ngZone.run(() => onError('No se pudo cargar Google Identity Services.'));
+        this.ngZone.run(() => {
+          onError('No se pudo cargar Google Identity Services.');
+        });
       });
   }
 
@@ -78,11 +87,19 @@ export class GoogleIdentityService {
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
+
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('No se pudo cargar Google Identity Services.'));
+
+      script.onerror = () => {
+        reject(
+          new Error('No se pudo cargar Google Identity Services.')
+        );
+      };
+
       document.head.appendChild(script);
     });
 
     return this.scriptLoadPromise;
   }
 }
+
