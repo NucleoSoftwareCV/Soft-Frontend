@@ -102,12 +102,13 @@
         <div class="header__inspiration-grid">
           @for (tag of inspirationTags; track tag) {
           <button
-            class="header__inspiration-tag"
-            role="option"
-            type="button"
-            (mousedown)="selectInspiration(tag)">
-            {{ tag }}
-          </button>
+  class="header__inspiration-tag"
+  role="option"
+  type="button"
+  (mousedown)="$event.preventDefault(); selectInspiration(tag)"
+>
+  {{ tag }}
+</button>
           }
         </div>
       </div>
@@ -329,24 +330,25 @@
       </div>
 
       <!-- Lupa (solo móvil horizontal 480–767px) -->
-      <button
-        class="header__icon-btn header__icon-btn--mobile-only"
-        aria-label="Buscar"
-        type="button">
+<button
+  class="header__icon-btn header__icon-btn--mobile-only"
+  aria-label="Buscar"
+  type="button"
+  (click)="openSearch()">
 
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          aria-hidden="true">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-      </button>
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    aria-hidden="true">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+  </svg>
 
+</button>
       <!-- Pin ciudad (solo móvil horizontal 480–767px) -->
       <button
         class="header__icon-btn header__icon-btn--mobile-only"

@@ -449,12 +449,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onSearchFocus(): void {
     this.isSearchFocused.set(true);
   }
+openSearch(): void {
+  this.isSearchFocused.set(true);
+}
+onSearchBlur(): void {
+  setTimeout(() => {
+    const activeElement = document.activeElement;
 
-  onSearchBlur(): void {
-    setTimeout(() => {
+    if (!(activeElement instanceof HTMLElement)) {
       this.isSearchFocused.set(false);
-    }, 160);
-  }
+      return;
+    }
+
+    if (!activeElement.closest('.header__search-wrap')) {
+      this.isSearchFocused.set(false);
+    }
+  }, 160);
+}
 
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
