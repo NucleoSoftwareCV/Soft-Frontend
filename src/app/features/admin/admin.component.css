@@ -2347,7 +2347,7 @@ tbody tr:hover {
   transform-origin: center;
 }
 
-/* Responsive consolidado del reporte: tablet y móvil. */
+/* Responsive consolidado para tablet y móvil. */
 @media (max-width: 1024px) {
   :host {
     position: fixed;
@@ -2480,6 +2480,101 @@ tbody tr:hover {
   .pagination { flex: 1 0 150px; min-height: 150px; width: 100%; display: flex; flex-direction: column; align-items: stretch; margin-top: 12px; color: var(--color-muted); font-size: .76rem; }
   .pagination__buttons { order: 1; display: flex; justify-content: flex-end; gap: 6px; }
   .pagination__page { order: 2; margin-top: auto; padding: 15px 0 2px; border-top: 1px solid var(--color-divider); color: var(--color-sage-dark); font-weight: 600; }
+}
+
+/* ============================================================
+   TARJETAS DE CATÁLOGO EN TABLET
+   Distribuye los cinco datos por todo el ancho disponible.
+   ============================================================ */
+@media (min-width: 801px) and (max-width: 1024px) {
+  .catalog-table-desktop .table-shell tbody,
+  .table-shell.catalog-table-desktop tbody {
+    gap: 14px;
+  }
+
+  .catalog-table-desktop .table-shell tbody tr,
+  .table-shell.catalog-table-desktop tbody tr {
+    grid-template-columns:
+      minmax(150px, 1.15fr)
+      minmax(135px, .9fr)
+      minmax(230px, 1.8fr)
+      minmax(88px, .55fr)
+      minmax(94px, auto);
+    align-items: stretch;
+    padding: 0 16px;
+  }
+
+  .catalog-table-desktop .table-shell tbody td,
+  .table-shell.catalog-table-desktop tbody td {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    padding: 16px 14px;
+    border-bottom: 0;
+    border-right: 1px solid var(--color-divider);
+    overflow-wrap: anywhere;
+  }
+
+  .catalog-table-desktop .table-shell tbody td:first-child,
+  .table-shell.catalog-table-desktop tbody td:first-child {
+    padding-left: 0;
+  }
+
+  .catalog-table-desktop .table-shell tbody td:last-child,
+  .table-shell.catalog-table-desktop tbody td:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .catalog-table-desktop .table-shell tbody td::before,
+  .table-shell.catalog-table-desktop tbody td::before {
+    color: var(--color-muted);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .045em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .catalog-table-desktop .table-shell tbody td:nth-child(1)::before,
+  .table-shell.catalog-table-desktop tbody td:nth-child(1)::before {
+    content: 'Nombre';
+  }
+
+  .catalog-table-desktop .table-shell tbody td:nth-child(2)::before,
+  .table-shell.catalog-table-desktop tbody td:nth-child(2)::before {
+    content: 'Código';
+  }
+
+  .catalog-table-desktop .table-shell tbody td:nth-child(3)::before,
+  .table-shell.catalog-table-desktop tbody td:nth-child(3)::before {
+    content: 'Descripción';
+  }
+
+  .catalog-table-desktop .table-shell tbody td:nth-child(4)::before,
+  .table-shell.catalog-table-desktop tbody td:nth-child(4)::before {
+    content: 'Estado';
+  }
+
+  .catalog-table-desktop .table-shell tbody td:nth-child(5)::before,
+  .table-shell.catalog-table-desktop tbody td:nth-child(5)::before {
+    content: 'Acciones';
+  }
+
+  .catalog-table-desktop .table-shell .catalog-description,
+  .table-shell.catalog-table-desktop .catalog-description {
+    max-width: none;
+    line-height: 1.45;
+  }
+
+  .catalog-table-desktop .table-shell .row-actions,
+  .table-shell.catalog-table-desktop .row-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
