@@ -8,6 +8,7 @@ import {
   LucideLayoutDashboard,
   LucideLogOut,
   LucideMapPin,
+  LucideMenu,
   LucidePanelLeftClose,
   LucidePanelLeftOpen,
   LucidePencil,
@@ -59,6 +60,7 @@ import {
     LucideLayoutDashboard,
     LucideLogOut,
     LucideMapPin,
+    LucideMenu,
     LucidePanelLeftClose,
     LucidePanelLeftOpen,
     LucidePencil,
@@ -150,6 +152,9 @@ export class AdminComponent {
   sidebarCollapsed =
     signal(false);
 
+  mobileNavOpen =
+    signal(false);
+
   logoutConfirm =
     signal(false);
 
@@ -175,6 +180,12 @@ export class AdminComponent {
   cityFormOpen =
     signal(false);
 
+  cityDropdownOpen =
+    signal(false);
+
+  cityFormError =
+    signal<string | null>(null);
+
   cityForm = {
     id: null as number | null,
     name: '',
@@ -185,6 +196,70 @@ export class AdminComponent {
 
   cityDeleteConfirm =
     signal<CityResponse | null>(null);
+
+  /** Provincias espanolas y una seleccion practica de sus municipios. */
+  readonly spanishLocations: ReadonlyArray<{ province: string; cities: readonly string[] }> = [
+    { province: 'A Coruña', cities: ['A Coruña', 'Ferrol', 'Santiago de Compostela'] },
+    { province: 'Álava', cities: ['Vitoria-Gasteiz', 'Llodio', 'Amurrio'] },
+    { province: 'Albacete', cities: ['Albacete', 'Almansa', 'Hellín', 'Villarrobledo'] },
+    { province: 'Alicante', cities: ['Alicante', 'Alcoy', 'Benidorm', 'Elche', 'Elda', 'Orihuela', 'Torrevieja'] },
+    { province: 'Almería', cities: ['Almería', 'El Ejido', 'Níjar', 'Roquetas de Mar'] },
+    { province: 'Asturias', cities: ['Avilés', 'Gijón', 'Langreo', 'Mieres', 'Oviedo'] },
+    { province: 'Ávila', cities: ['Ávila', 'Arévalo'] },
+    { province: 'Badajoz', cities: ['Almendralejo', 'Badajoz', 'Don Benito', 'Mérida', 'Villanueva de la Serena'] },
+    { province: 'Barcelona', cities: ['Badalona', 'Barcelona', 'Castelldefels', 'Granollers', "L'Hospitalet de Llobregat", 'Manresa', 'Mataró', 'Sabadell', 'Sant Cugat del Vallès', 'Santa Coloma de Gramenet', 'Terrassa', 'Vic'] },
+    { province: 'Burgos', cities: ['Aranda de Duero', 'Burgos', 'Miranda de Ebro'] },
+    { province: 'Cáceres', cities: ['Cáceres', 'Navalmoral de la Mata', 'Plasencia'] },
+    { province: 'Cádiz', cities: ['Algeciras', 'Cádiz', 'Chiclana de la Frontera', 'El Puerto de Santa María', 'Jerez de la Frontera', 'La Línea de la Concepción', 'San Fernando', 'Sanlúcar de Barrameda'] },
+    { province: 'Cantabria', cities: ['Castro-Urdiales', 'Santander', 'Torrelavega'] },
+    { province: 'Castellón', cities: ['Castellón de la Plana', 'Onda', 'Vila-real', 'Vinaròs'] },
+    { province: 'Ceuta', cities: ['Ceuta'] },
+    { province: 'Ciudad Real', cities: ['Alcázar de San Juan', 'Ciudad Real', 'Puertollano', 'Tomelloso', 'Valdepeñas'] },
+    { province: 'Córdoba', cities: ['Córdoba', 'Lucena', 'Montilla', 'Puente Genil'] },
+    { province: 'Cuenca', cities: ['Cuenca', 'Tarancón'] },
+    { province: 'Girona', cities: ['Blanes', 'Figueres', 'Girona', 'Lloret de Mar', 'Olot'] },
+    { province: 'Granada', cities: ['Armilla', 'Granada', 'Loja', 'Motril'] },
+    { province: 'Guadalajara', cities: ['Azuqueca de Henares', 'Guadalajara'] },
+    { province: 'Guipúzcoa', cities: ['Donostia-San Sebastián', 'Eibar', 'Errenteria', 'Irun'] },
+    { province: 'Huelva', cities: ['Huelva', 'Isla Cristina', 'Lepe'] },
+    { province: 'Huesca', cities: ['Barbastro', 'Huesca', 'Jaca', 'Monzón'] },
+    { province: 'Islas Baleares', cities: ['Calvià', 'Ciutadella de Menorca', 'Eivissa', 'Inca', 'Manacor', 'Maó', 'Palma'] },
+    { province: 'Jaén', cities: ['Alcalá la Real', 'Andújar', 'Jaén', 'Linares', 'Úbeda'] },
+    { province: 'La Rioja', cities: ['Arnedo', 'Calahorra', 'Haro', 'Logroño'] },
+    { province: 'Las Palmas', cities: ['Arrecife', 'Las Palmas de Gran Canaria', 'Puerto del Rosario', 'San Bartolomé de Tirajana', 'Telde'] },
+    { province: 'León', cities: ['León', 'Ponferrada', 'San Andrés del Rabanedo'] },
+    { province: 'Lleida', cities: ['Balaguer', 'Lleida', 'Tàrrega'] },
+    { province: 'Lugo', cities: ['Lugo', 'Monforte de Lemos', 'Viveiro'] },
+    { province: 'Madrid', cities: ['Alcalá de Henares', 'Alcobendas', 'Alcorcón', 'Aranjuez', 'Boadilla del Monte', 'Coslada', 'Fuenlabrada', 'Getafe', 'Leganés', 'Madrid', 'Majadahonda', 'Móstoles', 'Parla', 'Pozuelo de Alarcón', 'Rivas-Vaciamadrid', 'San Sebastián de los Reyes', 'Torrejón de Ardoz', 'Valdemoro'] },
+    { province: 'Málaga', cities: ['Antequera', 'Benalmádena', 'Estepona', 'Fuengirola', 'Málaga', 'Marbella', 'Mijas', 'Rincón de la Victoria', 'Torremolinos', 'Vélez-Málaga'] },
+    { province: 'Melilla', cities: ['Melilla'] },
+    { province: 'Murcia', cities: ['Águilas', 'Alcantarilla', 'Cartagena', 'Lorca', 'Molina de Segura', 'Murcia', 'San Javier', 'Yecla'] },
+    { province: 'Navarra', cities: ['Barañáin', 'Estella-Lizarra', 'Pamplona', 'Tudela'] },
+    { province: 'Ourense', cities: ['O Barco de Valdeorras', 'Ourense', 'Verín'] },
+    { province: 'Palencia', cities: ['Aguilar de Campoo', 'Palencia'] },
+    { province: 'Pontevedra', cities: ['Cangas', 'Marín', 'Pontevedra', 'Redondela', 'Vigo', 'Vilagarcía de Arousa'] },
+    { province: 'Salamanca', cities: ['Béjar', 'Ciudad Rodrigo', 'Salamanca'] },
+    { province: 'Santa Cruz de Tenerife', cities: ['Arona', 'Granadilla de Abona', 'La Laguna', 'Puerto de la Cruz', 'Santa Cruz de Tenerife'] },
+    { province: 'Segovia', cities: ['Cuéllar', 'Segovia'] },
+    { province: 'Sevilla', cities: ['Alcalá de Guadaíra', 'Camas', 'Dos Hermanas', 'Écija', 'La Rinconada', 'Mairena del Aljarafe', 'Sevilla', 'Utrera'] },
+    { province: 'Soria', cities: ['Almazán', 'Soria'] },
+    { province: 'Tarragona', cities: ['Cambrils', 'El Vendrell', 'Reus', 'Salou', 'Tarragona', 'Tortosa'] },
+    { province: 'Teruel', cities: ['Alcañiz', 'Teruel'] },
+    { province: 'Toledo', cities: ['Illescas', 'Seseña', 'Talavera de la Reina', 'Toledo'] },
+    { province: 'Valencia', cities: ['Alzira', 'Gandia', 'Mislata', 'Ontinyent', 'Paterna', 'Sagunto', 'Torrent', 'Valencia'] },
+    { province: 'Valladolid', cities: ['Laguna de Duero', 'Medina del Campo', 'Valladolid'] },
+    { province: 'Vizcaya', cities: ['Barakaldo', 'Basauri', 'Bilbao', 'Getxo', 'Portugalete', 'Santurtzi'] },
+    { province: 'Zamora', cities: ['Benavente', 'Toro', 'Zamora'] },
+    { province: 'Zaragoza', cities: ['Calatayud', 'Ejea de los Caballeros', 'Utebo', 'Zaragoza'] },
+  ];
+
+  get availableCities(): readonly string[] {
+    const match = this.spanishLocations.find(item => item.province === this.cityForm.province);
+    if (!match) return this.cityForm.name ? [this.cityForm.name] : [];
+    return match.cities.includes(this.cityForm.name)
+      ? match.cities
+      : this.cityForm.name ? [this.cityForm.name, ...match.cities] : match.cities;
+  }
 
 
   // ============================================================
@@ -345,6 +420,8 @@ export class AdminComponent {
   ): void {
 
     this.section.set(section);
+
+    this.mobileNavOpen.set(false);
 
     this.selected.set(null);
 
@@ -1393,6 +1470,8 @@ select(item: ProfessionalApplicationResponse): void {
 
   openNewCity(): void {
 
+    this.error.set(null);
+
     this.cityForm = {
 
       id: null,
@@ -1410,6 +1489,10 @@ select(item: ProfessionalApplicationResponse): void {
 
     this.selectedCity.set(null);
 
+    this.cityFormError.set(null);
+
+    this.cityDropdownOpen.set(false);
+
     this.cityFormOpen.set(true);
 
   }
@@ -1418,6 +1501,8 @@ select(item: ProfessionalApplicationResponse): void {
   openEditCity(
     city: CityResponse
   ): void {
+
+    this.error.set(null);
 
     this.selectedCity.set(city);
 
@@ -1430,14 +1515,45 @@ select(item: ProfessionalApplicationResponse): void {
 
       province: city.province,
 
-      countryCode: city.countryCode,
+      countryCode: 'ES',
 
       active: city.active,
 
     };
 
 
+    this.cityFormError.set(null);
+
+    this.cityDropdownOpen.set(false);
+
     this.cityFormOpen.set(true);
+
+  }
+
+
+  onProvinceChange(): void {
+
+    this.cityForm.name = '';
+    this.cityForm.countryCode = 'ES';
+    this.cityFormError.set(null);
+    this.cityDropdownOpen.set(false);
+
+  }
+
+
+  toggleCityDropdown(): void {
+
+    if (!this.cityForm.province) return;
+    this.cityDropdownOpen.update(open => !open);
+
+  }
+
+
+  selectCity(cityName: string): void {
+
+    this.cityForm.name = cityName;
+    this.cityFormError.set(null);
+    this.cityDropdownOpen.set(false);
 
   }
 
@@ -1446,19 +1562,37 @@ select(item: ProfessionalApplicationResponse): void {
 
     this.cityFormOpen.set(false);
 
+    this.cityDropdownOpen.set(false);
+
     this.selectedCity.set(null);
+
+    this.cityFormError.set(null);
 
   }
 
 
   saveCity(): void {
 
+    this.cityDropdownOpen.set(false);
+
+    this.cityFormError.set(null);
+
+    if (!this.cityForm.province.trim()) {
+
+      this.cityFormError.set(
+        'Selecciona una provincia antes de elegir la ciudad.'
+      );
+
+      return;
+
+    }
+
     if (
       !this.cityForm.name.trim()
     ) {
 
-      this.error.set(
-        'El nombre de la ciudad es obligatorio.'
+      this.cityFormError.set(
+        'Selecciona una ciudad para continuar.'
       );
 
       return;
@@ -1476,10 +1610,7 @@ select(item: ProfessionalApplicationResponse): void {
         this.cityForm.province.trim() ||
         undefined,
 
-      countryCode:
-        this.cityForm.countryCode
-          .trim()
-          .toUpperCase(),
+      countryCode: 'ES',
 
       active:
         this.cityForm.active,
@@ -1523,10 +1654,21 @@ select(item: ProfessionalApplicationResponse): void {
 
         this.deciding.set(false);
 
-        this.error.set(
-          err?.error?.message ??
-          'No se pudo guardar la ciudad.'
-        );
+        const backendMessage = err?.error?.message as string | undefined;
+        const isDuplicate = backendMessage
+          ?.toLowerCase()
+          .includes('ya existe una ciudad');
+        const cityAndProvinceShareName = this.cityForm.name.trim().localeCompare(
+          this.cityForm.province.trim(),
+          'es',
+          { sensitivity: 'base' },
+        ) === 0;
+
+        this.cityFormError.set(isDuplicate
+          ? cityAndProvinceShareName
+            ? `${this.cityForm.name} sí puede ser ciudad y provincia a la vez. El registro ${this.cityForm.name}, ${this.cityForm.province} ya existe en el catálogo; edítalo en lugar de volver a crearlo.`
+            : `El registro ${this.cityForm.name}, ${this.cityForm.province} ya existe en el catálogo; edítalo en lugar de volver a crearlo.`
+          : backendMessage ?? 'No se pudo guardar la ciudad. Revisa los datos e inténtalo de nuevo.');
 
       },
 
@@ -1568,24 +1710,80 @@ select(item: ProfessionalApplicationResponse): void {
 
           this.cityDeleteConfirm.set(null);
 
+          this.toastService.success(
+            `La ciudad ${city.name} se eliminó correctamente.`
+          );
+
           this.loadCities();
 
         },
 
         error: err => {
 
+          const backendMessage = String(
+            err?.error?.message ?? err?.error?.detail ?? ''
+          ).toLowerCase();
+
+          const hasRelatedData = err?.status === 409
+            || backendMessage.includes('datos relacionados')
+            || backendMessage.includes('incompatibles o duplicados')
+            || backendMessage.includes('siendo utilizada')
+            || backendMessage.includes('constraint');
+
+          if (hasRelatedData) {
+
+            this.deactivateRelatedCity(city);
+            return;
+
+          }
+
           this.deciding.set(false);
 
           this.cityDeleteConfirm.set(null);
 
           this.error.set(
-            err?.error?.message ??
-            'No se pudo eliminar la ciudad. Puede estar siendo utilizada por una ubicación.'
+            err?.error?.message ?? err?.error?.detail ??
+            'No se pudo eliminar la ciudad. Recarga la página e inténtalo nuevamente.'
           );
 
         },
 
       });
+
+  }
+
+
+  private deactivateRelatedCity(city: CityResponse): void {
+
+    const payload: Partial<CityResponse> = {
+      name: city.name,
+      province: city.province,
+      countryCode: city.countryCode || 'ES',
+      active: false,
+    };
+
+    this.cityService.updateCity(city.id, payload).subscribe({
+
+      next: () => {
+        this.deciding.set(false);
+        this.cityDeleteConfirm.set(null);
+        this.toastService.success(
+          `${city.name} tiene datos relacionados: no se borró el historial y la ciudad fue retirada del catálogo activo.`
+        );
+        this.loadCities();
+      },
+
+      error: fallbackError => {
+        this.deciding.set(false);
+        this.cityDeleteConfirm.set(null);
+        this.error.set(
+          fallbackError?.error?.message ??
+          fallbackError?.error?.detail ??
+          'No se pudo eliminar ni retirar la ciudad del catálogo. Recarga la página e inténtalo nuevamente.'
+        );
+      },
+
+    });
 
   }
 

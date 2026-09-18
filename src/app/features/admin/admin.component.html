@@ -1,10 +1,26 @@
 <div class="erp" [class.erp--collapsed]="sidebarCollapsed()">
 
+  <header class="erp__mobile-bar">
+    @if (!mobileNavOpen()) {
+      <button class="erp__hamburger" type="button" aria-label="Abrir menú" (click)="mobileNavOpen.set(true)">
+        <svg lucideMenu aria-hidden="true"></svg>
+      </button>
+    }
+    <span class="erp__mobile-brand">
+      <svg lucideShieldCheck aria-hidden="true"></svg>
+      <strong>oona.</strong><small>ERP</small>
+    </span>
+  </header>
+
+  @if (mobileNavOpen()) {
+    <button class="erp__mobile-backdrop" type="button" aria-label="Cerrar menú" (click)="mobileNavOpen.set(false)"></button>
+  }
+
   <!-- ========================================================= -->
   <!-- SIDEBAR -->
   <!-- ========================================================= -->
 
-  <aside class="erp__sidebar">
+  <aside class="erp__sidebar" [class.erp__sidebar--mobile-open]="mobileNavOpen()">
 
     <div class="erp__sidebar-header">
       <div class="erp__brand">
@@ -28,6 +44,18 @@
           <svg lucidePanelLeftClose aria-hidden="true"></svg>
         }
       </button>
+
+      <button class="erp__mobile-close" type="button" aria-label="Cerrar menú" (click)="mobileNavOpen.set(false)">
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    </div>
+
+    <div class="erp__mobile-user">
+      <span class="erp__mobile-avatar">{{ getInitials() }}</span>
+      <div>
+        <strong>{{ currentUser()?.username || 'Administrador' }}</strong>
+        <small>ADMINISTRADOR</small>
+      </div>
     </div>
 
     <nav aria-label="Administración">
@@ -270,7 +298,7 @@
 
 @else if (section() === 'applications') {
 
-  <section class="erp__content">
+  <section class="erp__content erp__content--applications">
 
     <div class="erp__heading">
 
@@ -283,6 +311,20 @@
 
     </div>
 
+
+    <div class="mobile-filter mobile-filter--applications">
+      <label for="application-status-filter">Filtrar por estado</label>
+      <select
+        id="application-status-filter"
+        [ngModel]="status() ?? ''"
+        (ngModelChange)="filter($event === '' ? null : $any($event))"
+      >
+        <option value="">Todas</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="APROBADO">Aprobadas</option>
+        <option value="RECHAZADO">Rechazadas</option>
+      </select>
+    </div>
 
     <div class="toolbar">
 
@@ -308,7 +350,7 @@
     </div>
 
 
-    <div class="table-shell">
+    <div class="table-shell table-shell--applications">
 
       <table>
 
@@ -348,12 +390,12 @@
 
               <tr>
 
-                <td>
+                <td data-label="Solicitante">
                   <strong>{{ item.fullName }}</strong>
                   <small>{{ item.email }}</small>
                 </td>
 
-                <td>
+                <td data-label="Tipo">
   {{
     item.professionalType
       ? professionalTypeLabel(item.professionalType)
@@ -361,15 +403,15 @@
   }}
 </td>
 
-<td>
+<td data-label="Ciudad">
 {{ item.cityName || '-' }}
 </td>
 
-                <td>
+                <td data-label="Enviada">
                   {{ item.createdAt | date:'dd/MM/yyyy' }}
                 </td>
 
-                <td>
+                <td data-label="Estado" class="card-priority">
                   <span
                     class="status"
                     [attr.data-status]="item.status"
@@ -378,7 +420,7 @@
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Acciones">
                   <button
                     class="table-action"
                     (click)="select(item)"
@@ -413,11 +455,11 @@
 
     <footer class="pagination">
 
-      <span>
+      <span class="pagination__page">
         Página {{ page() + 1 }} de {{ totalPages() || 1 }}
       </span>
 
-      <div>
+      <div class="pagination__buttons">
 
         <button
           [disabled]="page() === 0"
@@ -476,7 +518,7 @@
     </div>
 
 
-    <div class="table-shell">
+    <div class="table-shell table-shell--cities">
 
       <table>
 
@@ -515,21 +557,21 @@
 
               <tr>
 
-                <td>
+                <td data-label="Ciudad">
                   <strong>{{ city.name }}</strong>
                 </td>
 
-                <td>
+                <td data-label="Provincia / Región">
                   {{ city.province || '-' }}
                 </td>
 
-                <td>
+                <td data-label="Código de país">
                   <span class="code-chip">
                     {{ city.countryCode }}
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Estado" class="card-priority">
 
                   <button
                     type="button"
@@ -545,7 +587,7 @@
 
                 </td>
 
-                <td>
+                <td data-label="Acciones">
 
                   <div class="row-actions">
 
@@ -655,6 +697,20 @@
         <!-- ===================================================== -->
         <!-- TABS -->
         <!-- ===================================================== -->
+
+        <div class="mobile-filter mobile-filter--catalogs">
+          <label for="catalog-type-filter">Mostrar catálogo</label>
+          <select
+            id="catalog-type-filter"
+            [ngModel]="catalogTab()"
+            (ngModelChange)="selectCatalogTab($any($event))"
+          >
+            <option value="categories">Categorías</option>
+            <option value="experienceTypes">Tipos de experiencia</option>
+            <option value="workTopics">Temas de sesión</option>
+            <option value="techniques">Técnicas de sesión</option>
+          </select>
+        </div>
 
         <div
           class="catalog-tabs"
@@ -1574,35 +1630,66 @@
       <form
         (ngSubmit)="saveCity()"
         class="city-form"
+        novalidate
       >
 
-        <label class="field">
-
-          <span>Nombre de la ciudad *</span>
-
-          <input
-            type="text"
-            name="name"
-            [(ngModel)]="cityForm.name"
-            required
-            maxlength="100"
-          />
-
-        </label>
+        @if (cityFormError()) {
+          <div class="city-form__alert" role="alert" aria-live="polite">
+            {{ cityFormError() }}
+          </div>
+        }
 
 
         <label class="field">
 
-          <span>Provincia / Región</span>
+          <span>Provincia *</span>
 
-          <input
-            type="text"
+          <select
             name="province"
             [(ngModel)]="cityForm.province"
-            maxlength="100"
-          />
+            (ngModelChange)="onProvinceChange()"
+            required
+          >
+            <option value="" disabled>Selecciona una provincia</option>
+            @for (location of spanishLocations; track location.province) {
+              <option [value]="location.province">{{ location.province }}</option>
+            }
+          </select>
 
         </label>
+
+        <div class="field city-select">
+          <span id="city-select-label">Nombre de la ciudad *</span>
+          <button
+            type="button"
+            class="city-select__trigger"
+            [disabled]="!cityForm.province"
+            [attr.aria-expanded]="cityDropdownOpen()"
+            aria-haspopup="listbox"
+            aria-labelledby="city-select-label city-select-value"
+            (click)="toggleCityDropdown()"
+            (keydown.escape)="cityDropdownOpen.set(false)"
+          >
+            <span id="city-select-value">
+              {{ cityForm.name || (cityForm.province ? 'Selecciona una ciudad' : 'Selecciona primero una provincia') }}
+            </span>
+            <span class="city-select__chevron" aria-hidden="true">⌄</span>
+          </button>
+
+          @if (cityDropdownOpen()) {
+            <div class="city-select__menu" role="listbox" aria-labelledby="city-select-label">
+              @for (cityName of availableCities; track cityName) {
+                <button
+                  type="button"
+                  role="option"
+                  [attr.aria-selected]="cityForm.name === cityName"
+                  [class.selected]="cityForm.name === cityName"
+                  (click)="selectCity(cityName)"
+                >{{ cityName }}</button>
+              }
+            </div>
+          }
+        </div>
 
 
         <label class="field">
@@ -1612,9 +1699,12 @@
           <input
             type="text"
             name="countryCode"
-            [(ngModel)]="cityForm.countryCode"
-            maxlength="2"
+            value="ES"
+            readonly
+            aria-readonly="true"
           />
+
+          <small>Fijo para España</small>
 
         </label>
 
@@ -1688,10 +1778,10 @@
       </h2>
 
       <p>
-        ¿Estás seguro de que deseas eliminar
-        <strong>{{ city.name }}</strong>?
-        Esta acción no se puede deshacer y fallará si
-        la ciudad está asociada a ubicaciones.
+        ¿Deseas eliminar <strong>{{ city.name }}</strong>?
+        Si no tiene datos relacionados se eliminará definitivamente.
+        Si ya se utiliza en ubicaciones o eventos, se retirará del catálogo activo
+        y se conservará únicamente para no dañar el historial.
       </p>
 
       <footer>
@@ -1708,7 +1798,7 @@
           [disabled]="deciding()"
           (click)="deleteCity()"
         >
-          Eliminar
+          {{ deciding() ? 'Procesando...' : 'Eliminar' }}
         </button>
 
       </footer>
