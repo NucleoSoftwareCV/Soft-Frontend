@@ -9,6 +9,9 @@ import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { ProfessionalApplicationService } from '../../services/professional-application.service';
+import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
+
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -47,6 +50,7 @@ interface ItemCreado {
   styleUrl: './perfil.component.css',
 })
 export class PerfilComponent implements OnInit {
+private readonly professionalApplicationService = inject(ProfessionalApplicationService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -61,6 +65,9 @@ export class PerfilComponent implements OnInit {
   readonly myBookings = signal<MyBooking[]>([]);
   readonly bookingsLoading = signal(false);
   readonly bookingsError = signal<string | null>(null);
+  readonly professionalApplication = signal<ProfessionalApplicationResponse | null>(null);
+readonly professionalApplicationLoading = signal(false);
+readonly professionalApplicationDismissed = signal(false);
 
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
@@ -76,6 +83,8 @@ export class PerfilComponent implements OnInit {
   readonly pendingUnfollowProfessionalId = signal<number | null>(null);
   readonly pendingUnfollowProfessionalName = signal('');
   readonly unfollowLoading = signal(false);
+
+
 
   mostrarModal = signal(false);
   modalStep = signal<ModalStep>('tipo');
@@ -177,6 +186,46 @@ export class PerfilComponent implements OnInit {
       }
     });
   }
+loadMyProfessionalApplication(): void {
+  if (!this.authService.isLoggedIn) return;
+
+  this.professionalApplicationLoading.set(true);
+
+  this.professionalApplicationService.getMine().subscribe({
+    next: application => {
+      this.professionalApplication.set(application);
+
+      const dismissedApplicationId = localStorage.getItem(
+        'oona_professional_application_dismissed'
+      );
+
+      this.professionalApplicationDismissed.set(
+        application.status !== 'PENDIENTE' &&
+        dismissedApplicationId === String(application.id)
+      );
+
+      this.professionalApplicationLoading.set(false);
+    },
+    error: () => {
+      this.professionalApplication.set(null);
+      this.professionalApplicationDismissed.set(false);
+      this.professionalApplicationLoading.set(false);
+    }
+  });
+}
+dismissProfessionalApplication(): void {
+  const application = this.professionalApplication();
+
+  if (!application) return;
+
+  localStorage.setItem(
+    'oona_professional_application_dismissed',
+    String(application.id)
+  );
+
+  this.professionalApplicationDismissed.set(true);
+}
+
 
   loadFavoritesDetails(): void {
     if (!this.authService.isLoggedIn) return;
@@ -307,23 +356,24 @@ export class PerfilComponent implements OnInit {
     const name = user.username || user.email || 'U';
     return name.charAt(0).toUpperCase();
   }
+ngOnInit(): void {
+  this.items.set([...this.buildSampleData()]);
+  this.loadFollowedProfessionals(0);
+  this.loadMyBookings();
+  this.loadMyProfessionalApplication();
 
-  ngOnInit(): void {
-    this.items.set([...this.buildSampleData()]);
-    this.loadFollowedProfessionals(0);
-    this.loadMyBookings();
-    this.route.queryParams.subscribe(params => {
-      const tab = params['tab'];
-      if (tab === 'guardados') {
-        this.cambiarSeccionCliente('guardados');
-      } else if (tab === 'siguiendo') {
-        this.cambiarSeccionCliente('siguiendo');
-      } else if (tab === 'reservas') {
-        this.cambiarSeccionCliente('reservas');
-      }
-    });
-  }
+  this.route.queryParams.subscribe(params => {
+    const tab = params['tab'];
 
+    if (tab === 'guardados') {
+      this.cambiarSeccionCliente('guardados');
+    } else if (tab === 'siguiendo') {
+      this.cambiarSeccionCliente('siguiendo');
+    } else if (tab === 'reservas') {
+      this.cambiarSeccionCliente('reservas');
+    }
+  });
+}
   private buildSampleData(): ItemCreado[] {
     return [
       {

@@ -2116,3 +2116,167 @@
     max-width: 100%;
   }
 }
+.professional-application-card {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px;
+  margin: 20px 0;
+  border-radius: 16px;
+  border: 1px solid;
+}
+
+.professional-application-card__icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.professional-application-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.professional-application-card__label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.professional-application-card h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.professional-application-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.professional-application-card--pending {
+  background: #fffaf0;
+  border-color: #f1d99a;
+}
+
+.professional-application-card--pending
+.professional-application-card__icon {
+  background: #fff0c7;
+}
+
+.professional-application-card--pending
+.professional-application-card__label {
+  color: #9a6b00;
+}
+
+.professional-application-card--pending h2 {
+  color: #6f5200;
+}
+
+.professional-application-card--pending p {
+  color: #725f32;
+}
+
+.professional-application-card--approved {
+  background: #f2faf5;
+  border-color: #b9dfc5;
+}
+
+.professional-application-card--approved
+.professional-application-card__icon {
+  background: #d9f1df;
+  color: #267342;
+}
+
+.professional-application-card--approved
+.professional-application-card__label {
+  color: #267342;
+}
+
+.professional-application-card--approved h2 {
+  color: #1f6036;
+}
+
+.professional-application-card--approved p {
+  color: #42634c;
+}
+
+.professional-application-card--rejected {
+  background: #fff5f5;
+  border-color: #e7bcbc;
+}
+
+.professional-application-card--rejected
+.professional-application-card__icon {
+  background: #f8dddd;
+  color: #a33a3a;
+}
+
+.professional-application-card--rejected
+.professional-application-card__label {
+  color: #a33a3a;
+}
+
+.professional-application-card--rejected h2 {
+  color: #7f2929;
+}
+
+.professional-application-card--rejected p {
+  color: #694444;
+}
+
+.professional-application-card__reason {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.professional-application-card__reason strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #7f2929;
+}
+
+.professional-application-card__reason p {
+  margin: 0;
+}
+
+.professional-application-card--loading {
+  background: #f7f7f7;
+  border-color: #e2e2e2;
+  color: #666;
+}
+
+.professional-application-card--loading
+.professional-application-card__icon {
+  background: #eaeaea;
+}
+.professional-application-card__button {
+  margin-top: 16px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #222;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.professional-application-card__button:hover {
+  opacity: 0.85;
+}

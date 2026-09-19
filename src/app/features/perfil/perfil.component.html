@@ -777,6 +777,128 @@
 
     <!-- Contenido Activo -->
     <div class="mi-espacio__tab-content">
+@if (professionalApplicationLoading()) {
+
+  <div class="professional-application-card professional-application-card--loading">
+    <div class="professional-application-card__icon">
+      ⏳
+    </div>
+
+    <div class="professional-application-card__content">
+      <span class="professional-application-card__label">
+        SOLICITUD PROFESIONAL
+      </span>
+
+      <h2>Cargando estado de tu solicitud...</h2>
+    </div>
+  </div>
+
+} @else if (professionalApplication(); as application) {
+
+  @if (
+    application.status === 'PENDIENTE' ||
+    !professionalApplicationDismissed()
+  ) {
+
+    @if (application.status === 'PENDIENTE') {
+
+      <div class="professional-application-card professional-application-card--pending">
+
+        <div class="professional-application-card__icon">
+          ⏳
+        </div>
+
+        <div class="professional-application-card__content">
+          <span class="professional-application-card__label">
+            SOLICITUD PROFESIONAL
+          </span>
+
+          <h2>Tu solicitud está en revisión</h2>
+
+          <p>
+            Hemos recibido tu solicitud para formar parte de los profesionales
+            de Oona. Te avisaremos cuando haya una decisión.
+          </p>
+        </div>
+
+      </div>
+    }
+
+    @if (application.status === 'APROBADO') {
+
+      <div class="professional-application-card professional-application-card--approved">
+
+        <div class="professional-application-card__icon">
+          ✓
+        </div>
+
+        <div class="professional-application-card__content">
+
+          <span class="professional-application-card__label">
+            SOLICITUD PROFESIONAL
+          </span>
+
+          <h2>¡Tu solicitud fue aprobada!</h2>
+
+          <p>
+            Tu solicitud para ser profesional de Oona ha sido aprobada.
+            Ya tienes acceso como profesional.
+          </p>
+
+          <button
+            type="button"
+            class="professional-application-card__button"
+            (click)="dismissProfessionalApplication()">
+            Entendido
+          </button>
+
+        </div>
+
+      </div>
+    }
+
+    @if (application.status === 'RECHAZADO') {
+
+      <div class="professional-application-card professional-application-card--rejected">
+
+        <div class="professional-application-card__icon">
+          !
+        </div>
+
+        <div class="professional-application-card__content">
+
+          <span class="professional-application-card__label">
+            SOLICITUD PROFESIONAL
+          </span>
+
+          <h2>Tu solicitud no fue aprobada</h2>
+
+          @if (application.rejectionReason) {
+            <div class="professional-application-card__reason">
+              <strong>Motivo del administrador:</strong>
+              <p>{{ application.rejectionReason }}</p>
+            </div>
+          } @else {
+            <p>
+              Tu solicitud no fue aprobada en esta ocasión.
+            </p>
+          }
+
+          <button
+            type="button"
+            class="professional-application-card__button"
+            (click)="dismissProfessionalApplication()">
+            Entendido
+          </button>
+
+        </div>
+
+      </div>
+    }
+
+  }
+}
+
 
       <!-- Pestaña Reservas -->
       @if (seccionCliente() === 'reservas') {

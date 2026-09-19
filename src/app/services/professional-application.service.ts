@@ -25,7 +25,8 @@ export class ProfessionalApplicationService {
 
 
   // ============================================================
-  // SOLICITUD PÚBLICA (PUT /professional-applications/me)
+  // USUARIO - GUARDAR / ACTUALIZAR MI SOLICITUD
+  // PUT /professional-applications/me
   // ============================================================
 
   saveMine(
@@ -36,12 +37,25 @@ export class ProfessionalApplicationService {
       `${this.base}/me`,
       request
     );
+  }
 
+
+  // ============================================================
+  // USUARIO - OBTENER MI SOLICITUD
+  // GET /professional-applications/me
+  // ============================================================
+
+  getMine(): Observable<ProfessionalApplicationResponse> {
+
+    return this.http.get<ProfessionalApplicationResponse>(
+      `${this.base}/me`
+    );
   }
 
 
   // ============================================================
   // ADMIN - LISTAR SOLICITUDES
+  // GET /admin/professional-applications
   // ============================================================
 
   getForAdmin(
@@ -55,14 +69,9 @@ export class ProfessionalApplicationService {
       .set('size', size)
       .set('sort', 'createdAt,DESC');
 
-
     if (status) {
-
-      params =
-        params.set('status', status);
-
+      params = params.set('status', status);
     }
-
 
     return this.http.get<
       PagedResponse<ProfessionalApplicationResponse>
@@ -70,12 +79,12 @@ export class ProfessionalApplicationService {
       this.adminBase,
       { params }
     );
-
   }
 
 
   // ============================================================
   // ADMIN - APROBAR / RECHAZAR
+  // PATCH /admin/professional-applications/{id}/decision
   // ============================================================
 
   decide(
@@ -89,7 +98,6 @@ export class ProfessionalApplicationService {
       `${this.adminBase}/${applicationId}/decision`,
       request
     );
-
   }
 
 }
