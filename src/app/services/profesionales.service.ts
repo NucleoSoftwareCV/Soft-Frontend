@@ -154,7 +154,8 @@ export class SpecialistProfileService {
   getPublicProfiles(
     profileCategory?: string,
     search?: string,
-    size?: number
+    size?: number,
+    page?: number
   ): Observable<PageResponse<SpecialistProfileResponse>> {
 
     let params = new HttpParams();
@@ -167,6 +168,9 @@ export class SpecialistProfileService {
     }
     if (size) {
       params = params.set('size', String(size));
+    }
+    if (page !== undefined && page !== null) {
+      params = params.set('page', String(page));
     }
 
     return this.http.get<PageResponse<SpecialistProfileResponse>>(

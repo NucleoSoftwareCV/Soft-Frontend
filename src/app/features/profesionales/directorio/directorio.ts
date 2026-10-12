@@ -38,8 +38,20 @@ export class Directorio implements OnInit {
 
    isDropdownOpen =
     signal(false);
+
+  cargando =
+    signal(false);
+
+  totalPerfiles =
+    signal(0);
+
   private readonly listado =
     signal<TarjetaDirectorio[]>([]);
+
+  // Perfiles solicitados por peticion al backend y tope de seguridad
+  // para no colgar la app si el directorio crece mucho.
+  private static readonly PAGE_SIZE = 50;
+  private static readonly MAX_PERFILES = 500;
 
   // =====================================================
   // CICLO DE VIDA
@@ -55,19 +67,62 @@ export class Directorio implements OnInit {
 
   cargarPerfiles(): void {
 
+    this.cargando.set(true);
+
+    this.cargarPagina(0, []);
+
+  }
+
+  // =====================================================
+  // CARGA PAGINADA ACUMULATIVA
+  // =====================================================
+
+  // El backend pagina los perfiles (10 por defecto, aqui pedimos
+  // 50 por peticion). Mientras queden paginas (page + 1 < totalPages)
+  // y no se supere el tope de seguridad, se pide la siguiente pagina
+  // y se acumula. Asi el filtro por categoria y la busqueda en cliente
+  // se aplican sobre el directorio COMPLETO y no solo sobre la pagina 0.
+  private cargarPagina(
+    page: number,
+    acumulado: SpecialistProfileResponse[]
+  ): void {
+
     this.specialistProfileService
-      .getPublicProfiles()
+      .getPublicProfiles(
+        undefined,
+        undefined,
+        Directorio.PAGE_SIZE,
+        page
+      )
       .subscribe({
 
         next: (response) => {
 
-          this.listado.set(
+          const perfiles = [...acumulado, ...(response.content ?? [])];
 
-            response.content.map(perfil =>
+          const quedanPaginas =
+            page + 1 < (response.totalPages ?? 0);
+
+          const dentroDelTope =
+            perfiles.length < Directorio.MAX_PERFILES;
+
+          if (quedanPaginas && dentroDelTope) {
+
+            this.cargarPagina(page + 1, perfiles);
+
+            return;
+
+          }
+
+          this.listado.set(
+            perfiles.map(perfil =>
               this.convertirPerfil(perfil)
             )
-
           );
+
+          this.totalPerfiles.set(perfiles.length);
+
+          this.cargando.set(false);
 
         },
 
@@ -77,6 +132,18 @@ export class Directorio implements OnInit {
             'Error al cargar perfiles:',
             error
           );
+
+          // Si ya habiamos acumulado perfiles de paginas anteriores,
+          // los mostramos en lugar de dejar la pagina vacia.
+          this.listado.set(
+            acumulado.map(perfil =>
+              this.convertirPerfil(perfil)
+            )
+          );
+
+          this.totalPerfiles.set(acumulado.length);
+
+          this.cargando.set(false);
 
         }
 
