@@ -9,6 +9,7 @@ export interface SpecialistProfileResponse {
   slug: string;
   publicName: string;
   profileCategory: string;
+  cityName?: string;
   biography: string;
   description: string;
   photoUrl?: string;
@@ -60,6 +61,7 @@ export interface SpecialistProfileUpdateRequest {
   phoneNumber?: string;
   publicEmail?: string;
   website?: string;
+  cityId?: number;
   workTopicIds?: number[];
   techniqueIds?: number[];
   showUpcomingEvents?: boolean;
