@@ -895,7 +895,7 @@ transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
 .tacho:disabled{
   cursor: not-allowed;
-  color: rgba(0, 66, 87, 0.3);  
+  color: rgba(0, 66, 87, 0.3);
 }
 
 .filter-modal__clear {
@@ -1279,7 +1279,7 @@ transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
 }
 .profile-popover__city-mobile {
-  display: none; 
+  display: none;
 }
 .header__avatar-btn {
   width: 32px;
@@ -1630,11 +1630,11 @@ line-clamp: 2;
 .profile-popover__whatsapp-banner:hover .profile-popover__whatsapp-btn {
   background-color: #22c25e;
   box-shadow: 0 6px 16px rgba(37, 211, 102, 0.42);
-} 
+}
 .footerheader {
   display: block;
-  width: 100%; 
-  height: auto; 
+  width: 100%;
+  height: auto;
   padding: 16px;
   box-sizing: border-box;
 
@@ -1650,8 +1650,8 @@ line-clamp: 2;
   text-size-adjust: 100%;
   unicode-bidi: isolate;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  
-  flex-shrink: 0; 
+
+  flex-shrink: 0;
 }
 .profile-popover__logout-wrap {
   border-top: 1px solid var(--color-divider);
@@ -1678,6 +1678,56 @@ line-clamp: 2;
 
 .profile-popover__logout-btn:hover {
   color: #c2410c;
+}
+
+/* dropdown login or create*/
+.auth-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.auth-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 180px;
+  background: #ffffff;
+  border: 1px solid hsl(100deg 30% 90%);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  z-index: 1000;
+  animation: fadeInDown 0.15s ease-out;
+}
+
+.auth-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--principal, #111);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: hsl(100deg 30% 95%);
+    color: var(--primary, #0a3b3f);
+  }
+}
+
+.auth-item-icon {
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.75;
+
+  .auth-dropdown-item:hover & {
+    opacity: 1;
+  }
 }
 
 /* ── Modal Confirmación Cerrar Sesión ── */
@@ -1788,19 +1838,19 @@ line-clamp: 2;
 @media (max-width: 639px) {
   .profile-popover {
     position: fixed;
-    top: 57px; 
+    top: 57px;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100%; 
+    width: 100%;
     max-height: calc(100vh - 57px);
     margin-top: 0;
-    border-radius: 0; 
+    border-radius: 0;
     border: none;
     box-shadow: none;
-    overflow: hidden; 
-    
-    background-color: #F3F4F0; 
+    overflow: hidden;
+
+    background-color: #F3F4F0;
   }
  .profile-popover__city-mobile {
     display: block;
@@ -1844,8 +1894,8 @@ line-clamp: 2;
     top: 57px;
     width: 100vw;
     height: calc(100vh - 57px);
-    background-color: rgba(0, 0, 0, 0.2); 
- 
+    background-color: rgba(0, 0, 0, 0.2);
+
   }
 
 }
