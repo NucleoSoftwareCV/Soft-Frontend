@@ -3,7 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-
+import {
+  RecommendedEventResponse,
+  RecommendationFilterParams,
+} from '../shared/models/recommendation.model';
 import {
   CategoryResponse,
   CityResponse,
@@ -17,32 +20,19 @@ import {
 import { ExperienceTypeCatalogItem } from '../shared/models/event-catalog.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventosService {
+  private readonly http = inject(HttpClient);
 
-  private readonly http =
-    inject(HttpClient);
+  private readonly BASE = `${environment.apiUrl}`;
 
-  private readonly BASE =
-    `${environment.apiUrl}`;
-
-  getCategorias():
-    Observable<CategoryResponse[]> {
-
-    return this.http.get<CategoryResponse[]>(
-      `${this.BASE}/categories`
-    );
-
+  getCategorias(): Observable<CategoryResponse[]> {
+    return this.http.get<CategoryResponse[]>(`${this.BASE}/categories`);
   }
 
-  getCiudades():
-    Observable<CityResponse[]> {
-
-    return this.http.get<CityResponse[]>(
-      `${this.BASE}/cities`
-    );
-
+  getCiudades(): Observable<CityResponse[]> {
+    return this.http.get<CityResponse[]>(`${this.BASE}/cities`);
   }
 
   getExperienceTypes(): Observable<ExperienceTypeCatalogItem[]> {
@@ -55,7 +45,7 @@ export class EventosService {
       if (value === undefined || value === null || value === '') return;
       if (Array.isArray(value)) {
         if (value.length === 0) return;
-        value.forEach(item => {
+        value.forEach((item) => {
           params = params.append(key, String(item));
         });
       } else {
@@ -63,84 +53,52 @@ export class EventosService {
       }
     });
 
-    return this.http.get<SpringPage<EventCardResponse>>(
-      `${this.BASE}/events`,
-      { params }
-    );
-
+    return this.http.get<SpringPage<EventCardResponse>>(`${this.BASE}/events`, { params });
   }
 
-  getEvento(
-    id: number
-  ):
-    Observable<EventDetailResponse> {
-
-    return this.http.get<
-      EventDetailResponse
-    >(
-      `${this.BASE}/events/${id}`
-    );
-
+  getEvento(id: number): Observable<EventDetailResponse> {
+    return this.http.get<EventDetailResponse>(`${this.BASE}/events/${id}`);
   }
 
   getEventosSimilares(
     eventId: number,
     page = 0,
-    size = 12
+    size = 12,
   ): Observable<SpringPage<EventCardResponse>> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size)
-      .set('sort', 'startsAt,asc');
+    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'startsAt,asc');
 
-    return this.http.get<SpringPage<EventCardResponse>>(
-      `${this.BASE}/events/${eventId}/similar`,
-      { params }
-    );
+    return this.http.get<SpringPage<EventCardResponse>>(`${this.BASE}/events/${eventId}/similar`, {
+      params,
+    });
   }
 
   getOtrosEventosDelOrganizador(
     eventId: number,
     page = 0,
-    size = 12
+    size = 12,
   ): Observable<SpringPage<EventCardResponse>> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size)
-      .set('sort', 'startsAt,asc');
+    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'startsAt,asc');
 
     return this.http.get<SpringPage<EventCardResponse>>(
       `${this.BASE}/events/${eventId}/organizer-events`,
-      { params }
+      { params },
     );
   }
 
-  getEventosPorEspecialista(
-    specialistId: number
-  ):
-    Observable<SpringPage<EventCardResponse>> {
+  getEventosPorEspecialista(specialistId: number): Observable<SpringPage<EventCardResponse>> {
+    const params = new HttpParams()
+      .set('specialistId', specialistId)
+      .set('page', 0)
+      .set('size', 100);
 
-    const params =
-      new HttpParams()
-        .set('specialistId', specialistId)
-        .set('page', 0)
-        .set('size', 100);
-
-    return this.http.get<
-      SpringPage<EventCardResponse>
-    >(
-      `${this.BASE}/events`,
-      { params }
-    );
-
+    return this.http.get<SpringPage<EventCardResponse>>(`${this.BASE}/events`, { params });
   }
 
   getPublicCalendar(
     specialistId: number,
     dateFrom: string,
-    dateTo: string
+    dateTo: string,
   ): Observable<EventOccurrenceCalendarResponse[]> {
-
     const params = new HttpParams()
       .set('specialistId', specialistId)
       .set('dateFrom', dateFrom)
@@ -148,24 +106,64 @@ export class EventosService {
 
     return this.http.get<EventOccurrenceCalendarResponse[]>(
       `${this.BASE}/event-occurrences/public`,
-      { params }
+      { params },
     );
   }
 
   getHomeSections(
     cityName: string = 'Valencia',
-    limit: number = 4
+    limit: number = 4,
   ): Observable<HomeEventSectionsResponse> {
+    const params = new HttpParams().set('cityName', cityName).set('limit', limit);
 
-    const params = new HttpParams()
-      .set('cityName', cityName)
-      .set('limit', limit);
+    return this.http.get<HomeEventSectionsResponse>(`${this.BASE}/home/event-sections`, { params });
+  }
+  getRecommendedEventos(
+    page: number = 0,
+    size: number = 12,
+    filters: RecommendationFilterParams = {},
+  ): Observable<SpringPage<RecommendedEventResponse>> {
+    let params = new HttpParams().set('page', page).set('size', size);
 
-    return this.http.get<HomeEventSectionsResponse>(
-      `${this.BASE}/home/event-sections`,
-      { params }
+    const allowedFilters: ReadonlyArray<keyof RecommendationFilterParams> = [
+      'search',
+      'categoryId',
+      'categoryIds',
+      'experienceTypeId',
+      'modality',
+      'cityName',
+      'includeOnline',
+      'minPrice',
+      'maxPrice',
+      'dateFrom',
+      'dateTo',
+      'hourFrom',
+      'hourTo',
+      'isRecurring',
+      'specialistId',
+      'useProfileCity',
+    ];
+
+    for (const key of allowedFilters) {
+      const value = filters[key];
+
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          params = params.append(key, String(item));
+        }
+      } else {
+        params = params.set(key, String(value));
+      }
+    }
+
+    return this.http.get<SpringPage<RecommendedEventResponse>>(
+      `${this.BASE}/recommendations/events`,
+      { params },
     );
-
   }
 
   resolveAssetUrl(url: string | null | undefined): string | null {
