@@ -19,6 +19,19 @@ export class CategoriesComponent implements AfterViewInit, OnDestroy {
     '#DAD4E9', '#E2DCF0', '#F0DDE7', '#E2E6C1', '#D2E6D6', '#F2DDDB',
     '#F4E1CB', '#DEDEE2',
   ];
+  private readonly fallbackCategories = [
+    { id: -1, name: 'Yoga', slug: 'yoga', emoji: '🧘' },
+    { id: -2, name: 'Pilates', slug: 'pilates', emoji: '🤸' },
+    { id: -3, name: 'Hielo y Breathwork', slug: 'hielo-y-breathwork', emoji: '🧊' },
+    { id: -4, name: 'Arte y Creatividad', slug: 'arte-y-creatividad', emoji: '🎨' },
+    { id: -5, name: 'Movimiento', slug: 'movimiento', emoji: '🏃' },
+    { id: -6, name: 'Deporte', slug: 'deporte', emoji: '💪' },
+    { id: -7, name: 'Meditación y Mindfulness', slug: 'meditacion-y-mindfulness', emoji: '🧠' },
+    { id: -8, name: 'Sonido y Vibración', slug: 'sonido-y-vibracion', emoji: '🎵' },
+    { id: -9, name: 'Espiritualidad y Energía', slug: 'espiritualidad-y-energia', emoji: '✨' },
+    { id: -10, name: 'Nutrición y Cocina', slug: 'nutricion-y-cocina', emoji: '🥗' },
+    { id: -11, name: 'Psicología', slug: 'psicologia', emoji: '🌱' },
+  ];
 
   @ViewChild('trackWrap') private trackWrap?: ElementRef<HTMLElement>;
   @ViewChild('section') private section?: ElementRef<HTMLElement>;
@@ -28,13 +41,16 @@ export class CategoriesComponent implements AfterViewInit, OnDestroy {
 
   private readonly onScrollOrResize = () => this.checkStuck();
 
-  readonly categories = computed(() =>
-    this.filters.categories().map((category, index) => ({
+  readonly categories = computed(() => {
+    const catalog = this.filters.categories();
+    const visibleCategories = catalog.length ? catalog : this.fallbackCategories;
+
+    return visibleCategories.map((category, index) => ({
       ...category,
       emoji: category.emoji || '✨',
       background: this.backgrounds[index % this.backgrounds.length],
-    }))
-  );
+    }));
+  });
 
   constructor() {
     // Refresca el catálogo cada vez que se muestra este widget, así las

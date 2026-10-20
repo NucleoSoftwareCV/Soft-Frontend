@@ -1,4 +1,4 @@
-import { Component, inject, PLATFORM_ID, signal, output } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, PLATFORM_ID, signal, output, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -20,6 +20,8 @@ import { resolveAssetUrl } from '../../../../shared/utils/asset-url.util';
   styleUrl: './hero.component.css',
 })
 export class HeroComponent {
+  @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
+
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
   private readonly filtrosService = inject(FiltrosService);
@@ -42,6 +44,7 @@ export class HeroComponent {
   ];
 
   private readonly searchInput$ = new Subject<string>();
+  private blurTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.searchInput$       .pipe(
@@ -64,8 +67,29 @@ export class HeroComponent {
       });
   }
 
-  onFocus(): void { this.isSearchFocused.set(true); }
-  onBlur():  void { setTimeout(() => this.isSearchFocused.set(false), 180); }
+  onFocus(): void {
+    this.cancelPendingBlur();
+    this.isSearchFocused.set(true);
+  }
+
+  onBlur(): void {
+    this.cancelPendingBlur();
+    this.blurTimeout = setTimeout(() => {
+      this.isSearchFocused.set(false);
+      this.blurTimeout = null;
+    }, 180);
+  }
+
+  closeSearchOverlay(): void {
+    this.searchInput?.nativeElement.blur();
+    this.cancelPendingBlur();
+    this.isSearchFocused.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeSearchOverlay();
+  }
 
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
@@ -122,8 +146,16 @@ export class HeroComponent {
   }
 
   private closeSearch(): void {
+    this.cancelPendingBlur();
     this.isSearchFocused.set(false);
     this.searchQuery.set('');
     this.searchResults.set(null);
+  }
+
+  private cancelPendingBlur(): void {
+    if (this.blurTimeout !== null) {
+      clearTimeout(this.blurTimeout);
+      this.blurTimeout = null;
+    }
   }
 }
