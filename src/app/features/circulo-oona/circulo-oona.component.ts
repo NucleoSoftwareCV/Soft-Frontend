@@ -1,6 +1,6 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { CityService } from '../../services/city.service';
@@ -9,29 +9,22 @@ import { CityResponse } from '../../shared/models/evento.model';
 import {
   PROFESSIONAL_TYPE_OPTIONS,
   ProfessionalApplicationRequest,
-  ProfessionalType
+  ProfessionalType,
 } from '../../shared/models/professional-application.model';
 
 @Component({
   selector: 'app-circulo-oona',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './circulo-oona.component.html',
-  styleUrl: './circulo-oona.component.css'
+  styleUrl: './circulo-oona.component.css',
 })
 export class CirculoOonaComponent {
+  private readonly professionalApplicationService = inject(ProfessionalApplicationService);
 
-  private readonly professionalApplicationService =
-    inject(ProfessionalApplicationService);
+  private readonly cityService = inject(CityService);
 
-  private readonly cityService =
-    inject(CityService);
-
-  private readonly auth =
-    inject(AuthService);
+  private readonly auth = inject(AuthService);
 
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
@@ -51,9 +44,13 @@ export class CirculoOonaComponent {
   private errorTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
+    if (!isPlatformBrowser(inject(PLATFORM_ID))) {
+      return;
+    }
+
     this.cityService.getCities().subscribe({
       next: (cities) => this.cities.set(cities),
-      error: () => this.cities.set([])
+      error: () => this.cities.set([]),
     });
   }
 
@@ -62,64 +59,48 @@ export class CirculoOonaComponent {
     this.dismissSuccess();
 
     if (!this.auth.isLoggedIn) {
-      this.showError(
-        'Primero debes iniciar sesión para enviar tu solicitud.'
-      );
+      this.showError('Primero debes iniciar sesión para enviar tu solicitud.');
       return;
     }
 
     const fullName = this.fullName.trim();
 
     if (!fullName) {
-      this.showError(
-        'Indica tu nombre para poder registrar tu solicitud.'
-      );
+      this.showError('Indica tu nombre para poder registrar tu solicitud.');
       return;
     }
 
     if (!this.cityId) {
-      this.showError(
-        'Selecciona la ciudad donde realizas tus actividades.'
-      );
+      this.showError('Selecciona la ciudad donde realizas tus actividades.');
       return;
     }
 
     if (!this.professionalType) {
-      this.showError(
-        'Indica tu tipo de profesional.'
-      );
+      this.showError('Indica tu tipo de profesional.');
       return;
     }
 
     const whatsappPhone = this.whatsapp.trim();
 
     if (!whatsappPhone) {
-      this.showError(
-        'Indica tu número de WhatsApp.'
-      );
+      this.showError('Indica tu número de WhatsApp.');
       return;
     }
 
     const motivation = this.reason.trim();
 
     if (!motivation) {
-      this.showError(
-        'Indica el motivo de tu solicitud.'
-      );
+      this.showError('Indica el motivo de tu solicitud.');
       return;
     }
 
     if (!this.professional) {
-      this.showError(
-        'Debes confirmar que eres profesional del bienestar para continuar.'
-      );
+      this.showError('Debes confirmar que eres profesional del bienestar para continuar.');
       return;
     }
 
     if (!this.privacyAccepted) {
-      this.showError(
-        'Debes aceptar la Política de Privacidad para continuar.'
-      );
+      this.showError('Debes aceptar la Política de Privacidad para continuar.');
       return;
     }
 
@@ -129,40 +110,33 @@ export class CirculoOonaComponent {
       professionalType: this.professionalType,
       whatsappPhone,
       motivation,
-      privacyAccepted: this.privacyAccepted
+      privacyAccepted: this.privacyAccepted,
     };
 
     this.submitting.set(true);
 
-    this.professionalApplicationService
-      .saveMine(request)
-      .subscribe({
-        next: () => {
-          this.submitting.set(false);
+    this.professionalApplicationService.saveMine(request).subscribe({
+      next: () => {
+        this.submitting.set(false);
 
-          this.showSuccess(
-            '¡Gracias! Tu solicitud ha sido enviada y quedó pendiente de revisión.'
-          );
+        this.showSuccess('¡Gracias! Tu solicitud ha sido enviada y quedó pendiente de revisión.');
 
-          this.fullName = '';
-          this.cityId = null;
-          this.professionalType = '';
-          this.whatsapp = '';
-          this.reason = '';
-          this.professional = false;
-          this.privacyAccepted = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.submitting.set(false);
+        this.fullName = '';
+        this.cityId = null;
+        this.professionalType = '';
+        this.whatsapp = '';
+        this.reason = '';
+        this.professional = false;
+        this.privacyAccepted = false;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.submitting.set(false);
 
-          this.showError(
-            this.readError(
-              error,
-              'No se pudo enviar la solicitud. Inténtalo nuevamente.'
-            )
-          );
-        }
-      });
+        this.showError(
+          this.readError(error, 'No se pudo enviar la solicitud. Inténtalo nuevamente.'),
+        );
+      },
+    });
   }
 
   private showError(message: string): void {
@@ -188,15 +162,8 @@ export class CirculoOonaComponent {
     this.success.set(null);
   }
 
-  private readError(
-    error: HttpErrorResponse,
-    fallback: string
-  ): string {
-
-    if (
-      error.error &&
-      typeof error.error === 'object'
-    ) {
+  private readError(error: HttpErrorResponse, fallback: string): string {
+    if (error.error && typeof error.error === 'object') {
       if (error.error.message) {
         return error.error.message;
       }
@@ -206,10 +173,7 @@ export class CirculoOonaComponent {
       }
     }
 
-    if (
-      error.error &&
-      typeof error.error === 'string'
-    ) {
+    if (error.error && typeof error.error === 'string') {
       return error.error;
     }
 
