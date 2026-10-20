@@ -1308,3 +1308,33 @@
     width: 100%;
   }
 }
+.recommendation-reason {
+  margin: 0 0 12px;
+  color: #2d6969;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.catalog-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.catalog-pagination button {
+  padding: 10px 16px;
+  border: 1px solid #2d6969;
+  border-radius: 8px;
+  background: white;
+  color: #2d6969;
+  cursor: pointer;
+  font: inherit;
+}
+
+.catalog-pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

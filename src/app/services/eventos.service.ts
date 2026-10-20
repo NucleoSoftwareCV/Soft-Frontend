@@ -3,8 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { RecommendedEventResponse } from '../shared/models/recommendation.model';
-
+import {
+  RecommendedEventResponse,
+  RecommendationFilterParams,
+} from '../shared/models/recommendation.model';
 import {
   CategoryResponse,
   CityResponse,
@@ -119,8 +121,44 @@ export class EventosService {
   getRecommendedEventos(
     page: number = 0,
     size: number = 12,
+    filters: RecommendationFilterParams = {},
   ): Observable<SpringPage<RecommendedEventResponse>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+    let params = new HttpParams().set('page', page).set('size', size);
+
+    const allowedFilters: ReadonlyArray<keyof RecommendationFilterParams> = [
+      'search',
+      'categoryId',
+      'categoryIds',
+      'experienceTypeId',
+      'modality',
+      'cityName',
+      'includeOnline',
+      'minPrice',
+      'maxPrice',
+      'dateFrom',
+      'dateTo',
+      'hourFrom',
+      'hourTo',
+      'isRecurring',
+      'specialistId',
+      'useProfileCity',
+    ];
+
+    for (const key of allowedFilters) {
+      const value = filters[key];
+
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          params = params.append(key, String(item));
+        }
+      } else {
+        params = params.set(key, String(value));
+      }
+    }
 
     return this.http.get<SpringPage<RecommendedEventResponse>>(
       `${this.BASE}/recommendations/events`,

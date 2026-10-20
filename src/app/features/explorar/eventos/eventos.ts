@@ -1,17 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
-  signal
+  signal,
 } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
-import {
-  ActivatedRoute,
-  Router,
-  RouterLink
-} from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { map, Observable, Subscription } from 'rxjs';
 
 import { EventosService } from '../../../services/eventos.service';
 import { FiltrosService } from '../../../services/filtros.service';
@@ -22,11 +20,11 @@ import {
   CategoryResponse,
   EventCardResponse,
   EventFilterParams,
-  EventModality
+  EventModality,
 } from '../../../shared/models/evento.model';
-
-import { categoryIcon } from '../../../shared/utils/category-icon.util';
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
+import { RecommendationFilterParams } from '../../../shared/models/recommendation.model';
+import { categoryIcon } from '../../../shared/utils/category-icon.util';
 
 interface EventSortOption {
   label: string;
@@ -40,19 +38,22 @@ interface CalendarDay {
   dateKey: string;
 }
 
+interface CatalogPage {
+  events: EventCardResponse[];
+  reasons: Record<number, string>;
+  totalElements: number;
+  totalPages: number;
+}
+
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink
-  ],
+  imports: [CommonModule, RouterLink],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Eventos {
-
   private readonly eventosService = inject(EventosService);
   private readonly filtrosService = inject(FiltrosService);
   private readonly router = inject(Router);
@@ -61,59 +62,39 @@ export class Eventos {
   readonly favoritesService = inject(FavoritesService);
   readonly authService = inject(AuthService);
 
-  searchQuery = signal<string>('');
+  searchQuery = signal('');
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
   experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
 
   totalEventos = signal(0);
+  totalPages = signal(0);
+  currentPage = signal(0);
+
   loading = signal(false);
   error = signal<string | null>(null);
 
-  readonly favoritos =
-    this.favoritesService.favoritedEventIds;
+  recommendationReasons = signal<Record<number, string>>({});
+
+  readonly favoritos = this.favoritesService.favoritedEventIds;
 
   showFavoriteLoginCard = signal(false);
-
   showDatePicker = signal(false);
   showSortMenu = signal(false);
   expandedDescription = signal(false);
 
-  customDateFrom =
-    signal(this.toDateParam(new Date()));
+  customDateFrom = signal(this.toDateParam(new Date()));
+  customDateTo = signal(this.toDateParam(new Date()));
 
-  customDateTo =
-    signal(this.toDateParam(new Date()));
+  calendarMonth = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
-  /*
-   * =====================================================
-   * CALENDARIO
-   * =====================================================
-   */
+  calendarDays = signal<CalendarDay[]>([]);
+  selectedCalendarStart = signal<string | null>(null);
+  selectedCalendarEnd = signal<string | null>(null);
+  calendarSelectionMode = signal<'quick' | 'custom'>('quick');
 
-  calendarMonth = signal(
-    new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      1
-    )
-  );
-
-  calendarDays =
-    signal<CalendarDay[]>([]);
-
-  selectedCalendarStart =
-    signal<string | null>(null);
-
-  selectedCalendarEnd =
-    signal<string | null>(null);
-
-  calendarSelectionMode =
-    signal<'quick' | 'custom'>('quick');
-
-  readonly skeletonCards =
-    Array.from({ length: 8 });
+  readonly skeletonCards = Array.from({ length: 8 });
 
   readonly fallbackImage =
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
@@ -121,125 +102,126 @@ export class Eventos {
   readonly sortOptions: EventSortOption[] = [
     {
       label: 'Fecha más próxima',
-      sort: 'startsAt,asc'
+      sort: 'startsAt,asc',
     },
     {
       label: 'Recién añadidos',
-      sort: 'createdAt,desc'
+      sort: 'createdAt,desc',
     },
     {
       label: 'Precio (de menor a mayor)',
-      sort: 'priceFrom,asc'
+      sort: 'priceFrom,asc',
     },
     {
       label: 'Precio (de mayor a menor)',
-      sort: 'priceFrom,desc'
-    }
+      sort: 'priceFrom,desc',
+    },
   ];
 
-  selectedSort =
-    signal<EventSortOption>(
-      this.sortOptions[0]
-    );
+  readonly recommendationSort: EventSortOption = {
+    label: 'Recomendados para ti',
+    sort: 'recommended',
+  };
 
-  private lastRequestKey = '';
+  readonly canUseRecommendations = computed(() => {
+    const roles = this.authService.currentUser()?.roles ?? [];
+
+    return roles.includes('ROLE_USER') || roles.includes('USER');
+  });
+
+  readonly availableSortOptions = computed(() =>
+    this.canUseRecommendations()
+      ? [this.recommendationSort, ...this.sortOptions]
+      : this.sortOptions,
+  );
+
+  selectedSort = signal<EventSortOption>(this.recommendationSort);
+
+  readonly effectiveSort = computed(() => {
+    const selected = this.selectedSort();
+
+    if (selected.sort === 'recommended' && !this.canUseRecommendations()) {
+      return this.sortOptions[0];
+    }
+
+    return selected;
+  });
+
+  private readonly recommendationVersion = signal(0);
+  private lastCriteriaKey = '';
 
   constructor() {
-
     this.generateCalendar();
-
     this.loadCategorias();
     this.loadExperienceTypes();
 
-    this.searchQuery.set(
-      this.route.snapshot.queryParamMap.get('q') ?? ''
-    );
+    this.searchQuery.set(this.route.snapshot.queryParamMap.get('q') ?? '');
 
-    effect(() => {
+    effect((onCleanup) => {
+      const filters = this.buildFilters();
+      const session = this.authService.currentUser();
 
-      const criteria = {
+      const useRecommendations =
+        this.effectiveSort().sort === 'recommended' && this.canUseRecommendations();
 
-        categoryCatalog:
-          this.categorias()
-            .map(category => category.id)
-            .join('|'),
+      this.recommendationVersion();
 
-        when:
-          this.filterWhen(),
-
-        categories:
-          this.filterCategories()
-            .join('|'),
-
-        types:
-          this.filterTypes()
-            .join('|'),
-
-        city:
-          this.filterCity(),
-
-        timeOfDay:
-          this.filterTimeOfDay(),
-
-        modality:
-          this.filterModality(),
-
-        recurrence:
-          this.filterRecurrence(),
-
-        search:
-          this.searchQuery(),
-
-        sort:
-          this.selectedSort().sort
-      };
-
-      queueMicrotask(() => {
-        this.loadEventos(criteria);
+      const criteriaKey = JSON.stringify({
+        ...filters,
+        page: undefined,
+        userId: session?.id ?? null,
+        useRecommendations,
       });
 
+      const criteriaChanged = criteriaKey !== this.lastCriteriaKey;
+      this.lastCriteriaKey = criteriaKey;
+
+      let cancelled = false;
+      let request: Subscription | undefined;
+
+      onCleanup(() => {
+        cancelled = true;
+        request?.unsubscribe();
+      });
+
+      queueMicrotask(() => {
+        if (cancelled) {
+          return;
+        }
+
+        if (criteriaChanged && (filters.page ?? 0) !== 0) {
+          this.eventos.set([]);
+          this.recommendationReasons.set({});
+          this.currentPage.set(0);
+          return;
+        }
+
+        request = this.loadEventos(filters, useRecommendations);
+      });
     });
   }
 
-  /*
-   * =====================================================
-   * FAVORITOS
-   * =====================================================
-   */
+  // Acceso y búsqueda
 
   cerrarFavoriteLoginCard(): void {
     this.showFavoriteLoginCard.set(false);
   }
 
   irAAuthLogin(): void {
-
     this.showFavoriteLoginCard.set(false);
 
-    this.router.navigate(
-      ['/auth/login'],
-      {
-        queryParams: {
-          returnUrl: '/explorar'
-        }
-      }
-    );
+    this.router.navigate(['/auth/login'], {
+      queryParams: {
+        returnUrl: '/explorar',
+      },
+    });
   }
-
-  /*
-   * =====================================================
-   * BÚSQUEDA
-   * =====================================================
-   */
 
   clearSearchQuery(): void {
     this.searchQuery.set('');
   }
 
-  /*
-   * =====================================================
-   * FILTROS
-   * =====================================================
-   */
+  // Filtros compartidos
 
   get filterWhen() {
     return this.filtrosService.filterWhen;
@@ -274,116 +256,62 @@ export class Eventos {
   }
 
   openHeaderFilter(): void {
-
     if (typeof window !== 'undefined') {
-
-      window.dispatchEvent(
-        new CustomEvent(
-          'oona:open-filter'
-        )
-      );
-
+      window.dispatchEvent(new CustomEvent('oona:open-filter'));
     }
   }
 
   selectWhen(option: string): void {
-
-    if (option === 'Esta semana') {
-
-      this.selectQuickCalendarRange(
-        'Esta semana'
-      );
-
-      return;
-    }
-
-    if (option === 'Este finde') {
-
-      this.selectQuickCalendarRange(
-        'Este finde'
-      );
-
-      return;
-    }
-
     if (
+      option === 'Esta semana' ||
+      option === 'Este finde' ||
       option === 'Próxima semana' ||
       option === 'Proxima semana'
     ) {
-
-      this.selectQuickCalendarRange(
-        'Próxima semana'
-      );
-
+      this.selectQuickCalendarRange(option === 'Proxima semana' ? 'Próxima semana' : option);
       return;
     }
 
     this.showDatePicker.set(false);
-
-    this.filtrosService.selectWhen(
-      option
-    );
+    this.filtrosService.selectWhen(option);
 
     if (typeof window !== 'undefined') {
-
       window.dispatchEvent(
-        new CustomEvent(
-          'oona:select-when',
-          {
-            detail: option
-          }
-        )
+        new CustomEvent('oona:select-when', {
+          detail: option,
+        }),
       );
-
     }
   }
 
-  /*
-   * =====================================================
-   * CALENDARIO FLOTANTE
-   * =====================================================
-   */
+  clearFilters(): void {
+    this.showDatePicker.set(false);
+    this.selectedCalendarStart.set(null);
+    this.selectedCalendarEnd.set(null);
+    this.filtrosService.clearFilters();
+  }
+
+  // Calendario
 
   toggleDatePicker(): void {
+    this.showDatePicker.update((value) => !value);
 
-    this.showDatePicker.update(
-      value => !value
-    );
+    if (!this.showDatePicker()) {
+      return;
+    }
 
-    if (this.showDatePicker()) {
+    this.generateCalendar();
 
-      this.generateCalendar();
+    const currentFilter = this.filterWhen();
 
-      const currentFilter =
-        this.filterWhen();
+    if (currentFilter?.startsWith('RANGO:')) {
+      const [, from, to] = currentFilter.split(':');
 
-      if (
-        currentFilter?.startsWith('RANGO:')
-      ) {
-
-        const [
-          ,
-          from,
-          to
-        ] =
-          currentFilter.split(':');
-
-        this.selectedCalendarStart.set(
-          from
-        );
-
-        this.selectedCalendarEnd.set(
-          to
-        );
-
-        this.calendarSelectionMode.set(
-          'custom'
-        );
-
-      } else {
-
-        this.syncQuickRangeWithFilter();
-      }
+      this.selectedCalendarStart.set(from);
+      this.selectedCalendarEnd.set(to);
+      this.calendarSelectionMode.set('custom');
+    } else {
+      this.syncQuickRangeWithFilter();
     }
   }
 
@@ -391,329 +319,128 @@ export class Eventos {
     this.showDatePicker.set(false);
   }
 
-  /*
-   * =====================================================
-   * CAMBIAR MES
-   * =====================================================
-   */
-
   previousMonth(): void {
+    const current = this.calendarMonth();
 
-    const current =
-      this.calendarMonth();
-
-    this.calendarMonth.set(
-      new Date(
-        current.getFullYear(),
-        current.getMonth() - 1,
-        1
-      )
-    );
+    this.calendarMonth.set(new Date(current.getFullYear(), current.getMonth() - 1, 1));
 
     this.generateCalendar();
   }
 
   nextMonth(): void {
+    const current = this.calendarMonth();
 
-    const current =
-      this.calendarMonth();
-
-    this.calendarMonth.set(
-      new Date(
-        current.getFullYear(),
-        current.getMonth() + 1,
-        1
-      )
-    );
+    this.calendarMonth.set(new Date(current.getFullYear(), current.getMonth() + 1, 1));
 
     this.generateCalendar();
   }
 
-  /*
-   * =====================================================
-   * GENERAR CALENDARIO
-   *
-   * LUNES -> DOMINGO
-   * =====================================================
-   */
-
   private generateCalendar(): void {
+    const month = this.calendarMonth();
 
-    const month =
-      this.calendarMonth();
+    const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
 
-    const firstDay =
-      new Date(
-        month.getFullYear(),
-        month.getMonth(),
-        1
-      );
+    const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-    const lastDay =
-      new Date(
-        month.getFullYear(),
-        month.getMonth() + 1,
-        0
-      );
-
-    /*
-     * Lunes = primer día
-     */
-
-    let mondayOffset =
-      firstDay.getDay() - 1;
+    let mondayOffset = firstDay.getDay() - 1;
 
     if (mondayOffset < 0) {
       mondayOffset = 6;
     }
 
-    const startDate =
-      new Date(firstDay);
+    const startDate = new Date(firstDay);
+    startDate.setDate(firstDay.getDate() - mondayOffset);
 
-    startDate.setDate(
-      firstDay.getDate() -
-      mondayOffset
-    );
-
-    /*
-     * Domingo = último día
-     */
-
-    let sundayOffset =
-      7 - lastDay.getDay();
+    let sundayOffset = 7 - lastDay.getDay();
 
     if (sundayOffset === 7) {
       sundayOffset = 0;
     }
 
-    const endDate =
-      new Date(lastDay);
-
-    endDate.setDate(
-      lastDay.getDate() +
-      sundayOffset
-    );
-
-    /*
-     * Crear días
-     */
+    const endDate = new Date(lastDay);
+    endDate.setDate(lastDay.getDate() + sundayOffset);
 
     const days: CalendarDay[] = [];
-
-    const cursor =
-      new Date(startDate);
+    const cursor = new Date(startDate);
 
     while (cursor <= endDate) {
-
       days.push({
-
-        date:
-          new Date(cursor),
-
-        dayNumber:
-          cursor.getDate(),
-
-        currentMonth:
-          cursor.getMonth() ===
-          month.getMonth(),
-
-        dateKey:
-          this.toDateParam(cursor)
-
+        date: new Date(cursor),
+        dayNumber: cursor.getDate(),
+        currentMonth: cursor.getMonth() === month.getMonth(),
+        dateKey: this.toDateParam(cursor),
       });
 
-      cursor.setDate(
-        cursor.getDate() + 1
-      );
+      cursor.setDate(cursor.getDate() + 1);
     }
 
-    this.calendarDays.set(
-      days
-    );
+    this.calendarDays.set(days);
   }
 
   calendarMonthLabel(): string {
-
-    return new Intl.DateTimeFormat(
-      'es-ES',
-      {
-        month: 'long',
-        year: 'numeric'
-      }
-    )
-      .format(
-        this.calendarMonth()
-      )
-      .replace(
-        /^./,
-        char => char.toUpperCase()
-      );
+    return new Intl.DateTimeFormat('es-ES', {
+      month: 'long',
+      year: 'numeric',
+    })
+      .format(this.calendarMonth())
+      .replace(/^./, (char) => char.toUpperCase());
   }
 
-  /*
-   * =====================================================
-   * HOY
-   * =====================================================
-   */
-
-  isToday(
-    day: CalendarDay
-  ): boolean {
-
-    return day.dateKey ===
-      this.toDateParam(
-        new Date()
-      );
+  isToday(day: CalendarDay): boolean {
+    return day.dateKey === this.toDateParam(new Date());
   }
 
-  /*
-   * =====================================================
-   * DÍAS PASADOS
-   *
-   * NO CLICKEABLES
-   * =====================================================
-   */
-
-  isPastDay(
-    day: CalendarDay
-  ): boolean {
-
-    const today =
-      this.toDateParam(
-        new Date()
-      );
-
-    return day.dateKey < today;
+  isPastDay(day: CalendarDay): boolean {
+    return day.dateKey < this.toDateParam(new Date());
   }
 
-  /*
-   * =====================================================
-   * SELECCIONAR DÍA MANUALMENTE
-   * =====================================================
-   */
-
-  selectCalendarDay(
-    day: CalendarDay
-  ): void {
-
-    /*
-     * No permitir seleccionar
-     * días que ya pasaron
-     */
-
+  selectCalendarDay(day: CalendarDay): void {
     if (this.isPastDay(day)) {
       return;
     }
 
-    const date =
-      day.dateKey;
+    const date = day.dateKey;
+    const start = this.selectedCalendarStart();
+    const end = this.selectedCalendarEnd();
 
-    this.calendarSelectionMode.set(
-      'custom'
-    );
+    this.calendarSelectionMode.set('custom');
 
-    const start =
-      this.selectedCalendarStart();
-
-    const end =
-      this.selectedCalendarEnd();
-
-    /*
-     * Primera selección
-     * o empezar un nuevo rango
-     */
-
-    if (
-      !start ||
-      (start && end)
-    ) {
-
-      this.selectedCalendarStart.set(
-        date
-      );
-
-      this.selectedCalendarEnd.set(
-        null
-      );
-
+    if (!start || (start && end)) {
+      this.selectedCalendarStart.set(date);
+      this.selectedCalendarEnd.set(null);
       return;
     }
 
-    /*
-     * Si selecciona una fecha
-     * anterior al inicio,
-     * invertir el rango
-     */
-
     if (date < start) {
-
-      this.selectedCalendarStart.set(
-        date
-      );
-
-      this.selectedCalendarEnd.set(
-        start
-      );
-
+      this.selectedCalendarStart.set(date);
+      this.selectedCalendarEnd.set(start);
     } else {
-
-      this.selectedCalendarEnd.set(
-        date
-      );
+      this.selectedCalendarEnd.set(date);
     }
   }
 
-  /*
-   * =====================================================
-   * CLASES VISUALES DEL RANGO
-   * =====================================================
-   */
-
-  isRangeStart(
-    day: CalendarDay
-  ): boolean {
-
-    return day.dateKey ===
-      this.selectedCalendarStart();
+  isRangeStart(day: CalendarDay): boolean {
+    return day.dateKey === this.selectedCalendarStart();
   }
 
-  isRangeEnd(
-    day: CalendarDay
-  ): boolean {
-
-    return day.dateKey ===
-      this.selectedCalendarEnd();
+  isRangeEnd(day: CalendarDay): boolean {
+    return day.dateKey === this.selectedCalendarEnd();
   }
 
-  isRangeMiddle(
-    day: CalendarDay
-  ): boolean {
-
-    const start =
-      this.selectedCalendarStart();
-
-    const end =
-      this.selectedCalendarEnd();
+  isRangeMiddle(day: CalendarDay): boolean {
+    const start = this.selectedCalendarStart();
+    const end = this.selectedCalendarEnd();
 
     if (!start || !end) {
       return false;
     }
 
-    return (
-      day.dateKey > start &&
-      day.dateKey < end
-    );
+    return day.dateKey > start && day.dateKey < end;
   }
 
-  isInSelectedRange(
-    day: CalendarDay
-  ): boolean {
-
-    const start =
-      this.selectedCalendarStart();
-
-    const end =
-      this.selectedCalendarEnd();
+  isInSelectedRange(day: CalendarDay): boolean {
+    const start = this.selectedCalendarStart();
+    const end = this.selectedCalendarEnd();
 
     if (!start) {
       return false;
@@ -723,177 +450,65 @@ export class Eventos {
       return day.dateKey === start;
     }
 
-    return (
-      day.dateKey >= start &&
-      day.dateKey <= end
-    );
+    return day.dateKey >= start && day.dateKey <= end;
   }
 
-  /*
-   * =====================================================
-   * SELECCIÓN RÁPIDA
-   * =====================================================
-   */
-
-  selectQuickCalendarRange(
-    option: string
-  ): void {
-
-    const today =
-      new Date();
+  selectQuickCalendarRange(option: string): void {
+    const today = new Date();
 
     let start: Date;
     let end: Date;
 
-    /*
-     * =================================================
-     * ESTE FINDE
-     *
-     * SE MANTIENE IGUAL
-     * =================================================
-     */
+    if (option === 'Este finde') {
+      const day = today.getDay();
 
-    if (
-      option === 'Este finde'
-    ) {
-
-      const day =
-        today.getDay();
-
-      let daysUntilSaturday =
-        day === 6
-          ? 0
-          : 6 - day;
+      let daysUntilSaturday = day === 6 ? 0 : 6 - day;
 
       if (day === 0) {
         daysUntilSaturday = -1;
       }
 
-      start =
-        new Date(today);
+      start = new Date(today);
+      start.setDate(today.getDate() + daysUntilSaturday);
 
-      start.setDate(
-        today.getDate() +
-        daysUntilSaturday
-      );
+      end = new Date(start);
+      end.setDate(start.getDate() + 1);
+    } else if (option === 'Esta semana') {
+      start = new Date(today);
 
-      end =
-        new Date(start);
+      const day = today.getDay();
+      const daysUntilSunday = day === 0 ? 0 : 7 - day;
 
-      end.setDate(
-        start.getDate() + 1
-      );
-
-    /*
-     * =================================================
-     * ESTA SEMANA
-     *
-     * HOY -> DOMINGO
-     *
-     * Lunes    = lunes -> domingo
-     * Martes   = martes -> domingo
-     * Miércoles = miércoles -> domingo
-     * Jueves   = jueves -> domingo
-     * Viernes  = viernes -> domingo
-     * Sábado   = sábado -> domingo
-     * Domingo  = domingo -> domingo
-     * =================================================
-     */
-
-    } else if (
-      option === 'Esta semana'
-    ) {
-
-      start =
-        new Date(today);
-
-      const day =
-        today.getDay();
-
-      const daysUntilSunday =
-        day === 0
-          ? 0
-          : 7 - day;
-
-      end =
-        new Date(today);
-
-      end.setDate(
-        today.getDate() +
-        daysUntilSunday
-      );
-
-    /*
-     * =================================================
-     * PRÓXIMA SEMANA
-     *
-     * LUNES -> DOMINGO
-     * =================================================
-     */
-
+      end = new Date(today);
+      end.setDate(today.getDate() + daysUntilSunday);
     } else {
+      start = this.getMonday(today);
+      start.setDate(start.getDate() + 7);
 
-      start =
-        this.getMonday(today);
-
-      start.setDate(
-        start.getDate() + 7
-      );
-
-      end =
-        new Date(start);
-
-      end.setDate(
-        start.getDate() + 6
-      );
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
     }
 
-    const startKey =
-      this.toDateParam(start);
+    const startKey = this.toDateParam(start);
+    const endKey = this.toDateParam(end);
 
-    const endKey =
-      this.toDateParam(end);
+    this.selectedCalendarStart.set(startKey);
+    this.selectedCalendarEnd.set(endKey);
+    this.calendarSelectionMode.set('quick');
 
-    this.selectedCalendarStart.set(
-      startKey
-    );
-
-    this.selectedCalendarEnd.set(
-      endKey
-    );
-
-    this.calendarSelectionMode.set(
-      'quick'
-    );
-
-    this.filtrosService.filterWhen.set(
-      `RANGO:${startKey}:${endKey}`
-    );
+    this.filtrosService.filterWhen.set(`RANGO:${startKey}:${endKey}`);
 
     if (typeof window !== 'undefined') {
-
       window.dispatchEvent(
-        new CustomEvent(
-          'oona:select-when',
-          {
-            detail: option
-          }
-        )
+        new CustomEvent('oona:select-when', {
+          detail: option,
+        }),
       );
-
     }
   }
 
-  /*
-   * =====================================================
-   * SINCRONIZAR RANGO RÁPIDO
-   * =====================================================
-   */
-
   private syncQuickRangeWithFilter(): void {
-
-    const current =
-      this.filterWhen();
+    const current = this.filterWhen();
 
     if (
       current === 'Esta semana' ||
@@ -901,636 +516,336 @@ export class Eventos {
       current === 'Próxima semana' ||
       current === 'Proxima semana'
     ) {
-
-      this.selectQuickCalendarRange(
-        current
-      );
-
+      this.selectQuickCalendarRange(current);
       return;
     }
 
-    this.selectedCalendarStart.set(
-      null
-    );
-
-    this.selectedCalendarEnd.set(
-      null
-    );
+    this.selectedCalendarStart.set(null);
+    this.selectedCalendarEnd.set(null);
   }
 
-  /*
-   * =====================================================
-   * APLICAR RANGO MANUAL
-   * =====================================================
-   */
-
   applyCustomDateRange(): void {
-
-    const start =
-      this.selectedCalendarStart();
-
-    const end =
-      this.selectedCalendarEnd();
+    const start = this.selectedCalendarStart();
+    const end = this.selectedCalendarEnd();
 
     if (!start) {
       return;
     }
 
-    const finalEnd =
-      end || start;
+    const finalEnd = end || start;
 
-    this.customDateFrom.set(
-      start
-    );
+    this.customDateFrom.set(start);
+    this.customDateTo.set(finalEnd);
 
-    this.customDateTo.set(
-      finalEnd
-    );
+    this.filtrosService.filterWhen.set(`RANGO:${start}:${finalEnd}`);
 
-    this.filtrosService.filterWhen.set(
-      `RANGO:${start}:${finalEnd}`
-    );
-
-    this.showDatePicker.set(
-      false
-    );
+    this.showDatePicker.set(false);
   }
-
-  /*
-   * =====================================================
-   * BORRAR
-   * =====================================================
-   */
 
   clearDateFilter(): void {
+    this.selectedCalendarStart.set(null);
+    this.selectedCalendarEnd.set(null);
 
-    this.selectedCalendarStart.set(
-      null
-    );
+    this.customDateFrom.set(this.toDateParam(new Date()));
+    this.customDateTo.set(this.toDateParam(new Date()));
 
-    this.selectedCalendarEnd.set(
-      null
-    );
-
-    this.customDateFrom.set(
-      this.toDateParam(new Date())
-    );
-
-    this.customDateTo.set(
-      this.toDateParam(new Date())
-    );
-
-    this.filtrosService.filterWhen.set(
-      null
-    );
-
-    this.showDatePicker.set(
-      false
-    );
+    this.filtrosService.filterWhen.set(null);
+    this.showDatePicker.set(false);
   }
 
-  updateCustomDateFrom(
-    event: Event
-  ): void {
-
-    const value =
-      (event.target as HTMLInputElement)
-        .value;
-
-    this.customDateFrom.set(
-      value
-    );
+  updateCustomDateFrom(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.customDateFrom.set(value);
   }
 
-  updateCustomDateTo(
-    event: Event
-  ): void {
-
-    const value =
-      (event.target as HTMLInputElement)
-        .value;
-
-    this.customDateTo.set(
-      value
-    );
+  updateCustomDateTo(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.customDateTo.set(value);
   }
-
-  /*
-   * =====================================================
-   * ETIQUETA DEL BOTÓN
-   * =====================================================
-   */
 
   isCustomDateActive(): boolean {
-
-    return this.filterWhen()
-      ?.startsWith('RANGO:')
-      ?? false;
+    return this.filterWhen()?.startsWith('RANGO:') ?? false;
   }
 
   customDateLabel(): string {
-
     if (!this.isCustomDateActive()) {
       return 'Elegir fecha';
     }
 
-    const [
-      ,
-      from,
-      to
-    ] =
-      this.filterWhen()
-        ?.split(':')
-      ?? [];
+    const [, from, to] = this.filterWhen()?.split(':') ?? [];
 
     return from === to
       ? this.formatShortDate(from)
       : `${this.formatShortDate(from)} - ${this.formatShortDate(to)}`;
   }
 
-  /*
-   * =====================================================
-   * ORDENAMIENTO
-   * =====================================================
-   */
+  // Orden y paginación
 
   toggleSortMenu(): void {
-
-    this.showSortMenu.update(
-      value => !value
-    );
+    this.showSortMenu.update((value) => !value);
   }
 
-  selectSort(
-    option: EventSortOption
-  ): void {
-
-    this.selectedSort.set(
-      option
-    );
-
-    this.showSortMenu.set(
-      false
-    );
+  selectSort(option: EventSortOption): void {
+    this.selectedSort.set(option);
+    this.showSortMenu.set(false);
   }
 
-  toggleDescription(): void {
-
-    this.expandedDescription.update(
-      value => !value
-    );
-  }
-
-  clearFilters(): void {
-
-    this.showDatePicker.set(
-      false
-    );
-
-    this.selectedCalendarStart.set(
-      null
-    );
-
-    this.selectedCalendarEnd.set(
-      null
-    );
-
-    this.filtrosService.clearFilters();
-  }
-
-  /*
-   * =====================================================
-   * FAVORITOS
-   * =====================================================
-   */
-
-  toggleFavorito(
-    item: EventCardResponse
-  ): void {
-
-    if (
-      !this.authService.isLoggedIn
-    ) {
-
-      this.showFavoriteLoginCard.set(
-        true
-      );
-
+  goToPage(page: number): void {
+    if (this.loading() || !Number.isInteger(page) || page < 0 || page >= this.totalPages()) {
       return;
     }
 
-    this.favoritesService
-      .toggleFavorite(
-        'EVENTO',
-        item.id
-      )
-      .subscribe({
+    this.currentPage.set(page);
+  }
 
-        error: error => {
+  toggleDescription(): void {
+    this.expandedDescription.update((value) => !value);
+  }
 
-          console.error(
-            'Error toggling favorite',
-            error
-          );
+  // Favoritos
 
+  toggleFavorito(item: EventCardResponse): void {
+    if (!this.authService.isLoggedIn) {
+      this.showFavoriteLoginCard.set(true);
+      return;
+    }
+
+    this.favoritesService.toggleFavorite('EVENTO', item.id).subscribe({
+      next: () => {
+        if (this.effectiveSort().sort === 'recommended') {
+          this.recommendationVersion.update((value) => value + 1);
         }
-
-      });
+      },
+      error: (error) => {
+        console.error('Error toggling favorite', error);
+      },
+    });
   }
 
-  isFavorito(
-    item: EventCardResponse
-  ): boolean {
-
-    return this.favoritos()
-      .has(item.id);
+  isFavorito(item: EventCardResponse): boolean {
+    return this.favoritos().has(item.id);
   }
 
-  /*
-   * =====================================================
-   * UTILIDADES
-   * =====================================================
-   */
+  // Presentación
 
-  categoryEmoji(
-    name: string | null
-  ): string {
-
+  categoryEmoji(name: string | null): string {
     return categoryIcon(name);
   }
 
-  isOnline(
-    item: EventCardResponse
-  ): boolean {
-
-    return item.modality ===
-      EventModality.ONLINE;
+  isOnline(item: EventCardResponse): boolean {
+    return item.modality === EventModality.ONLINE;
   }
 
-  formatDate(
-    value: string | null
-  ): string {
-
+  formatDate(value: string | null): string {
     if (!value) {
       return 'Fecha por confirmar';
     }
 
-    return new Intl.DateTimeFormat(
-      'es-ES',
-      {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      }
-    ).format(
-      new Date(value)
-    );
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
   }
 
-  formatPrice(
-    item: EventCardResponse
-  ): string {
-
-    if (
-      item.priceFrom === null ||
-      item.priceFrom === undefined
-    ) {
-
+  formatPrice(item: EventCardResponse): string {
+    if (item.priceFrom === null || item.priceFrom === undefined) {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat(
-      'es-ES',
-      {
-        style: 'currency',
-        currency:
-          item.currency || 'EUR',
-        maximumFractionDigits: 0
-      }
-    ).format(
-      item.priceFrom
-    );
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: item.currency || 'EUR',
+      maximumFractionDigits: 0,
+    }).format(item.priceFrom);
   }
 
-  assetUrl(
-    url: string | null | undefined,
-    fallback = this.fallbackImage
-  ): string {
-
-    return this.eventosService
-      .resolveAssetUrl(url)
-      ?? fallback;
+  assetUrl(url: string | null | undefined, fallback = this.fallbackImage): string {
+    return this.eventosService.resolveAssetUrl(url) ?? fallback;
   }
 
-  /*
-   * =====================================================
-   * LUNES DE UNA SEMANA
-   * =====================================================
-   *
-   * Se mantiene porque PRÓXIMA SEMANA
-   * empieza siempre el lunes.
-   */
+  private getMonday(date: Date): Date {
+    const result = new Date(date);
+    const day = result.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
 
-  private getMonday(
-    date: Date
-  ): Date {
-
-    const result =
-      new Date(date);
-
-    const day =
-      result.getDay();
-
-    const diff =
-      day === 0
-        ? -6
-        : 1 - day;
-
-    result.setDate(
-      result.getDate() + diff
-    );
+    result.setDate(result.getDate() + diff);
 
     return result;
   }
 
-  /*
-   * =====================================================
-   * FECHA YYYY-MM-DD
-   * =====================================================
-   */
-
-  private toDateParam(
-    date: Date
-  ): string {
-
-    const year =
-      date.getFullYear();
-
-    const month =
-      String(
-        date.getMonth() + 1
-      ).padStart(2, '0');
-
-    const day =
-      String(
-        date.getDate()
-      ).padStart(2, '0');
+  private toDateParam(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }
 
-  /*
-   * =====================================================
-   * FECHA CORTA
-   * =====================================================
-   */
-
-  private formatShortDate(
-    value: string | undefined
-  ): string {
-
+  private formatShortDate(value: string | undefined): string {
     if (!value) {
       return 'Fecha';
     }
 
-    return new Intl.DateTimeFormat(
-      'es-ES',
-      {
-        day: '2-digit',
-        month: 'short'
-      }
-    ).format(
-      new Date(
-        `${value}T00:00:00`
-      )
-    );
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+    }).format(new Date(`${value}T00:00:00`));
   }
 
-  /*
-   * =====================================================
-   * BACKEND
-   * =====================================================
-   */
+  // Consultas al backend
 
   private loadCategorias(): void {
-
-    this.eventosService
-      .getCategorias()
-      .subscribe({
-
-        next: categorias => {
-
-          this.categorias.set(
-            categorias.filter(
-              categoria =>
-                categoria.active
-            )
-          );
-
-        },
-
-        error: () => {
-
-          this.categorias.set(
-            []
-          );
-
-        }
-
-      });
+    this.eventosService.getCategorias().subscribe({
+      next: (categorias) => {
+        this.categorias.set(categorias.filter((categoria) => categoria.active));
+      },
+      error: () => {
+        this.categorias.set([]);
+      },
+    });
   }
 
   private loadExperienceTypes(): void {
-
-    this.eventosService
-      .getExperienceTypes()
-      .subscribe({
-
-        next: types => {
-
-          this.experienceTypes.set(
-            types
-          );
-
-        },
-
-        error: () => {
-
-          this.experienceTypes.set(
-            []
-          );
-
-        }
-
-      });
+    this.eventosService.getExperienceTypes().subscribe({
+      next: (types) => {
+        this.experienceTypes.set(types);
+      },
+      error: () => {
+        this.experienceTypes.set([]);
+      },
+    });
   }
 
-  private loadEventos(
-    criteria:
-      Record<
-        string,
-        string | null
-      >
-  ): void {
+  private loadEventos(filters: EventFilterParams, useRecommendations: boolean): Subscription {
+    this.loading.set(true);
+    this.error.set(null);
+    this.eventos.set([]);
+    this.recommendationReasons.set({});
+    this.totalEventos.set(0);
+    this.totalPages.set(0);
 
-    const requestKey =
-      JSON.stringify(criteria);
+    let request$: Observable<CatalogPage>;
 
-    if (
-      requestKey ===
-      this.lastRequestKey
-    ) {
+    if (useRecommendations) {
+      const recommendationFilters: RecommendationFilterParams = {
+        search: filters.search,
+        categoryId: filters.categoryId,
+        categoryIds: filters.categoryIds,
+        experienceTypeId: filters.experienceTypeId,
+        modality: filters.modality,
+        cityName: filters.cityName,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        hourFrom: filters.hourFrom,
+        hourTo: filters.hourTo,
+        isRecurring: filters.isRecurring,
+        useProfileCity: false,
+        includeOnline: true,
+      };
 
-      return;
+      request$ = this.eventosService
+        .getRecommendedEventos(filters.page ?? 0, filters.size ?? 24, recommendationFilters)
+        .pipe(
+          map((page) => {
+            const reasons: Record<number, string> = {};
+
+            for (const item of page.content) {
+              if (item.score > 0) {
+                reasons[item.event.id] = item.reason;
+              }
+            }
+
+            return {
+              events: page.content.map((item) => item.event),
+              reasons,
+              totalElements: page.totalElements,
+              totalPages: page.totalPages,
+            };
+          }),
+        );
+    } else {
+      request$ = this.eventosService.getEventos(filters).pipe(
+        map((page) => ({
+          events: page.content,
+          reasons: {},
+          totalElements: page.totalElements,
+          totalPages: page.totalPages,
+        })),
+      );
     }
 
-    this.lastRequestKey =
-      requestKey;
+    return request$.subscribe({
+      next: (page) => {
+        this.eventos.set(page.events);
+        this.recommendationReasons.set(page.reasons);
+        this.totalEventos.set(page.totalElements);
+        this.totalPages.set(page.totalPages);
+        this.loading.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.eventos.set([]);
+        this.recommendationReasons.set({});
+        this.totalEventos.set(0);
+        this.totalPages.set(0);
 
-    this.loading.set(
-      true
-    );
+        this.error.set(
+          error.status === 401 || error.status === 403
+            ? 'Inicia sesión con una cuenta de usuario para consultar recomendaciones.'
+            : 'No pudimos cargar los eventos. Inténtalo nuevamente.',
+        );
 
-    this.error.set(
-      null
-    );
-
-    this.eventosService
-      .getEventos(
-        this.buildFilters()
-      )
-      .subscribe({
-
-        next: page => {
-
-          this.eventos.set(
-            page.content ?? []
-          );
-
-          this.totalEventos.set(
-            page.totalElements
-              ??
-            page.content?.length
-              ??
-            0
-          );
-
-          this.loading.set(
-            false
-          );
-
-        },
-
-        error: () => {
-
-          this.eventos.set(
-            []
-          );
-
-          this.totalEventos.set(
-            0
-          );
-
-          this.error.set(
-            'El backend no está disponible en este momento. No se pueden mostrar eventos reales.'
-          );
-
-          this.loading.set(
-            false
-          );
-
-        }
-
-      });
+        this.loading.set(false);
+      },
+    });
   }
 
-  private buildFilters():
-    EventFilterParams {
+  private buildFilters(): EventFilterParams {
+    const categoryIds = this.filterCategories()
+      .map((name) => this.categoryIdFor(name))
+      .filter((id): id is number => id !== undefined);
 
     return {
-
+      page: this.currentPage(),
       size: 24,
 
-      search:
-        this.searchQuery()
-          .trim()
-        || undefined,
+      search: this.searchQuery().trim() || undefined,
 
-      ...this.dateRangeFor(
-        this.filterWhen()
-      ),
+      ...this.dateRangeFor(this.filterWhen()),
+      ...this.timeRangeFor(this.filterTimeOfDay()),
+      ...this.filtrosService.priceRangeFor(this.filtrosService.filterPrice()),
 
-      ...this.timeRangeFor(
-        this.filterTimeOfDay()
-      ),
+      categoryIds: categoryIds.length ? categoryIds : undefined,
 
-      categoryId:
-        this.categoryIdFor(
-          this.filterCategories()[0]
-        ),
+      experienceTypeId: this.experienceTypeIdFor(this.filterTypes()[0]),
 
-      experienceTypeId:
-        this.experienceTypeIdFor(
-          this.filterTypes()[0]
-        ),
+      cityName: this.filterCity() !== 'Todas' ? this.filterCity() : undefined,
 
-      cityName:
-        this.filterCity() !== 'Todas'
-          ? this.filterCity()
-          : undefined,
+      modality: this.modalityFor(this.filterModality()),
 
-      modality:
-        this.modalityFor(
-          this.filterModality()
-        ),
+      isRecurring: this.recurrenceFor(this.filterRecurrence()),
 
-      isRecurring:
-        this.recurrenceFor(
-          this.filterRecurrence()
-        ),
-
-      sort:
-        this.selectedSort().sort
+      sort: this.effectiveSort().sort === 'recommended' ? undefined : this.effectiveSort().sort,
     };
   }
 
-  private categoryIdFor(
-    name: string | undefined
-  ): number | undefined {
-
-    return this.categorias()
-      .find(
-        categoria =>
-          categoria.name === name
-      )
-      ?.id;
+  private categoryIdFor(name: string | undefined): number | undefined {
+    return this.categorias().find((categoria) => categoria.name === name)?.id;
   }
 
-  private modalityFor(
-    value: string | null
-  ): EventModality | undefined {
-
+  private modalityFor(value: string | null): EventModality | undefined {
     if (!value) {
       return undefined;
     }
 
-    if (
-      value.toLowerCase() ===
-      'online'
-    ) {
-
-      return EventModality.ONLINE;
-    }
-
-    return EventModality.PRESENCIAL;
+    return value.toLowerCase() === 'online' ? EventModality.ONLINE : EventModality.PRESENCIAL;
   }
 
-  private recurrenceFor(
-    value: string | null
-  ): boolean | undefined {
-
+  private recurrenceFor(value: string | null): boolean | undefined {
     if (!value) {
       return undefined;
     }
@@ -1538,245 +853,76 @@ export class Eventos {
     return value === 'Recurrente';
   }
 
-  private experienceTypeIdFor(
-    value: string | undefined
-  ): number | undefined {
-
-    return this.experienceTypes()
-      .find(
-        type =>
-          type.name === value
-      )
-      ?.id;
+  private experienceTypeIdFor(value: string | undefined): number | undefined {
+    return this.experienceTypes().find((type) => type.name === value)?.id;
   }
 
-  private timeRangeFor(
-    value: string | null
-  ): Pick<
-    EventFilterParams,
-    'hourFrom' | 'hourTo'
-  > {
-
-    const map: Record<
-      string,
-      Pick<
-        EventFilterParams,
-        'hourFrom' | 'hourTo'
-      >
-    > = {
-
-      'Manana': {
-        hourFrom: 6,
-        hourTo: 12
-      },
-
-      'Mañana': {
-        hourFrom: 6,
-        hourTo: 12
-      },
-
-      'Mediodia': {
-        hourFrom: 12,
-        hourTo: 16
-      },
-
-      'Mediodía': {
-        hourFrom: 12,
-        hourTo: 16
-      },
-
-      'Tarde': {
-        hourFrom: 16,
-        hourTo: 20
-      },
-
-      'Noche': {
-        hourFrom: 20,
-        hourTo: 23
-      }
-
+  private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {
+    const ranges: Record<string, Pick<EventFilterParams, 'hourFrom' | 'hourTo'>> = {
+      Manana: { hourFrom: 6, hourTo: 12 },
+      Mañana: { hourFrom: 6, hourTo: 12 },
+      Mediodia: { hourFrom: 12, hourTo: 16 },
+      Mediodía: { hourFrom: 12, hourTo: 16 },
+      Tarde: { hourFrom: 16, hourTo: 20 },
+      Noche: { hourFrom: 20, hourTo: 23 },
     };
 
-    return value
-      ? map[value] ?? {}
-      : {};
+    return value ? (ranges[value] ?? {}) : {};
   }
 
-  /*
-   * =====================================================
-   * RANGO DE FECHAS PARA BACKEND
-   * =====================================================
-   */
-
-  private dateRangeFor(
-    value: string | null
-  ): Pick<
-    EventFilterParams,
-    'dateFrom' | 'dateTo'
-  > {
-
+  private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {
     if (!value) {
       return {};
     }
 
-    /*
-     * RANGO:
-     *
-     * Se usa tanto para selección manual
-     * como para los botones rápidos.
-     */
-
-    if (
-      value.startsWith('RANGO:')
-    ) {
-
-      const [
-        ,
-        dateFrom,
-        dateTo
-      ] =
-        value.split(':');
+    if (value.startsWith('RANGO:')) {
+      const [, dateFrom, dateTo] = value.split(':');
 
       return {
-
         dateFrom,
-
-        dateTo:
-          dateTo || dateFrom
-
+        dateTo: dateTo || dateFrom,
       };
     }
 
-    const today =
-      new Date();
+    const today = new Date();
+    let start = new Date(today);
+    let end = new Date(today);
 
-    let start =
-      new Date(today);
+    if (value === 'Mañana' || value === 'Manana') {
+      start.setDate(today.getDate() + 1);
+      end.setDate(today.getDate() + 1);
+    } else if (value === 'Este finde') {
+      const day = today.getDay();
 
-    let end =
-      new Date(today);
-
-    /*
-     * =================================================
-     * MAÑANA
-     * =================================================
-     */
-
-    if (
-      value === 'Mañana' ||
-      value === 'Manana'
-    ) {
-
-      start.setDate(
-        today.getDate() + 1
-      );
-
-      end.setDate(
-        today.getDate() + 1
-      );
-
-    /*
-     * =================================================
-     * ESTE FINDE
-     * =================================================
-     */
-
-    } else if (
-      value === 'Este finde'
-    ) {
-
-      const day =
-        today.getDay();
-
-      let daysUntilSaturday =
-        day === 6
-          ? 0
-          : 6 - day;
+      let daysUntilSaturday = day === 6 ? 0 : 6 - day;
 
       if (day === 0) {
         daysUntilSaturday = -1;
       }
 
-      start.setDate(
-        today.getDate() +
-        daysUntilSaturday
-      );
+      start.setDate(today.getDate() + daysUntilSaturday);
 
-      end =
-        new Date(start);
+      end = new Date(start);
+      end.setDate(start.getDate() + 1);
+    } else if (value === 'Esta semana') {
+      start = new Date(today);
 
-      end.setDate(
-        start.getDate() + 1
-      );
+      const day = today.getDay();
+      const daysUntilSunday = day === 0 ? 0 : 7 - day;
 
-    /*
-     * =================================================
-     * ESTA SEMANA
-     *
-     * IMPORTANTE:
-     * HOY -> DOMINGO
-     * =================================================
-     */
+      end = new Date(today);
+      end.setDate(today.getDate() + daysUntilSunday);
+    } else if (value === 'Próxima semana' || value === 'Proxima semana') {
+      start = this.getMonday(today);
+      start.setDate(start.getDate() + 7);
 
-    } else if (
-      value === 'Esta semana'
-    ) {
-
-      start =
-        new Date(today);
-
-      const day =
-        today.getDay();
-
-      const daysUntilSunday =
-        day === 0
-          ? 0
-          : 7 - day;
-
-      end =
-        new Date(today);
-
-      end.setDate(
-        today.getDate() +
-        daysUntilSunday
-      );
-
-    /*
-     * =================================================
-     * PRÓXIMA SEMANA
-     *
-     * LUNES -> DOMINGO
-     * =================================================
-     */
-
-    } else if (
-      value === 'Próxima semana' ||
-      value === 'Proxima semana'
-    ) {
-
-      start =
-        this.getMonday(today);
-
-      start.setDate(
-        start.getDate() + 7
-      );
-
-      end =
-        new Date(start);
-
-      end.setDate(
-        start.getDate() + 6
-      );
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
     }
 
     return {
-
-      dateFrom:
-        this.toDateParam(start),
-
-      dateTo:
-        this.toDateParam(end)
-
+      dateFrom: this.toDateParam(start),
+      dateTo: this.toDateParam(end),
     };
   }
 }

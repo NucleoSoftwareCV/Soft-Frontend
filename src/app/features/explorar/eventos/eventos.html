@@ -27,8 +27,6 @@
 
       <div class="filters-scroll">
 
-        <!-- FILTROS -->
-
         <button
           class="filter-btn filter-main-btn"
           type="button"
@@ -58,11 +56,9 @@
           Filtros
 
           @if (activeFilterCount > 0) {
-
-            <span class="filter-badge">
+          <span class="filter-badge">
               {{ activeFilterCount }}
             </span>
-
           }
 
         </button>
@@ -119,9 +115,7 @@
         </button>
 
 
-        <!-- =================================================
-             ELEGIR FECHA
-             ================================================= -->
+        <!-- ELEGIR FECHA -->
 
         <div class="date-filter-wrapper">
 
@@ -182,14 +176,12 @@
             </span>
 
             @if (
-              isCustomDateActive() ||
-              !!filterWhen()
+            isCustomDateActive() ||
+            !!filterWhen()
             ) {
-
-              <span class="filter-check">
+            <span class="filter-check">
                 ✓
               </span>
-
             }
 
           </button>
@@ -207,21 +199,21 @@
 
     @if (searchQuery()) {
 
-      <div class="search-banner">
+    <div class="search-banner">
 
         <span>
           Resultados para «{{ searchQuery() }}»
         </span>
 
-        <button
-          type="button"
-          class="search-banner-clear"
-          (click)="clearSearchQuery()"
-        >
-          Quitar búsqueda ×
-        </button>
+      <button
+        type="button"
+        class="search-banner-clear"
+        (click)="clearSearchQuery()"
+      >
+        Quitar búsqueda ×
+      </button>
 
-      </div>
+    </div>
 
     }
 
@@ -237,12 +229,10 @@
         {{ totalEventos() }}
 
         {{
-          totalEventos() === 1
-            ? 'experiencia'
-            : 'experiencias'
+        totalEventos() === 1
+        ? 'experiencia'
+        : 'experiencias'
         }}
-
-        cerca de ti
 
       </strong>
 
@@ -251,13 +241,13 @@
 
         @if (activeFilterCount > 0) {
 
-          <button
-            class="filter-clear-btn"
-            type="button"
-            (click)="clearFilters()"
-          >
-            Limpiar filtros
-          </button>
+        <button
+          class="filter-clear-btn"
+          type="button"
+          (click)="clearFilters()"
+        >
+          Limpiar filtros
+        </button>
 
         }
 
@@ -269,6 +259,7 @@
           <button
             class="sort-btn"
             type="button"
+            [attr.aria-expanded]="showSortMenu()"
             (click)="toggleSortMenu()"
           >
 
@@ -331,36 +322,36 @@
 
             </span>
 
-            {{ selectedSort().label }}
+            {{ effectiveSort().label }}
 
           </button>
 
 
           @if (showSortMenu()) {
 
-            <div class="sort-menu">
+          <div class="sort-menu">
 
-              @for (
-                option of sortOptions;
-                track option.sort
-              ) {
+            @for (
+            option of availableSortOptions();
+            track option.sort
+            ) {
 
-                <button
-                  type="button"
-                  class="sort-option"
-                  [class.active]="
-                    selectedSort().sort === option.sort
+            <button
+              type="button"
+              class="sort-option"
+              [class.active]="
+                    effectiveSort().sort === option.sort
                   "
-                  (click)="selectSort(option)"
-                >
+              (click)="selectSort(option)"
+            >
 
-                  {{ option.label }}
+              {{ option.label }}
 
-                </button>
+            </button>
 
-              }
+            }
 
-            </div>
+          </div>
 
           }
 
@@ -377,181 +368,169 @@
 
     @if (loading()) {
 
-      <div class="cards-grid skeleton-grid">
+    <div class="cards-grid skeleton-grid">
 
-        @for (
-          item of skeletonCards;
-          track $index
-        ) {
+      @for (
+      item of skeletonCards;
+      track $index
+      ) {
 
-          <article class="card skeleton-card">
+      <article class="card skeleton-card">
 
-            <div class="skeleton-image"></div>
+        <div class="skeleton-image"></div>
 
-            <div class="card-body">
+        <div class="card-body">
 
-              <div
-                class="skeleton-line skeleton-tag"
-              ></div>
+          <div
+            class="skeleton-line skeleton-tag"
+          ></div>
 
-              <div
-                class="skeleton-line skeleton-date"
-              ></div>
+          <div
+            class="skeleton-line skeleton-date"
+          ></div>
 
-              <div
-                class="skeleton-line skeleton-title"
-              ></div>
+          <div
+            class="skeleton-line skeleton-title"
+          ></div>
 
-              <div class="skeleton-author">
+          <div class="skeleton-author">
 
-                <div class="skeleton-avatar"></div>
+            <div class="skeleton-avatar"></div>
 
-                <div
-                  class="skeleton-line skeleton-name"
-                ></div>
+            <div
+              class="skeleton-line skeleton-name"
+            ></div>
 
-                <div
-                  class="skeleton-line skeleton-price"
-                ></div>
+            <div
+              class="skeleton-line skeleton-price"
+            ></div>
 
-              </div>
+          </div>
 
-            </div>
+        </div>
 
-          </article>
+      </article>
 
-        }
+      }
 
-      </div>
+    </div>
 
 
     } @else if (error()) {
 
+    <!-- ERROR -->
 
-      <!-- =================================================
-           ERROR
-           ================================================= -->
+    <div class="empty-state backend-state">
 
-      <div class="empty-state backend-state">
+      <h2>
+        Eventos no disponibles
+      </h2>
 
-        <h2>
-          Eventos no disponibles
-        </h2>
+      <p>
+        {{ error() }}
+      </p>
 
-        <p>
-          {{ error() }}
-        </p>
+      <button
+        class="btn-outline"
+        type="button"
+        (click)="clearFilters()"
+      >
+        Limpiar filtros
+      </button>
 
-        <span>
-          No se muestran datos estáticos para evitar
-          información inventada.
-        </span>
-
-        <button
-          class="btn-outline"
-          type="button"
-          (click)="clearFilters()"
-        >
-          Reintentar
-        </button>
-
-      </div>
+    </div>
 
 
     } @else if (eventos().length === 0) {
 
+    <!-- SIN RESULTADOS -->
 
-      <!-- =================================================
-           SIN RESULTADOS
-           ================================================= -->
+    <div class="empty-state">
 
-      <div class="empty-state">
+      <p>
+        No encontramos eventos con esos filtros.
+      </p>
 
-        <p>
-          No encontramos eventos con esos filtros.
-        </p>
+      <button
+        class="btn-outline"
+        type="button"
+        (click)="clearFilters()"
+      >
+        Ver todos los eventos
+      </button>
 
-        <button
-          class="btn-outline"
-          type="button"
-          (click)="clearFilters()"
-        >
-          Ver todos los eventos
-        </button>
-
-      </div>
+    </div>
 
 
     } @else {
 
+    <!-- =================================================
+         TARJETAS
+         ================================================= -->
 
-      <!-- =================================================
-           TARJETAS
-           ================================================= -->
+    <div class="cards-grid">
 
-      <div class="cards-grid">
+      @for (
+      item of eventos();
+      track item.id
+      ) {
 
-        @for (
-          item of eventos();
-          track item.id
-        ) {
+      <article
+        class="card"
+        [routerLink]="['/evento', item.id]"
+      >
 
-          <article
-            class="card"
-            [routerLink]="['/evento', item.id]"
-          >
+        <!-- IMAGEN -->
 
-            <!-- IMAGEN -->
+        <div class="image-box">
 
-            <div class="image-box">
-
-              <img
-                [src]="assetUrl(item.coverImageUrl)"
-                [alt]="item.title"
-                loading="lazy"
-              />
+          <img
+            [src]="assetUrl(item.coverImageUrl)"
+            [alt]="item.title"
+            loading="lazy"
+          />
 
 
-              <!-- FAVORITO -->
+          <!-- FAVORITO -->
 
-              <button
-                class="heart"
-                type="button"
-                [class.active]="isFavorito(item)"
-                [attr.aria-label]="
+          <button
+            class="heart"
+            type="button"
+            [class.active]="isFavorito(item)"
+            [attr.aria-label]="
                   isFavorito(item)
                     ? 'Quitar de favoritos'
                     : 'Guardar en favoritos'
                 "
-                (click)="
-                  toggleFavorito(item);
-                  $event.stopPropagation()
+            (click)="
+                  $event.stopPropagation();
+                  toggleFavorito(item)
                 "
-              >
+          >
 
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
 
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
-                  ></path>
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+              ></path>
 
-                </svg>
+            </svg>
 
-              </button>
+          </button>
 
 
-              <!-- UBICACIÓN -->
+          <!-- UBICACIÓN -->
 
-              <span class="location">
+          <span class="location">
 
                 @if (isOnline(item)) {
 
@@ -627,16 +606,16 @@
 
               </span>
 
-            </div>
+        </div>
 
 
-            <!-- CUERPO -->
+        <!-- CUERPO -->
 
-            <div class="card-body">
+        <div class="card-body">
 
-              <!-- CATEGORÍA -->
+          <!-- CATEGORÍA -->
 
-              <span class="tag">
+          <span class="tag">
 
                 {{ categoryEmoji(item.categoryName) }}
 
@@ -645,18 +624,18 @@
               </span>
 
 
-              <!-- FECHA -->
+          <!-- FECHA -->
 
-              <div class="date-row">
+          <div class="date-row">
 
                 <span>
                   {{ formatDate(item.startsAt) }}
                 </span>
 
 
-                @if (item.isRecurring) {
+            @if (item.isRecurring) {
 
-                  <span class="recurrence-badge">
+            <span class="recurrence-badge">
 
                     <svg
                       width="12"
@@ -691,56 +670,104 @@
 
                   </span>
 
-                }
+            }
 
-              </div>
-
-
-              <!-- TÍTULO -->
-
-              <h2>
-                {{ item.title }}
-              </h2>
+          </div>
 
 
-              <!-- AUTOR -->
+          <!-- TÍTULO -->
 
-              <div class="card-author">
+          <h2>
+            {{ item.title }}
+          </h2>
 
-                <div class="author">
 
-                  <img
-                    [src]="assetUrl(item.organizerPhotoUrl)"
-                    [alt]="
+          <!-- MOTIVO DE RECOMENDACIÓN -->
+
+          @if (recommendationReasons()[item.id]; as reason) {
+
+          <p class="recommendation-reason">
+            {{ reason }}
+          </p>
+
+          }
+
+
+          <!-- AUTOR -->
+
+          <div class="card-author">
+
+            <div class="author">
+
+              <img
+                [src]="assetUrl(item.organizerPhotoUrl)"
+                [alt]="
                       item.organizerName ||
                       'Organizador'
                     "
-                  />
+              />
 
-                  <span>
+              <span>
                     {{ item.organizerName || 'Oona' }}
                   </span>
 
-                </div>
+            </div>
 
 
-                <!-- PRECIO -->
+            <!-- PRECIO -->
 
-                <span class="precio">
+            <span class="precio">
 
                   {{ formatPrice(item) }}
 
                 </span>
 
-              </div>
+          </div>
 
-            </div>
+        </div>
 
-          </article>
+      </article>
 
-        }
+      }
 
-      </div>
+    </div>
+
+
+    <!-- PAGINACIÓN -->
+
+    @if (totalPages() > 1) {
+
+    <nav
+      class="catalog-pagination"
+      aria-label="Paginación de eventos"
+    >
+
+      <button
+        type="button"
+        [disabled]="currentPage() === 0 || loading()"
+        (click)="goToPage(currentPage() - 1)"
+      >
+        Anterior
+      </button>
+
+      <span aria-live="polite">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+
+      <button
+        type="button"
+        [disabled]="
+              currentPage() + 1 >= totalPages() ||
+              loading()
+            "
+        (click)="goToPage(currentPage() + 1)"
+      >
+        Siguiente
+      </button>
+
+    </nav>
+
+    }
 
     }
 
@@ -753,344 +780,271 @@
 
   @if (showDatePicker()) {
 
+  <div
+    class="date-calendar-overlay"
+    (click)="closeDatePicker()"
+  >
+
     <div
-      class="date-calendar-overlay"
-      (click)="closeDatePicker()"
+      class="date-calendar-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="date-calendar-title"
+      (click)="$event.stopPropagation()"
     >
 
-      <div
-        class="date-calendar-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="date-calendar-title"
-        (click)="$event.stopPropagation()"
-      >
+
+      <!-- HEADER -->
+
+      <div class="date-calendar-header">
+
+        <h2 id="date-calendar-title">
+          Fecha
+        </h2>
+
+        <button
+          type="button"
+          class="date-calendar-close"
+          aria-label="Cerrar calendario"
+          (click)="closeDatePicker()"
+        >
+          ×
+        </button>
+
+      </div>
 
 
-        <!-- =================================================
-             HEADER
-             ================================================= -->
+      <!-- SELECCIONES RÁPIDAS -->
 
-        <div class="date-calendar-header">
+      <div class="date-quick-row">
 
-          <h2 id="date-calendar-title">
-            Fecha
-          </h2>
-
-          <button
-            type="button"
-            class="date-calendar-close"
-            aria-label="Cerrar calendario"
-            (click)="closeDatePicker()"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             SELECCIONES RÁPIDAS
-             ================================================= -->
-
-        <div class="date-quick-row">
-
-
-          <!-- ESTA SEMANA -->
-
-          <button
-            type="button"
-            class="date-quick-btn"
-            [class.active]="
-              filterWhen() === 'Esta semana'
-            "
-            (click)="
-              selectQuickCalendarRange(
-                'Esta semana'
-              )
-            "
-          >
-
-            @if (
-              filterWhen() === 'Esta semana'
-            ) {
-
-              <span class="quick-check">
-                ✓
-              </span>
-
-            }
-
-            Esta semana
-
-          </button>
-
-
-          <!-- ESTE FINDE -->
-
-          <button
-            type="button"
-            class="date-quick-btn"
-            [class.active]="
-              filterWhen() === 'Este finde'
-            "
-            (click)="
-              selectQuickCalendarRange(
-                'Este finde'
-              )
-            "
-          >
-
-            @if (
-              filterWhen() === 'Este finde'
-            ) {
-
-              <span class="quick-check">
-                ✓
-              </span>
-
-            }
-
-            Este finde
-
-          </button>
-
-
-          <!-- PRÓXIMA SEMANA -->
-
-          <button
-            type="button"
-            class="date-quick-btn"
-            [class.active]="
-              filterWhen() === 'Próxima semana' ||
-              filterWhen() === 'Proxima semana'
-            "
-            (click)="
-              selectQuickCalendarRange(
-                'Próxima semana'
-              )
-            "
-          >
-
-            @if (
-              filterWhen() === 'Próxima semana' ||
-              filterWhen() === 'Proxima semana'
-            ) {
-
-              <span class="quick-check">
-                ✓
-              </span>
-
-            }
-
-            Próxima semana
-
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             NAVEGACIÓN DEL MES
-             ================================================= -->
-
-        <div class="calendar-month-header">
-
-          <h3>
-            {{ calendarMonthLabel() }}
-          </h3>
-
-
-          <div class="calendar-month-actions">
-
-            <button
-              type="button"
-              class="calendar-arrow"
-              aria-label="Mes anterior"
-              (click)="previousMonth()"
-            >
-              ‹
-            </button>
-
-
-            <button
-              type="button"
-              class="calendar-arrow"
-              aria-label="Mes siguiente"
-              (click)="nextMonth()"
-            >
-              ›
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <!-- =================================================
-             DÍAS DE LA SEMANA
-             ================================================= -->
-
-        <div class="calendar-weekdays">
-
-          <span>LU</span>
-          <span>MA</span>
-          <span>MI</span>
-          <span>JU</span>
-          <span>VI</span>
-          <span>SÁ</span>
-          <span>DO</span>
-
-        </div>
-
-
-        <!-- =================================================
-             CALENDARIO
-             ================================================= -->
-
-        <div
-          class="calendar-grid"
-          [class.today-filter-active]="
-            filterWhen() === 'Hoy'
-          "
+        <button
+          type="button"
+          class="date-quick-btn"
+          [class.active]="filterWhen() === 'Esta semana'"
+          (click)="selectQuickCalendarRange('Esta semana')"
         >
 
-          @for (
-            day of calendarDays();
-            track day.dateKey
-          ) {
-
-            <button
-              type="button"
-              class="calendar-day"
-
-              [class.other-month]="
-                !day.currentMonth
-              "
-
-              [class.range-day]="
-                isInSelectedRange(day)
-              "
-
-              [class.range-middle]="
-                isRangeMiddle(day)
-              "
-
-              [class.range-start]="
-                isRangeStart(day)
-              "
-
-              [class.range-end]="
-                isRangeEnd(day)
-              "
-
-              [class.today]="
-                isToday(day)
-              "
-
-              [class.past-day]="
-                isPastDay(day)
-              "
-
-              (click)="
-                selectCalendarDay(day)
-              "
-            >
-
-              <span class="calendar-day-number">
-
-                {{ day.dayNumber }}
-
+          @if (filterWhen() === 'Esta semana') {
+          <span class="quick-check">
+                ✓
               </span>
-
-            </button>
-
           }
 
-        </div>
+          Esta semana
+
+        </button>
 
 
-        <!-- =================================================
-             FOOTER
-             ================================================= -->
+        <button
+          type="button"
+          class="date-quick-btn"
+          [class.active]="filterWhen() === 'Este finde'"
+          (click)="selectQuickCalendarRange('Este finde')"
+        >
 
-        <div class="date-calendar-footer">
+          @if (filterWhen() === 'Este finde') {
+          <span class="quick-check">
+                ✓
+              </span>
+          }
+
+          Este finde
+
+        </button>
 
 
-          <!-- BORRAR -->
+        <button
+          type="button"
+          class="date-quick-btn"
+          [class.active]="
+              filterWhen() === 'Próxima semana' ||
+              filterWhen() === 'Proxima semana'
+            "
+          (click)="selectQuickCalendarRange('Próxima semana')"
+        >
+
+          @if (
+          filterWhen() === 'Próxima semana' ||
+          filterWhen() === 'Proxima semana'
+          ) {
+          <span class="quick-check">
+                ✓
+              </span>
+          }
+
+          Próxima semana
+
+        </button>
+
+      </div>
+
+
+      <!-- NAVEGACIÓN DEL MES -->
+
+      <div class="calendar-month-header">
+
+        <h3>
+          {{ calendarMonthLabel() }}
+        </h3>
+
+
+        <div class="calendar-month-actions">
 
           <button
             type="button"
-            class="date-clear"
-            (click)="clearDateFilter()"
+            class="calendar-arrow"
+            aria-label="Mes anterior"
+            (click)="previousMonth()"
           >
-
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-
-              <polyline
-                points="3 6 5 6 21 6"
-              ></polyline>
-
-              <path
-                d="M19 6l-1 14H6L5 6"
-              ></path>
-
-              <path
-                d="M10 11v6"
-              ></path>
-
-              <path
-                d="M14 11v6"
-              ></path>
-
-              <path
-                d="M9 6V4h6v2"
-              ></path>
-
-            </svg>
-
-            Borrar
-
+            ‹
           </button>
 
-
-          <!-- MOSTRAR EXPERIENCIAS -->
-
           <button
             type="button"
-            class="date-apply"
-            [disabled]="
-              !selectedCalendarStart()
-            "
-            (click)="applyCustomDateRange()"
+            class="calendar-arrow"
+            aria-label="Mes siguiente"
+            (click)="nextMonth()"
           >
-
-            Mostrar
-
-            {{ totalEventos() }}
-
-            experiencias
-
-            <span class="calendar-apply-icon">
-              📅
-            </span>
-
+            ›
           </button>
 
         </div>
 
       </div>
 
+
+      <!-- DÍAS DE LA SEMANA -->
+
+      <div class="calendar-weekdays">
+
+        <span>LU</span>
+        <span>MA</span>
+        <span>MI</span>
+        <span>JU</span>
+        <span>VI</span>
+        <span>SÁ</span>
+        <span>DO</span>
+
+      </div>
+
+
+      <!-- CALENDARIO -->
+
+      <div
+        class="calendar-grid"
+        [class.today-filter-active]="filterWhen() === 'Hoy'"
+      >
+
+        @for (
+        day of calendarDays();
+        track day.dateKey
+        ) {
+
+        <button
+          type="button"
+          class="calendar-day"
+
+          [class.other-month]="!day.currentMonth"
+
+          [class.range-day]="isInSelectedRange(day)"
+
+          [class.range-middle]="isRangeMiddle(day)"
+
+          [class.range-start]="isRangeStart(day)"
+
+          [class.range-end]="isRangeEnd(day)"
+
+          [class.today]="isToday(day)"
+
+          [class.past-day]="isPastDay(day)"
+
+          (click)="selectCalendarDay(day)"
+        >
+
+              <span class="calendar-day-number">
+                {{ day.dayNumber }}
+              </span>
+
+        </button>
+
+        }
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <div class="date-calendar-footer">
+
+        <button
+          type="button"
+          class="date-clear"
+          (click)="clearDateFilter()"
+        >
+
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <polyline
+              points="3 6 5 6 21 6"
+            ></polyline>
+
+            <path
+              d="M19 6l-1 14H6L5 6"
+            ></path>
+
+            <path
+              d="M10 11v6"
+            ></path>
+
+            <path
+              d="M14 11v6"
+            ></path>
+
+            <path
+              d="M9 6V4h6v2"
+            ></path>
+
+          </svg>
+
+          Borrar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="date-apply"
+          [disabled]="!selectedCalendarStart()"
+          (click)="applyCustomDateRange()"
+        >
+
+          Mostrar
+
+          {{ totalEventos() }}
+
+          experiencias
+
+          <span class="calendar-apply-icon">
+              📅
+            </span>
+
+        </button>
+
+      </div>
+
     </div>
+
+  </div>
 
   }
 
@@ -1101,93 +1055,84 @@
 
   @if (showFavoriteLoginCard()) {
 
+  <div
+    class="favorite-login-overlay"
+    (click)="cerrarFavoriteLoginCard()"
+  >
+
     <div
-      class="favorite-login-overlay"
-      (click)="cerrarFavoriteLoginCard()"
+      class="favorite-login-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="favorite-login-title"
+      (click)="$event.stopPropagation()"
     >
 
-      <div
-        class="favorite-login-card"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="favorite-login-title"
-        (click)="$event.stopPropagation()"
+      <button
+        type="button"
+        class="favorite-login-close"
+        aria-label="Cerrar"
+        (click)="cerrarFavoriteLoginCard()"
       >
+        ×
+      </button>
 
 
-        <!-- CERRAR -->
+      <div class="favorite-login-icon">
+
+        <svg
+          width="27"
+          height="27"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+          ></path>
+
+        </svg>
+
+      </div>
+
+
+      <h2 id="favorite-login-title">
+        Guarda tus eventos favoritos
+      </h2>
+
+      <p>
+        Crea una cuenta gratuita para guardar eventos
+        y recibir recomendaciones personalizadas
+      </p>
+
+
+      <div class="favorite-login-actions">
 
         <button
           type="button"
-          class="favorite-login-close"
-          aria-label="Cerrar"
-          (click)="cerrarFavoriteLoginCard()"
+          class="favorite-create-btn"
+          (click)="irAAuthLogin()"
         >
-          ×
+          Crear cuenta
         </button>
 
-
-        <!-- ICONO -->
-
-        <div class="favorite-login-icon">
-
-          <svg
-            width="27"
-            height="27"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-
-            <path
-              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
-            ></path>
-
-          </svg>
-
-        </div>
-
-
-        <!-- TEXTO -->
-
-        <h2 id="favorite-login-title">
-          Guarda tus eventos favoritos
-        </h2>
-
-        <p>
-          Crea una cuenta gratuita para guardar eventos
-          y recibir recomendaciones personalizadas
-        </p>
-
-
-        <!-- BOTONES -->
-
-        <div class="favorite-login-actions">
-
-          <button
-            type="button"
-            class="favorite-create-btn"
-            (click)="irAAuthLogin()"
-          >
-            Crear cuenta
-          </button>
-
-          <button
-            type="button"
-            class="favorite-login-btn"
-            (click)="irAAuthLogin()"
-          >
-            Ya tengo cuenta
-          </button>
-
-        </div>
+        <button
+          type="button"
+          class="favorite-login-btn"
+          (click)="irAAuthLogin()"
+        >
+          Ya tengo cuenta
+        </button>
 
       </div>
 
     </div>
+
+  </div>
 
   }
 
