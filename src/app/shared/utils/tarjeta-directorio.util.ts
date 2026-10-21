@@ -29,6 +29,7 @@ export function toTarjetaDirectorio(
 
   const temas = perfil.workTopics ?? [];
   const tecnicas = perfil.techniques ?? [];
+  const ciudad = perfil.cityName?.trim() || '';
 
   return {
     id: perfil.id,
@@ -38,8 +39,8 @@ export function toTarjetaDirectorio(
 
     nombre: perfil.publicName,
 
-    ubicacion: 'Valencia',
-    ubicacionCompleta: 'Valencia, España',
+    ubicacion: ciudad || 'Ciudad no indicada',
+    ubicacionCompleta: ciudad ? `${ciudad}, España` : 'Ciudad no indicada',
 
     cita: perfil.biography,
     bio: perfil.description || perfil.biography,
