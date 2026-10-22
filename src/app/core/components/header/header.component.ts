@@ -149,6 +149,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   pendingTimeOfDay = signal<string | null>(null);
   pendingModality = signal<string | null>(null);
   pendingRecurrence = signal<string | null>(null);
+  pendingMood = signal<string | null>(null);
 
   // ★ NUEVO: precio pendiente (pills del modal de filtros)
   pendingPrice = signal<string | null>(null);
@@ -190,6 +191,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.filtrosService.priceOptions;
   }
 
+  get moodOptions(){
+    return this.filtrosService.moodOptions;
+  }
+
   // =========================================================
   // CONTADOR DE FILTROS
   // =========================================================
@@ -207,7 +212,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.pendingTimeOfDay() ? 1 : 0) +
       (this.pendingModality() ? 1 : 0) +
       (this.pendingRecurrence() ? 1 : 0) +
-      (this.pendingPrice() ? 1 : 0)
+      (this.pendingPrice() ? 1 : 0) +
+      (this.pendingMood() ? 1 : 0)
     );
   }
 
@@ -747,6 +753,10 @@ onSearchBlur(): void {
 
     this.isFilterOpen.set(true);
     this.isCityOpen.set(false);
+
+    this.pendingMood.set(
+      this.filtrosService.filterMood()
+    );
   }
 
   applyFilters(): void {
@@ -784,6 +794,10 @@ onSearchBlur(): void {
     );
 
     this.isFilterOpen.set(false);
+
+    this.filtrosService.filterMood.set(
+      this.pendingMood()
+    );
   }
 
   closeFilter(): void {
@@ -857,6 +871,14 @@ onSearchBlur(): void {
     );
   }
 
+  pendingSelectMood(m: string): void {
+    this.pendingMood.set(
+      this.pendingMood() === m
+        ? null
+        : m
+    );
+  }
+
   pendingClearFilters(): void {
     this.pendingWhen.set(null);
     this.pendingCategories.set([]);
@@ -870,6 +892,8 @@ onSearchBlur(): void {
     this.pendingPrice.set(null);
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
+
+    this.pendingMood.set(null);
   }
 
   // =========================================================
@@ -1158,6 +1182,7 @@ onSearchBlur(): void {
     this.pendingModality();
     this.pendingRecurrence();
     this.pendingPrice();
+    this.pendingMood();
 
     untracked(() => this.pendingCountTrigger$.next());
   });
@@ -1172,6 +1197,7 @@ onSearchBlur(): void {
       modality: this.pendingModality(),
       recurrence: this.pendingRecurrence(),
       price: this.pendingPrice(),
+      mood: this.pendingMood(),
     };
   }
 
