@@ -1,3 +1,4 @@
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -77,6 +78,26 @@ export interface PageResponse<T> {
   number: number;
 }
 
+// Respuesta de un comentario individual.
+
+export interface ProfessionalReviewResponse {
+  id: number;
+  authorName?: string;
+  username?: string;
+  comment: string;
+  createdAt: string;
+}
+
+
+// Resumen paginado de comentarios de un profesional.
+export interface ProfessionalReviewSummaryResponse {
+  total: number;
+  reviews: ProfessionalReviewResponse[];
+  page: number;
+  size: number;
+  hasMore: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -84,73 +105,124 @@ export class SpecialistProfileService {
 
   private http = inject(HttpClient);
 
-  private readonly apiUrl = `${environment.apiUrl}/specialist-profiles`;
+  private readonly apiUrl =
+    `${environment.apiUrl}/specialist-profiles`;
 
   resolveAssetUrl(url?: string): string | undefined {
-    if (!url || /^(https?:|data:|blob:)/i.test(url)) return url;
-    if (!environment.apiUrl.startsWith('http')) return url;
+    if (!url || /^(https?:|data:|blob:)/i.test(url)) {
+      return url;
+    }
+
+    if (!environment.apiUrl.startsWith('http')) {
+      return url;
+    }
 
     const apiOrigin = new URL(environment.apiUrl).origin;
+
     return `${apiOrigin}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   getMine(): Observable<SpecialistProfileResponse> {
-    return this.http.get<SpecialistProfileResponse>(`${this.apiUrl}/me`);
+    return this.http.get<SpecialistProfileResponse>(
+      `${this.apiUrl}/me`
+    );
   }
 
-  updateMine(request: SpecialistProfileUpdateRequest): Observable<SpecialistProfileResponse> {
-    return this.http.patch<SpecialistProfileResponse>(`${this.apiUrl}/me`, request);
+  updateMine(
+    request: SpecialistProfileUpdateRequest
+  ): Observable<SpecialistProfileResponse> {
+    return this.http.patch<SpecialistProfileResponse>(
+      `${this.apiUrl}/me`,
+      request
+    );
   }
 
   publishMine(): Observable<SpecialistProfileResponse> {
-    return this.http.patch<SpecialistProfileResponse>(`${this.apiUrl}/me/publish`, {});
+    return this.http.patch<SpecialistProfileResponse>(
+      `${this.apiUrl}/me/publish`,
+      {}
+    );
   }
 
   unpublishMine(): Observable<SpecialistProfileResponse> {
-    return this.http.patch<SpecialistProfileResponse>(`${this.apiUrl}/me/unpublish`, {});
+    return this.http.patch<SpecialistProfileResponse>(
+      `${this.apiUrl}/me/unpublish`,
+      {}
+    );
   }
 
   uploadPhoto(file: File): Observable<SpecialistProfileResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<SpecialistProfileResponse>(`${this.apiUrl}/me/photo`, formData);
+
+    return this.http.post<SpecialistProfileResponse>(
+      `${this.apiUrl}/me/photo`,
+      formData
+    );
   }
 
   uploadBanner(file: File): Observable<SpecialistProfileResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<SpecialistProfileResponse>(`${this.apiUrl}/me/banner`, formData);
+
+    return this.http.post<SpecialistProfileResponse>(
+      `${this.apiUrl}/me/banner`,
+      formData
+    );
   }
 
-  saveSocialLink(platform: string, profileUrl: string): Observable<ProfessionalSocialLinkResponse> {
-    return this.http.put<ProfessionalSocialLinkResponse>(`${this.apiUrl}/me/social-links`, {
-      platform,
-      profileUrl,
-    });
+  saveSocialLink(
+    platform: string,
+    profileUrl: string
+  ): Observable<ProfessionalSocialLinkResponse> {
+    return this.http.put<ProfessionalSocialLinkResponse>(
+      `${this.apiUrl}/me/social-links`,
+      {
+        platform,
+        profileUrl
+      }
+    );
   }
 
   deleteSocialLink(platform: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/me/social-links/${platform}`);
+    return this.http.delete<void>(
+      `${this.apiUrl}/me/social-links/${platform}`
+    );
   }
 
-  saveLanguage(languageName: string): Observable<ProfessionalLanguageResponse> {
-    return this.http.post<ProfessionalLanguageResponse>(`${this.apiUrl}/me/languages`, {
-      languageName,
-    });
+  saveLanguage(
+    languageName: string
+  ): Observable<ProfessionalLanguageResponse> {
+    return this.http.post<ProfessionalLanguageResponse>(
+      `${this.apiUrl}/me/languages`,
+      {
+        languageName
+      }
+    );
   }
 
   deleteLanguage(languageId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/me/languages/${languageId}`);
+    return this.http.delete<void>(
+      `${this.apiUrl}/me/languages/${languageId}`
+    );
   }
 
-  uploadGalleryImage(file: File): Observable<SpecialistProfileResponse> {
+  uploadGalleryImage(
+    file: File
+  ): Observable<SpecialistProfileResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<SpecialistProfileResponse>(`${this.apiUrl}/me/gallery-images`, formData);
+
+    return this.http.post<SpecialistProfileResponse>(
+      `${this.apiUrl}/me/gallery-images`,
+      formData
+    );
   }
 
   deleteGalleryImage(imageId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/me/gallery-images/${imageId}`);
+    return this.http.delete<void>(
+      `${this.apiUrl}/me/gallery-images/${imageId}`
+    );
   }
 
   getPublicProfiles(
@@ -165,12 +237,15 @@ export class SpecialistProfileService {
     if (profileCategory) {
       params = params.set('profileCategory', profileCategory);
     }
+
     if (search) {
       params = params.set('search', search);
     }
-    if (size) {
+
+    if (size !== undefined && size !== null) {
       params = params.set('size', String(size));
     }
+
     if (page !== undefined && page !== null) {
       params = params.set('page', String(page));
     }
@@ -184,9 +259,36 @@ export class SpecialistProfileService {
   getPublicProfileBySlug(
     slug: string
   ): Observable<SpecialistProfileResponse> {
-
     return this.http.get<SpecialistProfileResponse>(
       `${this.apiUrl}/slug/${slug}`
+    );
+  }
+
+  // Consultar comentarios de un perfil profesional.
+  getProfessionalReviews(
+    slug: string,
+    page: number = 0,
+    size: number = 10
+  ): Observable<ProfessionalReviewSummaryResponse> {
+
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+
+    return this.http.get<ProfessionalReviewSummaryResponse>(
+      `${this.apiUrl}/slug/${slug}/reviews`,
+      { params }
+    );
+  }
+
+  // Publicar un comentario en un perfil profesional.
+  createProfessionalReview(
+    slug: string,
+    comment: string
+  ): Observable<ProfessionalReviewResponse> {
+    return this.http.post<ProfessionalReviewResponse>(
+      `${this.apiUrl}/slug/${slug}/reviews`,
+      { comment }
     );
   }
 }

@@ -1,13 +1,11 @@
+
 @if (perfil(); as p) {
 
   <div class="container">
 
     <div class="profile-hero">
       <img
-        [src]="
-          p.bannerUrl ||
-          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'
-        "
+        [src]="p.bannerUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'"
         [alt]="'Banner de ' + p.nombre"
         class="profile-hero__bg"
       >
@@ -15,16 +13,12 @@
       <div class="profile-hero__overlay" aria-hidden="true"></div>
 
       <div class="profile-hero__content">
-
-        <button
-          class="profile-hero__back"
-          routerLink="/profesionales">
+        <button class="profile-hero__back" routerLink="/profesionales">
           <app-icon name="arrow-r" [size]="14" class="profile-hero__back-icon"></app-icon>
           Profesionales
         </button>
 
         <div class="profile-hero__identity">
-
           @if (p.imagenUrl && !publicPhotoFailed()) {
             <img
               [src]="p.imagenUrl"
@@ -39,14 +33,8 @@
           }
 
           <div class="profile-hero__info">
-
-            <h1 class="profile-name">
-              {{ p.nombre }}
-            </h1>
-
-            <span class="profile-role-badge">
-              {{ p.tipo }}
-            </span>
+            <h1 class="profile-name">{{ p.nombre }}</h1>
+            <span class="profile-role-badge">{{ p.tipo }}</span>
 
             <p class="profile-hero__location">
               <app-icon name="map-pin" [size]="14"></app-icon>
@@ -54,52 +42,57 @@
             </p>
 
             @if (!isOwnProfile()) {
-            <button
-              class="profile-follow-btn"
-              [class.profile-follow-btn--active]="following()"
-              [disabled]="followLoading()"
-              (click)="toggleFollow()">
-              @if (followLoading()) {
-                Guardando...
-              } @else {
-                @if (following()) {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check"><path d="M20 6 9 17l-5-5"></path></svg>
-
+              <button
+                class="profile-follow-btn"
+                [class.profile-follow-btn--active]="following()"
+                [disabled]="followLoading()"
+                (click)="toggleFollow()"
+              >
+                @if (followLoading()) {
+                  Guardando...
                 } @else {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="campana"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                  @if (following()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check">
+                      <path d="M20 6 9 17l-5-5"></path>
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="campana">
+                      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                    </svg>
+                  }
 
+                  <span class="follow-label-default" [class.tarjeta13--active]="following()">
+                    {{ following() ? 'Siguiendo' : 'Seguir' }}
+                  </span>
+
+                  @if (following()) {
+                    <span class="follow-label-hover">Siguiendo</span>
+                  }
                 }
-                <span class="follow-label-default" [class.tarjeta13--active]="following()">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
-                @if (following()) { <span class="follow-label-hover">Siguiendo</span> }
-              }
-            </button>
+              </button>
+
               @if (followError()) {
                 <p class="profile-follow-error" role="alert">{{ followError() }}</p>
-  }
-
-
+              }
             }
-
           </div>
         </div>
       </div>
     </div>
 
     <section class="profile-about">
-
       <div class="profile-about__heading">
         <span class="profile-about__bar" aria-hidden="true"></span>
         <h2>Sobre {{ p.nombre }}</h2>
       </div>
 
       <div class="profile-about__card">
-
         <div class="profile-about__bio">
           <p>{{ p.bio || p.cita }}</p>
         </div>
 
         <div class="profile-about__sidebar">
-
           <div class="info-block">
             <h3>Ubicación</h3>
             <div class="info-row">
@@ -127,7 +120,12 @@
               <h3>Contacto</h3>
 
               @if (p.whatsappPhone) {
-                <a class="info-row info-row--link" [href]="whatsappLink(p.whatsappPhone)" target="_blank" rel="noopener">
+                <a
+                  class="info-row info-row--link"
+                  [href]="whatsappLink(p.whatsappPhone)"
+                  target="_blank"
+                  rel="noopener"
+                >
                   <app-icon name="whatsapp" [size]="16"></app-icon>
                   <span>Contactar WhatsApp</span>
                 </a>
@@ -165,77 +163,207 @@
                     class="social-pill"
                     [href]="link.profileUrl"
                     target="_blank"
-                    rel="noopener">
+                    rel="noopener"
+                  >
                     {{ link.platform | titlecase }}
                   </a>
                 }
               </div>
             </div>
           }
-
         </div>
       </div>
     </section>
 
     <div class="topics">
-
-      @if (
-        p.temas &&
-        p.temas.length > 0
-      ) {
-
+      @if (p.temas && p.temas.length > 0) {
         <div class="profile-section">
-
-          <h3 class="topics_title">
-            Temas que trabajo
-          </h3>
-
+          <h3 class="topics_title">Temas que trabajo</h3>
           <div class="profile-tags">
-
-            @for (
-              tema of p.temas;
-              track tema
-            ) {
-
-              <span class="profile-tag">
-                {{ tema }}
-              </span>
-
+            @for (tema of p.temas; track tema) {
+              <span class="profile-tag">{{ tema }}</span>
             }
           </div>
-
         </div>
-
       }
 
-      @if (
-        p.tecnicas &&
-        p.tecnicas.length > 0
-      ) {
-
+      @if (p.tecnicas && p.tecnicas.length > 0) {
         <div class="profile-section">
-
-          <h3 class="topics_title">
-            Técnicas que ofrezco
-          </h3>
-
+          <h3 class="topics_title">Técnicas que ofrezco</h3>
           <div class="profile-tags">
-
-            @for (
-
-              tecnica of p.tecnicas;
-              track tecnica
-
-            ) {
-
-              <span class="profile-tag">
-                {{ tecnica }}
-              </span>
+            @for (tecnica of p.tecnicas; track tecnica) {
+              <span class="profile-tag">{{ tecnica }}</span>
             }
           </div>
         </div>
       }
     </div>
+
+
+<!-- Comentarios textuales del perfil profesional -->
+<section class="profile-section profile-section--full reviews-section">
+
+  <!-- Encabezado -->
+  <div class="reviews-heading">
+    <div class="reviews-heading__text">
+      <h3 class="topics_title">Comentarios</h3>
+      <p class="reviews-subtitle">
+        Experiencias y opiniones sobre {{ p.nombre }}.
+      </p>
+    </div>
+
+    <span class="reviews-count">
+      {{ totalComentarios() }}
+      {{ totalComentarios() === 1 ? 'comentario' : 'comentarios' }}
+    </span>
+  </div>
+
+  <!-- Formulario para publicar -->
+  @if (estaAutenticado() && !isOwnProfile()) {
+    <form
+      class="review-form"
+      (submit)="$event.preventDefault(); publicarComentario()"
+    >
+      <label for="review-comment" class="review-form__label">
+        Comparte tu experiencia
+      </label>
+
+      <textarea
+        id="review-comment"
+        class="review-form__textarea"
+        name="comment"
+        rows="4"
+        maxlength="1500"
+        placeholder="Escribe un comentario sobre tu experiencia con este profesional..."
+        [value]="comentarioTexto()"
+        (input)="actualizarTextoComentario($any($event.target).value)"
+        [disabled]="publicandoComentario()"
+        required
+      ></textarea>
+
+      <div class="review-form__footer">
+        <span class="review-form__counter">
+          {{ comentarioTexto().length }} / 1500
+        </span>
+
+        <button
+          type="submit"
+          class="review-form__submit"
+          [disabled]="!comentarioTexto().trim() || publicandoComentario()"
+        >
+          {{ publicandoComentario() ? 'Publicando...' : 'Publicar comentario' }}
+        </button>
+      </div>
+    </form>
+  } @else if (!estaAutenticado()) {
+    <div class="review-login-prompt">
+      <p>Inicia sesión para compartir tu experiencia con este profesional.</p>
+      <a
+        routerLink="/auth/login"
+        [queryParams]="{ returnUrl: urlRetorno() }"
+        class="review-login-link"
+      >
+        Iniciar sesión
+      </a>
+    </div>
+  } @else {
+    <p class="review-own-profile-note">
+      Estás viendo tu propio perfil profesional.
+    </p>
+  }
+
+  <!-- Mensajes de estado -->
+  @if (mensajeComentario()) {
+    <p class="review-message review-message--success" role="status">
+      {{ mensajeComentario() }}
+    </p>
+  }
+
+  @if (errorComentarios()) {
+    <div class="review-message review-message--error" role="alert">
+      <span>{{ errorComentarios() }}</span>
+      <button
+        type="button"
+        class="review-retry"
+        (click)="cargarComentarios(p.slug)"
+      >
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Carga inicial -->
+  @if (cargandoComentarios() && comentarios().length === 0) {
+    <p class="reviews-empty">Cargando comentarios...</p>
+  }
+
+  <!-- Lista de comentarios -->
+  @if (comentarios().length > 0) {
+    <div class="reviews-list">
+
+      @for (comentario of comentarios(); track comentario.id) {
+        <article class="review-card">
+
+        
+<!-- Avatar con la inicial del nombre del usuario -->
+<div class="review-card__avatar" aria-hidden="true">
+  {{ (comentario.authorName || comentario.username || 'U').trim().charAt(0).toUpperCase() }}
+</div>
+
+<!-- Nombre, fecha y texto -->
+<div class="review-card__content">
+  <div class="review-card__header">
+    <h4 class="review-card__author">
+      {{ comentario.authorName || comentario.username || 'Usuario' }}
+    </h4>
+
+    <time
+      class="review-card__date"
+      [attr.datetime]="comentario.createdAt"
+    >
+      {{ comentario.createdAt | date:'d MMM y, HH:mm' }}
+    </time>
+  </div>
+
+  <p class="review-card__comment">
+    {{ comentario.comment }}
+  </p>
+
+
+
+          </div>
+        </article>
+      }
+
+    </div>
+  }
+
+  <!-- Sin comentarios -->
+  @if (
+    comentarios().length === 0 &&
+    !cargandoComentarios() &&
+    !errorComentarios()
+  ) {
+    <div class="reviews-empty">
+      <p>Aún no hay comentarios para este profesional.</p>
+      <span>Sé la primera persona en compartir tu experiencia.</span>
+    </div>
+  }
+
+  <!-- Paginación -->
+  @if (hayMasComentarios()) {
+    <div class="reviews-load-more">
+      <button
+        type="button"
+        [disabled]="cargandoComentarios()"
+        (click)="cargarComentarios(p.slug, true)"
+      >
+        {{ cargandoComentarios() ? 'Cargando...' : 'Ver más comentarios' }}
+      </button>
+    </div>
+  }
+
+</section>
 
     @if (mostrarEventos()) {
       <section class="profile-section profile-section--full">
@@ -252,8 +380,8 @@
         <app-evento-calendar
           [specialistId]="p.id"
           [organizerName]="p.nombre"
-          [organizerPhotoUrl]="p.imagenUrl">
-        </app-evento-calendar>
+          [organizerPhotoUrl]="p.imagenUrl"
+        ></app-evento-calendar>
       </section>
     }
 
@@ -276,7 +404,8 @@
             <button
               type="button"
               class="gallery-grid__item"
-              (click)="openGalleryLightbox(i)">
+              (click)="openGalleryLightbox(i)"
+            >
               <img [src]="imagen.imageUrl" [alt]="'Foto de ' + p.nombre">
             </button>
           }
@@ -290,189 +419,261 @@
           type="button"
           class="profile-lightbox__close"
           (click)="closeGalleryLightbox(); $event.stopPropagation()"
-          aria-label="Cerrar galería">
+          aria-label="Cerrar galería"
+        >
           ×
         </button>
+
         <button
           type="button"
           class="profile-lightbox__nav profile-lightbox__nav--prev"
           (click)="previousGalleryImage(); $event.stopPropagation()"
-          aria-label="Imagen anterior">
+          aria-label="Imagen anterior"
+        >
           ‹
         </button>
+
         <img
           [src]="p.galleryImages![galleryLightboxIndex()!].imageUrl"
           [alt]="'Foto de ' + p.nombre"
-          (click)="$event.stopPropagation()">
+          (click)="$event.stopPropagation()"
+        >
+
         <button
           type="button"
           class="profile-lightbox__nav profile-lightbox__nav--next"
           (click)="nextGalleryImage(); $event.stopPropagation()"
-          aria-label="Imagen siguiente">
+          aria-label="Imagen siguiente"
+        >
           ›
         </button>
       </div>
     }
   </div>
 
-    <section class="tarjeta1">
-      <div class="tarjeta2">
-        <img [src]="p.bannerUrl ||
-          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'" [alt]="'Banner de ' + p.nombre" class="tarjeta3">
-        <div class="tarjeta4"></div>
-        <div class="tarjeta5">
-          <div class="tarjeta6">
-            <span class="tarjeta7">
-          @if (p.imagenUrl && !publicPhotoFailed()) {
-            <img
-              [src]="p.imagenUrl"
-              [alt]="'Foto de ' + p.nombre"
-              class="tarjeta8"
-              (error)="handlePublicPhotoError()"
-            >
+  <section class="tarjeta1">
+    <div class="tarjeta2">
+      <img
+        [src]="p.bannerUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1300&q=80'"
+        [alt]="'Banner de ' + p.nombre"
+        class="tarjeta3"
+      >
+
+      <div class="tarjeta4"></div>
+
+      <div class="tarjeta5">
+        <div class="tarjeta6">
+          <span class="tarjeta7">
+            @if (p.imagenUrl && !publicPhotoFailed()) {
+              <img
+                [src]="p.imagenUrl"
+                [alt]="'Foto de ' + p.nombre"
+                class="tarjeta8"
+                (error)="handlePublicPhotoError()"
+              >
+            } @else {
+              <span class="profile-avatar profile-avatar--fallback" aria-hidden="true">
+                {{ p.nombre.charAt(0) }}
+              </span>
+            }
+          </span>
+        </div>
+
+        <h2 class="tarjeta9">
+          @if (following()) {
+            Ya sigues a {{ p.nombre }}
           } @else {
-            <div class="profile-avatar profile-avatar--fallback" aria-hidden="true">
-              {{ p.nombre.charAt(0) }}
-            </div>
+            No te pierdas lo próximo de {{ p.nombre }}
           }
-            </span>
-          </div>
-          <h2 class="tarjeta9">
-            @if (following()) {
-              Ya sigues a {{ p.nombre }}
-            } @else {
-              No te pierdas lo próximo de {{ p.nombre }}
-            }
-          </h2>
-          <p class="tarjeta10">
-            @if (following()) {
-              Te avisaremos por email en cuanto publique algo nuevo. Si crees que a alguien le puede encajar, compártele el perfil.
-            } @else {
-              Síguele y te avisamos por email cada vez que publique una nueva experiencia.
-            }
-          </p>          
-<div class="tarjeta11">
-            @if (!isOwnProfile()) {
+        </h2>
+
+        <p class="tarjeta10">
+          @if (following()) {
+            Te avisaremos por email en cuanto publique algo nuevo. Si crees que a alguien le puede encajar, compártele el perfil.
+          } @else {
+            Síguele y te avisamos por email cada vez que publique una nueva experiencia.
+          }
+        </p>
+
+        <div class="tarjeta11">
+          @if (!isOwnProfile()) {
             <button
               class="tarjeta12"
               [class.tarjeta12--active]="following()"
               [disabled]="followLoading()"
-              (click)="toggleFollow()">
+              (click)="toggleFollow()"
+            >
               @if (followLoading()) {
                 Guardando...
               } @else {
                 @if (following()) {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check"><path d="M20 6 9 17l-5-5"></path></svg>
-
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check">
+                    <path d="M20 6 9 17l-5-5"></path>
+                  </svg>
                 } @else {
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="campana"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="campana">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                  </svg>
                 }
-              <span class="tarjeta13" [class.tarjeta13--active]="following()">
-                <span class="tarjeta13-full" [class.tarjeta13full--active]>{{ following() ? 'Siguiendo' : 'Seguir a ' + p.nombre }}</span>
-                <span class="tarjeta13-short">{{ following() ? 'Siguiendo' : 'Seguir' }}</span>
-              </span>
-                @if (following()) { <span class="follow-label-hover">Dejar de seguir</span> }
+
+                <span class="tarjeta13" [class.tarjeta13--active]="following()">
+                  <span class="tarjeta13-full" [class.tarjeta13full--active]="following()">
+                    {{ following() ? 'Siguiendo' : 'Seguir a ' + p.nombre }}
+                  </span>
+                  <span class="tarjeta13-short">
+                    {{ following() ? 'Siguiendo' : 'Seguir' }}
+                  </span>
+                </span>
+
+                @if (following()) {
+                  <span class="follow-label-hover">Dejar de seguir</span>
+                }
               }
             </button>
-              @if (followError()) {
-                <p class="profile-follow-error" role="alert">{{ followError() }}</p>
-  }
+
+            @if (followError()) {
+              <p class="profile-follow-error" role="alert">{{ followError() }}</p>
             }
-        <button type="button" class="tarjeta15" [class.tarjeta15--primary]="following()" (click)="openShareDialog()">              
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="compartir"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+          }
+
+          <button
+            type="button"
+            class="tarjeta15"
+            [class.tarjeta15--primary]="following()"
+            (click)="openShareDialog()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="compartir">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+              <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+            </svg>
+
             <span class="tarjeta17" [class.tarjeta17--primary]="following()">
               <span class="tarjeta17-full" [class.tarjeta17-full--primary]="following()">Compartir perfil</span>
               <span class="tarjeta17-short">Compartir</span>
             </span>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
-    </section>
-    @if (showUnfollowDialog()) {
-  <div class="unfollow-modal" (click)="cancelUnfollow()">
-    <div class="unfollow-modal__card" role="dialog" aria-modal="true" aria-labelledby="unfollow-title" (click)="$event.stopPropagation()">
-
-      @if (p.imagenUrl && !publicPhotoFailed()) {
-        <img [src]="p.imagenUrl" [alt]="'Foto de ' + p.nombre" class="unfollow-modal__avatar">
-      } @else {
-        <div class="unfollow-modal__avatar unfollow-modal__avatar--fallback" aria-hidden="true">
-          {{ p.nombre.charAt(0) }}
-        </div>
-      }
-
-      <h3 id="unfollow-title" class="unfollow-modal__title">
-        ¿Quieres dejar de seguir a {{ p.nombre }}?
-      </h3>
-
-      <p class="unfollow-modal__description">
-        Ya no aparecerá en tu lista de profesionales seguidos ni recibirás avisos de sus nuevas experiencias.
-      </p>
-
-      <button type="button" class="unfollow-modal__confirm" [disabled]="followLoading()" (click)="confirmUnfollow()">
-        {{ followLoading() ? 'Dejando de seguir...' : 'Dejar de seguir' }}
-      </button>
-
-      <button type="button" class="unfollow-modal__cancel" [disabled]="followLoading()" (click)="cancelUnfollow()">
-        Cancelar
-      </button>
-
     </div>
-  </div>
-}
-    @if (showShareDialog()) {
-  <div class="share-modal" (click)="closeShareDialog()">
-    <div class="share-modal__card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <button type="button" class="share-modal__close" (click)="closeShareDialog()" aria-label="Cerrar">×</button>
+  </section>
 
-      <h3 class="share-modal__title">Comparte el perfil de {{ p.nombre }}</h3>
-      <p class="share-modal__subtitle">Pásaselo a quien creas que le puede encajar.</p>
-
-      <div class="share-modal__networks">
-        @for (red of shareTargets(); track red.name) {
-          <a class="share-modal__net" [href]="red.url" target="_blank" rel="noopener"
-             [attr.aria-label]="'Compartir en ' + red.name">
-            <span class="share-modal__net-icon">
-              @switch (red.name) {
-                @case ('Facebook') {
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                }
-                @case ('Messenger') {
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.001 11.639C.001 4.949 5.241 0 12.001 0S24 4.95 24 11.639c0 6.689-5.24 11.638-12 11.638-1.21 0-2.38-.16-3.47-.46a.96.96 0 0 0-.64.05l-2.39 1.05a.96.96 0 0 1-1.35-.85l-.07-2.14a.97.97 0 0 0-.32-.68A11.39 11.39 0 0 1 .002 11.64zm8.32-2.19l-3.52 5.6c-.35.53.32 1.139.82.75l3.79-2.87c.26-.2.6-.2.87 0l2.8 2.1c.84.63 2.04.4 2.6-.48l3.52-5.6c.35-.53-.32-1.13-.82-.75l-3.79 2.87c-.25.2-.6.2-.86 0l-2.8-2.1a1.8 1.8 0 0 0-2.61.48z"/></svg>
-                }
-                @case ('X') {
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
-                }
-                @case ('WhatsApp') {
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                }
-                @case ('Email') {
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                }
-              }
-            </span>
-            <span class="share-modal__net-name">{{ red.name }}</span>
-          </a>
+  @if (showUnfollowDialog()) {
+    <div class="unfollow-modal" (click)="cancelUnfollow()">
+      <div
+        class="unfollow-modal__card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unfollow-title"
+        (click)="$event.stopPropagation()"
+      >
+        @if (p.imagenUrl && !publicPhotoFailed()) {
+          <img [src]="p.imagenUrl" [alt]="'Foto de ' + p.nombre" class="unfollow-modal__avatar">
+        } @else {
+          <div class="unfollow-modal__avatar unfollow-modal__avatar--fallback" aria-hidden="true">
+            {{ p.nombre.charAt(0) }}
+          </div>
         }
-      </div>
 
-      <div class="share-modal__copy">
-        <input class="share-modal__url" type="text" [value]="shareUrl()" readonly
-               (focus)="$event.target.select()" aria-label="Enlace del perfil">
-        <button type="button" class="share-modal__copy-btn" (click)="copyShareUrl()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-          {{ copied() ? '¡Copiado!' : 'Copiar' }}
+        <h3 id="unfollow-title" class="unfollow-modal__title">
+          ¿Quieres dejar de seguir a {{ p.nombre }}?
+        </h3>
+
+        <p class="unfollow-modal__description">
+          Ya no aparecerá en tu lista de profesionales seguidos ni recibirás avisos de sus nuevas experiencias.
+        </p>
+
+        <button
+          type="button"
+          class="unfollow-modal__confirm"
+          [disabled]="followLoading()"
+          (click)="confirmUnfollow()"
+        >
+          {{ followLoading() ? 'Dejando de seguir...' : 'Dejar de seguir' }}
+        </button>
+
+        <button
+          type="button"
+          class="unfollow-modal__cancel"
+          [disabled]="followLoading()"
+          (click)="cancelUnfollow()"
+        >
+          Cancelar
         </button>
       </div>
     </div>
-  </div>
-}
+  }
+
+  @if (showShareDialog()) {
+    <div class="share-modal" (click)="closeShareDialog()">
+      <div
+        class="share-modal__card"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <button type="button" class="share-modal__close" (click)="closeShareDialog()" aria-label="Cerrar">×</button>
+
+        <h3 class="share-modal__title">Comparte el perfil de {{ p.nombre }}</h3>
+        <p class="share-modal__subtitle">Pásaselo a quien creas que le puede encajar.</p>
+
+        <div class="share-modal__networks">
+          @for (red of shareTargets(); track red.name) {
+            <a
+              class="share-modal__net"
+              [href]="red.url"
+              target="_blank"
+              rel="noopener"
+              [attr.aria-label]="'Compartir en ' + red.name"
+            >
+              <span class="share-modal__net-icon">
+                @switch (red.name) {
+                  @case ('Facebook') {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  }
+                  @case ('Messenger') {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.001 11.639C.001 4.949 5.241 0 12.001 0S24 4.95 24 11.639c0 6.689-5.24 11.638-12 11.638-1.21 0-2.38-.16-3.47-.46a.96.96 0 0 0-.64.05l-2.39 1.05a.96.96 0 0 1-1.35-.85l-.07-2.14a.97.97 0 0 0-.32-.68A11.39 11.39 0 0 1 .002 11.64zm8.32-2.19l-3.52 5.6c-.35.53.32 1.139.82.75l3.79-2.87c.26-.2.6-.2.87 0l2.8 2.1c.84.63 2.04.4 2.6-.48l3.52-5.6c.35-.53-.32-1.13-.82-.75l-3.79 2.87c-.25.2-.6.2-.86 0l-2.8-2.1a1.8 1.8 0 0 0-2.61.48z"/></svg>
+                  }
+                  @case ('X') {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                  }
+                  @case ('WhatsApp') {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                  }
+                  @case ('Email') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  }
+                }
+              </span>
+              <span class="share-modal__net-name">{{ red.name }}</span>
+            </a>
+          }
+        </div>
+
+        <div class="share-modal__copy">
+          <input
+            class="share-modal__url"
+            type="text"
+            [value]="shareUrl()"
+            readonly
+            (focus)="$any($event.target).select()"
+            aria-label="Enlace del perfil"
+          >
+
+          <button type="button" class="share-modal__copy-btn" (click)="copyShareUrl()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            {{ copied() ? '¡Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
 } @else {
-
   <div class="loading">
     Cargando perfil...
   </div>
 }
-
