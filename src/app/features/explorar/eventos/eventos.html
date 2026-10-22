@@ -159,8 +159,8 @@
         <button
           class="filter-btn"
           type="button"
-          [class.active]="filterWhen() === 'Esta semana'"
-          (click)="selectWhen('Esta semana')"
+          [class.active]="filterMood() === 'RELAJACION'"
+          (click)="selectMood('RELAJACION')"
         >
           Quiero relajarme
         </button>
@@ -169,8 +169,8 @@
         <button
           class="filter-btn"
           type="button"
-          [class.active]="filterWhen() === 'Esta semana'"
-          (click)="selectWhen('Esta semana')"
+          [class.active]="filterMood() === 'ENERGIA'"
+          (click)="selectMood('ENERGIA')"
         >
           Quiero energia
         </button>
@@ -179,8 +179,8 @@
         <button
           class="filter-btn"
           type="button"
-          [class.active]="filterWhen() === 'Esta semana'"
-          (click)="selectWhen('Esta semana')"
+          [class.active]="filterMood() === 'CONECTAR'"
+          (click)="selectMood('CONECTAR')"
         >
           Quiero conectar
         </button>

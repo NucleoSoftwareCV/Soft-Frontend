@@ -1359,6 +1359,32 @@
         </div>
       </section>
 
+      <!-- MOOD -->
+      <section
+        class="filter-section"
+        aria-labelledby="fw-mod">
+
+        <h3
+          id="fw-mod"
+          class="filter-section__title">
+          MOOD
+        </h3>
+
+        <div class="filter-chips">
+
+          @for (m of moodOptions; track m) {
+          <button
+            class="filter-chip"
+            [class.filter-chip--active]="pendingMood() === m"
+            (click)="pendingSelectMood(m)"
+            type="button">
+            {{ m }}
+          </button>
+          }
+
+        </div>
+      </section>
+
     </div>
 
     <div class="filter-modal__footer">

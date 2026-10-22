@@ -72,6 +72,8 @@
   padding: 2px 1px 6px;
   scrollbar-width: none;
   white-space: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .filters-scroll::-webkit-scrollbar {
@@ -157,13 +159,18 @@
 }
 
 /* ============================================
-   ESTADO NORMAL
+   FILTROS ESTADO NORMAL
    ============================================ */
 
-.filter-main-btn,
-.date-filter-btn,
-.quick-filter-btn {
+.filter-btn:not(.filter-main-btn):not(.date-filter-btn) {
   background: #ffffff !important;
+  color: #004e59 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.filter-btn:not(.filter-main-btn):not(.date-filter-btn):hover {
+  background: #f2f7f7 !important;
   color: #004e59 !important;
   border-color: transparent !important;
 }
@@ -173,18 +180,17 @@
    SIEMPRE BLANCOS
    ============================================ */
 
-.quick-filter-btn,
-.quick-filter-btn.active,
-.quick-filter-btn:hover,
-.quick-filter-btn.active:hover,
-.filter-btn:not(.filter-main-btn):not(.date-filter-btn),
-.filter-btn:not(.filter-main-btn):not(.date-filter-btn).active,
-.filter-btn:not(.filter-main-btn):not(.date-filter-btn):hover,
-.filter-btn:not(.filter-main-btn):not(.date-filter-btn).active:hover {
-  background: #ffffff !important;
-  color: #004e59 !important;
-  border-color: transparent !important;
+.filter-btn:not(.filter-main-btn):not(.date-filter-btn).active {
+  background: #004e59 !important;
+  color: #ffffff !important;
+  border-color: #004e59 !important;
   box-shadow: none !important;
+}
+
+.filter-btn:not(.filter-main-btn):not(.date-filter-btn).active:hover {
+  background: #003c45 !important;
+  color: #ffffff !important;
+  border-color: #003c45 !important;
 }
 
 /* ============================================

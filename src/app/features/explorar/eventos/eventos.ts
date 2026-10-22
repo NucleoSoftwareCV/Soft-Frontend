@@ -22,7 +22,8 @@ import {
   CategoryResponse,
   EventCardResponse,
   EventFilterParams,
-  EventModality
+  EventModality,
+  EventMood
 } from '../../../shared/models/evento.model';
 
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
@@ -191,7 +192,10 @@ export class Eventos {
           this.searchQuery(),
 
         sort:
-          this.selectedSort().sort
+          this.selectedSort().sort,
+
+        mood:
+          this.filterMood()
       };
 
       queueMicrotask(() => {
@@ -273,6 +277,10 @@ export class Eventos {
     return this.filtrosService.activeFilterCount;
   }
 
+  get filterMood(){
+    return this.filtrosService.filterMood;
+  }
+
   openHeaderFilter(): void {
 
     if (typeof window !== 'undefined') {
@@ -336,6 +344,17 @@ export class Eventos {
       );
 
     }
+  }
+
+  selectMood(option: string): void{
+    this.filtrosService.selectMood(option);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('oona:select-mood',{detail: option}));
+    }
+
+    this.filterMood.set(option);
   }
 
   /*
@@ -1492,7 +1511,10 @@ export class Eventos {
         ),
 
       sort:
-        this.selectedSort().sort
+        this.selectedSort().sort,
+
+      mood:
+        this.moodFor(this.filterMood()),
     };
   }
 
@@ -1600,6 +1622,20 @@ export class Eventos {
     return value
       ? map[value] ?? {}
       : {};
+  }
+
+  private moodFor(value: string | null): EventMood | undefined{
+    if(!value){
+      return undefined;
+    }
+
+    if(value.toLowerCase() === 'relajacion'){
+      return EventMood.RELAJACION;
+    }
+    if(value.toLowerCase() === 'energia'){
+      return EventMood.ENERGIA;
+    }
+    return EventMood.CONECTAR;
   }
 
   /*
