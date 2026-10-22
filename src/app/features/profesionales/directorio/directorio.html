@@ -144,6 +144,26 @@
       </button>
     </div>
 
+    <!-- Contador de resultados y estado de carga -->
+    <div class="directory-meta">
+
+      @if (cargando()) {
+
+        <span class="directory-meta__loading">
+          Cargando profesionales...
+        </span>
+
+      } @else {
+
+        <span class="directory-meta__count">
+          Mostrando {{ perfilesFiltrados().length }}
+          de {{ totalPerfiles() }} profesionales
+        </span>
+
+      }
+
+    </div>
+
     <!-- Tarjetas -->
     <section class="directory-grid">
 
@@ -245,7 +265,7 @@
 
       }
 
-      @if (perfilesFiltrados().length === 0) {
+      @if (!cargando() && perfilesFiltrados().length === 0) {
 
         <div class="directory-empty">
           <p>
