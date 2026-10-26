@@ -65,6 +65,12 @@ export enum EventModality {
   HIBRIDA = 'HIBRIDA',
 }
 
+export enum EventMood {
+  RELAJACION = 'RELAJACION',
+  ENERGIA = 'ENERGIA',
+  CONECTAR = 'CONECTAR',
+}
+
 export interface EventCardResponse {
   id: number;
   title: string;
@@ -85,6 +91,7 @@ export interface EventCardResponse {
   eventType: string | null;
   experienceTypeSlug: string | null;
   isRecurring: boolean;
+  mood?: string;
 }
 
 export interface EventOrganizerResponse {
@@ -159,6 +166,7 @@ export interface EventFilterParams {
   page?: number;
   size?: number;
   sort?: string;
+  mood?: string;
 }
 
 export interface HomeEventSectionsResponse {

@@ -5,7 +5,7 @@ import {
   CategoryCatalogItem,
   ExperienceTypeCatalogItem,
 } from '../shared/models/event-catalog.model';
-import { CityResponse, EventFilterParams, EventModality } from '../shared/models/evento.model';
+import { CityResponse, EventFilterParams, EventModality, EventMood } from '../shared/models/evento.model';
 import { EventCatalogService } from './event-catalog.service';
 import { CityService } from './city.service';
 
@@ -18,6 +18,7 @@ export interface FiltrosEstado {
   modality: string | null;
   recurrence: string | null;
   price: string | null;
+  mood: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +35,7 @@ export class FiltrosService {
   filterModality = signal<string | null>(null);
   filterRecurrence = signal<string | null>(null);
   filterPrice = signal<string | null>(null);
+  filterMood = signal<string | null>(null);
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
   readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
@@ -51,6 +53,8 @@ export class FiltrosService {
 
   /** Pills de precio (mismo diseño que el resto de chips del modal). */
   priceOptions = ['Gratis', 'Hasta 15€', '15–30€', '30–50€', 'Más de 50€'];
+
+  moodOptions = ['Relajacion', 'Energia', 'Conectar'];
 
   constructor() {
     this.refreshCatalogs();
@@ -77,7 +81,8 @@ export class FiltrosService {
       (this.filterTimeOfDay() ? 1 : 0) +
       (this.filterModality() ? 1 : 0) +
       (this.filterRecurrence() ? 1 : 0) +
-      (this.filterPrice() ? 1 : 0)
+      (this.filterPrice() ? 1 : 0) +
+      (this.filterMood() ? 1 : 0)
     );
   }
 
@@ -92,6 +97,7 @@ export class FiltrosService {
       modality: this.filterModality(),
       recurrence: this.filterRecurrence(),
       price: this.filterPrice(),
+      mood: this.filterMood(),
     };
   }
 
@@ -105,6 +111,7 @@ export class FiltrosService {
     this.filterModality.set(state.modality);
     this.filterRecurrence.set(state.recurrence);
     this.filterPrice.set(state.price);
+    this.filterMood.set(state.mood);
   }
 
   /**
@@ -123,6 +130,7 @@ export class FiltrosService {
       cityName: state.city !== 'Todas' ? state.city : undefined,
       modality: this.modalityFor(state.modality),
       isRecurring: this.recurrenceFor(state.recurrence),
+      mood: this.moodFor(state.mood),
     };
   }
 
@@ -219,6 +227,10 @@ export class FiltrosService {
     this.filterPrice.set(this.filterPrice() === value ? null : value);
   }
 
+  selectMood(value: string): void {
+    this.filterMood.set(this.filterMood() === value ? null : value);
+  }
+
   clearFilters(): void {
     this.filterWhen.set(null);
     this.filterCategories.set([]);
@@ -228,6 +240,7 @@ export class FiltrosService {
     this.filterModality.set(null);
     this.filterRecurrence.set(null);
     this.filterPrice.set(null);
+    this.filterMood.set(null);
   }
 
   // ── Mapeo interno estado → parámetros de la API ──
@@ -306,6 +319,13 @@ export class FiltrosService {
       dateFrom: this.toDateParam(start),
       dateTo: this.toDateParam(end),
     };
+  }
+
+  private moodFor(value: string | null): EventMood| undefined {
+    if (!value) return undefined;
+    if (value.toLowerCase() === 'relajacion') return EventMood.RELAJACION;
+    if (value.toLowerCase() === 'energia') return EventMood.ENERGIA;
+    return EventMood.CONECTAR;
   }
 
   private toDateParam(date: Date): string {
