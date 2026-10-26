@@ -24,7 +24,9 @@
     </nav>
 
     <!-- Buscador central -->
-    <div class="header__search-wrap">
+    <div
+      class="header__search-wrap"
+      [class.header__search-wrap--open]="isSearchFocused()">
       <div
         class="header__search"
         [class.header__search--focused]="isSearchFocused()">
@@ -49,7 +51,6 @@
           [value]="searchQuery()"
           (input)="onSearchInput($any($event.target).value)"
           (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()"
           (keyup.enter)="goToAllResults()"
           aria-label="Buscar experiencias de bienestar"
           autocomplete="off" />
@@ -86,6 +87,14 @@
           <span class="header__filter-badge">{{ activeFilterCount }}</span>
           }
         </button>
+
+        <button
+          type="button"
+          class="header__search-close"
+          aria-label="Cerrar búsqueda"
+          (click)="closeSearch()">
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
 
       <!-- Dropdown inspiración -->
@@ -105,7 +114,7 @@
   class="header__inspiration-tag"
   role="option"
   type="button"
-  (mousedown)="$event.preventDefault(); selectInspiration(tag)"
+  (click)="selectInspiration(tag)"
 >
   {{ tag }}
 </button>
@@ -137,7 +146,7 @@
           <button
             type="button"
             class="header__results-all"
-            (mousedown)="goToAllResults()">
+            (click)="goToAllResults()">
 
             <svg
               width="16"
@@ -178,7 +187,7 @@
               <button
                 type="button"
                 class="header__results-suggestion"
-                (mousedown)="selectSearchCategory(category)">
+                (click)="selectSearchCategory(category)">
                 <span aria-hidden="true">{{ category.emoji }}</span>
                 {{ category.name }}
               </button>
@@ -195,7 +204,7 @@
             <button
               type="button"
               class="header__results-row"
-              (mousedown)="selectSearchEvent(event)">
+              (click)="selectSearchEvent(event)">
 
               @if (event.coverImageUrl) {
               <img
@@ -226,7 +235,7 @@
             <button
               type="button"
               class="header__results-row"
-              (mousedown)="selectSearchSession(session)">
+              (click)="selectSearchSession(session)">
 
               @if (session.imageUrl) {
               <img
@@ -257,7 +266,7 @@
             <button
               type="button"
               class="header__results-row"
-              (mousedown)="selectSearchOrganizer(organizer)">
+              (click)="selectSearchOrganizer(organizer)">
 
               @if (organizer.photoUrl) {
               <img
@@ -331,8 +340,9 @@
 
       <!-- Lupa (solo móvil horizontal 480–767px) -->
 <button
-  class="header__icon-btn header__icon-btn--mobile-only"
-  aria-label="Buscar"
+  class="header__icon-btn header__icon-btn--mobile-only header__search-toggle"
+  aria-label="Abrir búsqueda"
+  [attr.aria-expanded]="isSearchFocused()"
   type="button"
   (click)="openSearch()">
 
