@@ -50,6 +50,9 @@
       <button title="Sesiones 1:1" [class.active]="section() === 'sessions'" (click)="show('sessions')">
         <svg lucideBriefcaseBusiness aria-hidden="true"></svg><span class="nav-label">Sesiones 1:1</span>
       </button>
+      <button title="Reservas" [class.active]="section() === 'reservations'" (click)="show('reservations')">
+        <svg lucideUsers aria-hidden="true"></svg><span class="nav-label">Reservas</span>
+      </button>
     </nav>
     <div class="portal__sidebar-footer">
       <a href="/" title="Ver sitio publico">
@@ -71,6 +74,8 @@
 
     @if (loading()) {
       <section class="portal__content"><div class="loading-block"></div><div class="loading-block"></div></section>
+    } @else if (section() === 'reservations') {
+      <app-professional-reservations (changed)="refreshBookingAvailability()" />
     } @else if (section() === 'summary') {
       <section class="portal__content">
         <div class="page-heading">
