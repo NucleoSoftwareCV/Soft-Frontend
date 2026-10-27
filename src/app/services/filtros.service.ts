@@ -18,6 +18,8 @@ export interface FiltrosEstado {
   modality: string | null;
   recurrence: string | null;
   price: string | null;
+  specialistId?: number | null;
+  specialistName?: string | null;
   mood: string | null;
 }
 
@@ -35,6 +37,8 @@ export class FiltrosService {
   filterModality = signal<string | null>(null);
   filterRecurrence = signal<string | null>(null);
   filterPrice = signal<string | null>(null);
+  filterSpecialistId = signal<number | null>(null);
+  filterSpecialistName = signal<string | null>(null);
   filterMood = signal<string | null>(null);
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
@@ -48,7 +52,7 @@ export class FiltrosService {
     { label: 'Tarde', sub: '16h - 20h' },
     { label: 'Noche', sub: '20h - 24h' },
   ];
-  modalityOptions = ['Presencial', 'Online'];
+  modalityOptions = ['Presencial', 'Online', 'Híbrida'];
   recurrenceOptions = ['Único', 'Recurrente'];
 
   /** Pills de precio (mismo diseño que el resto de chips del modal). */
@@ -82,6 +86,7 @@ export class FiltrosService {
       (this.filterModality() ? 1 : 0) +
       (this.filterRecurrence() ? 1 : 0) +
       (this.filterPrice() ? 1 : 0) +
+      (this.filterSpecialistId() !== null ? 1 : 0) +
       (this.filterMood() ? 1 : 0)
     );
   }
@@ -97,6 +102,8 @@ export class FiltrosService {
       modality: this.filterModality(),
       recurrence: this.filterRecurrence(),
       price: this.filterPrice(),
+      specialistId: this.filterSpecialistId(),
+      specialistName: this.filterSpecialistName(),
       mood: this.filterMood(),
     };
   }
@@ -111,6 +118,8 @@ export class FiltrosService {
     this.filterModality.set(state.modality);
     this.filterRecurrence.set(state.recurrence);
     this.filterPrice.set(state.price);
+    this.filterSpecialistId.set(state.specialistId ?? null);
+    this.filterSpecialistName.set(state.specialistName ?? null);
     this.filterMood.set(state.mood);
   }
 
@@ -130,12 +139,20 @@ export class FiltrosService {
       cityName: state.city !== 'Todas' ? state.city : undefined,
       modality: this.modalityFor(state.modality),
       isRecurring: this.recurrenceFor(state.recurrence),
+      specialistId: state.specialistId ?? undefined,
       mood: this.moodFor(state.mood),
     };
   }
 
   /** Rango de precio de cada pill (el backend filtra sobre priceFrom). */
   priceRangeFor(value: string | null): Pick<EventFilterParams, 'minPrice' | 'maxPrice'> {
+    if (value?.startsWith('MAX:')) {
+      const raw = value.slice(4);
+      const maxPrice = Number(raw);
+      return raw.trim() !== '' && Number.isFinite(maxPrice) && maxPrice >= 0
+        ? { maxPrice }
+        : {};
+    }
     switch (value) {
       case 'Gratis':     return { minPrice: 0, maxPrice: 0 };
       case 'Hasta 15€':  return { maxPrice: 15 };
@@ -228,7 +245,7 @@ export class FiltrosService {
   }
 
   selectMood(value: string): void {
-    this.filterMood.set(this.filterMood() === value ? null : value);
+    this.filterMood.set(this.filterMood()?.toUpperCase() === value.toUpperCase() ? null : value);
   }
 
   clearFilters(): void {
@@ -240,6 +257,8 @@ export class FiltrosService {
     this.filterModality.set(null);
     this.filterRecurrence.set(null);
     this.filterPrice.set(null);
+    this.filterSpecialistId.set(null);
+    this.filterSpecialistName.set(null);
     this.filterMood.set(null);
   }
 
@@ -262,6 +281,7 @@ export class FiltrosService {
   private modalityFor(value: string | null): EventModality | undefined {
     if (!value) return undefined;
     if (value.toLowerCase() === 'online') return EventModality.ONLINE;
+    if (value === 'Híbrida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
     return EventModality.PRESENCIAL;
   }
 
@@ -322,10 +342,8 @@ export class FiltrosService {
   }
 
   private moodFor(value: string | null): EventMood| undefined {
-    if (!value) return undefined;
-    if (value.toLowerCase() === 'relajacion') return EventMood.RELAJACION;
-    if (value.toLowerCase() === 'energia') return EventMood.ENERGIA;
-    return EventMood.CONECTAR;
+    const key = value?.trim().toUpperCase();
+    return Object.values(EventMood).find(mood => mood === key);
   }
 
   private toDateParam(date: Date): string {

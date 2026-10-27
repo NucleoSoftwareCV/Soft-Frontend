@@ -14,10 +14,12 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
+import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent],
+  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -309,19 +311,47 @@ export class DetalleEvento implements OnDestroy{
     return end ? `${formatter.format(start)} - ${formatter.format(end)}` : formatter.format(start);
   }
 
+  readonly locationMapOpen = signal(false);
+  readonly mapOccurrence = computed(() =>
+    this.selectedOccurrence() ?? this.primaryOccurrence()
+  );
+  readonly eventMapPoints = computed<EventMapPoint[]>(() => {
+    const event = this.evento();
+    const occurrence = this.mapOccurrence();
+    const location = occurrence?.location;
+    if (!event || event.modality === 'ONLINE' || !occurrence ||
+        !location || !hasMapCoordinates(location)) {
+      return [];
+    }
+    return [{
+      eventId: event.id,
+      occurrenceId: occurrence.id,
+      title: event.title,
+      priceFrom: event.priceFrom,
+      currency: event.currency,
+      startsAt: occurrence.startsAt,
+      endsAt: occurrence.endsAt,
+      locationName: location.name,
+      address: location.address,
+      cityName: location.cityName,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    }];
+  });
+
   primaryOccurrence(): EventOccurrenceResponse | undefined {
     return this.evento()?.occurrences?.[0];
   }
 
   locationLabel(): string {
     const event = this.evento();
-    const occurrence = this.primaryOccurrence();
+    const occurrence = this.mapOccurrence();
     if (event?.modality === 'ONLINE') return 'Online';
     return occurrence?.location?.name || occurrence?.location?.cityName || 'Ubicacion por confirmar';
   }
 
   cityLabel(): string {
-    return this.primaryOccurrence()?.location?.cityName || 'Ciudad por confirmar';
+    return this.mapOccurrence()?.location?.cityName || 'Ciudad por confirmar';
   }
 
   availableSpotsLabel(): string {
@@ -359,7 +389,11 @@ export class DetalleEvento implements OnDestroy{
         this.evento.set(event);
         if (event.occurrences && event.occurrences.length > 0) {
           const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
-          this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
+          const requestedId = Number(this.route.snapshot.queryParamMap.get('occurrenceId'));
+          const requested = event.occurrences.find(occ =>
+            occ.id === requestedId && this.isOccurrenceBookable(occ)
+          );
+          this.selectedOccurrence.set(requested ?? firstBookable ?? event.occurrences[0]);
         }
         this.loading.set(false);
         this.loadFollowStatus(event.organizer?.id);
@@ -389,6 +423,7 @@ export class DetalleEvento implements OnDestroy{
     this.error.set(null);
     this.evento.set(null);
     this.selectedOccurrence.set(null);
+    this.locationMapOpen.set(false);
     this.following.set(false);
     this.followError.set(null);
     this.showUnfollowDialog.set(false);
