@@ -25,6 +25,8 @@ import {
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 import { RecommendationFilterParams } from '../../../shared/models/recommendation.model';
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
+import { EventsMapPanelComponent } from './events-map-panel.component';
+import { AdvancedEventFiltersComponent } from './advanced-event-filters.component';
 
 interface EventSortOption {
   label: string;
@@ -48,7 +50,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,6 +65,13 @@ export class Eventos {
   readonly authService = inject(AuthService);
 
   searchQuery = signal('');
+  readonly catalogView = signal<'grid' | 'map'>('grid');
+  readonly mapFilters = computed(() => this.buildFilters());
+
+  setCatalogView(view: 'grid' | 'map'): void {
+    this.showSortMenu.set(false);
+    this.catalogView.set(view);
+  }
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
@@ -744,6 +753,7 @@ export class Eventos {
         hourFrom: filters.hourFrom,
         hourTo: filters.hourTo,
         isRecurring: filters.isRecurring,
+        specialistId: filters.specialistId,
         useProfileCity: false,
         includeOnline: true,
       };
@@ -811,6 +821,7 @@ export class Eventos {
 
     return {
       page: this.currentPage(),
+      specialistId: this.filtrosService.filterSpecialistId() ?? undefined,
       size: 24,
 
       search: this.searchQuery().trim() || undefined,
@@ -842,6 +853,7 @@ export class Eventos {
       return undefined;
     }
 
+    if (value === 'Híbrida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
     return value.toLowerCase() === 'online' ? EventModality.ONLINE : EventModality.PRESENCIAL;
   }
 

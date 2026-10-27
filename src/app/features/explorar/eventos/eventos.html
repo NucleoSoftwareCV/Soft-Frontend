@@ -222,9 +222,13 @@
          RESULTADOS
          ===================================================== -->
 
+    <div class="catalog-layout">
+      <app-advanced-event-filters />
+      <div class="catalog-results">
     <div class="results-header">
 
       <strong>
+        @if (catalogView() === 'grid') {
 
         {{ totalEventos() }}
 
@@ -234,10 +238,40 @@
         : 'experiencias'
         }}
 
+        } @else {
+          Mapa general de eventos
+        }
       </strong>
 
 
       <div class="results-actions">
+        <div class="catalog-view-switch" role="group" aria-label="Vista de eventos">
+          <button type="button"
+            [class.active]="catalogView() === 'grid'"
+            [attr.aria-pressed]="catalogView() === 'grid'"
+            (click)="setCatalogView('grid')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Cuadrícula
+          </button>
+          <button type="button"
+            [class.active]="catalogView() === 'map'"
+            [attr.aria-pressed]="catalogView() === 'map'"
+            (click)="setCatalogView('map')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" />
+              <path d="M9 3v15M15 6v15" />
+            </svg>
+            Mapa
+          </button>
+        </div>
+
 
         @if (activeFilterCount > 0) {
 
@@ -259,6 +293,7 @@
           <button
             class="sort-btn"
             type="button"
+            [disabled]="catalogView() === 'map'"
             [attr.aria-expanded]="showSortMenu()"
             (click)="toggleSortMenu()"
           >
@@ -366,7 +401,9 @@
          LOADING
          ===================================================== -->
 
-    @if (loading()) {
+    @if (catalogView() === 'map') {
+      <app-events-map-panel [embedded]="true" [filters]="mapFilters()" />
+    } @else if (loading()) {
 
     <div class="cards-grid skeleton-grid">
 
@@ -770,6 +807,8 @@
     }
 
     }
+      </div>
+    </div>
 
   </div>
 

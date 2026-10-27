@@ -143,6 +143,7 @@ export type DateFilter = 'HOY' | 'MANANA' | 'ESTE_FINDE' | 'ESTA_SEMANA' | 'PROX
 export type TimeFilter = 'MANANA' | 'MEDIODIA' | 'TARDE' | 'NOCHE';
 
 export interface EventFilterParams {
+  specialistId?: number;
   search?: string;
   categoryId?: number;
   categoryIds?: number[];

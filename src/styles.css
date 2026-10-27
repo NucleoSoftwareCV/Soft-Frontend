@@ -1,3 +1,4 @@
+@import "leaflet/dist/leaflet.css";
 /* ============================================
    OONA – Design Tokens & Global Styles
    ============================================ */
@@ -224,3 +225,31 @@ button {
         line-height: 2rem;
     }
 }
+/* Elementos creados por Leaflet fuera de las plantillas de Angular. */
+.oona-map-marker { border: none; background: transparent; }
+.oona-map-pin {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  width: 112px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: #004e59;
+  color: #fff;
+  font: 600 13px/1.3 Inter, sans-serif;
+  box-shadow: 0 3px 10px rgba(0, 40, 45, .24);
+  white-space: nowrap;
+}
+.oona-map-popup { font: 14px/1.5 Inter, sans-serif; color: #204b50; }
+.oona-map-popup article + article { border-top: 1px solid #dce6e4; margin-top: 14px; padding-top: 14px; }
+.oona-map-popup strong { display: block; font-size: 16px; line-height: 1.4; margin-top: 5px; }
+.oona-map-place { display: block; font-size: 12px; color: #52777a; }
+.oona-map-popup .oona-map-approximate { padding: 9px 11px; background: #fff5e5; border-radius: 8px; color: #815e25; font-size: 12px; }
+.oona-map-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+.oona-map-popup .oona-map-actions a:first-child { background: #004e59; color: #fff; border-radius: 8px; padding: 9px 13px; text-decoration: none; }
+.oona-map-popup .oona-map-external { font-size: 12px; }
+.oona-map-popup p { margin: 8px 0; }
+.oona-map-popup a { display: inline-block; padding: 8px 0; color: #004e59; font-weight: 600; text-decoration: underline; }

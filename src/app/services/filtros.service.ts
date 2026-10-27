@@ -18,6 +18,8 @@ export interface FiltrosEstado {
   modality: string | null;
   recurrence: string | null;
   price: string | null;
+  specialistId?: number | null;
+  specialistName?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +36,8 @@ export class FiltrosService {
   filterModality = signal<string | null>(null);
   filterRecurrence = signal<string | null>(null);
   filterPrice = signal<string | null>(null);
+  filterSpecialistId = signal<number | null>(null);
+  filterSpecialistName = signal<string | null>(null);
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
   readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
@@ -46,7 +50,7 @@ export class FiltrosService {
     { label: 'Tarde', sub: '16h - 20h' },
     { label: 'Noche', sub: '20h - 24h' },
   ];
-  modalityOptions = ['Presencial', 'Online'];
+  modalityOptions = ['Presencial', 'Online', 'Híbrida'];
   recurrenceOptions = ['Único', 'Recurrente'];
 
   /** Pills de precio (mismo diseño que el resto de chips del modal). */
@@ -77,7 +81,8 @@ export class FiltrosService {
       (this.filterTimeOfDay() ? 1 : 0) +
       (this.filterModality() ? 1 : 0) +
       (this.filterRecurrence() ? 1 : 0) +
-      (this.filterPrice() ? 1 : 0)
+      (this.filterPrice() ? 1 : 0) +
+      (this.filterSpecialistId() !== null ? 1 : 0)
     );
   }
 
@@ -92,6 +97,8 @@ export class FiltrosService {
       modality: this.filterModality(),
       recurrence: this.filterRecurrence(),
       price: this.filterPrice(),
+      specialistId: this.filterSpecialistId(),
+      specialistName: this.filterSpecialistName(),
     };
   }
 
@@ -105,6 +112,8 @@ export class FiltrosService {
     this.filterModality.set(state.modality);
     this.filterRecurrence.set(state.recurrence);
     this.filterPrice.set(state.price);
+    this.filterSpecialistId.set(state.specialistId ?? null);
+    this.filterSpecialistName.set(state.specialistName ?? null);
   }
 
   /**
@@ -123,11 +132,19 @@ export class FiltrosService {
       cityName: state.city !== 'Todas' ? state.city : undefined,
       modality: this.modalityFor(state.modality),
       isRecurring: this.recurrenceFor(state.recurrence),
+      specialistId: state.specialistId ?? undefined,
     };
   }
 
   /** Rango de precio de cada pill (el backend filtra sobre priceFrom). */
   priceRangeFor(value: string | null): Pick<EventFilterParams, 'minPrice' | 'maxPrice'> {
+    if (value?.startsWith('MAX:')) {
+      const raw = value.slice(4);
+      const maxPrice = Number(raw);
+      return raw.trim() !== '' && Number.isFinite(maxPrice) && maxPrice >= 0
+        ? { maxPrice }
+        : {};
+    }
     switch (value) {
       case 'Gratis':     return { minPrice: 0, maxPrice: 0 };
       case 'Hasta 15€':  return { maxPrice: 15 };
@@ -228,6 +245,8 @@ export class FiltrosService {
     this.filterModality.set(null);
     this.filterRecurrence.set(null);
     this.filterPrice.set(null);
+    this.filterSpecialistId.set(null);
+    this.filterSpecialistName.set(null);
   }
 
   // ── Mapeo interno estado → parámetros de la API ──
@@ -249,6 +268,7 @@ export class FiltrosService {
   private modalityFor(value: string | null): EventModality | undefined {
     if (!value) return undefined;
     if (value.toLowerCase() === 'online') return EventModality.ONLINE;
+    if (value === 'Híbrida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
     return EventModality.PRESENCIAL;
   }
 

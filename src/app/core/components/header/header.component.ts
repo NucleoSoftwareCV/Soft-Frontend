@@ -135,6 +135,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   pendingModality = signal<string | null>(null);
   pendingRecurrence = signal<string | null>(null);
   pendingPrice = signal<string | null>(null);
+  pendingSpecialistId = signal<number | null>(null);
+  pendingSpecialistName = signal<string | null>(null);
 
   get whenOptions() {
     return this.filtrosService.whenOptions;
@@ -181,7 +183,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.pendingTimeOfDay() ? 1 : 0) +
       (this.pendingModality() ? 1 : 0) +
       (this.pendingRecurrence() ? 1 : 0) +
-      (this.pendingPrice() ? 1 : 0)
+      (this.pendingPrice() ? 1 : 0) +
+      (this.pendingSpecialistId() !== null ? 1 : 0)
     );
   }
 
@@ -668,6 +671,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingModality.set(this.filtrosService.filterModality());
     this.pendingRecurrence.set(this.filtrosService.filterRecurrence());
     this.pendingPrice.set(this.filtrosService.filterPrice());
+    this.pendingSpecialistId.set(this.filtrosService.filterSpecialistId());
+    this.pendingSpecialistName.set(this.filtrosService.filterSpecialistName());
 
     this.pendingResultsCount.set(null);
     this.countLoading.set(false);
@@ -684,6 +689,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.filtrosService.filterModality.set(this.pendingModality());
     this.filtrosService.filterRecurrence.set(this.pendingRecurrence());
     this.filtrosService.filterPrice.set(this.pendingPrice());
+    this.filtrosService.filterSpecialistId.set(this.pendingSpecialistId());
+    this.filtrosService.filterSpecialistName.set(this.pendingSpecialistName());
 
     this.closeFilter();
   }
@@ -742,6 +749,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingModality.set(null);
     this.pendingRecurrence.set(null);
     this.pendingPrice.set(null);
+    this.pendingSpecialistId.set(null);
+    this.pendingSpecialistName.set(null);
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
   }
@@ -1003,6 +1012,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingModality();
     this.pendingRecurrence();
     this.pendingPrice();
+    this.pendingSpecialistId();
 
     untracked(() => this.pendingCountTrigger$.next());
   });
@@ -1017,6 +1027,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       modality: this.pendingModality(),
       recurrence: this.pendingRecurrence(),
       price: this.pendingPrice(),
+      specialistId: this.pendingSpecialistId(),
+      specialistName: this.pendingSpecialistName(),
     };
   }
 
