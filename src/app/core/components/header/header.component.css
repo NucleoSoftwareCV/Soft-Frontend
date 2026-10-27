@@ -1680,6 +1680,56 @@ line-clamp: 2;
   color: #c2410c;
 }
 
+/* dropdown login or create*/
+.auth-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.auth-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 180px;
+  background: #ffffff;
+  border: 1px solid hsl(100deg 30% 90%);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  z-index: 1000;
+  animation: fadeInDown 0.15s ease-out;
+}
+
+.auth-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--principal, #111);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: hsl(100deg 30% 95%);
+    color: var(--primary, #0a3b3f);
+  }
+}
+
+.auth-item-icon {
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.75;
+
+  .auth-dropdown-item:hover & {
+    opacity: 1;
+  }
+}
+
 /* ── Modal Confirmación Cerrar Sesión ── */
 .logout-overlay {
   box-sizing: border-box;

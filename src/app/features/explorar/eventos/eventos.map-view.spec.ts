@@ -36,7 +36,7 @@ describe('Selector Cuadrícula / Mapa', () => {
         { provide: FiltrosService, useValue: {
           filterWhen: signal(null), filterCategories: signal([]), filterTypes: signal([]),
           filterCity: signal('Valencia'), filterTimeOfDay: signal(null), filterModality: signal(null),
-          filterRecurrence: signal(null), filterPrice: signal(null), filterSpecialistId: signal(null), activeFilterCount: 0,
+          filterRecurrence: signal(null), filterPrice: signal(null), filterSpecialistId: signal(null), filterMood: signal<string | null>(null), activeFilterCount: 0,
           priceRangeFor: () => ({}),
         }},
         { provide: FavoritesService, useValue: { favoritedEventIds: signal(new Set<number>()) } },

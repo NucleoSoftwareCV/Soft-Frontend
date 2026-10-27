@@ -45,7 +45,9 @@ import { EventMapComponent } from '../../../shared/components/event-map/event-ma
                 <p>Todavía no hay eventos con coordenadas disponibles. Las ubicaciones necesitan latitud y longitud guardadas para aparecer aquí.</p>
               </div>
             }
-            @if (points().length && !displayPoints().length) {
+            @if (missingMoodData()) {
+              <p class="map-empty" role="status">Todavía no hay información de estado de ánimo para estos eventos. Quita ese filtro para ver sus ubicaciones.</p>
+            } @else if (points().length && !displayPoints().length) {
               <p class="map-empty" role="status">No hay sesiones que coincidan con estos filtros. Prueba a cambiar o limpiar la selección.</p>
             }
             <app-event-map [points]="displayPoints()" label="Mapa de eventos filtrados" />
@@ -96,6 +98,8 @@ export class EventsMapPanelComponent {
     filterMapPoints(this.points(), this.filters())
   );
   readonly eventCount = computed(() => new Set(this.displayPoints().map(point => point.eventId)).size);
+  readonly missingMoodData = computed(() => !!this.filters().mood &&
+    this.points().length > 0 && this.points().every(point => !point.mood));
 
   constructor() {
     effect(() => {

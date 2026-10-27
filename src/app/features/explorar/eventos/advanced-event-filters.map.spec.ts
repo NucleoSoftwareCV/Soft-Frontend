@@ -103,4 +103,23 @@ describe('Panel de filtros avanzados', () => {
     expect(filters.priceRangeFor('MAX:NaN')).toEqual({});
     expect(filters.priceRangeFor('MAX:')).toEqual({});
   });
+  it('conserva y aplica estado de ánimo junto con profesional y precio', () => {
+    component.set('mood', 'ENERGIA');
+    component.set('price', 'MAX:0');
+    component.selectProfessional({ id: 9, publicName: 'Ana Gómez' });
+    component.apply();
+    expect(filters.activeFilterCount).toBe(3);
+    expect(filters.buildEventFilterParams(filters.snapshot())).toMatchObject({
+      mood: 'ENERGIA', specialistId: 9, maxPrice: 0,
+    });
+    component.clear();
+    expect(filters.filterMood()).toBeNull();
+    expect(filters.activeFilterCount).toBe(0);
+  });
+
+  it('permite quitar desde el acceso rápido el estado elegido en el modal', () => {
+    filters.filterMood.set('Energia');
+    filters.selectMood('ENERGIA');
+    expect(filters.filterMood()).toBeNull();
+  });
 });

@@ -5,7 +5,7 @@ import {
   CategoryCatalogItem,
   ExperienceTypeCatalogItem,
 } from '../shared/models/event-catalog.model';
-import { CityResponse, EventFilterParams, EventModality } from '../shared/models/evento.model';
+import { CityResponse, EventFilterParams, EventModality, EventMood } from '../shared/models/evento.model';
 import { EventCatalogService } from './event-catalog.service';
 import { CityService } from './city.service';
 
@@ -20,6 +20,7 @@ export interface FiltrosEstado {
   price: string | null;
   specialistId?: number | null;
   specialistName?: string | null;
+  mood: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -38,6 +39,7 @@ export class FiltrosService {
   filterPrice = signal<string | null>(null);
   filterSpecialistId = signal<number | null>(null);
   filterSpecialistName = signal<string | null>(null);
+  filterMood = signal<string | null>(null);
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
   readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
@@ -55,6 +57,8 @@ export class FiltrosService {
 
   /** Pills de precio (mismo diseño que el resto de chips del modal). */
   priceOptions = ['Gratis', 'Hasta 15€', '15–30€', '30–50€', 'Más de 50€'];
+
+  moodOptions = ['Relajacion', 'Energia', 'Conectar'];
 
   constructor() {
     this.refreshCatalogs();
@@ -82,7 +86,8 @@ export class FiltrosService {
       (this.filterModality() ? 1 : 0) +
       (this.filterRecurrence() ? 1 : 0) +
       (this.filterPrice() ? 1 : 0) +
-      (this.filterSpecialistId() !== null ? 1 : 0)
+      (this.filterSpecialistId() !== null ? 1 : 0) +
+      (this.filterMood() ? 1 : 0)
     );
   }
 
@@ -99,6 +104,7 @@ export class FiltrosService {
       price: this.filterPrice(),
       specialistId: this.filterSpecialistId(),
       specialistName: this.filterSpecialistName(),
+      mood: this.filterMood(),
     };
   }
 
@@ -114,6 +120,7 @@ export class FiltrosService {
     this.filterPrice.set(state.price);
     this.filterSpecialistId.set(state.specialistId ?? null);
     this.filterSpecialistName.set(state.specialistName ?? null);
+    this.filterMood.set(state.mood);
   }
 
   /**
@@ -133,6 +140,7 @@ export class FiltrosService {
       modality: this.modalityFor(state.modality),
       isRecurring: this.recurrenceFor(state.recurrence),
       specialistId: state.specialistId ?? undefined,
+      mood: this.moodFor(state.mood),
     };
   }
 
@@ -236,6 +244,10 @@ export class FiltrosService {
     this.filterPrice.set(this.filterPrice() === value ? null : value);
   }
 
+  selectMood(value: string): void {
+    this.filterMood.set(this.filterMood()?.toUpperCase() === value.toUpperCase() ? null : value);
+  }
+
   clearFilters(): void {
     this.filterWhen.set(null);
     this.filterCategories.set([]);
@@ -247,6 +259,7 @@ export class FiltrosService {
     this.filterPrice.set(null);
     this.filterSpecialistId.set(null);
     this.filterSpecialistName.set(null);
+    this.filterMood.set(null);
   }
 
   // ── Mapeo interno estado → parámetros de la API ──
@@ -326,6 +339,11 @@ export class FiltrosService {
       dateFrom: this.toDateParam(start),
       dateTo: this.toDateParam(end),
     };
+  }
+
+  private moodFor(value: string | null): EventMood| undefined {
+    const key = value?.trim().toUpperCase();
+    return Object.values(EventMood).find(mood => mood === key);
   }
 
   private toDateParam(date: Date): string {

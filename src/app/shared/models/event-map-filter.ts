@@ -14,6 +14,7 @@ export function filterMapPoints(
     if (filters.experienceTypeId != null && point.experienceTypeId !== filters.experienceTypeId) return false;
     if (filters.specialistId != null && point.specialistId !== filters.specialistId) return false;
     if (filters.modality && point.modality !== filters.modality) return false;
+    if (filters.mood && normalize(point.mood) !== normalize(filters.mood)) return false;
     if (filters.isRecurring != null && point.isRecurring !== filters.isRecurring) return false;
     if (filters.cityName && normalize(point.cityName) !== normalize(filters.cityName)) return false;
 

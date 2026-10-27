@@ -63,31 +63,6 @@
 
         </button>
 
-
-        <!-- HOY -->
-
-        <button
-          class="filter-btn"
-          type="button"
-          [class.active]="filterWhen() === 'Hoy'"
-          (click)="selectWhen('Hoy')"
-        >
-          Hoy
-        </button>
-
-
-        <!-- ESTE FINDE -->
-
-        <button
-          class="filter-btn"
-          type="button"
-          [class.active]="filterWhen() === 'Este finde'"
-          (click)="selectWhen('Este finde')"
-        >
-          Este finde
-        </button>
-
-
         <!-- ESTA SEMANA -->
 
         <button
@@ -99,23 +74,9 @@
           Esta semana
         </button>
 
-
-        <!-- PRÓXIMA SEMANA -->
-
-        <button
-          class="filter-btn"
-          type="button"
-          [class.active]="
-            filterWhen() === 'Próxima semana' ||
-            filterWhen() === 'Proxima semana'
-          "
-          (click)="selectWhen('Próxima semana')"
-        >
-          Próxima semana
-        </button>
-
-
-        <!-- ELEGIR FECHA -->
+        <!-- =================================================
+             ELEGIR FECHA
+             ================================================= -->
 
         <div class="date-filter-wrapper">
 
@@ -188,7 +149,38 @@
 
         </div>
 
+        <!-- Quiero relajarme -->
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterMood()?.toUpperCase() === 'RELAJACION'"
+          (click)="selectMood('RELAJACION')"
+        >
+          Quiero relajarme
+        </button>
+
+        <!-- Quiero energia -->
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterMood()?.toUpperCase() === 'ENERGIA'"
+          (click)="selectMood('ENERGIA')"
+        >
+          Quiero energia
+        </button>
+
+        <!-- Quiero conectar -->
+        <button
+          class="filter-btn"
+          type="button"
+          [class.active]="filterMood()?.toUpperCase() === 'CONECTAR'"
+          (click)="selectMood('CONECTAR')"
+        >
+          Quiero conectar
+        </button>
       </div>
+
+
 
     </div>
 

@@ -116,6 +116,15 @@ type ProfessionalOption = Pick<SpecialistProfileResponse, 'id' | 'publicName'>;
           }
         </select>
 
+        <label class="field-label" for="advanced-mood">Estado de ánimo</label>
+        <select id="advanced-mood" [value]="draft().mood?.toUpperCase() ?? ''"
+          (change)="set('mood', $any($event.target).value || null)">
+          <option value="">Cualquiera</option>
+          @for (mood of filters.moodOptions; track mood) {
+            <option [value]="mood.toUpperCase()">{{ mood }}</option>
+          }
+        </select>
+
         <label class="field-label" for="advanced-professional">Profesional</label>
         <input id="advanced-professional" type="search" placeholder="Buscar por nombre…"
           autocomplete="off" [value]="professionalQuery()"

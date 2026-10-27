@@ -21,6 +21,7 @@ import {
   EventCardResponse,
   EventFilterParams,
   EventModality,
+  EventMood
 } from '../../../shared/models/evento.model';
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 import { RecommendationFilterParams } from '../../../shared/models/recommendation.model';
@@ -264,6 +265,10 @@ export class Eventos {
     return this.filtrosService.activeFilterCount;
   }
 
+  get filterMood(){
+    return this.filtrosService.filterMood;
+  }
+
   openHeaderFilter(): void {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('oona:open-filter'));
@@ -290,6 +295,15 @@ export class Eventos {
           detail: option,
         }),
       );
+    }
+  }
+
+  selectMood(option: string): void {
+    this.filtrosService.selectMood(option);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('oona:select-mood', {
+        detail: this.filterMood(),
+      }));
     }
   }
 
@@ -754,6 +768,7 @@ export class Eventos {
         hourTo: filters.hourTo,
         isRecurring: filters.isRecurring,
         specialistId: filters.specialistId,
+        mood: filters.mood,
         useProfileCity: false,
         includeOnline: true,
       };
@@ -841,6 +856,7 @@ export class Eventos {
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
 
       sort: this.effectiveSort().sort === 'recommended' ? undefined : this.effectiveSort().sort,
+      mood: this.moodFor(this.filterMood()),
     };
   }
 
@@ -880,6 +896,11 @@ export class Eventos {
     };
 
     return value ? (ranges[value] ?? {}) : {};
+  }
+
+  private moodFor(value: string | null): EventMood | undefined {
+    const key = value?.trim().toUpperCase();
+    return Object.values(EventMood).find(mood => mood === key);
   }
 
   private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {

@@ -10,6 +10,7 @@ export interface EventMapPoint {
   organizerName?: string | null;
   modality?: 'PRESENCIAL' | 'ONLINE' | 'HIBRIDA';
   isRecurring?: boolean;
+  mood?: string | null;
   occurrenceId: number;
   eventId: number;
   title: string;

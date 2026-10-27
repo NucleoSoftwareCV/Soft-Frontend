@@ -195,4 +195,12 @@ describe('EventosService: recomendaciones', () => {
       number: 1,
     });
   });
+  it('conserva el estado de ánimo al consultar recomendaciones', () => {
+    service.getRecommendedEventos(0, 12, { mood: 'ENERGIA', specialistId: 9 }).subscribe();
+    const request = http.expectOne(req => req.url === endpoint);
+    expect(request.request.params.get('mood')).toBe('ENERGIA');
+    expect(request.request.params.get('specialistId')).toBe('9');
+    expect(request.request.params.has('sort')).toBe(false);
+    request.flush({ content: [], number: 0, size: 12, totalElements: 0, totalPages: 0 });
+  });
 });

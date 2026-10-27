@@ -45,4 +45,11 @@ describe('Filtros avanzados del mapa', () => {
     expect(filterMapPoints(points, { modality: EventModality.ONLINE })).toEqual([]);
     expect(points).toEqual([point]);
   });
+  it('no confunde estados de ánimo distintos ni considera coincidencia un dato ausente', () => {
+    const energy = { ...point, mood: 'ENERGIA' };
+    const calm = { ...point, occurrenceId: 2, mood: 'RELAJACION' };
+    expect(filterMapPoints([energy, calm, point], { mood: 'ENERGIA' })).toEqual([energy]);
+    expect(filterMapPoints([point], { mood: 'ENERGIA' })).toEqual([]);
+    expect(filterMapPoints([point], {})).toEqual([point]);
+  });
 });

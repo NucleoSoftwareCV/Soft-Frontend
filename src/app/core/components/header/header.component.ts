@@ -134,6 +134,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   pendingTimeOfDay = signal<string | null>(null);
   pendingModality = signal<string | null>(null);
   pendingRecurrence = signal<string | null>(null);
+  pendingMood = signal<string | null>(null);
+
+  // ★ NUEVO: precio pendiente (pills del modal de filtros)
   pendingPrice = signal<string | null>(null);
   pendingSpecialistId = signal<number | null>(null);
   pendingSpecialistName = signal<string | null>(null);
@@ -170,6 +173,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.filtrosService.priceOptions;
   }
 
+  get moodOptions(){
+    return this.filtrosService.moodOptions;
+  }
+
+  // =========================================================
+  // CONTADOR DE FILTROS
+  // =========================================================
+
   get activeFilterCount(): number {
     return this.filtrosService.activeFilterCount;
   }
@@ -184,7 +195,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.pendingModality() ? 1 : 0) +
       (this.pendingRecurrence() ? 1 : 0) +
       (this.pendingPrice() ? 1 : 0) +
-      (this.pendingSpecialistId() !== null ? 1 : 0)
+      (this.pendingSpecialistId() !== null ? 1 : 0) +
+      (this.pendingMood() ? 1 : 0)
     );
   }
 
@@ -678,6 +690,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.countLoading.set(false);
 
     this.isFilterOpen.set(true);
+    this.isCityOpen.set(false);
+
+    this.pendingMood.set(
+      this.filtrosService.filterMood()
+    );
   }
 
   applyFilters(): void {
@@ -692,6 +709,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.filtrosService.filterSpecialistId.set(this.pendingSpecialistId());
     this.filtrosService.filterSpecialistName.set(this.pendingSpecialistName());
 
+    this.filtrosService.filterMood.set(this.pendingMood());
     this.closeFilter();
   }
 
@@ -740,6 +758,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingPrice.set(this.pendingPrice() === price ? null : price);
   }
 
+  pendingSelectMood(m: string): void {
+    this.pendingMood.set(
+      this.pendingMood()?.toUpperCase() === m.toUpperCase()
+        ? null
+        : m
+    );
+  }
+
   pendingClearFilters(): void {
     this.pendingWhen.set(null);
     this.pendingCategories.set([]);
@@ -753,6 +779,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingSpecialistName.set(null);
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
+
+    this.pendingMood.set(null);
   }
 
   // Selector de fechas.
@@ -1013,6 +1041,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.pendingRecurrence();
     this.pendingPrice();
     this.pendingSpecialistId();
+    this.pendingMood();
 
     untracked(() => this.pendingCountTrigger$.next());
   });
@@ -1029,6 +1058,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       price: this.pendingPrice(),
       specialistId: this.pendingSpecialistId(),
       specialistName: this.pendingSpecialistName(),
+      mood: this.pendingMood(),
     };
   }
 

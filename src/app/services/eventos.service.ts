@@ -142,6 +142,7 @@ export class EventosService {
       'isRecurring',
       'specialistId',
       'useProfileCity',
+      'mood',
     ];
 
     for (const key of allowedFilters) {
