@@ -1,3 +1,4 @@
+import { EventRatingComponent } from '../event-rating/event-rating.component';
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -11,7 +12,7 @@ const FALLBACK_IMAGE =
 @Component({
   selector: 'app-evento-card',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, EventRatingComponent],
   templateUrl: './evento-card.component.html',
   styleUrl: './evento-card.component.css',
 })
@@ -50,4 +51,5 @@ export class EventoCardComponent {
       maximumFractionDigits: 0,
     }).format(item.priceFrom);
   }
+
 }

@@ -15,84 +15,84 @@
   </section>
 } @else if (evento(); as event) {
 
-<section class="detalle-page">
-  <div class="container">
-    @if (!hasGalleryImages()) {
-      <div class="gallery-empty">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span>El profesional todavía no agregó fotos de este evento</span>
-      </div>
-    } @else {
-      <div class="gallery-desktop">
-        <div class="gallery" [ngClass]="'gallery-' + getGalleryCount()">
-          <div
-            class="gallery-item"
-            *ngFor="let img of getImagenesGaleria(); let i = index"
-            >
-            <img
-              class="gallery-img"
-              [class.main-img]="i === 0"
-              [src]="img"
-              (click)="openGallery(i)"
-              [alt]="event.title"
-            />
-
+  <section class="detalle-page">
+    <div class="container">
+      @if (!hasGalleryImages()) {
+        <div class="gallery-empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>El profesional todavía no agregó fotos de este evento</span>
+        </div>
+      } @else {
+        <div class="gallery-desktop">
+          <div class="gallery" [ngClass]="'gallery-' + getGalleryCount()">
             <div
-              class="extra-overlay"
-              *ngIf="i === 4 && hayImagenesExtra()" (click)="openGallery(i)"
+              class="gallery-item"
+              *ngFor="let img of getImagenesGaleria(); let i = index"
             >
-              +{{ getImagenesExtra() }}
-            </div>
-          </div>
+              <img
+                class="gallery-img"
+                [class.main-img]="i === 0"
+                [src]="img"
+                (click)="openGallery(i)"
+                [alt]="event.title"
+              />
 
-          <div class="gallery-dots">
+              <div
+                class="extra-overlay"
+                *ngIf="i === 4 && hayImagenesExtra()" (click)="openGallery(i)"
+              >
+                +{{ getImagenesExtra() }}
+              </div>
+            </div>
+
+            <div class="gallery-dots">
             <span
               *ngFor="let img of getImagenesGaleria(); let i = index"
               [class.active]="i === 0">
             </span>
-          </div>
+            </div>
 
-          <div class="image-count">
-            {{ getGalleryCount() }}/{{ getTotalImagenes() }}
+            <div class="image-count">
+              {{ getGalleryCount() }}/{{ getTotalImagenes() }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Mobile -->
-      <div class="gallery-mobile">   
-        <swiper-container
-          class="gallery-swiper"
-          navigation="false"
-          pagination="true"
-          pagination-clickable="true"
-          autoplay-delay="3000"
-          autoplay-disable-on-interaction="false"
-          speed="500"
-          (swiperslidechange)="onSlideChange($event)">
+        <!-- Mobile -->
+        <div class="gallery-mobile">
+          <swiper-container
+            class="gallery-swiper"
+            navigation="false"
+            pagination="true"
+            pagination-clickable="true"
+            autoplay-delay="3000"
+            autoplay-disable-on-interaction="false"
+            speed="500"
+            (swiperslidechange)="onSlideChange($event)">
 
-          <swiper-slide *ngFor="let img of getTodasLasImagenes()">
-            <img
-              class="hero-image"
-              [src]="img"
-              draggable="false"
-              [alt]="event.title">
-          </swiper-slide>
+            <swiper-slide *ngFor="let img of getTodasLasImagenes()">
+              <img
+                class="hero-image"
+                [src]="img"
+                draggable="false"
+                [alt]="event.title">
+            </swiper-slide>
 
-        </swiper-container>
+          </swiper-container>
 
-        <!-- Botón volver -->
-        <button class="hero-btn hero-back acciones">
+          <!-- Botón volver -->
+          <button class="hero-btn hero-back acciones">
 
             <a routerLink="/explorar">
               <svg xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-                stroke-linejoin="round">
+                   width="16"
+                   height="16"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="1.75"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
 
                 <path d="m12 19-7-7 7-7"></path>
                 <path d="M19 12H5"></path>
@@ -101,71 +101,71 @@
             </a>
           </button>
 
-        <!-- Botones derecha -->
-        <div class="hero-actions">
+          <!-- Botones derecha -->
+          <div class="hero-actions">
 
+            <button
+              type="button"
+              class="hero-btn acciones"
+              aria-label="Compartir evento"
+              title="Compartir"
+              (click)="openShareModal()">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="16"
+                   height="16"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="1.75"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" x2="12" y1="2" y2="15"></line>
+
+              </svg>
+            </button>
+
+            <button
+              class="hero-btn acciones"
+              [class.active-heart]="favorito()"
+              (click)="toggleFavorito()">
+
+              {{ favorito() ? '♥' : '♡' }}
+
+            </button>
+
+          </div>
+
+          <!-- Contador -->
+          <div class="hero-counter acciones">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images h-3.5 w-3.5" aria-hidden="true"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"></path><circle cx="12" cy="8" r="2"></circle><rect width="16" height="16" x="6" y="2" rx="2"></rect></svg>
+            {{ counterImageLabel(getTodasLasImagenes()) }}
+          </div>
+
+        </div>
+      }
+      <div class="title-row">
+        <h1>{{ event.title }}</h1>
+        <div class="actions">
           <button
             type="button"
-            class="hero-btn acciones"
+            class="share-btn"
             aria-label="Compartir evento"
             title="Compartir"
             (click)="openShareModal()">
-            <svg xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
               <polyline points="16 6 12 2 8 6"></polyline>
               <line x1="12" x2="12" y1="2" y2="15"></line>
-
             </svg>
           </button>
-
-          <button
-            class="hero-btn acciones"
-            [class.active-heart]="favorito()"
-            (click)="toggleFavorito()">
-
+          <button class="favorite-btn" [class.active-heart]="favorito()" (click)="toggleFavorito()">
             {{ favorito() ? '♥' : '♡' }}
-
           </button>
-
         </div>
-
-        <!-- Contador -->
-        <div class="hero-counter acciones">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images h-3.5 w-3.5" aria-hidden="true"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"></path><circle cx="12" cy="8" r="2"></circle><rect width="16" height="16" x="6" y="2" rx="2"></rect></svg>
-          {{ counterImageLabel(getTodasLasImagenes()) }}
-        </div>
-
       </div>
-    }
-    <div class="title-row">
-      <h1>{{ event.title }}</h1>
-      <div class="actions">
-        <button
-          type="button"
-          class="share-btn"
-          aria-label="Compartir evento"
-          title="Compartir"
-          (click)="openShareModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-            <polyline points="16 6 12 2 8 6"></polyline>
-            <line x1="12" x2="12" y1="2" y2="15"></line>
-          </svg>
-        </button>
-        <button class="favorite-btn" [class.active-heart]="favorito()" (click)="toggleFavorito()">
-          {{ favorito() ? '♥' : '♡' }}
-        </button>
-      </div>
-    </div>
 
       <div class="content-layout">
         <main class="main-content">
@@ -185,7 +185,7 @@
                 [class.follow-btn--active]="following()"
                 [disabled]="followLoading()"
                 (click)="toggleFollow(); $event.preventDefault()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
                 @if (followLoading()) {
                   Guardando...
                 } @else {
@@ -200,7 +200,7 @@
           <article class="info-card">
             <div class="section-title">
               <div class="icon-box icon-green">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar h-5 w-5 text-primary"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg> 
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar h-5 w-5 text-primary"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
               </div>
               <h2>Fecha y hora</h2>
             </div>
@@ -212,19 +212,19 @@
             </div>
 
             <div class="weekly-info" *ngIf="event.isRecurring">
-                <div class="weekly-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat h-4 w-4 text-primary shrink-0 mt-0.5"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg>
-                </div>
+              <div class="weekly-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat h-4 w-4 text-primary shrink-0 mt-0.5"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg>
+              </div>
 
-                <div class="weekly-content">
-                    <h4>Se repite cada semana</h4>
+              <div class="weekly-content">
+                <h4>Se repite cada semana</h4>
 
-                    <p>{{ formatRecurringSchedule() }}</p>
+                <p>{{ formatRecurringSchedule() }}</p>
 
-                    <small>
-                        Elige la sesión que mejor te encaje antes de reservar.
-                    </small>
-                </div>
+                <small>
+                  Elige la sesión que mejor te encaje antes de reservar.
+                </small>
+              </div>
             </div>
           </article>
 
@@ -238,44 +238,44 @@
           </article>
 
           @if (event.includes.length) {
-          <article class="info-card">
-            <div class="section-title">
-              <div class="icon-box icon-green-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-5 w-5 text-green-600"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg>            </div>
-              <h2>Lo que incluye</h2>
-            </div>
-            <div class="chips">
-              @for (item of event.includes; track item) { <span>{{ item }}</span> }
-            </div>
-          </article>
+            <article class="info-card">
+              <div class="section-title">
+                <div class="icon-box icon-green-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big h-5 w-5 text-green-600"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg>            </div>
+                <h2>Lo que incluye</h2>
+              </div>
+              <div class="chips">
+                @for (item of event.includes; track item) { <span>{{ item }}</span> }
+              </div>
+            </article>
           }
 
-        @if (event.highlights.length) {
-        <article class="info-card">
-          <div class="section-title">
-            <div class="icon-box icon-green-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 3.9-4.3.6 3.1 3-.7 4.3 3.8-2 3.8 2-.7-4.3 3.1-3-4.3-.6Z"></path></svg>
-            </div>
-            <h2>Puntos destacados</h2>
-          </div>
-          <div class="chips">
-            @for (item of event.highlights; track item) { <span>{{ item }}</span> }
-          </div>
-        </article>
-        }
+          @if (event.highlights.length) {
+            <article class="info-card">
+              <div class="section-title">
+                <div class="icon-box icon-green-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 3.9-4.3.6 3.1 3-.7 4.3 3.8-2 3.8 2-.7-4.3 3.1-3-4.3-.6Z"></path></svg>
+                </div>
+                <h2>Puntos destacados</h2>
+              </div>
+              <div class="chips">
+                @for (item of event.highlights; track item) { <span>{{ item }}</span> }
+              </div>
+            </article>
+          }
 
-        @if (event.whatToBring.length) {
-        <article class="info-card">
-          <div class="section-title">
-            <div class="icon-box icon-blue">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5 text-blue-600"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg>            </div>
-            <h2>Qué traer</h2>
-          </div>
-          <div class="chips blue">
-            @for (item of event.whatToBring; track item) { <span>{{ item }}</span> }
-          </div>
-        </article>
-        }
+          @if (event.whatToBring.length) {
+            <article class="info-card">
+              <div class="section-title">
+                <div class="icon-box icon-blue">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5 text-blue-600"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg>            </div>
+                <h2>Qué traer</h2>
+              </div>
+              <div class="chips blue">
+                @for (item of event.whatToBring; track item) { <span>{{ item }}</span> }
+              </div>
+            </article>
+          }
 
         </main>
 
@@ -403,33 +403,130 @@
             }
           </div>
         </div>
-          
-          <!--<a
-            *ngIf="whatsappUrl() as contactUrl; else contactoNoDisponible"
-            class="question-box"
-            [href]="contactUrl"
-            target="_blank"
-            rel="noopener noreferrer">
-            <div class="question-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle h-5 w-5 text-primary"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
-            </div>
 
+        <!--<a
+          *ngIf="whatsappUrl() as contactUrl; else contactoNoDisponible"
+          class="question-box"
+          [href]="contactUrl"
+          target="_blank"
+          rel="noopener noreferrer">
+          <div class="question-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle h-5 w-5 text-primary"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
+          </div>
+
+          <div class="question-text">
+            <p>¿Tienes alguna pregunta para el organizador?</p>
+            <small>Contactar por WhatsApp</small>
+          </div>
+        </a>
+        <ng-template #contactoNoDisponible>
+          <div class="question-box question-box--disabled">
+            <div class="question-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
+            </div>
             <div class="question-text">
-              <p>¿Tienes alguna pregunta para el organizador?</p>
-              <small>Contactar por WhatsApp</small>
+              <p>Contacto no disponible</p>
+              <small>El organizador no ha publicado su WhatsApp.</small>
             </div>
-          </a>
-          <ng-template #contactoNoDisponible>
-            <div class="question-box question-box--disabled">
-              <div class="question-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" color="hsl(100 53% 36%)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
-              </div>
-              <div class="question-text">
-                <p>Contacto no disponible</p>
-                <small>El organizador no ha publicado su WhatsApp.</small>
-              </div>
-            </div>
-          </ng-template>-->
+          </div>
+        </ng-template>-->
+      </section>
+
+      <section class="event-reviews" aria-labelledby="event-reviews-title">
+        <h2 id="event-reviews-title">Calificaciones del evento</h2>
+        <div aria-live="polite" [attr.aria-busy]="cargandoCalificaciones()">
+          @if (cargandoCalificaciones()) {
+            <p>Cargando calificaciones...</p>
+          } @else if (errorCalificaciones()) {
+            <p role="alert">{{ errorCalificaciones() }}</p>
+            <button type="button" (click)="cargarCalificaciones(event.id)">Reintentar consulta</button>
+          } @else if (resumenCalificacion(); as summary) {
+            @if (summary.reviewCount === 0) {
+              <p>Este evento todavía no tiene reseñas.</p>
+            } @else {
+              <p class="event-reviews__summary">
+                <span aria-hidden="true">★</span>
+                <strong>{{ promedioCalificacionTexto() }} de 5</strong>
+                · {{ summary.reviewCount }} {{ summary.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+              </p>
+            }
+          } @else {
+            <p>Calificaciones pendientes de consulta.</p>
+          }
+        </div>
+
+        <div class="event-reviews__list" aria-live="polite" [attr.aria-busy]="cargandoResenas()">
+          @if (cargandoResenas()) {
+            <p>Cargando reseñas...</p>
+          } @else if (errorResenas()) {
+            <p role="alert">{{ errorResenas() }}</p>
+            <button type="button" (click)="cargarResenas(event.id, paginaResenas()?.number ?? 0)">Reintentar reseñas</button>
+          } @else if (paginaResenas(); as page) {
+            @for (review of page.content; track review.id) {
+              <article class="event-reviews__item" [id]="'review-' + review.id">
+                <header><strong>{{ review.authorName }}</strong><time [attr.datetime]="review.createdAt">{{ fechaResena(review.createdAt) }}</time></header>
+                <p class="event-reviews__rating" [attr.aria-label]="review.stars + ' de 5 estrellas'">
+                  @for (star of estrellasDisponibles; track star) {
+                    <span aria-hidden="true">{{ star <= review.stars ? '★' : '☆' }}</span>
+                  }
+                </p>
+                @if (review.comment) { <p class="event-reviews__comment">{{ review.comment }}</p> }
+              </article>
+            }
+            @if (page.totalPages > 1) {
+              <nav class="event-reviews__pagination" aria-label="Páginas de reseñas">
+                <button type="button" [disabled]="page.first" (click)="cargarResenas(event.id, page.number - 1)">Anterior</button>
+                <span>Página {{ page.number + 1 }} de {{ page.totalPages }}</span>
+                <button type="button" [disabled]="page.last" (click)="cargarResenas(event.id, page.number + 1)">Siguiente</button>
+              </nav>
+            }
+          }
+        </div>
+
+        @if (!sesionCalificacionActiva()) {
+          <p>Inicia sesión para comprobar si puedes calificar este evento.</p>
+          <button type="button" (click)="iniciarSesionParaCalificar()">Iniciar sesión</button>
+        } @else if (consultandoPermisoCalificacion()) {
+          <p role="status">Comprobando permiso para calificar...</p>
+        } @else if (errorPermisoCalificacion()) {
+          <p role="alert">{{ errorPermisoCalificacion() }}</p>
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso</button>
+        } @else if (permisoCalificacion(); as permission) {
+          @if (permission.canReview) {
+            <form (ngSubmit)="enviarCalificacion()" class="event-reviews__form">
+              <fieldset [disabled]="enviandoCalificacion()">
+                <legend>Tu calificación (obligatoria)</legend>
+                <div class="event-reviews__stars">
+                  @for (star of estrellasDisponibles; track star) {
+                    <label class="event-reviews__star" [class.is-selected]="star <= estrellasSeleccionadas()">
+                      <input type="radio" name="eventRating" [value]="star"
+                             [ngModel]="estrellasSeleccionadas()"
+                             (ngModelChange)="seleccionarEstrellas($event)"
+                             [attr.aria-label]="star + (star === 1 ? ' estrella' : ' estrellas')" required>
+                      <span aria-hidden="true">★</span>
+                    </label>
+                  }
+                </div>
+                <label for="event-review-comment">Comentario (opcional, hasta 2000 caracteres)</label>
+                <textarea id="event-review-comment" name="reviewComment" rows="4" maxlength="2000"
+                          [ngModel]="comentarioResena()" (ngModelChange)="comentarioResena.set($event)"></textarea>
+                <button type="submit" [disabled]="!puedeEnviarCalificacion()">
+                  {{ enviandoCalificacion() ? 'Enviando...' : 'Enviar calificación' }}
+                </button>
+              </fieldset>
+            </form>
+          } @else {
+            <p>{{ permission.reason || 'Actualmente no puedes calificar este evento.' }}</p>
+          }
+        } @else {
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso para calificar</button>
+        }
+        @if (errorRegistroCalificacion()) {
+          <p role="alert">{{ errorRegistroCalificacion() }}</p>
+        }
+        @if (mensajeCalificacion()) {
+          <p role="status">{{ mensajeCalificacion() }}</p>
+        }
       </section>
 
       @if (eventosSimilares().length > 0) {
@@ -495,277 +592,277 @@
         </button>
       </div>
 
-      </div>
+    </div>
 
-      <!-- Modal de Reserva (Checkout) -->
-      <div class="booking-modal-backdrop" *ngIf="showBookingModal()" (click)="cerrarReserva()"></div>
-      <div class="booking-modal-container" *ngIf="showBookingModal()" role="dialog" aria-modal="true">
-        <header class="booking-modal-header" style="background: #005766; color: white !important; padding: 18px 20px; text-align: center; position: relative;">
-          <div style="width: 100%;">
+    <!-- Modal de Reserva (Checkout) -->
+    <div class="booking-modal-backdrop" *ngIf="showBookingModal()" (click)="cerrarReserva()"></div>
+    <div class="booking-modal-container" *ngIf="showBookingModal()" role="dialog" aria-modal="true">
+      <header class="booking-modal-header" style="background: #005766; color: white !important; padding: 18px 20px; text-align: center; position: relative;">
+        <div style="width: 100%;">
             <span class="event-caps-title" style="display: block; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: rgba(255, 255, 255, 0.75) !important; text-transform: uppercase; margin-bottom: 2px;">
               {{ event.title }}
             </span>
-            <h2 style="font-family: Sunset, Georgia, serif; font-size: 22px; font-weight: 700; color: white !important; margin: 2px 0 6px;">
-              ¡Reserva tu plaza!
-            </h2>
-            <div class="event-occurrence-time" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar" style="color: rgba(255, 255, 255, 0.85) !important;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></svg>
-              <span style="color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">{{ formatOccurrenceDate(selectedOccurrence() || undefined) }} - {{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</span>
-            </div>
+          <h2 style="font-family: Sunset, Georgia, serif; font-size: 22px; font-weight: 700; color: white !important; margin: 2px 0 6px;">
+            ¡Reserva tu plaza!
+          </h2>
+          <div class="event-occurrence-time" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar" style="color: rgba(255, 255, 255, 0.85) !important;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></svg>
+            <span style="color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">{{ formatOccurrenceDate(selectedOccurrence() || undefined) }} - {{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</span>
           </div>
-          <button class="close-btn" type="button" aria-label="Cerrar" (click)="cerrarReserva()" style="position: absolute; top: 12px; right: 16px; background: none; border: none; color: rgba(255, 255, 255, 0.8) !important; font-size: 18px; cursor: pointer;">✕</button>
-        </header>
+        </div>
+        <button class="close-btn" type="button" aria-label="Cerrar" (click)="cerrarReserva()" style="position: absolute; top: 12px; right: 16px; background: none; border: none; color: rgba(255, 255, 255, 0.8) !important; font-size: 18px; cursor: pointer;">✕</button>
+      </header>
 
-        <div class="booking-modal-body">
-          <!-- Error Message -->
-          <div class="booking-error-alert" *ngIf="bookingError()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>{{ bookingError() }}</span>
-          </div>
+      <div class="booking-modal-body">
+        <!-- Error Message -->
+        <div class="booking-error-alert" *ngIf="bookingError()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>{{ bookingError() }}</span>
+        </div>
 
-          <!-- STEP 1: Datos de Asistentes -->
-          <div class="booking-step-content" *ngIf="bookingStep() === 1">
-            
-            <!-- Nombre y apellidos -->
-            <div class="form-field-wrapper">
-              <div class="field-label-row">
+        <!-- STEP 1: Datos de Asistentes -->
+        <div class="booking-step-content" *ngIf="bookingStep() === 1">
+
+          <!-- Nombre y apellidos -->
+          <div class="form-field-wrapper">
+            <div class="field-label-row">
                 <span class="field-label">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                   Nombre y apellidos <span class="required">*</span>
                 </span>
-                <span class="field-status verified" *ngIf="compradorNombre().trim() && compradorApellido().trim()">
+              <span class="field-status verified" *ngIf="compradorNombre().trim() && compradorApellido().trim()">
                   ✓ Verificado
                 </span>
-              </div>
-              <div class="two-column-inputs">
-                <input type="text" [(ngModel)]="compradorNombre" placeholder="Said" required />
-                <input type="text" [(ngModel)]="compradorApellido" placeholder="Lopez" required />
-              </div>
             </div>
+            <div class="two-column-inputs">
+              <input type="text" [(ngModel)]="compradorNombre" placeholder="Said" required />
+              <input type="text" [(ngModel)]="compradorApellido" placeholder="Lopez" required />
+            </div>
+          </div>
 
-            <!-- Email -->
-            <div class="form-field-wrapper mt-4">
-              <div class="field-label-row">
+          <!-- Email -->
+          <div class="form-field-wrapper mt-4">
+            <div class="field-label-row">
                 <span class="field-label">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
                   Email <span class="required">*</span>
                 </span>
-                <span class="field-status verified" *ngIf="compradorEmail().trim().includes('@')">
+              <span class="field-status verified" *ngIf="compradorEmail().trim().includes('@')">
                   ✓ Verificado
                 </span>
-              </div>
-              <input type="email" [(ngModel)]="compradorEmail" placeholder="saidlopescangre123@gmail.com" required />
             </div>
+            <input type="email" [(ngModel)]="compradorEmail" placeholder="saidlopescangre123@gmail.com" required />
+          </div>
 
-            <!-- WhatsApp -->
-            <div class="form-field-wrapper mt-4">
-              <div class="field-label-row">
+          <!-- WhatsApp -->
+          <div class="form-field-wrapper mt-4">
+            <div class="field-label-row">
                 <span class="field-label">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>
                   WhatsApp <span class="required">*</span>
                 </span>
-              </div>
-              <input type="tel" [(ngModel)]="compradorTelefono" placeholder="+34 600 000 000" />
-              <p class="field-help-text">El profesional te enviará información del evento por WhatsApp.</p>
             </div>
+            <input type="tel" [(ngModel)]="compradorTelefono" placeholder="+34 600 000 000" />
+            <p class="field-help-text">El profesional te enviará información del evento por WhatsApp.</p>
+          </div>
 
-            <!-- Número de plazas & Código de descuento -->
-            <div class="form-field-wrapper mt-4">
-              <div class="field-label-row">
+          <!-- Número de plazas & Código de descuento -->
+          <div class="form-field-wrapper mt-4">
+            <div class="field-label-row">
                 <span class="field-label">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                   Número de plazas
                 </span>
+            </div>
+            <div class="plazas-discount-row">
+              <div class="plazas-counter-inline">
+                <button type="button" class="counter-btn" (click)="updatePlazas(-1)" [disabled]="numPlazas() <= 1">-</button>
+                <span class="counter-val">{{ numPlazas() }}</span>
+                <button type="button" class="counter-btn" (click)="updatePlazas(1)" [disabled]="selectedOccurrence() && numPlazas() >= selectedOccurrence()!.availableSpots">+</button>
               </div>
-              <div class="plazas-discount-row">
-                <div class="plazas-counter-inline">
-                  <button type="button" class="counter-btn" (click)="updatePlazas(-1)" [disabled]="numPlazas() <= 1">-</button>
-                  <span class="counter-val">{{ numPlazas() }}</span>
-                  <button type="button" class="counter-btn" (click)="updatePlazas(1)" [disabled]="selectedOccurrence() && numPlazas() >= selectedOccurrence()!.availableSpots">+</button>
-                </div>
-                <label class="discount-checkbox-label">
-                  <input type="checkbox" [(ngModel)]="tieneCodigoDescuento" />
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag" style="color: #64748b !important;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                  <span>Tengo un código de descuento</span>
-                </label>
-              </div>
-
-              <!-- Coupon Input Code Box -->
-              <div class="coupon-input-wrapper mt-3" *ngIf="tieneCodigoDescuento()">
-                <div style="display: flex; gap: 8px; width: 100%;">
-                  <input type="text" [(ngModel)]="codigoDescuento" placeholder="DESCUENTO10" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; text-transform: uppercase;" />
-                  <button type="button" (click)="aplicarCodigoDescuento()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Aplicar</button>
-                </div>
-                <p class="coupon-msg" *ngIf="mensajeDescuento()" [style.color]="codigoAplicado() ? '#16a34a' : '#ef4444'" style="font-size: 11px; margin-top: 4px; font-weight: 600; text-align: left;">
-                  {{ mensajeDescuento() }}
-                </p>
-                <p class="coupon-msg text-muted" *ngIf="codigoAplicado()" style="font-size: 11px; margin-top: 2px; text-align: left; color: #64748b;">
-                  Total antes de descuento: {{ formatTotalBeforeDiscount() }}
-                </p>
-              </div>
+              <label class="discount-checkbox-label">
+                <input type="checkbox" [(ngModel)]="tieneCodigoDescuento" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag" style="color: #64748b !important;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                <span>Tengo un código de descuento</span>
+              </label>
             </div>
 
-            <!-- Card: La reserva es para mí -->
-            <div class="reserva-para-mi-card mt-4" (click)="toggleYoTambienAsisto()">
-              <!-- Circle with green checkmark when active, empty circle when inactive -->
-              <svg *ngIf="yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #005766;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              <svg *ngIf="!yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;"><circle cx="12" cy="12" r="10"></circle></svg>
-              <span style="font-size: 13.5px; font-weight: 700; color: #005766 !important;">La reserva es para mí</span>
-            </div>
-
-            <!-- Datos de la persona que asistirá (visible when unchecked) -->
-            <div class="mt-4" *ngIf="!yoTambienAsisto()" style="text-align: left;">
-              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 2px;">Datos de la persona que asistirá</h3>
-              <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4;">
-                Tú gestionarás la reserva, pero esta plaza será para otra persona. Le enviaremos los detalles por email.
+            <!-- Coupon Input Code Box -->
+            <div class="coupon-input-wrapper mt-3" *ngIf="tieneCodigoDescuento()">
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <input type="text" [(ngModel)]="codigoDescuento" placeholder="DESCUENTO10" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; text-transform: uppercase;" />
+                <button type="button" (click)="aplicarCodigoDescuento()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Aplicar</button>
+              </div>
+              <p class="coupon-msg" *ngIf="mensajeDescuento()" [style.color]="codigoAplicado() ? '#16a34a' : '#ef4444'" style="font-size: 11px; margin-top: 4px; font-weight: 600; text-align: left;">
+                {{ mensajeDescuento() }}
+              </p>
+              <p class="coupon-msg text-muted" *ngIf="codigoAplicado()" style="font-size: 11px; margin-top: 2px; text-align: left; color: #64748b;">
+                Total antes de descuento: {{ formatTotalBeforeDiscount() }}
               </p>
             </div>
-
-            <!-- Formulario de asistentes adicionales (acompañantes) -->
-            <section class="additional-attendees mt-4" *ngIf="asistentesAdicionales().length > 0">
-              <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 4px; text-align: left;" *ngIf="yoTambienAsisto()">Asistentes adicionales</h3>
-              <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4; text-align: left;" *ngIf="yoTambienAsisto()">
-                Ocupas la plaza 1. Si quieres, indica los datos de la otra persona (opcional). Recibirán su entrada por email.
-              </p>
-              
-              <div class="attendee-subform-card" *ngFor="let ast of asistentesAdicionales(); let i = index">
-                <div class="subform-card-header">
-                  <span>Asistente {{ yoTambienAsisto() ? i + 2 : i + 1 }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up" style="color: #64748b !important;"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                </div>
-                <div class="subform-card-body">
-                  <div class="two-column-inputs">
-                    <input type="text" [(ngModel)]="ast.name" placeholder="Nombre" required />
-                    <input type="text" [(ngModel)]="ast.lastName" placeholder="Apellido" required />
-                  </div>
-                  <input type="email" [(ngModel)]="ast.email" placeholder="email@ejemplo.com" class="mt-2" required style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; color: #0f172a !important; background: #f8fafc; box-sizing: border-box;" />
-                </div>
-              </div>
-            </section>
           </div>
 
-          <!-- STEP 2: Pago Online Ficticio -->
-          <div class="booking-step-content" *ngIf="bookingStep() === 2">
-            <section class="form-section">
-              <h3>Selecciona tu método de pago</h3>
-              <div class="payment-method-selector">
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'TARJETA'" (click)="paymentMethod.set('TARJETA')">
-                  Tarjeta de Crédito / Débito
-                </button>
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'YAPE'" (click)="paymentMethod.set('YAPE')">
-                  Yape
-                </button>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'TARJETA'">
-              <div class="form-grid">
-                <div class="form-group wide">
-                  <label>Número de tarjeta *</label>
-                  <input type="text" [(ngModel)]="cardNumber" (input)="onCardNumberInput($event)" placeholder="4111 2222 3333 4444" maxlength="19" required />
-                </div>
-                <div class="form-group">
-                  <label>Fecha de Expiración *</label>
-                  <input type="text" [(ngModel)]="cardExpiration" (input)="onCardExpirationInput($event)" placeholder="MM/AA" maxlength="5" required />
-                </div>
-                <div class="form-group">
-                  <label>CVV *</label>
-                  <input type="text" [(ngModel)]="cardCvv" (input)="onCardCvvInput($event)" placeholder="123" maxlength="4" required />
-                </div>
-                <div class="form-group wide">
-                  <label>Nombre del Titular *</label>
-                  <input type="text" [(ngModel)]="cardHolderName" (input)="onCardHolderNameInput($event)" placeholder="Como figura en la tarjeta" maxlength="50" required />
-                </div>
-              </div>
-              <div class="alert alert-info mt-3">
-                <p><strong>Nota de simulación:</strong> El número de tarjeta que termina en 4444 simulará fondos insuficientes (rechazo). Cualquier otro número será aprobado.</p>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'YAPE'">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Número de Celular *</label>
-                  <input type="text" [(ngModel)]="yapePhone" (input)="onYapePhoneInput($event)" placeholder="999888777" maxlength="9" required />
-                </div>
-                <div class="form-group">
-                  <label>Código de Aprobación *</label>
-                  <input type="text" [(ngModel)]="yapeOtp" (input)="onYapeOtpInput($event)" placeholder="123456" maxlength="6" required />
-                </div>
-              </div>
-            </section>
+          <!-- Card: La reserva es para mí -->
+          <div class="reserva-para-mi-card mt-4" (click)="toggleYoTambienAsisto()">
+            <!-- Circle with green checkmark when active, empty circle when inactive -->
+            <svg *ngIf="yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color: #005766;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <svg *ngIf="!yoTambienAsisto()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;"><circle cx="12" cy="12" r="10"></circle></svg>
+            <span style="font-size: 13.5px; font-weight: 700; color: #005766 !important;">La reserva es para mí</span>
           </div>
 
-          <!-- STEP 3: Confirmación / Éxito -->
-          <div class="booking-step-content booking-success-content" *ngIf="bookingStep() === 3">
-            <div class="success-icon-wrapper">
-              <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                <circle class="success-checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-              </svg>
+          <!-- Datos de la persona que asistirá (visible when unchecked) -->
+          <div class="mt-4" *ngIf="!yoTambienAsisto()" style="text-align: left;">
+            <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 2px;">Datos de la persona que asistirá</h3>
+            <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4;">
+              Tú gestionarás la reserva, pero esta plaza será para otra persona. Le enviaremos los detalles por email.
+            </p>
+          </div>
+
+          <!-- Formulario de asistentes adicionales (acompañantes) -->
+          <section class="additional-attendees mt-4" *ngIf="asistentesAdicionales().length > 0">
+            <h3 style="font-size: 13px; font-weight: 700; color: #1e293b !important; margin-bottom: 4px; text-align: left;" *ngIf="yoTambienAsisto()">Asistentes adicionales</h3>
+            <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4; text-align: left;" *ngIf="yoTambienAsisto()">
+              Ocupas la plaza 1. Si quieres, indica los datos de la otra persona (opcional). Recibirán su entrada por email.
+            </p>
+
+            <div class="attendee-subform-card" *ngFor="let ast of asistentesAdicionales(); let i = index">
+              <div class="subform-card-header">
+                <span>Asistente {{ yoTambienAsisto() ? i + 2 : i + 1 }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up" style="color: #64748b !important;"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              </div>
+              <div class="subform-card-body">
+                <div class="two-column-inputs">
+                  <input type="text" [(ngModel)]="ast.name" placeholder="Nombre" required />
+                  <input type="text" [(ngModel)]="ast.lastName" placeholder="Apellido" required />
+                </div>
+                <input type="email" [(ngModel)]="ast.email" placeholder="email@ejemplo.com" class="mt-2" required style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; color: #0f172a !important; background: #f8fafc; box-sizing: border-box;" />
+              </div>
             </div>
-            
-            <h2>¡Tu reserva está registrada!</h2>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'WHATSAPP'">
-              Hemos abierto WhatsApp para que coordines el pago directamente con el profesional. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
-            </p>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
-              El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
-            </p>
+          </section>
+        </div>
 
-            <div class="booking-summary-box mt-4">
-              <h4>Resumen del evento</h4>
-              <div class="summary-details">
-                <div class="summary-row"><span>Evento:</span><strong>{{ event.title }}</strong></div>
-                <div class="summary-row"><span>Fecha:</span><strong>{{ formatOccurrenceDate(selectedOccurrence() || undefined) }}</strong></div>
-                <div class="summary-row"><span>Hora:</span><strong>{{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</strong></div>
-                <div class="summary-row"><span>Plazas reservadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
-                <div class="summary-row total"><span>Monto Total:</span><strong>{{ formatTotalPrice() }}</strong></div>
+        <!-- STEP 2: Pago Online Ficticio -->
+        <div class="booking-step-content" *ngIf="bookingStep() === 2">
+          <section class="form-section">
+            <h3>Selecciona tu método de pago</h3>
+            <div class="payment-method-selector">
+              <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'TARJETA'" (click)="paymentMethod.set('TARJETA')">
+                Tarjeta de Crédito / Débito
+              </button>
+              <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'YAPE'" (click)="paymentMethod.set('YAPE')">
+                Yape
+              </button>
+            </div>
+          </section>
+
+          <section class="form-section mt-4" *ngIf="paymentMethod() === 'TARJETA'">
+            <div class="form-grid">
+              <div class="form-group wide">
+                <label>Número de tarjeta *</label>
+                <input type="text" [(ngModel)]="cardNumber" (input)="onCardNumberInput($event)" placeholder="4111 2222 3333 4444" maxlength="19" required />
               </div>
+              <div class="form-group">
+                <label>Fecha de Expiración *</label>
+                <input type="text" [(ngModel)]="cardExpiration" (input)="onCardExpirationInput($event)" placeholder="MM/AA" maxlength="5" required />
+              </div>
+              <div class="form-group">
+                <label>CVV *</label>
+                <input type="text" [(ngModel)]="cardCvv" (input)="onCardCvvInput($event)" placeholder="123" maxlength="4" required />
+              </div>
+              <div class="form-group wide">
+                <label>Nombre del Titular *</label>
+                <input type="text" [(ngModel)]="cardHolderName" (input)="onCardHolderNameInput($event)" placeholder="Como figura en la tarjeta" maxlength="50" required />
+              </div>
+            </div>
+            <div class="alert alert-info mt-3">
+              <p><strong>Nota de simulación:</strong> El número de tarjeta que termina en 4444 simulará fondos insuficientes (rechazo). Cualquier otro número será aprobado.</p>
+            </div>
+          </section>
+
+          <section class="form-section mt-4" *ngIf="paymentMethod() === 'YAPE'">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Número de Celular *</label>
+                <input type="text" [(ngModel)]="yapePhone" (input)="onYapePhoneInput($event)" placeholder="999888777" maxlength="9" required />
+              </div>
+              <div class="form-group">
+                <label>Código de Aprobación *</label>
+                <input type="text" [(ngModel)]="yapeOtp" (input)="onYapeOtpInput($event)" placeholder="123456" maxlength="6" required />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- STEP 3: Confirmación / Éxito -->
+        <div class="booking-step-content booking-success-content" *ngIf="bookingStep() === 3">
+          <div class="success-icon-wrapper">
+            <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle class="success-checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+          </div>
+
+          <h2>¡Tu reserva está registrada!</h2>
+          <p class="success-msg" *ngIf="event.paymentMethod === 'WHATSAPP'">
+            Hemos abierto WhatsApp para que coordines el pago directamente con el profesional. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+          </p>
+          <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
+            El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+          </p>
+
+          <div class="booking-summary-box mt-4">
+            <h4>Resumen del evento</h4>
+            <div class="summary-details">
+              <div class="summary-row"><span>Evento:</span><strong>{{ event.title }}</strong></div>
+              <div class="summary-row"><span>Fecha:</span><strong>{{ formatOccurrenceDate(selectedOccurrence() || undefined) }}</strong></div>
+              <div class="summary-row"><span>Hora:</span><strong>{{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</strong></div>
+              <div class="summary-row"><span>Plazas reservadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
+              <div class="summary-row total"><span>Monto Total:</span><strong>{{ formatTotalPrice() }}</strong></div>
             </div>
           </div>
         </div>
+      </div>
 
-        <footer class="booking-modal-footer">
-          <div class="footer-summary" *ngIf="bookingStep() < 3">
+      <footer class="booking-modal-footer">
+        <div class="footer-summary" *ngIf="bookingStep() < 3">
             <span class="total-label" style="text-transform: lowercase; font-size: 13px; color: #64748b; font-weight: 500;">
               {{ numPlazas() }} plaza{{ numPlazas() > 1 ? 's' : '' }}
             </span>
-            <strong class="total-price" style="font-size: 1.5rem; font-weight: 800; color: #005766; display: block; margin-top: -2px;">
-              {{ formatTotalPrice() }}
-            </strong>
-          </div>
-          <div class="footer-actions">
-            <button type="button" class="btn btn-secondary" *ngIf="bookingStep() === 2" (click)="bookingStep.set(1)" [disabled]="bookingLoading()">
-              Atrás
-            </button>
-            
-            <!-- STEP 1 Action Buttons -->
-            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 1" (click)="confirmarReserva()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Generando...</span>
-              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
+          <strong class="total-price" style="font-size: 1.5rem; font-weight: 800; color: #005766; display: block; margin-top: -2px;">
+            {{ formatTotalPrice() }}
+          </strong>
+        </div>
+        <div class="footer-actions">
+          <button type="button" class="btn btn-secondary" *ngIf="bookingStep() === 2" (click)="bookingStep.set(1)" [disabled]="bookingLoading()">
+            Atrás
+          </button>
+
+          <!-- STEP 1 Action Buttons -->
+          <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 1" (click)="confirmarReserva()" [disabled]="bookingLoading()">
+            <span *ngIf="bookingLoading()">Generando...</span>
+            <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
                 Confirmar reserva <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </span>
-            </button>
+          </button>
 
-            <!-- STEP 2 Action Buttons -->
-            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 2" (click)="realizarPagoOnline()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Procesando...</span>
-              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
+          <!-- STEP 2 Action Buttons -->
+          <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 2" (click)="realizarPagoOnline()" [disabled]="bookingLoading()">
+            <span *ngIf="bookingLoading()">Procesando...</span>
+            <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
                 Confirmar pago <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </span>
-            </button>
+          </button>
 
-            <!-- STEP 3 Action Button -->
-            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 3" (click)="cerrarReserva()">
-              Entendido
-            </button>
-          </div>
-        </footer>
-      </div>
+          <!-- STEP 3 Action Button -->
+          <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 3" (click)="cerrarReserva()">
+            Entendido
+          </button>
+        </div>
+      </footer>
+    </div>
 
-    </section>
-  }
+  </section>
+}
 
 @if (shareModalOpen()) {
   <div class="share-modal" role="presentation" (click)="closeShareModal()">
@@ -864,31 +961,31 @@
   <div class="gallery-container">
 
     <button class="close-btn acciones"
-      (click)="closeGallery()">
+            (click)="closeGallery()">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x h-5 w-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
     </button>
 
     <div class="image-counter">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images h-4 w-4" aria-hidden="true"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"></path><circle cx="12" cy="8" r="2"></circle><rect width="16" height="16" x="6" y="2" rx="2"></rect></svg>
-      {{ counterImageModal(getTodasLasImagenes()) }}  
+      {{ counterImageModal(getTodasLasImagenes()) }}
     </div>
 
     <button class="nav prev acciones"
-      (click)="previousImage(getTodasLasImagenes())">
+            (click)="previousImage(getTodasLasImagenes())">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left h-6 w-6"><path d="m15 18-6-6 6-6"></path></svg>
     </button>
 
-    <img 
+    <img
       class="gallery-big"
       [src]="getTodasLasImagenes()[selectedImageIndex()]">
 
     <button class="nav next acciones"
-      (click)="nextImage(getTodasLasImagenes())">
+            (click)="nextImage(getTodasLasImagenes())">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-6 w-6"><path d="m9 18 6-6-6-6"></path></svg>
     </button>
-    
+
     <div class="gallery-thumbs">
-      <img 
+      <img
         *ngFor="let img of getTodasLasImagenes(); let i=index"
         [src]="img"
         [class.active]="selectedImageIndex() === i"

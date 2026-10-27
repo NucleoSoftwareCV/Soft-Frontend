@@ -1,4 +1,8 @@
 import { Component, HostListener, PLATFORM_ID, computed, inject, signal, OnDestroy } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
+import { EventReviewsService } from '../../../services/event-reviews.service';
+import { EventRatingSummaryResponse, EventReviewEligibilityResponse, EventReviewPageResponse } from '../../../shared/models/event-review.model';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +27,10 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DetalleEvento implements OnDestroy{
+  private eventLoadVersion = 0;
+  private readonly reviewsService = inject(EventReviewsService);
+  private readonly reviewRequestsCancelled$ = new Subject<void>();
+  private readonly reviewListCancelled$ = new Subject<void>();
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly eventosService = inject(EventosService);
@@ -61,7 +69,7 @@ export class DetalleEvento implements OnDestroy{
   bookingStep = signal(1); // 1: Datos de asistentes, 2: Pago online, 3: Éxito
   selectedOccurrence = signal<EventOccurrenceResponse | null>(null);
   numPlazas = signal(1);
-  
+
   // Datos del comprador
   compradorNombre = signal('');
   compradorApellido = signal('');
@@ -91,6 +99,219 @@ export class DetalleEvento implements OnDestroy{
   bookingLoading = signal(false);
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
+
+  // La autorización definitiva y el cálculo del promedio pertenecen al backend.
+  readonly paginaResenas = signal<EventReviewPageResponse | null>(null);
+  readonly cargandoResenas = signal(false);
+  readonly errorResenas = signal<string | null>(null);
+  readonly estrellasDisponibles = [1, 2, 3, 4, 5];
+  readonly estrellasSeleccionadas = signal(0);
+  readonly comentarioResena = signal('');
+  readonly resumenCalificacion = signal<EventRatingSummaryResponse | null>(null);
+  readonly permisoCalificacion = signal<EventReviewEligibilityResponse | null>(null);
+  readonly cargandoCalificaciones = signal(false);
+  readonly consultandoPermisoCalificacion = signal(false);
+  readonly enviandoCalificacion = signal(false);
+  readonly errorCalificaciones = signal<string | null>(null);
+  readonly errorPermisoCalificacion = signal<string | null>(null);
+  readonly errorRegistroCalificacion = signal<string | null>(null);
+  readonly mensajeCalificacion = signal<string | null>(null);
+
+  readonly sesionCalificacionActiva = computed(() => !!this.authService.currentUser());
+  readonly puedeEnviarCalificacion = computed(() => {
+    const stars = this.estrellasSeleccionadas();
+    return this.sesionCalificacionActiva() &&
+      this.permisoCalificacion()?.canReview === true &&
+      !this.consultandoPermisoCalificacion() &&
+      !this.enviandoCalificacion() &&
+      Number.isInteger(stars) && stars >= 1 && stars <= 5 &&
+      this.comentarioResena().trim().length <= 2000;
+  });
+
+  readonly promedioCalificacionTexto = computed(() => {
+    const summary = this.resumenCalificacion();
+    if (!summary || summary.reviewCount === 0 || summary.averageRating === null) return null;
+    return new Intl.NumberFormat('es-ES', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 2,
+    }).format(summary.averageRating);
+  });
+
+  seleccionarEstrellas(stars: number): void {
+    if (this.enviandoCalificacion() || !Number.isInteger(stars) || stars < 1 || stars > 5) return;
+    this.estrellasSeleccionadas.set(stars);
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+  }
+
+  iniciarSesionParaCalificar(): void {
+    void this.router.navigate(['/auth/login'], {
+      queryParams: { returnUrl: this.router.url },
+    });
+  }
+
+  cargarCalificaciones(eventId: number): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId) return;
+    this.cargandoCalificaciones.set(true);
+    this.errorCalificaciones.set(null);
+    this.resumenCalificacion.set(null);
+    this.reviewsService.getSummary(eventId)
+      .pipe(takeUntil(this.reviewRequestsCancelled$))
+      .subscribe({
+        next: summary => {
+          if (this.evento()?.id !== eventId) return;
+          this.cargandoCalificaciones.set(false);
+          if (!this.esResumenValido(summary, eventId)) {
+            this.errorCalificaciones.set('El servidor devolvió un resumen de calificaciones no válido.');
+            return;
+          }
+          this.resumenCalificacion.set(summary);
+        },
+        error: () => {
+          if (this.evento()?.id !== eventId) return;
+          this.cargandoCalificaciones.set(false);
+          this.errorCalificaciones.set('No se pudieron cargar las calificaciones.');
+        },
+      });
+  }
+
+  consultarPermisoCalificacion(eventId: number): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId) return;
+    this.permisoCalificacion.set(null);
+    this.errorPermisoCalificacion.set(null);
+    if (!this.sesionCalificacionActiva()) return;
+    this.consultandoPermisoCalificacion.set(true);
+    this.reviewsService.getEligibility(eventId)
+      .pipe(takeUntil(this.reviewRequestsCancelled$))
+      .subscribe({
+        next: permission => {
+          if (this.evento()?.id !== eventId) return;
+          this.consultandoPermisoCalificacion.set(false);
+          if (permission.eventId !== eventId || typeof permission.canReview !== 'boolean') {
+            this.errorPermisoCalificacion.set('No se pudo comprobar tu permiso para calificar.');
+            return;
+          }
+          this.permisoCalificacion.set(permission);
+        },
+        error: () => {
+          if (this.evento()?.id !== eventId) return;
+          this.consultandoPermisoCalificacion.set(false);
+          this.errorPermisoCalificacion.set('No se pudo comprobar tu permiso para calificar.');
+        },
+      });
+  }
+
+  enviarCalificacion(): void {
+    const eventId = this.evento()?.id;
+    if (!eventId || this.enviandoCalificacion()) return;
+    if (!this.sesionCalificacionActiva()) {
+      this.iniciarSesionParaCalificar();
+      return;
+    }
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+    if (!this.puedeEnviarCalificacion()) {
+      this.errorRegistroCalificacion.set('Verifica el permiso, selecciona de 1 a 5 estrellas y usa un comentario de hasta 2000 caracteres.');
+      return;
+    }
+    this.enviandoCalificacion.set(true);
+    this.reviewsService.createReview(eventId, {
+      stars: this.estrellasSeleccionadas(),
+      comment: this.comentarioResena().trim() || null,
+    }).pipe(takeUntil(this.reviewRequestsCancelled$)).subscribe({
+      next: () => {
+        if (this.evento()?.id !== eventId) return;
+        this.enviandoCalificacion.set(false);
+        this.estrellasSeleccionadas.set(0);
+        this.comentarioResena.set('');
+        this.mensajeCalificacion.set('Tu calificación se registró correctamente.');
+        this.permisoCalificacion.set({
+          eventId, canReview: false, reason: 'Ya registraste una reseña para este evento.',
+        });
+        this.cargarCalificaciones(eventId);
+        this.cargarResenas(eventId);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.evento()?.id !== eventId) return;
+        this.enviandoCalificacion.set(false);
+        const messages: Record<number, string> = {
+          400: 'Revisa la calificación y el comentario.',
+          401: 'Tu sesión expiró. Inicia sesión nuevamente.',
+          403: 'No tienes autorización para calificar este evento.',
+          404: 'No se encontró el recurso de calificaciones solicitado.',
+          409: 'Ya registraste una reseña para este evento.',
+        };
+        this.errorRegistroCalificacion.set(messages[error.status] ??
+          'No se pudo confirmar el registro. Comprueba el estado antes de volver a enviar.');
+        if (error.status === 409) {
+          this.permisoCalificacion.set({
+            eventId, canReview: false, reason: messages[409],
+          });
+          this.cargarCalificaciones(eventId);
+          this.cargarResenas(eventId);
+        } else if (error.status === 401 || error.status === 403) {
+          this.permisoCalificacion.set(null);
+        }
+      },
+    });
+  }
+
+  cargarResenas(eventId: number, page = 0): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId || page < 0) return;
+    this.reviewListCancelled$.next();
+    this.cargandoResenas.set(true);
+    this.errorResenas.set(null);
+    this.reviewsService.getReviews(eventId, page).pipe(
+      takeUntil(this.reviewRequestsCancelled$), takeUntil(this.reviewListCancelled$)
+    ).subscribe({
+      next: result => {
+        if (this.evento()?.id !== eventId) return;
+        this.cargandoResenas.set(false);
+        if (result.content.some(review => review.eventId !== eventId)) {
+          this.errorResenas.set('No se pudieron cargar las reseñas de este evento.');
+          return;
+        }
+        this.paginaResenas.set(result);
+      },
+      error: () => {
+        if (this.evento()?.id !== eventId) return;
+        this.cargandoResenas.set(false);
+        this.errorResenas.set('No se pudieron cargar las reseñas.');
+      },
+    });
+  }
+
+  fechaResena(value: string): string {
+    return new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' }).format(new Date(value));
+  }
+
+  private esResumenValido(summary: EventRatingSummaryResponse, eventId: number): boolean {
+    return summary.eventId === eventId &&
+      Number.isSafeInteger(summary.reviewCount) && summary.reviewCount >= 0 &&
+      (summary.reviewCount === 0
+        ? summary.averageRating === null
+        : typeof summary.averageRating === 'number' &&
+        Number.isFinite(summary.averageRating) &&
+        summary.averageRating >= 1 && summary.averageRating <= 5);
+  }
+
+  private reiniciarCalificaciones(): void {
+    this.reviewRequestsCancelled$.next();
+    this.paginaResenas.set(null);
+    this.cargandoResenas.set(false);
+    this.errorResenas.set(null);
+    this.estrellasSeleccionadas.set(0);
+    this.comentarioResena.set('');
+    this.resumenCalificacion.set(null);
+    this.permisoCalificacion.set(null);
+    this.cargandoCalificaciones.set(false);
+    this.consultandoPermisoCalificacion.set(false);
+    this.enviandoCalificacion.set(false);
+    this.errorCalificaciones.set(null);
+    this.errorPermisoCalificacion.set(null);
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+  }
 
   private galleryImages(): string[] {
     const images = this.evento()?.images ?? [];
@@ -128,6 +349,9 @@ export class DetalleEvento implements OnDestroy{
   }
 
   ngOnDestroy(): void {
+    this.reviewRequestsCancelled$.next();
+    this.reviewRequestsCancelled$.complete();
+    this.reviewListCancelled$.complete();
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
     }
@@ -348,14 +572,16 @@ export class DetalleEvento implements OnDestroy{
   }
 
   private loadEvento(id: number): void {
+    const loadVersion = this.eventLoadVersion;
     if (!id) {
       this.error.set('Evento no encontrado.');
       this.loading.set(false);
       return;
     }
 
-    this.eventosService.getEvento(id).subscribe({
+    this.eventosService.getEvento(id).pipe(takeUntil(this.reviewRequestsCancelled$)).subscribe({
       next: event => {
+        if (loadVersion !== this.eventLoadVersion) return;
         this.evento.set(event);
         if (event.occurrences && event.occurrences.length > 0) {
           const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
@@ -364,8 +590,12 @@ export class DetalleEvento implements OnDestroy{
         this.loading.set(false);
         this.loadFollowStatus(event.organizer?.id);
         this.loadRelatedEvents(event.id);
+        this.cargarResenas(event.id);
+        this.cargarCalificaciones(event.id);
+        this.consultarPermisoCalificacion(event.id);
       },
       error: () => {
+        if (loadVersion !== this.eventLoadVersion) return;
         this.error.set('No pudimos cargar este evento.');
         this.loading.set(false);
       },
@@ -385,6 +615,8 @@ export class DetalleEvento implements OnDestroy{
   }
 
   private resetEventState(): void {
+    this.eventLoadVersion++;
+    this.reiniciarCalificaciones();
     this.loading.set(true);
     this.error.set(null);
     this.evento.set(null);
@@ -624,7 +856,7 @@ export class DetalleEvento implements OnDestroy{
     this.mensajeDescuento.set(null);
     this.asistentesAdicionales.set([]);
     this.recalcularAsistentes();
-    
+
     // Prefill comprador details
     const user = this.authService.currentUser();
     this.compradorNombre.set(user?.username ?? '');
@@ -806,13 +1038,13 @@ export class DetalleEvento implements OnDestroy{
 
     const attendeesPayload = this.yoTambienAsisto()
       ? [
-          {
-            name: this.compradorNombre(),
-            lastName: this.compradorApellido(),
-            email: this.compradorEmail()
-          },
-          ...adicionales
-        ]
+        {
+          name: this.compradorNombre(),
+          lastName: this.compradorApellido(),
+          email: this.compradorEmail()
+        },
+        ...adicionales
+      ]
       : adicionales;
 
     if (event.paymentMethod === 'WHATSAPP') {
@@ -902,13 +1134,13 @@ export class DetalleEvento implements OnDestroy{
     const adicionales = this.asistentesAdicionales();
     const attendeesPayload = this.yoTambienAsisto()
       ? [
-          {
-            name: this.compradorNombre(),
-            lastName: this.compradorApellido(),
-            email: this.compradorEmail()
-          },
-          ...adicionales
-        ]
+        {
+          name: this.compradorNombre(),
+          lastName: this.compradorApellido(),
+          email: this.compradorEmail()
+        },
+        ...adicionales
+      ]
       : adicionales;
 
     const orderRequest = {
@@ -925,19 +1157,19 @@ export class DetalleEvento implements OnDestroy{
 
     this.checkoutService.createOrder(orderRequest).subscribe({
       next: order => {
-        const paymentPayload = this.paymentMethod() === 'TARJETA' 
+        const paymentPayload = this.paymentMethod() === 'TARJETA'
           ? {
-              method: 'TARJETA' as const,
-              cardNumber: this.cardNumber(),
-              cardExpiration: this.cardExpiration(),
-              cardCvv: this.cardCvv(),
-              cardHolderName: this.cardHolderName() || this.compradorNombre()
-            }
+            method: 'TARJETA' as const,
+            cardNumber: this.cardNumber(),
+            cardExpiration: this.cardExpiration(),
+            cardCvv: this.cardCvv(),
+            cardHolderName: this.cardHolderName() || this.compradorNombre()
+          }
           : {
-              method: 'YAPE' as const,
-              yapePhone: this.yapePhone(),
-              yapeOtp: this.yapeOtp()
-            };
+            method: 'YAPE' as const,
+            yapePhone: this.yapePhone(),
+            yapeOtp: this.yapeOtp()
+          };
 
         this.checkoutService.processPayment(order.code, paymentPayload).subscribe({
           next: payResult => {
@@ -945,7 +1177,7 @@ export class DetalleEvento implements OnDestroy{
             if (payResult.status === 'APROBADO') {
               this.createdOrderCode.set(order.code);
               this.bookingStep.set(3); // Éxito
-              
+
               occurrence.reservedSpots += this.numPlazas();
               occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
             } else {

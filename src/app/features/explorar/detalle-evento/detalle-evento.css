@@ -92,7 +92,7 @@
   overflow: hidden;
   border-radius: 1rem;
   position: relative;
-  
+
   /* SOLUCIÓN ANTI-SUBPIXEL: Fuerza el renderizado correcto del border-radius */
   will-change: transform;
   transform: translateZ(0);
@@ -105,9 +105,9 @@
   overflow: hidden;
   min-height: 0;
   position: relative;
-  
+
   /* Asegura que el contenedor del item no genere espacios fantasma abajo */
-  display: flex; 
+  display: flex;
 }
 
 .gallery-img {
@@ -368,28 +368,28 @@ swiper-slide{
 }
 
 .hero-dots{
-    position:absolute;
-    left:50%;
-    bottom:18px;
-    transform:translateX(-50%);
-    display:flex;
-    gap:8px;
-    z-index:10;
+  position:absolute;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:8px;
+  z-index:10;
 }
 
 .gallery-swiper::part(bullet){
-    width:6px;
-    height:6px;
-    background: rgb(255 255 255);
-    opacity:.5;
+  width:6px;
+  height:6px;
+  background: rgb(255 255 255);
+  opacity:.5;
 }
 
 .gallery-swiper::part(bullet-active){
-    width:20px;
-    height: 6px;
-    border-radius:50px;
-    background:white;
-    opacity:1;
+  width:20px;
+  height: 6px;
+  border-radius:50px;
+  background:white;
+  opacity:1;
 }
 
 /* TÍTULO */
@@ -638,14 +638,14 @@ swiper-slide{
   gap: 14px;
 }
 .organizer-info{
-  flex: 1 1 0%;             
+  flex: 1 1 0%;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 64px;          
+  height: 64px;
   padding: 8px;
-  margin-left: -8px; 
+  margin-left: -8px;
   border-radius: 16px;
   box-sizing: border-box;
   color: rgb(0, 66, 87);
@@ -653,8 +653,8 @@ swiper-slide{
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   line-height: 24px;
   transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+  border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .organizadorlink :hover{
   background-color: rgb(245,249,250, 0.5);
@@ -683,7 +683,7 @@ swiper-slide{
   display: inline-flex;     /* Activa flexbox manteniendo el botón como elemento de línea */
   align-items: center;      /* Centra verticalmente el SVG y el texto */
   justify-content: center;   /* Centra horizontalmente el contenido */
-  gap: .5rem;    
+  gap: .5rem;
   border: none;
   background: rgb(253 230 138);
   color: rgb(146 64 14);
@@ -1053,7 +1053,7 @@ swiper-slide{
   gap:12px;
   overflow-x:auto;
   padding-bottom:8px;
-  scrollbar-width: none; 
+  scrollbar-width: none;
 
 }
 
@@ -1337,7 +1337,7 @@ swiper-slide{
 }
 
 @media (max-width: 767px) {
-  
+
   .gallery-desktop{
     display:none;
   }
@@ -1405,8 +1405,8 @@ swiper-slide{
     font-size: .875rem;
     line-height: 1.25rem;
   }
-  
-  
+
+
 
 }
 
@@ -2181,3 +2181,29 @@ swiper-slide{
 
 
 
+
+/* Calificaciones del evento */
+.event-reviews { margin: 32px 0; padding: 24px; border: 1px solid #dbe6e1; border-radius: 16px; background: #fff; }
+.event-reviews h2 { margin: 0 0 16px; }
+.event-reviews p { margin: 12px 0; }
+.event-reviews__summary > span { color: #986b00; font-size: 24px; }
+.event-reviews__form fieldset { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.event-reviews__stars { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.event-reviews__star { display: inline-flex; align-items: center; gap: 3px; padding: 4px; cursor: pointer; color: #6b7280; }
+.event-reviews__star > span { font-size: 32px; line-height: 1; }
+.event-reviews__star.is-selected { color: #986b00; }
+.event-reviews__star:focus-within { outline: 2px solid #285f46; outline-offset: 2px; border-radius: 4px; }
+.event-reviews__star input { accent-color: #285f46; }
+.event-reviews textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0 16px; padding: 12px; border: 1px solid #aabbb3; border-radius: 8px; font: inherit; resize: vertical; }
+.event-reviews button { padding: 10px 16px; border: 1px solid #285f46; border-radius: 8px; background: #285f46; color: #fff; font: inherit; cursor: pointer; }
+.event-reviews button:disabled { opacity: .55; cursor: not-allowed; }
+.event-reviews button:focus-visible, .event-reviews textarea:focus-visible { outline: 3px solid #285f46; outline-offset: 3px; }
+.event-reviews [role="alert"] { color: #a12622; }
+@media (max-width: 560px) { .event-reviews { padding: 16px; } }
+
+.event-reviews__item { border-top: 1px solid #dbe6e1; padding: 16px 0; }
+.event-reviews__item header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.event-reviews__item time { font-size: .875rem; color: #52635c; }
+.event-reviews__rating { color: #986b00; letter-spacing: 2px; }
+.event-reviews__comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.event-reviews__pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 12px 0 20px; }

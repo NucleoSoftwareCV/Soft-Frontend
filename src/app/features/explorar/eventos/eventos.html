@@ -184,7 +184,7 @@
             @if (
               isCustomDateActive() ||
               !!filterWhen()
-            ) {
+              ) {
 
               <span class="filter-check">
                 ✓
@@ -343,7 +343,7 @@
               @for (
                 option of sortOptions;
                 track option.sort
-              ) {
+                ) {
 
                 <button
                   type="button"
@@ -382,7 +382,7 @@
         @for (
           item of skeletonCards;
           track $index
-        ) {
+          ) {
 
           <article class="card skeleton-card">
 
@@ -494,7 +494,7 @@
         @for (
           item of eventos();
           track item.id
-        ) {
+          ) {
 
           <article
             class="card"
@@ -649,7 +649,7 @@
 
               <div class="date-row">
 
-                <span>
+                <span class="date-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
                   {{ formatDate(item.startsAt) }}
                 </span>
 
@@ -701,6 +701,7 @@
               <h2>
                 {{ item.title }}
               </h2>
+              <app-event-rating [averageRating]="item.averageRating" [reviewCount]="item.reviewCount" [reviewers]="item.reviewers" />
 
 
               <!-- AUTOR -->
@@ -813,7 +814,7 @@
 
             @if (
               filterWhen() === 'Esta semana'
-            ) {
+              ) {
 
               <span class="quick-check">
                 ✓
@@ -843,7 +844,7 @@
 
             @if (
               filterWhen() === 'Este finde'
-            ) {
+              ) {
 
               <span class="quick-check">
                 ✓
@@ -875,7 +876,7 @@
             @if (
               filterWhen() === 'Próxima semana' ||
               filterWhen() === 'Proxima semana'
-            ) {
+              ) {
 
               <span class="quick-check">
                 ✓
@@ -958,7 +959,7 @@
           @for (
             day of calendarDays();
             track day.dateKey
-          ) {
+            ) {
 
             <button
               type="button"

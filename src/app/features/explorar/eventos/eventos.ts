@@ -1,3 +1,4 @@
+import { EventRatingComponent } from '../../../shared/components/event-rating/event-rating.component';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -45,6 +46,7 @@ interface CalendarDay {
   standalone: true,
   imports: [
     CommonModule,
+    EventRatingComponent,
     RouterLink
   ],
   templateUrl: './eventos.html',
@@ -191,7 +193,7 @@ export class Eventos {
           this.searchQuery(),
 
         sort:
-          this.selectedSort().sort
+        this.selectedSort().sort
       };
 
       queueMicrotask(() => {
@@ -784,21 +786,21 @@ export class Eventos {
         start.getDate() + 1
       );
 
-    /*
-     * =================================================
-     * ESTA SEMANA
-     *
-     * HOY -> DOMINGO
-     *
-     * Lunes    = lunes -> domingo
-     * Martes   = martes -> domingo
-     * Miércoles = miércoles -> domingo
-     * Jueves   = jueves -> domingo
-     * Viernes  = viernes -> domingo
-     * Sábado   = sábado -> domingo
-     * Domingo  = domingo -> domingo
-     * =================================================
-     */
+      /*
+       * =================================================
+       * ESTA SEMANA
+       *
+       * HOY -> DOMINGO
+       *
+       * Lunes    = lunes -> domingo
+       * Martes   = martes -> domingo
+       * Miércoles = miércoles -> domingo
+       * Jueves   = jueves -> domingo
+       * Viernes  = viernes -> domingo
+       * Sábado   = sábado -> domingo
+       * Domingo  = domingo -> domingo
+       * =================================================
+       */
 
     } else if (
       option === 'Esta semana'
@@ -823,13 +825,13 @@ export class Eventos {
         daysUntilSunday
       );
 
-    /*
-     * =================================================
-     * PRÓXIMA SEMANA
-     *
-     * LUNES -> DOMINGO
-     * =================================================
-     */
+      /*
+       * =================================================
+       * PRÓXIMA SEMANA
+       *
+       * LUNES -> DOMINGO
+       * =================================================
+       */
 
     } else {
 
@@ -1024,7 +1026,7 @@ export class Eventos {
   isCustomDateActive(): boolean {
 
     return this.filterWhen()
-      ?.startsWith('RANGO:')
+        ?.startsWith('RANGO:')
       ?? false;
   }
 
@@ -1039,9 +1041,9 @@ export class Eventos {
       from,
       to
     ] =
-      this.filterWhen()
-        ?.split(':')
-      ?? [];
+    this.filterWhen()
+      ?.split(':')
+    ?? [];
 
     return from === to
       ? this.formatShortDate(from)
@@ -1220,7 +1222,7 @@ export class Eventos {
   ): string {
 
     return this.eventosService
-      .resolveAssetUrl(url)
+        .resolveAssetUrl(url)
       ?? fallback;
   }
 
@@ -1369,10 +1371,10 @@ export class Eventos {
 
   private loadEventos(
     criteria:
-      Record<
-        string,
-        string | null
-      >
+    Record<
+      string,
+      string | null
+    >
   ): void {
 
     const requestKey =
@@ -1411,9 +1413,9 @@ export class Eventos {
 
           this.totalEventos.set(
             page.totalElements
-              ??
+            ??
             page.content?.length
-              ??
+            ??
             0
           );
 
@@ -1492,7 +1494,7 @@ export class Eventos {
         ),
 
       sort:
-        this.selectedSort().sort
+      this.selectedSort().sort
     };
   }
 
@@ -1675,11 +1677,11 @@ export class Eventos {
         today.getDate() + 1
       );
 
-    /*
-     * =================================================
-     * ESTE FINDE
-     * =================================================
-     */
+      /*
+       * =================================================
+       * ESTE FINDE
+       * =================================================
+       */
 
     } else if (
       value === 'Este finde'
@@ -1709,14 +1711,14 @@ export class Eventos {
         start.getDate() + 1
       );
 
-    /*
-     * =================================================
-     * ESTA SEMANA
-     *
-     * IMPORTANTE:
-     * HOY -> DOMINGO
-     * =================================================
-     */
+      /*
+       * =================================================
+       * ESTA SEMANA
+       *
+       * IMPORTANTE:
+       * HOY -> DOMINGO
+       * =================================================
+       */
 
     } else if (
       value === 'Esta semana'
@@ -1741,13 +1743,13 @@ export class Eventos {
         daysUntilSunday
       );
 
-    /*
-     * =================================================
-     * PRÓXIMA SEMANA
-     *
-     * LUNES -> DOMINGO
-     * =================================================
-     */
+      /*
+       * =================================================
+       * PRÓXIMA SEMANA
+       *
+       * LUNES -> DOMINGO
+       * =================================================
+       */
 
     } else if (
       value === 'Próxima semana' ||
@@ -1779,4 +1781,5 @@ export class Eventos {
 
     };
   }
+
 }

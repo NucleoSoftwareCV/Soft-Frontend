@@ -1,3 +1,4 @@
+import { EventReviewerPreview } from './event-review.model';
 export interface EventOccurrenceResponse {
   id: number;
   startsAt: string;
@@ -66,6 +67,9 @@ export enum EventModality {
 }
 
 export interface EventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   id: number;
   title: string;
   summary: string | null;
@@ -194,6 +198,9 @@ export interface HomeViewAllFilters {
 }
 
 export interface HomeEventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   id: number;
   title: string;
   coverImageUrl: string;

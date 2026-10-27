@@ -68,54 +68,57 @@ export class HomeComponent implements OnInit {
 
   convertirEventos(events: HomeEventCardResponse[]): EventItem[] {
 
-  return events.map(event => ({
+    return events.map(event => ({
 
-    id: event.id,
+      id: event.id,
 
-    title: event.title,
+      title: event.title,
 
-    dateLabel: this.formatearFecha(event.startsAt),
+      dateLabel: this.formatearFecha(event.startsAt),
 
-    recurrent: event.recurrenceLabel === 'RECURRENTE',
+      recurrent: event.recurrenceLabel === 'RECURRENTE',
 
-    location: event.cityName ?? '',
+      location: event.cityName ?? '',
 
-    host: event.organizerName,
+      host: event.organizerName,
 
-    hostAvatar: event.organizerPhotoUrl ?? '',
+      hostAvatar: event.organizerPhotoUrl ?? '',
 
-    image: this.optimizarImagen(event.coverImageUrl),
+      image: this.optimizarImagen(event.coverImageUrl),
 
-    spotsLeft: null
+      averageRating: event.averageRating ?? null,
+      reviewCount: event.reviewCount ?? 0,
+      reviewers: event.reviewers ?? [],
+      spotsLeft: null
 
-  }));
+    }));
 
-}
-
-private optimizarImagen(url: string | null): string {
-
-  if (!url) {
-    return '';
   }
 
-  if (url.includes('images.unsplash.com')) {
+  private optimizarImagen(url: string | null): string {
 
-    return `${url}?w=600&h=400&fit=crop&auto=format&q=80`;
+    if (!url) {
+      return '';
+    }
+
+    if (url.includes('images.unsplash.com')) {
+
+      return `${url}?w=600&h=400&fit=crop&auto=format&q=80`;
+    }
+    return url;
   }
-  return url;
-}
 
-private formatearFecha(fecha: string | null): string {
+  private formatearFecha(fecha: string | null): string {
 
-  if (!fecha) return '';
+    if (!fecha) return '';
 
-  return new Date(fecha).toLocaleString('es-ES', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+    return new Date(fecha).toLocaleString('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
-}
+  }
 }
