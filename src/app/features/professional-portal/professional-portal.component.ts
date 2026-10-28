@@ -256,6 +256,11 @@ export class ProfessionalPortalComponent {
     return this.sessionSteps[this.sessionStepIndex()];
   }
 
+  // Editor de itinerario por evento
+  itineraryEvent = signal<{ id: number; title: string; startTime: string } | null>(null);
+  itineraryItems = signal<Array<{ startTime: string; endTime: string; title: string; description: string; sortOrder: number }>>([]);
+  itinerarySaving = signal(false);
+  itineraryError = signal<string | null>(null);
   // ── Panel de fechas programadas ─────────────────────────────────────────
   occurrencesPanelEventId = signal<number | null>(null);
   occurrencesPanelItem = computed(
@@ -421,6 +426,95 @@ export class ProfessionalPortalComponent {
     this.occurrencesPanelEventId.set(item.event.id);
   }
 
+  openItinerary(item: { event: { id: number; title: string }; occurrences: { startsAt: string }[] }): void {
+    const startTime = item.occurrences[0]?.startsAt?.slice(11, 16) || '09:00';
+    this.itineraryEvent.set({ id: item.event.id, title: item.event.title, startTime });
+    this.itineraryError.set(null);
+    this.itineraryItems.set([]);
+    this.eventsApi.getItinerary(item.event.id).subscribe({
+      next: items => {
+        this.itineraryItems.set(items.length
+          ? items.map((x, i) => ({
+              startTime: x.startTime?.slice(0, 5) || startTime,
+              endTime: x.endTime?.slice(0, 5) || '09:30',
+              title: x.title || '',
+              description: x.description || '',
+              sortOrder: i
+            }))
+          : [{ startTime, endTime: this.addMinutesToTime(startTime, 30), title: '', description: '', sortOrder: 0 }]);
+      },
+      error: error => {
+        this.itineraryError.set(this.apiError(error, 'No se pudo cargar el itinerario.'));
+      }
+    });
+  }
+
+  addItineraryItem(): void {
+    const items = this.itineraryItems();
+    const start = items.length ? items[items.length - 1].endTime : (this.itineraryEvent()?.startTime || '09:00');
+    this.itineraryItems.set([...items, {
+      startTime: start,
+      endTime: this.addMinutesToTime(start, 30),
+      title: '',
+      description: '',
+      sortOrder: items.length
+    }]);
+  }
+
+  removeItineraryItem(index: number): void {
+    this.itineraryItems.set(this.itineraryItems()
+      .filter((_, i) => i !== index)
+      .map((item, i) => ({ ...item, sortOrder: i })));
+  }
+
+  updateItineraryItem(
+    index: number,
+    field: 'startTime' | 'endTime' | 'title' | 'description',
+    value: string
+  ): void {
+    this.itineraryItems.set(this.itineraryItems().map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    ));
+  }
+
+  saveItinerary(): void {
+    const event = this.itineraryEvent();
+    if (!event || this.itinerarySaving()) return;
+
+    const items = this.itineraryItems().map((item, i) => ({
+      ...item,
+      title: item.title.trim(),
+      description: item.description.trim(),
+      sortOrder: i
+    }));
+
+    if (!items.length || items.some(item =>
+      !item.title || !item.startTime || !item.endTime || item.startTime >= item.endTime
+    )) {
+      this.itineraryError.set('Añade actividades con título y horarios válidos. La hora de inicio debe ser anterior a la de fin.');
+      return;
+    }
+
+    this.itinerarySaving.set(true);
+    this.itineraryError.set(null);
+    this.eventsApi.saveItinerary(event.id, items).subscribe({
+      next: () => {
+        this.itinerarySaving.set(false);
+        this.itineraryEvent.set(null);
+        this.succeeded('Itinerario guardado correctamente.');
+      },
+      error: error => {
+        this.itinerarySaving.set(false);
+        this.itineraryError.set(this.apiError(error, 'No se pudo guardar el itinerario.'));
+      }
+    });
+  }
+
+  private addMinutesToTime(time: string, minutes: number): string {
+    const [hours, mins] = time.split(':').map(Number);
+    const total = (hours * 60 + mins + minutes) % (24 * 60);
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  }
   closeOccurrencesPanel(): void {
     this.occurrencesPanelEventId.set(null);
   }

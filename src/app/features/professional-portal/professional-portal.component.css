@@ -672,3 +672,147 @@ button,input,select,textarea { font:inherit; }
 .occurrence-row__info > svg { width: 16px; height: 16px; color: #639e98; flex: 0 0 auto; }
 .occurrence-row__info > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .occurrence-row__date { color: #1d4542; font-size: .85rem; font-weight: 600; }
+
+/* ===== Editor de itinerario: distribución de actividades ===== */
+.modal:has(#itinerary-title) {
+  width: min(700px, calc(100vw - 32px));
+}
+
+.modal:has(#itinerary-title) > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  gap: 16px;
+}
+
+.modal:has(#itinerary-title) > form > .field-help {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #dce5e1;
+  border-radius: 12px;
+  background: #f8faf9;
+  box-sizing: border-box;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+  color: #334643;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item > label {
+  width: 100%;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item input,
+.modal:has(#itinerary-title) .itinerary-editor-item textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ccd8d3;
+  border-radius: 7px;
+  background: #fff;
+  color: #263d3a;
+  font: inherit;
+  font-weight: 400;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item textarea {
+  min-height: 78px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item input:focus,
+.modal:has(#itinerary-title) .itinerary-editor-item textarea:focus {
+  outline: none;
+  border-color: #21717a;
+  box-shadow: 0 0 0 3px rgb(33 113 122 / 12%);
+}
+
+.modal:has(#itinerary-title) .itinerary-editor-item > .btn-cancel {
+  justify-self: start;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #ead1ce;
+  border-radius: 7px;
+  color: #963f38;
+  background: #fff;
+}
+
+.modal:has(#itinerary-title) > form > .modal__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0 0;
+  border-top: 1px solid #e6ece9;
+}
+
+.modal:has(#itinerary-title) > form > .modal__footer button {
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+.modal:has(#itinerary-title) > form > .form-error {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .modal:has(#itinerary-title) {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .modal:has(#itinerary-title) > form {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .modal:has(#itinerary-title) .itinerary-editor-item {
+    padding: 13px;
+    gap: 12px;
+  }
+
+  .modal:has(#itinerary-title) .itinerary-editor-item .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .modal:has(#itinerary-title) > form > .modal__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .modal:has(#itinerary-title) > form > .modal__footer button {
+    width: 100%;
+  }
+}

@@ -2392,3 +2392,64 @@ swiper-slide{
     height: 44px;
   }
 }
+
+/* Itinerario publico del evento */
+.itinerary-section {
+  margin-top: 22px;
+}
+
+.itinerary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.itinerary-item {
+  display: grid;
+  grid-template-columns: minmax(105px, auto) 1fr;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #e5e9e5;
+}
+
+.itinerary-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 4px;
+}
+
+.itinerary-time {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 5px;
+  color: #2c3e2d;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.itinerary-time-separator {
+  color: #8b978b;
+}
+
+.itinerary-activity h3 {
+  margin: 0 0 6px;
+  color: #263b2d;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.itinerary-activity p {
+  margin: 0;
+  color: #647067;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+@media (max-width: 520px) {
+  .itinerary-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

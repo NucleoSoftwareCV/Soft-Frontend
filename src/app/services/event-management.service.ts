@@ -11,6 +11,8 @@ import {
   EventOccurrenceManagement,
   EventOccurrenceRequest,
   EventOccurrenceStatus,
+  EventItineraryItemRequest,
+  EventItineraryItemResponse,
   EventStatus,
   EventUpsertRequest,
 } from '../shared/models/event-management.model';
@@ -84,6 +86,16 @@ export class EventManagementService {
     );
   }
 
+  getItinerary(eventId: number): Observable<EventItineraryItemResponse[]> {
+    return this.http.get<EventItineraryItemResponse[]>(`${this.base}/${eventId}/itinerary`);
+  }
+
+  saveItinerary(
+    eventId: number,
+    items: EventItineraryItemRequest[]
+  ): Observable<EventItineraryItemResponse[]> {
+    return this.http.put<EventItineraryItemResponse[]>(`${this.base}/${eventId}/itinerary`, items);
+  }
   getOccurrenceAttendees(occurrenceId: number): Observable<OccurrenceAttendee[]> {
     return this.http.get<OccurrenceAttendee[]>(`${this.base}/occurrences/${occurrenceId}/attendees`);
   }

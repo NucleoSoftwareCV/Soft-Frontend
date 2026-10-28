@@ -277,6 +277,40 @@
         </article>
         }
 
+        @if (itinerario().length > 0) {
+          <article class="info-card itinerary-section" aria-labelledby="itinerary-title">
+            <div class="section-title">
+              <div class="icon-box icon-green">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+              </div>
+              <h2 id="itinerary-title">Así será tu día</h2>
+            </div>
+
+            <ol class="itinerary-list">
+              @for (item of itinerario(); track item.id) {
+                <li class="itinerary-item">
+                  <div class="itinerary-time">
+                    <span>{{ item.startTime | slice:0:5 }}</span>
+                    <span class="itinerary-time-separator">–</span>
+                    <span>{{ item.endTime | slice:0:5 }}</span>
+                  </div>
+                  <div class="itinerary-activity">
+                    <h3>{{ item.title }}</h3>
+                    @if (item.description) {
+                      <p>{{ item.description }}</p>
+                    }
+                  </div>
+                </li>
+              }
+            </ol>
+          </article>
+        }
         </main>
 
         <aside class="sidebar">

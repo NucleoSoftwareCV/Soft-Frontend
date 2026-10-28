@@ -225,7 +225,9 @@
                     <button (click)="openEditEvent(item)">
                       <svg lucidePencil aria-hidden="true"></svg>Editar
                     </button>
-                    <button (click)="openOccurrence(item)">
+                    <button type="button" (click)="openItinerary(item)">
+                      <svg lucideClock aria-hidden="true"></svg>Editar itinerario
+                    </button>                    <button (click)="openOccurrence(item)">
                       <svg lucidePlus aria-hidden="true"></svg>Añadir fecha
                     </button>
                     @if (item.status !== 'PUBLICADO') {
@@ -554,6 +556,62 @@
     </section>
   }
 
+  @if (itineraryEvent(); as itinerary) {
+    <button class="modal-backdrop" aria-label="Cerrar editor" (click)="itineraryEvent.set(null)"></button>
+    <section class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="itinerary-title">
+      <header>
+        <div>
+          <span>Programación del evento</span>
+          <h2 id="itinerary-title">Así será tu día</h2>
+          <p>{{ itinerary.title }}</p>
+        </div>
+        <button type="button" class="modal__close" aria-label="Cerrar" (click)="itineraryEvent.set(null)">×</button>
+      </header>
+
+      <form (ngSubmit)="saveItinerary()">
+        <p class="field-help">Define las actividades y sus horarios. Puedes comenzar a la hora que corresponda a este evento.</p>
+
+        @for (activity of itineraryItems(); track $index; let i = $index) {
+          <div class="itinerary-editor-item">
+            <div class="form-grid">
+              <label>Desde
+                <input type="time" [name]="'itinerary-start-' + i" [ngModel]="activity.startTime"
+                  (ngModelChange)="updateItineraryItem(i, 'startTime', $event)" required>
+              </label>
+              <label>Hasta
+                <input type="time" [name]="'itinerary-end-' + i" [ngModel]="activity.endTime"
+                  (ngModelChange)="updateItineraryItem(i, 'endTime', $event)" required>
+              </label>
+            </div>
+            <label>Actividad
+              <input [name]="'itinerary-title-' + i" [ngModel]="activity.title"
+                (ngModelChange)="updateItineraryItem(i, 'title', $event)"
+                maxlength="180" placeholder="Ej. Bienvenida y presentación" required>
+            </label>
+            <label>Descripción (opcional)
+              <textarea [name]="'itinerary-description-' + i" [ngModel]="activity.description"
+                (ngModelChange)="updateItineraryItem(i, 'description', $event)"
+                maxlength="1000" rows="2" placeholder="¿Qué harán durante esta actividad?"></textarea>
+            </label>
+            <button type="button" class="btn-cancel" (click)="removeItineraryItem(i)">Eliminar actividad</button>
+          </div>
+        } @empty {
+          <p>Aún no hay actividades. Añade la primera.</p>
+        }
+
+        @if (itineraryError()) {
+          <p class="form-error">{{ itineraryError() }}</p>
+        }
+
+        <footer class="modal__footer">
+          <button type="button" (click)="addItineraryItem()">+ Añadir actividad</button>
+          <button class="primary" type="submit" [disabled]="itinerarySaving()">
+            {{ itinerarySaving() ? 'Guardando...' : 'Guardar itinerario' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  }
   @if (occurrencesPanelItem(); as item) {
     <button class="modal-backdrop" aria-label="Cerrar" (click)="closeOccurrencesPanel()"></button>
     <section class="modal modal--occurrences" role="dialog" aria-modal="true" aria-labelledby="occurrences-panel-title">

@@ -111,3 +111,20 @@ export interface CreateEventResponse {
 }
 
 export type EventManagementPage = SpringPage<EventManagementResponse>;
+
+export interface EventItineraryItemRequest {
+  startTime: string;
+  endTime: string;
+  title: string;
+  description?: string | null;
+  sortOrder?: number;
+}
+
+export interface EventItineraryItemResponse {
+  id: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+}

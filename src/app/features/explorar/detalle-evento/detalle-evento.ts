@@ -5,8 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { EventosService } from '../../../services/eventos.service';
+import { EventManagementService } from '../../../services/event-management.service';
 import { ProfessionalFollowService } from '../../../services/professional-follow.service';
 import { EventCardResponse, EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
+import { EventItineraryItemResponse } from '../../../shared/models/event-management.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { CheckoutService } from '../../../services/checkout.service';
@@ -26,6 +28,7 @@ export class DetalleEvento implements OnDestroy{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly eventosService = inject(EventosService);
+  private readonly eventManagementService = inject(EventManagementService);
   private readonly followService = inject(ProfessionalFollowService);
   private readonly authService = inject(AuthService);
   private readonly favoritesService = inject(FavoritesService);
@@ -34,6 +37,7 @@ export class DetalleEvento implements OnDestroy{
   private carouselInterval?: ReturnType<typeof setInterval>;
 
   evento = signal<EventDetailResponse | null>(null);
+  itinerario = signal<EventItineraryItemResponse[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
   favorito = computed(() => {
@@ -357,6 +361,7 @@ export class DetalleEvento implements OnDestroy{
     this.eventosService.getEvento(id).subscribe({
       next: event => {
         this.evento.set(event);
+        this.loadItinerary(event.id);
         if (event.occurrences && event.occurrences.length > 0) {
           const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
           this.selectedOccurrence.set(firstBookable ?? event.occurrences[0]);
@@ -384,10 +389,32 @@ export class DetalleEvento implements OnDestroy{
     });
   }
 
+  private loadItinerary(eventId: number): void {
+    this.itinerario.set([]);
+
+    this.eventManagementService.getItinerary(eventId).subscribe({
+      next: items => {
+        if (this.evento()?.id !== eventId) return;
+
+        const ordenados = [...(items ?? [])].sort((a, b) =>
+          (a.sortOrder - b.sortOrder) ||
+          a.startTime.localeCompare(b.startTime)
+        );
+
+        this.itinerario.set(ordenados);
+      },
+      error: () => {
+        if (this.evento()?.id === eventId) {
+          this.itinerario.set([]);
+        }
+      }
+    });
+  }
   private resetEventState(): void {
     this.loading.set(true);
     this.error.set(null);
     this.evento.set(null);
+    this.itinerario.set([]);
     this.selectedOccurrence.set(null);
     this.following.set(false);
     this.followError.set(null);
