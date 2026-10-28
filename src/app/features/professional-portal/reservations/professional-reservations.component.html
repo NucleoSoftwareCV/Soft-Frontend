@@ -30,7 +30,7 @@
     <h3>{{ data.booking.eventTitle }}</h3><p>{{ data.booking.occurrenceStartsAt | date:'dd/MM/yyyy HH:mm' }}</p>
     <dl><dt>Cliente</dt><dd>{{ data.booking.customerName }}</dd><dt>Correo</dt><dd>{{ data.customerEmail }}</dd><dt>Teléfono</dt><dd>{{ data.customerPhone || 'No indicado' }}</dd><dt>Plazas de la reserva</dt><dd>{{ data.booking.quantity }}</dd><dt>Importe</dt><dd>{{ data.booking.totalAmount | currency:data.booking.currency }}</dd><dt>Disponibilidad actual</dt><dd>{{ data.availableSpots }} de {{ data.capacity }} plazas libres</dd></dl>
     <h3>Asistentes</h3><ul>@for (attendee of data.attendees; track attendee.id) {<li>{{ attendee.name }} · {{ attendee.email || 'Sin correo' }} · {{ attendee.attendanceStatus }}</li>} @empty {<li>No hay asistentes registrados.</li>}</ul>
-    <h3>Historial</h3><ul>@for (entry of data.history; track $index) {<li><strong>{{ entry.newStatus }}</strong> · {{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ entry.changedBy }} @if (entry.reason) {<p>{{ entry.reason }}</p>}</li>} @empty {<li>Aún no hay decisiones registradas.</li>}</ul>
+    <h3>Historial</h3><ul>@for (entry of data.history; track $index) {<li><strong>{{ entry.newStatus }}</strong> · {{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ entry.changedBy || 'Sistema' }} @if (entry.reason) {<p>{{ entry.reason }}</p>}</li>} @empty {<li>Aún no hay decisiones registradas.</li>}</ul>
     @if (data.booking.status === 'PENDIENTE' && !detailLoading() && !detailError()) {
       @if (!decision()) {<footer class="actions"><button class="primary" type="button" (click)="decision.set('CONFIRMADA')">Aceptar reserva</button><button type="button" (click)="decision.set('CANCELADA')">Rechazar solicitud</button></footer>}
       @else {
