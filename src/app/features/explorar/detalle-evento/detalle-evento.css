@@ -2453,3 +2453,30 @@ swiper-slide{
     gap: 8px;
   }
 }
+
+
+/* Ubicación de la sesión seleccionada. */
+.event-location-toggle {
+  display: inline-flex;
+  justify-content: center;
+  min-height: 44px;
+  margin: 12px 0 20px;
+  padding: 12px 20px;
+  border: 1px solid #004e59;
+  border-radius: 24px;
+  background: #004e59;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.event-location-toggle:focus-visible {
+  outline: 3px solid #d4856a;
+  outline-offset: 3px;
+}
+.event-location-link {
+  display: inline-block;
+  margin-top: 14px;
+  color: #004e59;
+  text-decoration: underline;
+}
+.event-location-note { color: #61757a; }

@@ -21,10 +21,13 @@ import {
   EventCardResponse,
   EventFilterParams,
   EventModality,
+  EventMood
 } from '../../../shared/models/evento.model';
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 import { RecommendationFilterParams } from '../../../shared/models/recommendation.model';
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
+import { EventsMapPanelComponent } from './events-map-panel.component';
+import { AdvancedEventFiltersComponent } from './advanced-event-filters.component';
 
 interface EventSortOption {
   label: string;
@@ -48,7 +51,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,6 +66,13 @@ export class Eventos {
   readonly authService = inject(AuthService);
 
   searchQuery = signal('');
+  readonly catalogView = signal<'grid' | 'map'>('grid');
+  readonly mapFilters = computed(() => this.buildFilters());
+
+  setCatalogView(view: 'grid' | 'map'): void {
+    this.showSortMenu.set(false);
+    this.catalogView.set(view);
+  }
 
   eventos = signal<EventCardResponse[]>([]);
   categorias = signal<CategoryResponse[]>([]);
@@ -255,6 +265,10 @@ export class Eventos {
     return this.filtrosService.activeFilterCount;
   }
 
+  get filterMood(){
+    return this.filtrosService.filterMood;
+  }
+
   openHeaderFilter(): void {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('oona:open-filter'));
@@ -281,6 +295,15 @@ export class Eventos {
           detail: option,
         }),
       );
+    }
+  }
+
+  selectMood(option: string): void {
+    this.filtrosService.selectMood(option);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('oona:select-mood', {
+        detail: this.filterMood(),
+      }));
     }
   }
 
@@ -744,6 +767,8 @@ export class Eventos {
         hourFrom: filters.hourFrom,
         hourTo: filters.hourTo,
         isRecurring: filters.isRecurring,
+        specialistId: filters.specialistId,
+        mood: filters.mood,
         useProfileCity: false,
         includeOnline: true,
       };
@@ -811,6 +836,7 @@ export class Eventos {
 
     return {
       page: this.currentPage(),
+      specialistId: this.filtrosService.filterSpecialistId() ?? undefined,
       size: 24,
 
       search: this.searchQuery().trim() || undefined,
@@ -830,6 +856,7 @@ export class Eventos {
       isRecurring: this.recurrenceFor(this.filterRecurrence()),
 
       sort: this.effectiveSort().sort === 'recommended' ? undefined : this.effectiveSort().sort,
+      mood: this.moodFor(this.filterMood()),
     };
   }
 
@@ -842,6 +869,7 @@ export class Eventos {
       return undefined;
     }
 
+    if (value === 'Híbrida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
     return value.toLowerCase() === 'online' ? EventModality.ONLINE : EventModality.PRESENCIAL;
   }
 
@@ -868,6 +896,11 @@ export class Eventos {
     };
 
     return value ? (ranges[value] ?? {}) : {};
+  }
+
+  private moodFor(value: string | null): EventMood | undefined {
+    const key = value?.trim().toUpperCase();
+    return Object.values(EventMood).find(mood => mood === key);
   }
 
   private dateRangeFor(value: string | null): Pick<EventFilterParams, 'dateFrom' | 'dateTo'> {

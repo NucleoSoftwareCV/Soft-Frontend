@@ -8,23 +8,24 @@ import {
   OnInit,
   OnDestroy,
   inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  DestroyRef,
+  ElementRef,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { Subject, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterLink, RouterLinkActive, Router, NavigationStart } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, of, timer } from 'rxjs';
+import { catchError, debounceTime, filter, switchMap } from 'rxjs/operators';
 
 import { FiltrosEstado, FiltrosService } from '../../../services/filtros.service';
 import { AuthService } from '../../services/auth.service';
 import {
   SearchCategoryMatch,
   SearchResults,
-  SearchService
+  SearchService,
 } from '../../../services/search.service';
 import { EventosService } from '../../../services/eventos.service';
-
 import { EventCardResponse } from '../../../shared/models/evento.model';
 import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-service.model';
 import { SpecialistProfileResponse } from '../../../services/profesionales.service';
@@ -34,7 +35,6 @@ import { ToastService } from '../../../shared/services/toast.service';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Celda del calendario del selector de fecha del header. */
 interface CalendarDayCell {
   date: string;
   day: number;
@@ -52,9 +52,10 @@ interface CalendarDayCell {
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly filtrosService = inject(FiltrosService);
   readonly authService = inject(AuthService);
@@ -65,9 +66,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly cityInterestService = inject(CityInterestService);
   private readonly toastService = inject(ToastService);
 
-  // =========================================================
-  // ESTADOS DEL HEADER
-  // =========================================================
+  // Estados del encabezado.
 
   isScrolled = signal(false);
   isMobileMenuOpen = signal(false);
@@ -75,30 +74,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isFilterOpen = signal(false);
   isCityOpen = signal(false);
 
-  cityPopoverPosition = signal<{ top: number; left: number } | null>(null);
+  cityPopoverPosition = signal<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   isProfilePopoverOpen = signal(false);
   showLogoutConfirm = signal(false);
-
-  // Card de favoritos/guardados cuando no hay sesión
   showFavoritesLogin = signal(false);
-
-  // ★ NUEVO: card de login para guardados (la que usa el HTML del header)
   showFavoriteLoginCard = signal(false);
 
-  // =========================================================
-  // BUSCADOR
-  // =========================================================
+  // Buscador.
 
   searchQuery = signal('');
   searchResults = signal<SearchResults | null>(null);
   searching = signal(false);
 
   private readonly searchInput$ = new Subject<string>();
+  private searchBlurTimeout?: ReturnType<typeof setTimeout>;
 
-  // =========================================================
-  // CIUDAD
-  // =========================================================
+  // Ciudad.
 
   cityInterestEmail = signal('');
   cityInterestSubmitting = signal(false);
@@ -114,20 +109,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.filtrosService.cities()[0]?.name ?? 'tu ciudad';
   });
 
-  // =========================================================
-  // NAVEGACIÓN PRINCIPAL
-  // =========================================================
-
   navLinks = [
     { label: 'Explorar', path: '/explorar' },
     { label: 'Sesiones 1:1', path: '/sesiones' },
     { label: 'Profesionales', path: '/profesionales' },
     { label: 'Conocer gente', path: '/match-bienestar' },
   ];
-
-  // =========================================================
-  // INSPIRACIÓN
-  // =========================================================
 
   inspirationTags = [
     'Yoga',
@@ -138,9 +125,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     'Retiro',
   ];
 
-  // =========================================================
-  // FILTROS PENDIENTES
-  // =========================================================
+  // Filtros pendientes.
 
   pendingWhen = signal<string | null>(null);
   pendingCategories = signal<string[]>([]);
@@ -149,13 +134,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   pendingTimeOfDay = signal<string | null>(null);
   pendingModality = signal<string | null>(null);
   pendingRecurrence = signal<string | null>(null);
+  pendingMood = signal<string | null>(null);
 
   // ★ NUEVO: precio pendiente (pills del modal de filtros)
   pendingPrice = signal<string | null>(null);
-
-  // =========================================================
-  // OPCIONES DE FILTROS
-  // =========================================================
+  pendingSpecialistId = signal<number | null>(null);
+  pendingSpecialistName = signal<string | null>(null);
 
   get whenOptions() {
     return this.filtrosService.whenOptions;
@@ -185,9 +169,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.filtrosService.recurrenceOptions;
   }
 
-  // ★ NUEVO: pills de precio del modal
   get priceOptions() {
     return this.filtrosService.priceOptions;
+  }
+
+  get moodOptions(){
+    return this.filtrosService.moodOptions;
   }
 
   // =========================================================
@@ -207,66 +194,85 @@ export class HeaderComponent implements OnInit, OnDestroy {
       (this.pendingTimeOfDay() ? 1 : 0) +
       (this.pendingModality() ? 1 : 0) +
       (this.pendingRecurrence() ? 1 : 0) +
-      (this.pendingPrice() ? 1 : 0)
+      (this.pendingPrice() ? 1 : 0) +
+      (this.pendingSpecialistId() !== null ? 1 : 0) +
+      (this.pendingMood() ? 1 : 0)
     );
   }
-
-  // =========================================================
-  // INIT
-  // =========================================================
 
   ngOnInit(): void {
     this.filtrosService.refreshCatalogs();
 
     if (this.isBrowser) {
-      window.addEventListener(
-        'oona:open-filter',
-        this.openFilterListener
-      );
+      window.addEventListener('oona:open-filter', this.openFilterListener);
     }
 
-    this.searchInput$       .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap(query => {
-          const trimmed = query.trim();
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.closeHeaderPanels();
+      });
 
-          if (!trimmed) {
+    this.searchInput$
+      .pipe(
+        switchMap((value) => {
+          const query = value.trim();
+
+          this.searchResults.set(null);
+
+          if (!query) {
             this.searching.set(false);
-            return [null];
+            return of(null);
           }
 
           this.searching.set(true);
 
-          return this.searchService.search(trimmed);
+          return timer(300).pipe(
+            switchMap(() => this.searchService.search(query)),
+            catchError(() => of(null)),
+          );
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(results => {
+      .subscribe((results) => {
         this.searching.set(false);
         this.searchResults.set(results);
       });
   }
 
-  // =========================================================
-  // DESTROY
-  // =========================================================
-
   ngOnDestroy(): void {
     if (this.isBrowser) {
-      window.removeEventListener(
-        'oona:open-filter',
-        this.openFilterListener
-      );
+      window.removeEventListener('oona:open-filter', this.openFilterListener);
     }
 
+    clearTimeout(this.searchBlurTimeout);
     this.pendingCountSubscription.unsubscribe();
+
+    this.searchInput$.complete();
+    this.pendingCountTrigger$.complete();
   }
 
   private readonly openFilterListener = () => this.openFilter();
 
-  // =========================================================
-  // SCROLL
-  // =========================================================
+  private closeHeaderPanels(): void {
+    this.closeSearch();
+
+    this.isFilterOpen.set(false);
+    this.isDateModalOpen.set(false);
+
+    this.isCityOpen.set(false);
+    this.cityPopoverPosition.set(null);
+
+    this.isMobileMenuOpen.set(false);
+    this.isProfilePopoverOpen.set(false);
+    this.showLogoutConfirm.set(false);
+
+    this.showFavoritesLogin.set(false);
+    this.showFavoriteLoginCard.set(false);
+  }
 
   @HostListener('window:scroll')
   onScroll(): void {
@@ -275,107 +281,93 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================================================
-  // ESCAPE
-  // =========================================================
-
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.isFilterOpen.set(false);
-    this.isCityOpen.set(false);
-    this.isMobileMenuOpen.set(false);
-    this.isSearchFocused.set(false);
-    this.isProfilePopoverOpen.set(false);
-    this.showLogoutConfirm.set(false);
-    this.showFavoritesLogin.set(false);
-
-    // ★ NUEVO: cierra también el modal de fecha y la card de guardados
-    this.isDateModalOpen.set(false);
-    this.showFavoriteLoginCard.set(false);
+    this.closeHeaderPanels();
   }
-
-  // =========================================================
-  // CLICK FUERA
-  // =========================================================
 
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event): void {
-    if (this.isProfilePopoverOpen()) {
-      const target = event.target as HTMLElement;
+    if (!this.isBrowser) {
+      return;
+    }
 
-      if (
-        !target.closest('.header__profile-container') &&
-        !target.closest('.header__burger')
-      ) {
-        this.isProfilePopoverOpen.set(false);
-      }
+    const target = event.target;
+
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (
+      this.isSearchFocused() &&
+      !target.closest('.header__search-wrap') &&
+      !target.closest('.header__search-toggle')
+    ) {
+      this.closeSearch();
+    }
+
+    if (
+      this.isProfilePopoverOpen() &&
+      !target.closest('.header__profile-container') &&
+      !target.closest('.header__burger')
+    ) {
+      this.closeProfilePopover();
     }
   }
 
-  // =========================================================
-  // MENÚ MÓVIL
-  // =========================================================
+  // Menú móvil.
 
   toggleMobileMenu(): void {
-    this.isMobileMenuOpen.update(v => !v);
+    const opening = !this.isMobileMenuOpen();
+
+    this.closeHeaderPanels();
+    this.isMobileMenuOpen.set(opening);
   }
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
   }
 
-  // =========================================================
-  // CIUDAD
-  // =========================================================
+  // Ciudad.
 
   toggleCity(event?: MouseEvent): void {
     const opening = !this.isCityOpen();
 
+    this.closeHeaderPanels();
     this.isCityOpen.set(opening);
-    this.isFilterOpen.set(false);
 
     if (opening) {
       this.cityInterestError.set(null);
+      this.cityInterestEmail.set(this.authService.currentUser()?.email ?? '');
 
-      this.cityInterestEmail.set(
-        this.authService.currentUser()?.email ?? ''
-      );
-
-      this.updateCityPopoverPosition(
-        event?.currentTarget as HTMLElement | undefined
-      );
+      this.updateCityPopoverPosition(event?.currentTarget as HTMLElement | undefined);
     }
   }
 
   private updateCityPopoverPosition(button?: HTMLElement): void {
-    // En móvil el popover se muestra como banner mediante CSS
-    if (
-      !this.isBrowser ||
-      !button ||
-      window.innerWidth <= 899
-    ) {
+    if (!this.isBrowser || !button || window.innerWidth <= 899) {
       this.cityPopoverPosition.set(null);
       return;
     }
 
     const rect = button.getBoundingClientRect();
-
     const popoverWidth = 280;
     const margin = 16;
 
     const left = Math.min(
       Math.max(rect.right - popoverWidth, margin),
-      window.innerWidth - popoverWidth - margin
+      window.innerWidth - popoverWidth - margin,
     );
 
     this.cityPopoverPosition.set({
       top: rect.bottom + 8,
-      left
+      left,
     });
   }
 
   closeCity(): void {
     this.isCityOpen.set(false);
+    this.cityPopoverPosition.set(null);
   }
 
   onCityInterestEmailInput(value: string): void {
@@ -394,20 +386,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const email = this.cityInterestEmail().trim();
 
     if (!EMAIL_PATTERN.test(email)) {
-      this.cityInterestError.set(
-        'Introduce un email válido.'
-      );
+      this.cityInterestError.set('Introduce un email válido.');
       return;
     }
 
-    const city = this.filtrosService.getCityByName(
-      this.selectedCityName()
-    );
+    const city = this.filtrosService.getCityByName(this.selectedCityName());
 
     if (!city) {
-      this.cityInterestError.set(
-        'No se pudo identificar la ciudad seleccionada.'
-      );
+      this.cityInterestError.set('No se pudo identificar la ciudad seleccionada.');
       return;
     }
 
@@ -417,68 +403,101 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.cityInterestService
       .registerInterest({
         cityId: city.id,
-        email
+        email,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.cityInterestSubmitting.set(false);
-
           this.closeCity();
 
-          this.toastService.success(
-            `¡Genial! Hemos guardado tu interés por ${city.name}`
-          );
+          this.toastService.success(`¡Genial! Hemos guardado tu interés por ${city.name}`);
         },
-
-        error: err => {
+        error: (err) => {
           this.cityInterestSubmitting.set(false);
 
           const message =
-            err?.error?.message ||
-            'No se pudo registrar tu interés. Inténtalo de nuevo.';
+            err?.error?.message || 'No se pudo registrar tu interés. Inténtalo de nuevo.';
 
           this.cityInterestError.set(message);
         },
       });
   }
 
-  // =========================================================
-  // BUSCADOR
-  // =========================================================
+  // Buscador.
 
   onSearchFocus(): void {
-    this.isSearchFocused.set(true);
-  }
-openSearch(): void {
-  this.isSearchFocused.set(true);
-}
-onSearchBlur(): void {
-  setTimeout(() => {
-    const activeElement = document.activeElement;
+    clearTimeout(this.searchBlurTimeout);
 
-    if (!(activeElement instanceof HTMLElement)) {
-      this.isSearchFocused.set(false);
+    this.isSearchFocused.set(true);
+    this.isMobileMenuOpen.set(false);
+    this.isProfilePopoverOpen.set(false);
+
+    this.closeCity();
+    this.closeFilter();
+  }
+
+  openSearch(): void {
+    this.onSearchFocus();
+
+    if (!this.isBrowser) {
       return;
     }
 
-    if (!activeElement.closest('.header__search-wrap')) {
-      this.isSearchFocused.set(false);
+    queueMicrotask(() => {
+      if (this.destroyRef.destroyed || !this.isSearchFocused()) {
+        return;
+      }
+
+      this.host.nativeElement.querySelector<HTMLInputElement>('.header__search-input')?.focus();
+    });
+  }
+
+  // Se conserva para compatibilidad si el HTML aún tiene (blur).
+  onSearchBlur(): void {
+    if (!this.isBrowser) {
+      return;
     }
-  }, 160);
-}
+
+    clearTimeout(this.searchBlurTimeout);
+
+    this.searchBlurTimeout = setTimeout(() => {
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+
+      const activeElement = document.activeElement;
+
+      if (
+        !(activeElement instanceof Element) ||
+        (!activeElement.closest('.header__search-wrap') &&
+          !activeElement.closest('.header__search-toggle'))
+      ) {
+        this.closeSearch();
+      }
+    }, 160);
+  }
 
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
     this.searchInput$.next(value);
   }
 
-  resolveImage(
-    url?: string | null,
-    fallback = ''
-  ): string {
-    return url
-      ? resolveAssetUrl(url)
-      : fallback;
+  closeSearch(): void {
+    clearTimeout(this.searchBlurTimeout);
+
+    this.isSearchFocused.set(false);
+    this.searchQuery.set('');
+
+    // Cancela la espera y cualquier búsqueda anterior.
+    this.searchInput$.next('');
+
+    this.searchResults.set(null);
+    this.searching.set(false);
+  }
+
+  resolveImage(url?: string | null, fallback = ''): string {
+    return url ? resolveAssetUrl(url) : fallback;
   }
 
   formatSearchDate(value: string | null): string {
@@ -486,14 +505,11 @@ onSearchBlur(): void {
       return 'Fecha por confirmar';
     }
 
-    return new Intl.DateTimeFormat(
-      'es-ES',
-      {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short'
-      }
-    )
+    return new Intl.DateTimeFormat('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    })
       .format(new Date(value))
       .replace('.', '');
   }
@@ -505,98 +521,66 @@ onSearchBlur(): void {
       return;
     }
 
-    this.closeSearch();
+    this.closeHeaderPanels();
 
-    this.router.navigate(
-      ['/explorar'],
-      {
-        queryParams: { q: query }
-      }
-    );
+    void this.router.navigate(['/explorar'], {
+      queryParams: { q: query },
+    });
   }
 
-  selectSearchCategory(
-    category: SearchCategoryMatch
-  ): void {
-    this.filtrosService.filterCategories.set(
-      [category.name]
-    );
+  selectSearchCategory(category: SearchCategoryMatch): void {
+    this.filtrosService.filterCategories.set([category.name]);
+    this.closeHeaderPanels();
 
-    this.closeSearch();
-
-    this.router.navigate(['/explorar']);
+    void this.router.navigate(['/explorar']);
   }
 
-  selectSearchEvent(
-    event: EventCardResponse
-  ): void {
-    this.closeSearch();
+  selectSearchEvent(event: EventCardResponse): void {
+    this.closeHeaderPanels();
 
-    this.router.navigate(
-      ['/evento', event.id]
-    );
+    void this.router.navigate(['/evento', event.id]);
   }
 
-  selectSearchSession(
-    session: OneToOneServiceCardResponse
-  ): void {
-    this.closeSearch();
+  selectSearchSession(session: OneToOneServiceCardResponse): void {
+    this.closeHeaderPanels();
 
-    this.router.navigate(
-      ['/sesiones', session.id]
-    );
+    void this.router.navigate(['/sesiones', session.id]);
   }
 
-  selectSearchOrganizer(
-    organizer: SpecialistProfileResponse
-  ): void {
-    this.closeSearch();
+  selectSearchOrganizer(organizer: SpecialistProfileResponse): void {
+    this.closeHeaderPanels();
 
-    this.router.navigate(
-      ['/profesionales', organizer.slug]
-    );
+    void this.router.navigate(['/profesionales', organizer.slug]);
   }
 
-  private closeSearch(): void {
-    this.isSearchFocused.set(false);
-    this.searchQuery.set('');
-    this.searchResults.set(null);
-  }
-
-  // =========================================================
-  // PERFIL / POPOVER
-  // =========================================================
+  // Perfil.
 
   toggleProfilePopover(): void {
-    this.isProfilePopoverOpen.update(v => !v);
+    const opening = !this.isProfilePopoverOpen();
+
+    this.closeHeaderPanels();
+    this.isProfilePopoverOpen.set(opening);
   }
 
   closeProfilePopover(): void {
     this.isProfilePopoverOpen.set(false);
   }
 
-  // =========================================================
-  // ❤️ GUARDADOS DESDE EL HEADER
-  // =========================================================
-  sClick(): void {
+  // Guardados.
 
-    // CON SESIÓN → Perfil → Guardados
+  sClick(): void {
+    this.closeHeaderPanels();
+
     if (this.authService.isLoggedIn) {
-      this.router.navigate(
-        ['/perfil'],
-        {
-          queryParams: {
-            tab: 'guardados'
-          }
-        }
-      );
+      void this.router.navigate(['/perfil'], {
+        queryParams: {
+          tab: 'guardados',
+        },
+      });
 
       return;
     }
 
-    // ★ NUEVO: SIN SESIÓN → card de login para guardados
-    // (antes navegaba a /favoritos; ahora muestra la card
-    //  flotante que ya está maquetada en el HTML del header)
     this.showFavoriteLoginCard.set(true);
   }
 
@@ -605,51 +589,46 @@ onSearchBlur(): void {
   }
 
   goToRegister(): void {
-    this.closeFavoritesLogin();
-    this.router.navigate(['/auth/login']);
+    this.closeHeaderPanels();
+
+    void this.router.navigate(['/auth/login']);
   }
 
   goToLogin(): void {
-    this.closeFavoritesLogin();
-    this.router.navigate(['/auth/login']);
-  }
+    this.closeHeaderPanels();
 
-  // ★ NUEVO: card de login para guardados (la del HTML)
+    void this.router.navigate(['/auth/login']);
+  }
 
   cerrarFavoriteLoginCard(): void {
     this.showFavoriteLoginCard.set(false);
   }
 
   irAAuthLogin(): void {
-    this.showFavoriteLoginCard.set(false);
+    this.closeHeaderPanels();
 
-    this.router.navigate(
-      ['/auth/login'],
-      { queryParams: { returnUrl: '/' } }
-    );
+    void this.router.navigate(['/auth/login'], {
+      queryParams: {
+        returnUrl: '/',
+      },
+    });
   }
 
-  // =========================================================
-  // LOGOUT
-  // =========================================================
+  // Cierre de sesión.
 
   openLogoutConfirm(): void {
+    this.closeHeaderPanels();
     this.showLogoutConfirm.set(true);
-    this.isProfilePopoverOpen.set(false);
   }
 
   logout(): void {
+    this.closeHeaderPanels();
     this.authService.logout();
 
-    this.showLogoutConfirm.set(false);
-    this.isProfilePopoverOpen.set(false);
-
-    this.router.navigate(['/']);
+    void this.router.navigate(['/']);
   }
 
-  // =========================================================
-  // USUARIO
-  // =========================================================
+  // Usuario.
 
   getUserInitial(): string {
     const user = this.authService.currentUser();
@@ -658,14 +637,9 @@ onSearchBlur(): void {
       return 'U';
     }
 
-    const name =
-      user.username ||
-      user.email ||
-      'U';
+    const name = user.username || user.email || 'U';
 
-    return name
-      .charAt(0)
-      .toUpperCase();
+    return name.charAt(0).toUpperCase();
   }
 
   getUsername(): string {
@@ -687,136 +661,80 @@ onSearchBlur(): void {
   }
 
   get isProfessional(): boolean {
-    return this.authService.roles.includes(
-      'PROFESSIONAL'
-    );
+    return this.authService.roles.includes('PROFESSIONAL');
   }
 
-  // =========================================================
-  // INSPIRACIÓN
-  // =========================================================
-
   selectInspiration(tag: string): void {
+    this.onSearchFocus();
     this.onSearchInput(tag);
   }
 
-  // =========================================================
-  // FILTROS
-  // =========================================================
+  // Filtros.
 
   openFilter(): void {
+    this.closeHeaderPanels();
     this.filtrosService.refreshCatalogs();
 
-    this.pendingWhen.set(
-      this.filtrosService.filterWhen()
-    );
+    this.pendingWhen.set(this.filtrosService.filterWhen());
+    this.pendingCategories.set([...this.filtrosService.filterCategories()]);
+    this.pendingTypes.set([...this.filtrosService.filterTypes()]);
+    this.pendingCity.set(this.filtrosService.filterCity());
+    this.pendingTimeOfDay.set(this.filtrosService.filterTimeOfDay());
+    this.pendingModality.set(this.filtrosService.filterModality());
+    this.pendingRecurrence.set(this.filtrosService.filterRecurrence());
+    this.pendingPrice.set(this.filtrosService.filterPrice());
+    this.pendingSpecialistId.set(this.filtrosService.filterSpecialistId());
+    this.pendingSpecialistName.set(this.filtrosService.filterSpecialistName());
 
-    this.pendingCategories.set([
-      ...this.filtrosService.filterCategories()
-    ]);
-
-    this.pendingTypes.set([
-      ...this.filtrosService.filterTypes()
-    ]);
-
-    this.pendingCity.set(
-      this.filtrosService.filterCity()
-    );
-
-    this.pendingTimeOfDay.set(
-      this.filtrosService.filterTimeOfDay()
-    );
-
-    this.pendingModality.set(
-      this.filtrosService.filterModality()
-    );
-
-    this.pendingRecurrence.set(
-      this.filtrosService.filterRecurrence()
-    );
-
-    // ★ NUEVO: precio aplicado → pendiente
-    this.pendingPrice.set(
-      this.filtrosService.filterPrice()
-    );
-
-    // ★ NUEVO: resetea el contador para que no muestre
-    // un número viejo mientras recalcula
     this.pendingResultsCount.set(null);
     this.countLoading.set(false);
 
     this.isFilterOpen.set(true);
     this.isCityOpen.set(false);
+
+    this.pendingMood.set(
+      this.filtrosService.filterMood()
+    );
   }
 
   applyFilters(): void {
-    this.filtrosService.filterWhen.set(
-      this.pendingWhen()
-    );
+    this.filtrosService.filterWhen.set(this.pendingWhen());
+    this.filtrosService.filterCategories.set([...this.pendingCategories()]);
+    this.filtrosService.filterTypes.set([...this.pendingTypes()]);
+    this.filtrosService.filterCity.set(this.pendingCity());
+    this.filtrosService.filterTimeOfDay.set(this.pendingTimeOfDay());
+    this.filtrosService.filterModality.set(this.pendingModality());
+    this.filtrosService.filterRecurrence.set(this.pendingRecurrence());
+    this.filtrosService.filterPrice.set(this.pendingPrice());
+    this.filtrosService.filterSpecialistId.set(this.pendingSpecialistId());
+    this.filtrosService.filterSpecialistName.set(this.pendingSpecialistName());
 
-    this.filtrosService.filterCategories.set([
-      ...this.pendingCategories()
-    ]);
-
-    this.filtrosService.filterTypes.set([
-      ...this.pendingTypes()
-    ]);
-
-    this.filtrosService.filterCity.set(
-      this.pendingCity()
-    );
-
-    this.filtrosService.filterTimeOfDay.set(
-      this.pendingTimeOfDay()
-    );
-
-    this.filtrosService.filterModality.set(
-      this.pendingModality()
-    );
-
-    this.filtrosService.filterRecurrence.set(
-      this.pendingRecurrence()
-    );
-
-    // ★ NUEVO: aplica el precio pendiente
-    this.filtrosService.filterPrice.set(
-      this.pendingPrice()
-    );
-
-    this.isFilterOpen.set(false);
+    this.filtrosService.filterMood.set(this.pendingMood());
+    this.closeFilter();
   }
 
   closeFilter(): void {
+    this.isDateModalOpen.set(false);
     this.isFilterOpen.set(false);
   }
 
   pendingSelectWhen(opt: string): void {
-    this.pendingWhen.set(
-      this.pendingWhen() === opt
-        ? null
-        : opt
-    );
+    this.pendingWhen.set(this.pendingWhen() === opt ? null : opt);
   }
 
   pendingToggleCategory(cat: string): void {
-    const current =
-      this.pendingCategories();
+    const current = this.pendingCategories();
 
     this.pendingCategories.set(
-      current.includes(cat)
-        ? current.filter(x => x !== cat)
-        : [...current, cat]
+      current.includes(cat) ? current.filter((item) => item !== cat) : [...current, cat],
     );
   }
 
-  pendingToggleType(t: string): void {
-    const current =
-      this.pendingTypes();
+  pendingToggleType(type: string): void {
+    const current = this.pendingTypes();
 
     this.pendingTypes.set(
-      current.includes(t)
-        ? current.filter(x => x !== t)
-        : [...current, t]
+      current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
     );
   }
 
@@ -824,36 +742,27 @@ onSearchBlur(): void {
     this.pendingCity.set(city);
   }
 
-  pendingSelectTimeOfDay(t: string): void {
-    this.pendingTimeOfDay.set(
-      this.pendingTimeOfDay() === t
-        ? null
-        : t
-    );
+  pendingSelectTimeOfDay(value: string): void {
+    this.pendingTimeOfDay.set(this.pendingTimeOfDay() === value ? null : value);
   }
 
-  pendingSelectModality(m: string): void {
-    this.pendingModality.set(
-      this.pendingModality() === m
+  pendingSelectModality(value: string): void {
+    this.pendingModality.set(this.pendingModality() === value ? null : value);
+  }
+
+  pendingSelectRecurrence(value: string): void {
+    this.pendingRecurrence.set(this.pendingRecurrence() === value ? null : value);
+  }
+
+  pendingSelectPrice(price: string): void {
+    this.pendingPrice.set(this.pendingPrice() === price ? null : price);
+  }
+
+  pendingSelectMood(m: string): void {
+    this.pendingMood.set(
+      this.pendingMood()?.toUpperCase() === m.toUpperCase()
         ? null
         : m
-    );
-  }
-
-  pendingSelectRecurrence(r: string): void {
-    this.pendingRecurrence.set(
-      this.pendingRecurrence() === r
-        ? null
-        : r
-    );
-  }
-
-  // ★ NUEVO: selección de pill de precio
-  pendingSelectPrice(price: string): void {
-    this.pendingPrice.set(
-      this.pendingPrice() === price
-        ? null
-        : price
     );
   }
 
@@ -865,16 +774,16 @@ onSearchBlur(): void {
     this.pendingTimeOfDay.set(null);
     this.pendingModality.set(null);
     this.pendingRecurrence.set(null);
-
-    // ★ NUEVO: limpia también precio y fechas
     this.pendingPrice.set(null);
+    this.pendingSpecialistId.set(null);
+    this.pendingSpecialistName.set(null);
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
+
+    this.pendingMood.set(null);
   }
 
-  // =========================================================
-  // ★ NUEVO: SELECTOR DE FECHA (modal "Elegir fecha")
-  // =========================================================
+  // Selector de fechas.
 
   isDateModalOpen = signal(false);
   calendarMonth = signal<Date>(this.startOfMonth(new Date()));
@@ -883,12 +792,8 @@ onSearchBlur(): void {
 
   weekDayLabels = ['LU', 'MA', 'MI', 'JU', 'VI', 'SÁ', 'DO'];
 
-  /** El chip "Elegir fecha" se marca activo cuando hay un rango custom. */
-  readonly isCustomDatePending = computed(
-    () => !!this.pendingWhen()?.startsWith('RANGO:')
-  );
+  readonly isCustomDatePending = computed(() => !!this.pendingWhen()?.startsWith('RANGO:'));
 
-  /** Etiqueta del chip: "Elegir fecha" o el rango elegido ("12 sep – 14 sep"). */
   readonly pendingDateChipLabel = computed(() => {
     const when = this.pendingWhen();
 
@@ -899,10 +804,10 @@ onSearchBlur(): void {
     const [, from, to] = when.split(':');
 
     const label = (iso: string) =>
-      new Intl.DateTimeFormat(
-        'es-ES',
-        { day: 'numeric', month: 'short' }
-      )
+      new Intl.DateTimeFormat('es-ES', {
+        day: 'numeric',
+        month: 'short',
+      })
         .format(new Date(iso + 'T00:00:00'))
         .replace('.', '');
 
@@ -913,7 +818,6 @@ onSearchBlur(): void {
     return `${label(from)} – ${label(to)}`;
   });
 
-  /** Pills rápidos del modal de fecha (mismos "when" del filtro). */
   get dateQuickOptions(): string[] {
     return this.filtrosService.whenOptions;
   }
@@ -940,10 +844,8 @@ onSearchBlur(): void {
     this.isDateModalOpen.set(false);
   }
 
-  /** Pill rápido: Hoy / Mañana / Este finde... (descarta el rango custom). */
   selectDateQuick(opt: string): void {
     this.pendingWhen.set(opt);
-
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
 
@@ -951,19 +853,16 @@ onSearchBlur(): void {
   }
 
   readonly monthLabel = computed(() => {
-    const label = new Intl.DateTimeFormat(
-      'es-ES',
-      { month: 'long', year: 'numeric' }
-    ).format(this.calendarMonth());
+    const label = new Intl.DateTimeFormat('es-ES', {
+      month: 'long',
+      year: 'numeric',
+    }).format(this.calendarMonth());
 
     return label.charAt(0).toUpperCase() + label.slice(1);
   });
 
-  /** No se puede navegar a meses anteriores al actual. */
   readonly canGoToPrevMonth = computed(
-    () =>
-      this.calendarMonth().getTime() >
-      this.startOfMonth(new Date()).getTime()
+    () => this.calendarMonth().getTime() > this.startOfMonth(new Date()).getTime(),
   );
 
   prevMonth(): void {
@@ -971,7 +870,7 @@ onSearchBlur(): void {
       return;
     }
 
-    this.calendarMonth.update(month => {
+    this.calendarMonth.update((month) => {
       const previous = new Date(month);
       previous.setMonth(previous.getMonth() - 1);
       return previous;
@@ -979,14 +878,13 @@ onSearchBlur(): void {
   }
 
   nextMonth(): void {
-    this.calendarMonth.update(month => {
+    this.calendarMonth.update((month) => {
       const next = new Date(month);
       next.setMonth(next.getMonth() + 1);
       return next;
     });
   }
 
-  /** Rejilla de 6 semanas empezando en lunes. */
   readonly calendarDays = computed<CalendarDayCell[]>(() => {
     const month = this.calendarMonth();
     const from = this.pendingDateFrom();
@@ -995,13 +893,15 @@ onSearchBlur(): void {
 
     const gridStart = this.startOfMonth(month);
     const shift = (gridStart.getDay() + 6) % 7;
+
     gridStart.setDate(gridStart.getDate() - shift);
 
     const cells: CalendarDayCell[] = [];
 
-    for (let i = 0; i < 42; i++) {
+    for (let index = 0; index < 42; index++) {
       const cellDate = new Date(gridStart);
-      cellDate.setDate(gridStart.getDate() + i);
+
+      cellDate.setDate(gridStart.getDate() + index);
 
       cells.push({
         date: this.toIsoDate(cellDate),
@@ -1016,10 +916,6 @@ onSearchBlur(): void {
     return cells;
   });
 
-  /**
-   * Primer click → fecha inicial. Segundo click → fecha final
-   * (si es anterior a la inicial, la sustituye).
-   */
   selectCalendarDay(cell: CalendarDayCell): void {
     if (cell.isPast) {
       return;
@@ -1043,12 +939,10 @@ onSearchBlur(): void {
 
   clearDateSelection(): void {
     this.pendingWhen.set(null);
-
     this.pendingDateFrom.set(null);
     this.pendingDateTo.set(null);
   }
 
-  /** Vuelca la selección del calendario a pendingWhen en formato RANGO. */
   applyDateSelection(): void {
     const from = this.pendingDateFrom();
 
@@ -1059,18 +953,12 @@ onSearchBlur(): void {
 
     const to = this.pendingDateTo() ?? from;
 
-    this.pendingWhen.set(
-      `RANGO:${this.toIsoDate(from)}:${this.toIsoDate(to)}`
-    );
+    this.pendingWhen.set(`RANGO:${this.toIsoDate(from)}:${this.toIsoDate(to)}`);
 
     this.closeDatePicker();
   }
 
-  private isBetweenSelection(
-    date: Date,
-    from: Date | null,
-    to: Date | null
-  ): boolean {
+  private isBetweenSelection(date: Date, from: Date | null, to: Date | null): boolean {
     if (!from) {
       return false;
     }
@@ -1079,22 +967,23 @@ onSearchBlur(): void {
       return date.getTime() === from.getTime();
     }
 
-    return (
-      date.getTime() >= from.getTime() &&
-      date.getTime() <= to.getTime()
-    );
+    return date.getTime() >= from.getTime() && date.getTime() <= to.getTime();
   }
 
   private startOfDay(date: Date): Date {
     const result = new Date(date);
+
     result.setHours(0, 0, 0, 0);
+
     return result;
   }
 
   private startOfMonth(date: Date): Date {
     const result = new Date(date);
+
     result.setDate(1);
     result.setHours(0, 0, 0, 0);
+
     return result;
   }
 
@@ -1106,45 +995,38 @@ onSearchBlur(): void {
     return `${year}-${month}-${day}`;
   }
 
-  // =========================================================
-  // ★ NUEVO: CONTADOR DE RESULTADOS EN VIVO
-  // =========================================================
+  // Contador de resultados de los filtros.
 
   pendingResultsCount = signal<number | null>(null);
   countLoading = signal(false);
 
   private readonly pendingCountTrigger$ = new Subject<void>();
 
-  /** Pipeline con debounce: cuenta resultados del estado pendiente. */
-  private readonly pendingCountSubscription = this.pendingCountTrigger$     .pipe(
+  private readonly pendingCountSubscription = this.pendingCountTrigger$
+    .pipe(
       debounceTime(250),
       switchMap(() => {
+        if (!this.isBrowser || !this.isFilterOpen()) {
+          return of(null);
+        }
+
         this.countLoading.set(true);
 
         return this.eventosService
           .getEventos({
             page: 0,
             size: 1,
-            ...this.filtrosService.buildEventFilterParams(
-              this.pendingSnapshot()
-            ),
+            ...this.filtrosService.buildEventFilterParams(this.pendingSnapshot()),
           })
           .pipe(catchError(() => of(null)));
-      })
+      }),
     )
-    .subscribe(page => {
+    .subscribe((page) => {
       this.countLoading.set(false);
 
-      this.pendingResultsCount.set(
-        page ? page.totalElements : null
-      );
+      this.pendingResultsCount.set(this.isFilterOpen() && page ? page.totalElements : null);
     });
 
-  /**
-   * Dispara el contador cada vez que cambia un filtro pendiente
-   * mientras el modal está abierto (no hace peticiones con el
-   * modal cerrado, ni en SSR).
-   */
   private readonly pendingCountEffect = effect(() => {
     if (!this.isBrowser || !this.isFilterOpen()) {
       return;
@@ -1158,6 +1040,8 @@ onSearchBlur(): void {
     this.pendingModality();
     this.pendingRecurrence();
     this.pendingPrice();
+    this.pendingSpecialistId();
+    this.pendingMood();
 
     untracked(() => this.pendingCountTrigger$.next());
   });
@@ -1172,10 +1056,12 @@ onSearchBlur(): void {
       modality: this.pendingModality(),
       recurrence: this.pendingRecurrence(),
       price: this.pendingPrice(),
+      specialistId: this.pendingSpecialistId(),
+      specialistName: this.pendingSpecialistName(),
+      mood: this.pendingMood(),
     };
   }
 
-  /** "Mostrar 24 experiencias" / "Contando…" / "Mostrar resultados". */
   readonly applyButtonLabel = computed(() => {
     if (this.countLoading()) {
       return 'Contando…';
@@ -1190,6 +1076,5 @@ onSearchBlur(): void {
     return `Mostrar ${count} ${count === 1 ? 'experiencia' : 'experiencias'}`;
   });
 
-  /** Etiqueta del botón aplicar del modal de fecha. */
   readonly dateButtonLabel = computed(() => this.applyButtonLabel());
 }

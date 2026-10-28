@@ -65,6 +65,12 @@ export enum EventModality {
   HIBRIDA = 'HIBRIDA',
 }
 
+export enum EventMood {
+  RELAJACION = 'RELAJACION',
+  ENERGIA = 'ENERGIA',
+  CONECTAR = 'CONECTAR',
+}
+
 export interface EventCardResponse {
   id: number;
   title: string;
@@ -85,6 +91,7 @@ export interface EventCardResponse {
   eventType: string | null;
   experienceTypeSlug: string | null;
   isRecurring: boolean;
+  mood?: string;
 }
 
 export interface EventOrganizerResponse {
@@ -143,6 +150,7 @@ export type DateFilter = 'HOY' | 'MANANA' | 'ESTE_FINDE' | 'ESTA_SEMANA' | 'PROX
 export type TimeFilter = 'MANANA' | 'MEDIODIA' | 'TARDE' | 'NOCHE';
 
 export interface EventFilterParams {
+  specialistId?: number;
   search?: string;
   categoryId?: number;
   categoryIds?: number[];
@@ -159,6 +167,7 @@ export interface EventFilterParams {
   page?: number;
   size?: number;
   sort?: string;
+  mood?: string;
 }
 
 export interface HomeEventSectionsResponse {
