@@ -172,6 +172,24 @@ export const routes: Routes = [
       },
 
       {
+        path: 'register',
+        loadComponent: () =>
+          import('./features/auth/register/register.component')
+            .then(m => m.RegisterComponent),
+
+        title: 'Registrar cuenta - Oona',
+      },
+
+      {
+        path: 'role-selection',
+        loadComponent: () =>
+          import('./features/auth/role-selection/role-selection.component')
+            .then(m => m.RoleSelectionComponent),
+
+        title: 'Iniciar sesion - Oona',
+      },
+
+      {
         path: 'recuperar',
         loadComponent: () =>
           import('./features/auth/forgot-password/forgot-password.component')
