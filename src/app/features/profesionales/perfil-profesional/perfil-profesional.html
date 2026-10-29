@@ -3,6 +3,7 @@
   <div class="container">
 
     <div class="profile-hero">
+      <div class="profile-hero__banner">
       <img
         [src]="
           p.bannerUrl ||
@@ -14,7 +15,7 @@
 
       <div class="profile-hero__overlay" aria-hidden="true"></div>
 
-      <div class="profile-hero__content">
+
 
         <button
           class="profile-hero__back"
@@ -22,7 +23,9 @@
           <app-icon name="arrow-r" [size]="14" class="profile-hero__back-icon"></app-icon>
           Profesionales
         </button>
+      </div>
 
+      <div class="profile-hero__body">
         <div class="profile-hero__identity">
 
           @if (p.imagenUrl && !publicPhotoFailed()) {
@@ -38,7 +41,8 @@
             </div>
           }
 
-          <div class="profile-hero__info">
+          <div class="profile-hero__main-content">
+            <div class="profile-hero__details-group">
 
             <h1 class="profile-name">
               {{ p.nombre }}
@@ -47,7 +51,9 @@
             <span class="profile-role-badge">
               {{ p.tipo }}
             </span>
+          </div>
 
+          <div class="profile-hero__actions-group">
             <p class="profile-hero__location">
               <app-icon name="map-pin" [size]="14"></app-icon>
               {{ p.ubicacion }}
@@ -83,6 +89,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
 
     <section class="profile-about">
@@ -350,7 +357,7 @@
             } @else {
               Síguele y te avisamos por email cada vez que publique una nueva experiencia.
             }
-          </p>          
+          </p>
 <div class="tarjeta11">
             @if (!isOwnProfile()) {
             <button
@@ -379,7 +386,7 @@
                 <p class="profile-follow-error" role="alert">{{ followError() }}</p>
   }
             }
-        <button type="button" class="tarjeta15" [class.tarjeta15--primary]="following()" (click)="openShareDialog()">              
+        <button type="button" class="tarjeta15" [class.tarjeta15--primary]="following()" (click)="openShareDialog()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="compartir"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
             <span class="tarjeta17" [class.tarjeta17--primary]="following()">
               <span class="tarjeta17-full" [class.tarjeta17-full--primary]="following()">Compartir perfil</span>
