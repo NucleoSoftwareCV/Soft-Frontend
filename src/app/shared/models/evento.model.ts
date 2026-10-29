@@ -72,6 +72,7 @@ export enum EventMood {
 }
 
 export interface EventCardResponse {
+  occurrenceId?: number | null;
   id: number;
   title: string;
   summary: string | null;
@@ -203,6 +204,7 @@ export interface HomeViewAllFilters {
 }
 
 export interface HomeEventCardResponse {
+  occurrenceId?: number | null;
   id: number;
   title: string;
   coverImageUrl: string;

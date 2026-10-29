@@ -1,6 +1,6 @@
 import {
   afterNextRender, ChangeDetectionStrategy, Component, DestroyRef,
-  ElementRef, HostListener, effect, inject, input, signal, viewChild,
+  ElementRef, HostListener, effect, inject, input, output, signal, viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import type { LayerGroup, LocationEvent, ErrorEvent, Map as LeafletMap } from 'leaflet';
@@ -23,6 +23,9 @@ import { environment } from '../../../../environments/environment';
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
             <span>{{ locating() ? 'Localizando…' : 'Mi ubicación' }}</span>
           </button>
+          @if (selectable()) {
+            <button type="button" (click)="selectCenter()">Usar centro del mapa</button>
+          }
           <button type="button" (click)="toggleWheel()" [attr.aria-pressed]="wheelZoom()" title="Activar o desactivar zoom con la rueda">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/></svg>
             <span>Zoom con rueda</span>
@@ -57,6 +60,21 @@ import { environment } from '../../../../environments/environment';
 export class EventMapComponent {
   readonly points = input.required<readonly EventMapPoint[]>();
   readonly label = input('Mapa de eventos');
+  readonly selectable = input(false);
+  readonly referencePoint = input<{ latitude: number; longitude: number } | null>(null);
+  readonly pointSelected = output<{ latitude: number; longitude: number }>();
+  private referenceMarker: LayerGroup | null = null;
+
+  private renderReference(): void {
+    const point = this.referencePoint();
+    if (!this.map || !this.leaflet || !this.referenceMarker) return;
+    this.referenceMarker.clearLayers();
+    if (!point || !Number.isFinite(point.latitude) || !Number.isFinite(point.longitude)) return;
+    this.leaflet.circleMarker([point.latitude, point.longitude], {
+      radius: 9, color: '#fff', weight: 3, fillColor: '#00545d', fillOpacity: 1,
+    }).bindTooltip('Tu punto de referencia').addTo(this.referenceMarker);
+    this.map.setView([point.latitude, point.longitude], 14);
+  }
   readonly ready = signal(false);
   readonly error = signal<string | null>(null);
   readonly tileError = signal(false);
@@ -79,6 +97,8 @@ export class EventMapComponent {
       const points = this.points();
       if (this.map) this.renderPoints(points);
     });
+
+    effect(() => { this.referencePoint(); this.renderReference(); });
 
     afterNextRender(() => {
       void this.initialize();
@@ -103,9 +123,14 @@ export class EventMapComponent {
       }).setView([40.4168, -3.7038], 5);
       leaflet.control.zoom({ position: 'bottomright' }).addTo(this.map);
       leaflet.control.scale({ imperial: false, position: 'bottomleft' }).addTo(this.map);
+      this.referenceMarker = leaflet.layerGroup().addTo(this.map);
       this.userLocation = leaflet.layerGroup().addTo(this.map);
+      this.map.on('click', event => {
+        if (this.selectable()) this.emitReference(event.latlng.lat, event.latlng.lng);
+      });
       this.map.on('locationfound', (event: LocationEvent) => {
         this.locating.set(false);
+        if (this.selectable()) this.emitReference(event.latlng.lat, event.latlng.lng);
         this.locationMessage.set('Tu ubicación está marcada en azul.');
         this.userLocation?.clearLayers();
         leaflet.circle(event.latlng, {
@@ -130,6 +155,7 @@ export class EventMapComponent {
       tiles.addTo(this.map);
       this.markers = leaflet.layerGroup().addTo(this.map);
       this.renderPoints(this.points());
+      this.renderReference();
 
       if (typeof ResizeObserver !== 'undefined') {
         this.resizeObserver = new ResizeObserver(() => this.map?.invalidateSize());
@@ -150,6 +176,17 @@ export class EventMapComponent {
       [group[0].latitude, group[0].longitude] as [number, number]));
     const approximate = groups.some(group => group[0].address?.startsWith('Ubicación aproximada'));
     this.map.fitBounds(bounds, { padding: [48, 48], maxZoom: approximate ? 12 : 15 });
+  }
+
+  private emitReference(latitude: number, longitude: number): void {
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90) return;
+    this.pointSelected.emit({ latitude, longitude: ((longitude + 180) % 360 + 360) % 360 - 180 });
+  }
+
+  selectCenter(): void {
+    if (!this.selectable() || !this.map) return;
+    const center = this.map.getCenter();
+    this.emitReference(center.lat, center.lng);
   }
 
   locate(): void {

@@ -124,4 +124,34 @@ describe('Mapa interactivo', () => {
       fixture.destroy();
     }
   });
+  it('reutiliza el mapa para confirmar un origen sin crear eventos ficticios', async () => {
+    await TestBed.configureTestingModule({
+      imports: [EventMapComponent], providers: [provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(EventMapComponent);
+    fixture.componentRef.setInput('points', []);
+    fixture.componentRef.setInput('selectable', true);
+    fixture.componentRef.setInput('referencePoint', { latitude: 0, longitude: 0 });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(fixture.componentInstance.ready()).toBe(true));
+    fixture.detectChanges();
+    const map = Reflect.get(fixture.componentInstance, 'map') as import('leaflet').Map;
+    const selected = vi.fn();
+    fixture.componentInstance.pointSelected.subscribe(selected);
+    map.setView([0, 0], 14);
+    fixture.nativeElement.querySelector('button').focus();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    buttons.find(button => button.textContent?.includes('Usar centro del mapa'))!.click();
+    expect(selected).toHaveBeenLastCalledWith({ latitude: 0, longitude: 0 });
+    map.fire('click', { latlng: { lat: 40, lng: 181 } });
+    expect(selected).toHaveBeenLastCalledWith({ latitude: 40, longitude: -179 });
+    expect(fixture.nativeElement.querySelectorAll('.oona-map-marker')).toHaveLength(0);
+    fixture.componentRef.setInput('selectable', false); fixture.detectChanges();
+    selected.mockClear();
+    map.fire('click', { latlng: { lat: 39, lng: 0 } });
+    expect(selected).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
 });

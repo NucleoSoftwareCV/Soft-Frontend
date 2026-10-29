@@ -1,3 +1,4 @@
+import { ReferenceLocationEditorComponent } from './reference-location-editor.component';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,7 @@ import { ToastService } from '../../shared/services/toast.service';
   standalone: true,
   imports: [
     CommonModule,
+    ReferenceLocationEditorComponent,
     FormsModule,
     RouterLink,
     LucideCheck,

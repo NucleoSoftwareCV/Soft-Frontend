@@ -1,3 +1,4 @@
+import { EventTravelComponent } from '../../../shared/components/event-travel/event-travel.component';
 import { Component, HostListener, PLATFORM_ID, computed, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -19,7 +20,7 @@ import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-m
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent],
+  imports: [EventTravelComponent,CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

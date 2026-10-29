@@ -1,0 +1,25 @@
+/*
+ * Cards reserve one compact, wrapping row. Venue details retain the full panel.
+ */
+:host { display: block; min-width: 0; }
+.travel-compact {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px;
+  margin: 7px 0 2px; color: #42666b; font: inherit;
+  font-size: 12px; line-height: 1.5;
+}
+.travel-compact__part { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.travel-compact strong { color: #00545d; font-weight: 600; font-size: inherit; }
+.travel-compact svg { width: 13px; height: 13px; flex: 0 0 13px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.travel-compact__method { color: #687d80; font-size: 11px; }
+.travel { font-size: 13px; color: #38616a; line-height: 1.45; }
+.travel--detail { margin: 0; padding: 22px; background: #f1f6f4; border-radius: 16px; box-sizing: border-box; }
+h3 { font-size: 20px; color: #004f59; margin: 0 0 16px; }
+.origin { overflow-wrap: anywhere; }
+.metrics { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 8px 0 2px; }
+.metrics strong { font-size: 20px; color: #004f59; }
+.time { margin: 3px 0; }
+small { display: block; margin: 6px 0; color: #596d70; }
+a { display: block; color: #00545d; margin-top: 14px; }
+.route { display: inline-block; background: #00545d; color: white; border-radius: 10px; padding: 11px 16px; text-decoration: none; }
+
+.retry-route { margin-top: 12px; padding: 8px 12px; border: 1px solid #bed2cd; border-radius: 8px; color: #00545d; background: white; font: inherit; cursor: pointer; }
