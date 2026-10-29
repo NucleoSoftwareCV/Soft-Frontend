@@ -1,0 +1,45 @@
+<section class="reservations" aria-labelledby="reservations-title">
+  <header class="heading"><div><span>Gestión de eventos</span><h1 id="reservations-title">Reservas</h1><p>Consulta las solicitudes de tus eventos y gestiona las que siguen pendientes.</p></div>
+    <button type="button" (click)="refresh()" [disabled]="loading() || saving()">Actualizar</button>
+  </header>
+  <form class="filters" (submit)="$event.preventDefault(); load()">
+    <label>Estado<select name="status" [(ngModel)]="status" (ngModelChange)="load()"><option value="">Todos los estados</option>@for (value of statuses; track value) {<option [value]="value">{{ statusLabels[value] }}</option>}</select></label>
+    <label>Evento<select name="event" [ngModel]="eventId" (ngModelChange)="setEvent($event)"><option [ngValue]="null">Todos mis eventos</option>@for (item of events(); track item.event.id) {<option [ngValue]="item.event.id">{{ item.event.title }}</option>}</select></label>
+    <label>Fecha<select name="occurrence" [(ngModel)]="occurrenceId" (ngModelChange)="load()" [disabled]="!eventId"><option [ngValue]="null">Todas las fechas</option>@for (item of occurrences(); track item.id) {<option [ngValue]="item.id">{{ item.startsAt | date:'dd/MM/yyyy HH:mm' }}</option>}</select></label>
+  </form>
+  @if (notice()) {<p class="notice" role="status">{{ notice() }}</p>}
+  @if (optionsError()) {<div class="error" role="alert">{{ optionsError() }} <button type="button" (click)="loadEventOptions()">Reintentar filtro</button></div>}
+  @if (error()) {<div class="error" role="alert">{{ error() }} <button type="button" (click)="refresh()">Reintentar</button></div>}
+  @if (loading()) {<p role="status">Cargando reservas…</p>}
+  @else if (!error() && !page()?.content?.length) {<div class="empty"><h2>No hay reservas para esta selección</h2><p>Las solicitudes de tus eventos aparecerán aquí.</p></div>}
+  @else if (page(); as result) {
+    <div class="table-wrap"><table><caption class="sr-only">Reservas de mis eventos</caption><thead><tr><th>Código</th><th>Cliente</th><th>Evento y fecha</th><th>Plazas</th><th>Importe</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+      @for (booking of result.content; track booking.code) {
+        <tr><td data-label="Código" class="code">{{ booking.code }}</td><td data-label="Cliente">{{ booking.customerName }}</td><td data-label="Evento y fecha"><strong>{{ booking.eventTitle }}</strong><small>{{ booking.occurrenceStartsAt | date:'dd/MM/yyyy HH:mm' }}</small></td><td data-label="Plazas">{{ booking.quantity }}</td><td data-label="Importe">{{ booking.totalAmount | currency:booking.currency }}</td><td data-label="Estado"><span class="badge" [attr.data-status]="booking.status">{{ statusLabels[booking.status] }}</span></td><td><button type="button" (click)="open(booking.code)" [attr.aria-label]="'Ver reserva ' + booking.code">Ver detalle</button></td></tr>
+      }
+    </tbody></table></div>
+    <nav class="pagination" aria-label="Páginas de reservas"><button type="button" [disabled]="result.first || loading()" (click)="load(result.number - 1)">Anterior</button><span>{{ result.totalElements }} reservas · Página {{ result.number + 1 }} de {{ result.totalPages || 1 }}</span><button type="button" [disabled]="result.last || loading()" (click)="load(result.number + 1)">Siguiente</button></nav>
+  }
+</section>
+<dialog #detailDialog aria-labelledby="booking-detail-title" (cancel)="close($event)">
+  <header class="dialog-header"><h2 id="booking-detail-title">Detalle de reserva</h2><button type="button" aria-label="Cerrar detalle" [disabled]="saving()" (click)="close()">Cerrar</button></header>
+  @if (detailLoading()) {<p role="status">Consultando reserva…</p>}
+  @if (detailError()) {<p class="error" role="alert">{{ detailError() }}</p>}
+  @if (detail(); as data) {
+    <p class="code">{{ data.booking.code }} · <span class="badge" [attr.data-status]="data.booking.status">{{ statusLabels[data.booking.status] }}</span></p>
+    <h3>{{ data.booking.eventTitle }}</h3><p>{{ data.booking.occurrenceStartsAt | date:'dd/MM/yyyy HH:mm' }}</p>
+    <dl><dt>Cliente</dt><dd>{{ data.booking.customerName }}</dd><dt>Correo</dt><dd>{{ data.customerEmail }}</dd><dt>Teléfono</dt><dd>{{ data.customerPhone || 'No indicado' }}</dd><dt>Plazas de la reserva</dt><dd>{{ data.booking.quantity }}</dd><dt>Importe</dt><dd>{{ data.booking.totalAmount | currency:data.booking.currency }}</dd><dt>Disponibilidad actual</dt><dd>{{ data.availableSpots }} de {{ data.capacity }} plazas libres</dd></dl>
+    <h3>Asistentes</h3><ul>@for (attendee of data.attendees; track attendee.id) {<li>{{ attendee.name }} · {{ attendee.email || 'Sin correo' }} · {{ attendee.attendanceStatus }}</li>} @empty {<li>No hay asistentes registrados.</li>}</ul>
+    <h3>Historial</h3><ul>@for (entry of data.history; track $index) {<li><strong>{{ entry.newStatus }}</strong> · {{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ entry.changedBy || 'Sistema' }} @if (entry.reason) {<p>{{ entry.reason }}</p>}</li>} @empty {<li>Aún no hay decisiones registradas.</li>}</ul>
+    @if (data.booking.status === 'PENDIENTE' && !detailLoading() && !detailError()) {
+      @if (!decision()) {<footer class="actions"><button class="primary" type="button" (click)="decision.set('CONFIRMADA')">Aceptar reserva</button><button type="button" (click)="decision.set('CANCELADA')">Rechazar solicitud</button></footer>}
+      @else {
+        <fieldset [disabled]="saving()"><legend>{{ decision() === 'CONFIRMADA' ? '¿Aceptar esta reserva?' : '¿Rechazar esta solicitud?' }}</legend>
+          @if (decision() === 'CANCELADA') {<label>Motivo del rechazo<textarea name="reason" [(ngModel)]="reason" required maxlength="255" rows="3"></textarea></label><small>Las plazas se liberarán al confirmar.</small>}
+          @else {<p>Las plazas ya están reservadas. Esta acción no registra un pago.</p>}
+          <footer class="actions"><button class="primary" type="button" (click)="confirm()" [disabled]="saving() || (decision() === 'CANCELADA' && !reason.trim())">{{ saving() ? 'Guardando…' : 'Confirmar decisión' }}</button><button type="button" (click)="decision.set(null)">Volver</button></footer>
+        </fieldset>
+      }
+    }
+  }
+</dialog>

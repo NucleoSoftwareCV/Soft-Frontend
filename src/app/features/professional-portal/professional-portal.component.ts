@@ -66,8 +66,9 @@ import {
 } from '../../shared/models/one-to-one-service.model';
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
+import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -159,6 +160,7 @@ interface OccurrenceForm {
   selector: 'app-professional-portal',
   standalone: true,
   imports: [
+    ProfessionalReservationsComponent,
     CommonModule,
     FormsModule,
     ImageCropperComponent,
@@ -322,6 +324,10 @@ export class ProfessionalPortalComponent {
     this.section.set(section);
     this.mobileNavOpen.set(false);
     this.clearMessages();
+  }
+
+  refreshBookingAvailability(): void {
+    this.loadEvents();
   }
 
   // ── Wizard: evento ───────────────────────────────────────────────────────
