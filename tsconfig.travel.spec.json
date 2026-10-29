@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/core/components/header/header.merge.map.spec.ts",
+    "src/app/shared/models/event-map-filter.spec.ts",
+    "src/app/features/explorar/eventos/advanced-event-filters.map.spec.ts",
+    "src/app/features/explorar/eventos/eventos.map-view.spec.ts",
+    "src/app/shared/components/event-map/event-map.component.spec.ts",
+    "src/app/features/explorar/detalle-evento/detalle-evento.map.spec.ts",
+    "src/app/services/event-map.service.spec.ts",
+    "src/app/shared/models/event-map.model.spec.ts",
+    "src/app/features/explorar/eventos/events-map-panel.component.spec.ts",
+    "src/app/services/eventos-recommendations.spec.ts",
+    "src/app/**/*.travel.spec.ts"
+  ]
+}
