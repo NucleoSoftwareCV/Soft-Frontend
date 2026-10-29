@@ -65,6 +65,10 @@ export interface MyBooking {
   modality: 'ONLINE' | 'PRESENCIAL';
   locationName: string | null;
   cityName: string | null;
+  cancelledAt?: string | null;
+  /** RECHAZADA: la rechazó el profesional. EXPIRADA: la orden venció sin pago. */
+  cancellationCause?: 'RECHAZADA' | 'EXPIRADA' | null;
+  cancellationReason?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

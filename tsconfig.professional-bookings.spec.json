@@ -4,6 +4,8 @@
     "src/**/*.d.ts",
     "src/app/services/professional-bookings.service.spec.ts",
     "src/app/features/professional-portal/reservations/professional-reservations.component.spec.ts",
-    "src/app/features/perfil/perfil.bookings.spec.ts"
+    "src/app/features/perfil/perfil.bookings.spec.ts",
+    "src/app/shared/components/booking-cancellation-notice/booking-cancellation-notice.component.spec.ts",
+    "src/app/app.spec.ts"
   ]
 }
