@@ -1,281 +1,158 @@
-<div class="container">
-  <main class="wellness-directory">
+<section class="directory-page">
+  <div class="directory-container">
+    <header class="directory-heading">
+      <p class="eyebrow">PERSONAS Y ESPACIOS</p>
+      <h1>Encuentra con quién cuidarte</h1>
+      <p>Elige una especialidad, conoce su enfoque y da el primer paso.</p>
+    </header>
 
-    <!-- Hero -->
-    <section class="directory-hero">
-      <h2 class="directory-hero__title">
-        Descubre a Nuestros Profesionales
-      </h2>
+    <div class="directory-toolbar">
+      <form class="directory-search" (ngSubmit)="buscar()" aria-label="Buscar profesionales">
+        <label class="search-field">
+          <span>Especialidad o nombre</span>
+          <div class="field-content">
+            <input name="search" [(ngModel)]="search" maxlength="150" placeholder="Yoga, psicología, masaje…" />
+            <app-icon name="search" [size]="18" />
+          </div>
+        </label>
+        <label class="search-field">
+          <span>Ubicación</span>
+          <div class="field-content">
+            <input name="location" [(ngModel)]="location" maxlength="100" placeholder="Ciudad" />
+            <app-icon name="map-pin" [size]="18" />
+          </div>
+        </label>
+        <button type="submit" class="search-button">Buscar <app-icon name="arrow-r" [size]="18" /></button>
+      </form>
+      <nav class="type-tabs" aria-label="Tipo de perfil">
+        @for (option of types; track option.value) {
+          <button type="button" [class.active]="type() === option.value"
+                  [attr.aria-pressed]="type() === option.value" (click)="cambiarTipo(option.value)">{{ option.label }}</button>
+        }
+      </nav>
+    </div>
 
-      <p class="directory-hero__subtitle">
-        Explora perfiles de guías y centros especializados en bienestar
-      </p>
-    </section>
+    <nav class="specialty-chips" aria-label="Especialidades">
+      <button type="button" [class.active]="!specialty()" [attr.aria-pressed]="!specialty()"
+              (click)="cambiarEspecialidad('')">Todas</button>
+      @for (item of specialties(); track item) {
+        <button type="button" [class.active]="specialty() === item"
+                [attr.aria-pressed]="specialty() === item" (click)="cambiarEspecialidad(item)">{{ item }}</button>
+      }
+    </nav>
 
-    <!-- Controles -->
-    <div class="directory-controls__wrapper">
-
-      <div class="directory-search">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lupa"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-
-        <input
-          type="text"
-          class="directory-search__input"
-          placeholder="Buscar por nombre, técnica, ubicación o temas..."
-          (input)="actualizarBusqueda($event)"
-        >
-      </div>
-
-      <div class="directory-select-container">
-        <button 
-          type="button" 
-          class="directory-select-btn" 
-          (click)="isDropdownOpen.set(!isDropdownOpen())"
-          [attr.aria-expanded]="isDropdownOpen()"
-        >
-          <span class="directory-select-btn__label">
-            {{ categoriaActiva() === 'todos' ? 'Todos' : 
-               categoriaActiva() === 'profesionales' ? 'Profesionales' : 
-               categoriaActiva() === 'centros' ? 'Centros' : 'Organizadores' }}
-          </span>
-          <svg class="directory-select-btn__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m6 9 6 6 6-6"></path>
-          </svg>
-
-          @if (isDropdownOpen()) {
-            <!-- Fondo transparente para cerrar al hacer clic fuera -->
-            <div class="dropdown-backdrop" (click)="$event.stopPropagation(); isDropdownOpen.set(false)"></div>
-            
-            <!-- Menú Desplegable Custom -->
-            <div class="directory-dropdown-panel" (click)="$event.stopPropagation()">
-              
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'todos'" (click)="actualizarCategoria('todos'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'todos') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Todos
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'profesionales'" (click)="actualizarCategoria('profesionales'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'profesionales') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Profesionales
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'centros'" (click)="actualizarCategoria('centros'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'centros') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Centros
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'organizadores'" (click)="actualizarCategoria('organizadores'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'organizadores') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Organizadores
-              </div>
+    <div class="directory-layout">
+      <section class="profile-list" aria-labelledby="profiles-heading" [attr.aria-busy]="loading()">
+        <div class="list-heading">
+          <h2 id="profiles-heading">Personas que te acompañan</h2>
+          @if (!loading() && !error()) {
+            <span>{{ total() }} {{ total() === 1 ? 'perfil encontrado' : 'perfiles encontrados' }}</span>
+          }
+        </div>
+        <div aria-live="polite">
+          @if (loading()) {
+            <p class="directory-state">Cargando profesionales…</p>
+          } @else if (error()) {
+            <div class="directory-state" role="alert">
+              <p>No pudimos cargar el directorio. Inténtalo de nuevo.</p>
+              <button type="button" class="outline-button" (click)="reintentar()">Reintentar</button>
+            </div>
+          } @else if (profiles().length === 0) {
+            <div class="directory-state">
+              <p>No encontramos perfiles con estos filtros.</p>
+              <button type="button" class="outline-button" (click)="limpiar()">Limpiar filtros</button>
             </div>
           }
-        </button>
-      </div>
-
-    </div>
-
-    <!-- Tabs -->
-    <div class="directory-tabs">
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'todos'"
-        (click)="actualizarCategoria('todos')">
-
-        <app-icon
-          name="users"
-          [size]="16">
-        </app-icon>
-        Todos
-
-      </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'profesionales'"
-        (click)="actualizarCategoria('profesionales')">
-
-        <app-icon
-          name="user"
-          [size]="16">
-        </app-icon>
-        Profesionales
-
-      </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'centros'"
-        (click)="actualizarCategoria('centros')">
-
-       <app-icon
-          name="users"
-          [size]="16">
-        </app-icon>
-        Centros
-
-      </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'organizadores'"
-        (click)="actualizarCategoria('organizadores')">
-
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personas"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Organizadores de eventos
-
-      </button>
-    </div>
-
-    <!-- Contador de resultados y estado de carga -->
-    <div class="directory-meta">
-
-      @if (cargando()) {
-
-        <span class="directory-meta__loading">
-          Cargando profesionales...
-        </span>
-
-      } @else {
-
-        <span class="directory-meta__count">
-          Mostrando {{ perfilesFiltrados().length }}
-          de {{ totalPerfiles() }} profesionales
-        </span>
-
-      }
-
-    </div>
-
-    <!-- Tarjetas -->
-    <section class="directory-grid">
-
-      @for (perfil of perfilesFiltrados(); track perfil.id) {
-
-        <article
-          class="card-item"
-          (click)="verPerfil(perfil)">
-
-          <div
-            class="card-item__image-container"
-            [class.card-item__image-container--logo]="perfil.isLogoStyle">
-
-            @if (perfil.isLogoStyle) {
-
-              <div class="card-item__logo-placeholder">
-
-                <span class="logo-text-brand">
-                  {{ perfil.logoMarca }}
-                </span>
-
-                <span class="logo-text-sub">
-                  {{ perfil.logoSub }}
-                </span>
-
-              </div>
-
-            } @else {
-
-              <img
-                [src]="perfil.imagenUrl"
-                [alt]="perfil.nombre"
-                class="card-item__img">
-
-            }
-
-            <span class="card-item__badge">
-
-              <app-icon
-                [name]="getIconName(perfil.tipo)"
-                [size]="12">
-              </app-icon>
-
-              {{ perfil.tipo }}
-
-            </span>
-
-          </div>
-
-          <div class="card-item__content">
-
-            <h2 class="card-item__title">
-              {{ perfil.nombre }}
-            </h2>
-
-            <div class="card-item__location">
-              <app-icon
-                name="map-pin"
-                [size]="16">
-              </app-icon>
-              {{ perfil.ubicacion }}
-            </div>
-
-            <p class="card-item__quote">
-              "{{ perfil.cita }}"
-            </p>
-
-            <div class="card-item__tags">
-
-              @for (tag of perfil.tags; track tag) {
-
-                <span
-                  class="card-item__tag"
-                  [class.card-item__tag--more]="tag.startsWith('+')">
-
-                  {{ tag }}
-
-                </span>
-
-              }
-
-            </div>
-
-            <button
-              class="card-item__link"
-              (click)="verPerfil(perfil); $event.stopPropagation()">
-
-              Ver perfil 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="card-arrow-icon" style="display: inline-block; vertical-align: middle; margin-left: 4px;">
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-
-            </button>
-
-          </div>
-
-        </article>
-
-      }
-
-      @if (!cargando() && perfilesFiltrados().length === 0) {
-
-        <div class="directory-empty">
-          <p>
-            No se encontraron perfiles con esos criterios.
-          </p>
         </div>
 
-      }
+        @for (profile of profiles(); track profile.id) {
+          <article class="profile-card">
+            <div class="profile-photo">
+              <span aria-hidden="true">{{ initials(profile.publicName) }}</span>
+              @if (asset(profile.photoUrl); as photo) {
+                <img [src]="photo" [alt]="profile.publicName" width="96" height="108" loading="lazy" (error)="imageError($event)" />
+              }
+            </div>
+            <div class="profile-info">
+              <h3><a [routerLink]="['/profesionales', profile.slug]">{{ profile.publicName }}</a></h3>
+              <p class="profile-specialties">{{ profile.specialties.slice(0, 3).join(' · ') || 'Especialidad no indicada' }}</p>
+              <p class="profile-biography">{{ profile.biography || 'Este perfil todavía no tiene una presentación.' }}</p>
+              @if (profile.reviewCount > 0 && profile.averageRating !== null) {
+                <p class="profile-rating" [attr.aria-label]="rating(profile.averageRating) + ' de 5 estrellas; ' + profile.reviewCount + ' reseñas de eventos'">
+                  <span class="star" aria-hidden="true">★</span>
+                  <span>{{ rating(profile.averageRating) }} ({{ profile.reviewCount }})</span>
+                </p>
+              } @else {
+                <p class="no-reviews">Sin reseñas</p>
+              }
+            </div>
+            <div class="profile-offer">
+              @if (profile.priceFrom !== null) {
+                <strong>Desde {{ price(profile.priceFrom, profile.currency) }}</strong>
+                @if (profile.nextStartsAt) {
+                  <span class="next-date">{{ date(profile.nextStartsAt) }} <small>(hora de España)</small></span>
+                } @else {
+                  <span class="next-date">Horario a coordinar</span>
+                }
+              } @else {
+                <strong class="no-price">Sin servicios disponibles</strong>
+                <span class="next-date">Consulta su perfil</span>
+              }
+              <a class="outline-button" [routerLink]="['/profesionales', profile.slug]"
+                 [attr.aria-label]="'Ver perfil de ' + profile.publicName">Ver perfil <app-icon name="arrow-r" [size]="17" /></a>
+            </div>
+          </article>
+        }
+        @if (!loading() && !error() && total() > 20) {
+          <nav class="pagination" aria-label="Páginas de profesionales">
+            <button type="button" class="outline-button" [disabled]="page() === 0" (click)="cambiarPagina(-1)">Anterior</button>
+            <span>Página {{ page() + 1 }}</span>
+            <button type="button" class="outline-button" [disabled]="(page() + 1) * 20 >= total()" (click)="cambiarPagina(1)">Siguiente</button>
+          </nav>
+        }
+      </section>
 
-    </section>
-
-  </main>
-</div>
+      <aside class="featured-column" aria-label="Servicio destacado">
+        @if (featured(); as service) {
+          <article class="featured-card">
+            <div class="featured-image">
+              @if (asset(service.imageUrl); as photo) {
+                <img [src]="photo" [alt]="service.title" width="640" height="400" loading="lazy" (error)="imageError($event)" />
+              }
+              <span class="featured-label">{{ service.acquisitionCount > 0 ? 'MÁS ADQUIRIDO' : 'MEJOR VALORADO' }}</span>
+              <span class="featured-modality">{{ service.type === 'EVENT' ? 'Evento grupal' : 'Sesión 1:1' }}</span>
+            </div>
+            <div class="featured-body">
+              <h2>{{ service.title }}</h2>
+              <p class="featured-organizer"><app-icon name="user" [size]="15" />{{ service.specialistName }}</p>
+              <p class="featured-description">{{ service.summary || 'Conoce los detalles de esta experiencia de bienestar.' }}</p>
+              <p class="featured-category">{{ service.category }} · {{ service.modality === 'ONLINE' ? 'Online' : 'Presencial' }}</p>
+              <div class="featured-stats">
+                @if (service.reviewCount > 0 && service.averageRating !== null) {
+                  <span><span class="star" aria-hidden="true">★</span> {{ rating(service.averageRating) }} ({{ service.reviewCount }} reseñas)</span>
+                } @else { <span>Sin reseñas</span> }
+                @if (service.acquisitionCount > 0) {
+                  <span>{{ service.acquisitionCount }} {{ service.acquisitionCount === 1 ? 'adquisición' : 'adquisiciones' }}</span>
+                }
+              </div>
+              <div class="featured-price">
+                @if (service.price !== null) { <strong>Desde {{ price(service.price, service.currency) }}</strong> }
+                <span>{{ service.startsAt ? date(service.startsAt) + ' (hora de España)' : (service.type === 'EVENT' ? 'Sin próximas fechas programadas' : 'Horario a coordinar') }}</span>
+              </div>
+              <a class="search-button" [routerLink]="serviceRoute(service)">
+                {{ service.type === 'EVENT' ? 'Ver evento' : 'Conocer sesión' }} <app-icon name="arrow-r" [size]="18" />
+              </a>
+            </div>
+          </article>
+        } @else if (!loading() && !error()) {
+          <div class="featured-empty">
+            <p class="eyebrow">EXPERIENCIAS DESTACADAS</p>
+            <h2>Tu próxima experiencia</h2>
+            <p>Aún no hay servicios con adquisiciones confirmadas ni reseñas para estos perfiles.</p>
+            <a class="outline-button" routerLink="/explorar">Explorar eventos <app-icon name="arrow-r" [size]="17" /></a>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>
