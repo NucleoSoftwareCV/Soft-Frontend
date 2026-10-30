@@ -1,280 +1,172 @@
-<div class="container">
-  <main class="wellness-directory">
+<div class="wellness-page-wrapper">
+  <main class="wellness-container">
 
-    <!-- Hero -->
-    <section class="directory-hero">
-      <h2 class="directory-hero__title">
-        Descubre a Nuestros Profesionales
-      </h2>
-
-      <p class="directory-hero__subtitle">
-        Explora perfiles de guías y centros especializados en bienestar
+    <!-- HERO SECTION MODERNO -->
+    <header class="wellness-hero">
+      <div class="wellness-hero__badge">
+        <span class="pulse-dot"></span> Experiencias & Comunidad
+      </div>
+      <h1 class="wellness-hero__title">Conecta con Guías y Centros de Bienestar</h1>
+      <p class="wellness-hero__subtitle">
+        Descubre profesionales apasionados por el yoga, la meditación y los retiros al aire libre.
       </p>
-    </section>
+    </header>
 
-    <!-- Controles -->
-    <div class="directory-controls__wrapper">
+    <!-- BARRA DE CONTROLES UNIFICADA -->
+    <section class="wellness-controls" aria-label="Filtros de búsqueda">
 
-      <div class="directory-search">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lupa"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-
-        <input
-          type="text"
-          class="directory-search__input"
-          placeholder="Buscar por nombre, técnica, ubicación o temas..."
-          (input)="actualizarBusqueda($event)"
-        >
+      <!-- Buscador -->
+      <div class="search-box">
+        <svg class="search-box__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" class="search-box__input"
+          placeholder="Busca por nombre, técnica (ej. Hatha, Vinyasa) o ciudad..." (input)="actualizarBusqueda($event)">
       </div>
 
-      <div class="directory-select-container">
-        <button 
-          type="button" 
-          class="directory-select-btn" 
-          (click)="isDropdownOpen.set(!isDropdownOpen())"
-          [attr.aria-expanded]="isDropdownOpen()"
-        >
-          <span class="directory-select-btn__label">
-            {{ categoriaActiva() === 'todos' ? 'Todos' : 
-               categoriaActiva() === 'profesionales' ? 'Profesionales' : 
-               categoriaActiva() === 'centros' ? 'Centros' : 'Organizadores' }}
+      <!-- Dropdown Select Custom -->
+      <div class="custom-select-wrapper">
+        <button type="button" class="select-trigger-btn" (click)="isDropdownOpen.set(!isDropdownOpen())"
+          [attr.aria-expanded]="isDropdownOpen()">
+          <span class="select-trigger-label">
+            {{
+            categoriaActiva() === 'todos' ? 'Todas las categorías' :
+            categoriaActiva() === 'profesionales' ? 'Profesionales' :
+            categoriaActiva() === 'centros' ? 'Centros' : 'Organizadores'
+            }}
           </span>
-          <svg class="directory-select-btn__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg class="select-trigger-icon" [class.rotated]="isDropdownOpen()" xmlns="http://www.w3.org/2000/svg"
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="m6 9 6 6 6-6"></path>
           </svg>
-
-          @if (isDropdownOpen()) {
-            <!-- Fondo transparente para cerrar al hacer clic fuera -->
-            <div class="dropdown-backdrop" (click)="$event.stopPropagation(); isDropdownOpen.set(false)"></div>
-            
-            <!-- Menú Desplegable Custom -->
-            <div class="directory-dropdown-panel" (click)="$event.stopPropagation()">
-              
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'todos'" (click)="actualizarCategoria('todos'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'todos') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Todos
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'profesionales'" (click)="actualizarCategoria('profesionales'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'profesionales') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Profesionales
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'centros'" (click)="actualizarCategoria('centros'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'centros') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Centros
-              </div>
-
-              <div class="directory-dropdown-item" [class.active]="categoriaActiva() === 'organizadores'" (click)="actualizarCategoria('organizadores'); isDropdownOpen.set(false)">
-                <span class="check-icon">
-                  @if (categoriaActiva() === 'organizadores') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  }
-                </span>
-                Organizadores
-              </div>
-            </div>
-          }
         </button>
+
+        @if (isDropdownOpen()) {
+          <div class="dropdown-backdrop" (click)="$event.stopPropagation(); isDropdownOpen.set(false)"></div>
+          <div class="custom-dropdown-menu" (click)="$event.stopPropagation()">
+            <button class="dropdown-option" [class.selected]="categoriaActiva() === 'todos'"
+              (click)="actualizarCategoria('todos'); isDropdownOpen.set(false)">
+              Todos los perfiles
+            </button>
+            <button class="dropdown-option" [class.selected]="categoriaActiva() === 'profesionales'"
+              (click)="actualizarCategoria('profesionales'); isDropdownOpen.set(false)">
+              Profesionales independientes
+            </button>
+            <button class="dropdown-option" [class.selected]="categoriaActiva() === 'centros'"
+              (click)="actualizarCategoria('centros'); isDropdownOpen.set(false)">
+              Centros especializados
+            </button>
+            <button class="dropdown-option" [class.selected]="categoriaActiva() === 'organizadores'"
+              (click)="actualizarCategoria('organizadores'); isDropdownOpen.set(false)">
+              Organizadores de eventos
+            </button>
+          </div>
+        }
       </div>
 
-    </div>
+    </section>
 
-    <!-- Tabs -->
-    <div class="directory-tabs">
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'todos'"
-        (click)="actualizarCategoria('todos')">
-
-        <app-icon
-          name="users"
-          [size]="16">
-        </app-icon>
-        Todos
-
+    <!-- TABS DE NAVEGACIÓN RÁPIDA -->
+    <nav class="wellness-chips" aria-label="Filtros rápidos">
+      <button class="chip-btn" [class.active]="categoriaActiva() === 'todos'" (click)="actualizarCategoria('todos')">
+        ✨ Todos
       </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'profesionales'"
+      <button class="chip-btn" [class.active]="categoriaActiva() === 'profesionales'"
         (click)="actualizarCategoria('profesionales')">
-
-        <app-icon
-          name="user"
-          [size]="16">
-        </app-icon>
-        Profesionales
-
+        🌿 Profesionales
       </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'centros'"
+      <button class="chip-btn" [class.active]="categoriaActiva() === 'centros'"
         (click)="actualizarCategoria('centros')">
-
-       <app-icon
-          name="users"
-          [size]="16">
-        </app-icon>
-        Centros
-
+        🏡 Centros
       </button>
-
-      <button
-        class="directory-tab"
-        [class.directory-tab--active]="categoriaActiva() === 'organizadores'"
+      <button class="chip-btn" [class.active]="categoriaActiva() === 'organizadores'"
         (click)="actualizarCategoria('organizadores')">
-
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personas"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Organizadores de eventos
-
+        ⛺ Organizadores
       </button>
-    </div>
+    </nav>
 
-    <!-- Contador de resultados y estado de carga -->
+    <!-- CONTADOR DE RESULTADOS -->
     <div class="directory-meta">
-
       @if (cargando()) {
-
-        <span class="directory-meta__loading">
-          Cargando profesionales...
-        </span>
-
+        <span class="directory-meta__loading">Cargando profesionales...</span>
       } @else {
-
         <span class="directory-meta__count">
-          Mostrando {{ perfilesFiltrados().length }}
-          de {{ totalPerfiles() }} profesionales
+          Mostrando {{ perfilesFiltrados().length }} de {{ totalPerfiles() }} profesionales
         </span>
-
       }
-
     </div>
 
-    <!-- Tarjetas -->
-    <section class="directory-grid">
-
+    <!-- GRILLA DE TARJETAS -->
+    <section class="wellness-grid">
       @for (perfil of perfilesFiltrados(); track perfil.id) {
+        <article class="wellness-card" (click)="verPerfil(perfil)">
 
-        <article
-          class="card-item"
-          (click)="verPerfil(perfil)">
-
-          <div
-            class="card-item__image-container"
-            [class.card-item__image-container--logo]="perfil.isLogoStyle">
-
+          <!-- Contenedor Multimedia / Imagen -->
+          <div class="wellness-card__media" [class.is-logo]="perfil.isLogoStyle">
             @if (perfil.isLogoStyle) {
-
-              <div class="card-item__logo-placeholder">
-
-                <span class="logo-text-brand">
-                  {{ perfil.logoMarca }}
-                </span>
-
-                <span class="logo-text-sub">
-                  {{ perfil.logoSub }}
-                </span>
-
+              <div class="wellness-card__logo-box">
+                <span class="logo-brand">{{ perfil.logoMarca }}</span>
+                <span class="logo-subtitle">{{ perfil.logoSub }}</span>
               </div>
-
             } @else {
-
-              <img
-                [src]="perfil.imagenUrl"
-                [alt]="perfil.nombre"
-                class="card-item__img">
-
+              <img [src]="perfil.imagenUrl" [alt]="perfil.nombre" class="wellness-card__img" loading="lazy">
             }
 
-            <span class="card-item__badge">
-
-              <app-icon
-                [name]="getIconName(perfil.tipo)"
-                [size]="12">
-              </app-icon>
-
+            <span class="wellness-card__badge">
               {{ perfil.tipo }}
-
             </span>
-
           </div>
 
-          <div class="card-item__content">
-
-            <h2 class="card-item__title">
-              {{ perfil.nombre }}
-            </h2>
-
-            <div class="card-item__location">
-              <app-icon
-                name="map-pin"
-                [size]="16">
-              </app-icon>
-              {{ perfil.ubicacion }}
+          <!-- Contenido de la Tarjeta -->
+          <div class="wellness-card__body">
+            <div class="wellness-card__meta-top">
+              <span class="wellness-card__location">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                {{ perfil.ubicacion }}
+              </span>
             </div>
 
-            <p class="card-item__quote">
+            <h2 class="wellness-card__title">{{ perfil.nombre }}</h2>
+
+            <p class="wellness-card__quote">
               "{{ perfil.cita }}"
             </p>
 
-            <div class="card-item__tags">
-
+            <div class="wellness-card__tags">
               @for (tag of perfil.tags; track tag) {
-
-                <span
-                  class="card-item__tag"
-                  [class.card-item__tag--more]="tag.startsWith('+')">
-
-                  {{ tag }}
-
-                </span>
-
+                <span class="tag-pill">{{ tag }}</span>
               }
-
             </div>
 
-            <button
-              class="card-item__link"
-              (click)="verPerfil(perfil); $event.stopPropagation()">
-
-              Ver perfil 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="card-arrow-icon" style="display: inline-block; vertical-align: middle; margin-left: 4px;">
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-
-            </button>
-
+            <div class="wellness-card__footer">
+              <span class="profile-link-text">
+                Ver perfil completo
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </span>
+            </div>
           </div>
 
         </article>
-
       }
 
       @if (!cargando() && perfilesFiltrados().length === 0) {
-
-        <div class="directory-empty">
-          <p>
-            No se encontraron perfiles con esos criterios.
-          </p>
+        <div class="wellness-empty">
+          <div class="wellness-empty__icon">🧘‍♂️</div>
+          <h3>Sin resultados</h3>
+          <p>No se encontraron perfiles con esos criterios de búsqueda.</p>
         </div>
-
       }
-
     </section>
 
   </main>
