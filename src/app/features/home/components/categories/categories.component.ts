@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, inject, ViewChild, signal, AfterViewIn
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
+
 import { FiltrosService } from '../../../../services/filtros.service';
 
 @Component({
@@ -14,11 +15,7 @@ import { FiltrosService } from '../../../../services/filtros.service';
 export class CategoriesComponent implements AfterViewInit, OnDestroy {
   private readonly filters = inject(FiltrosService);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly backgrounds = [
-    '#DCE6CD', '#F6D7CE', '#CFE0EA', '#EADFB6', '#F2D2CF', '#F5DDC8',
-    '#DAD4E9', '#E2DCF0', '#F0DDE7', '#E2E6C1', '#D2E6D6', '#F2DDDB',
-    '#F4E1CB', '#DEDEE2',
-  ];
+
 
   @ViewChild('trackWrap') private trackWrap?: ElementRef<HTMLElement>;
   @ViewChild('section') private section?: ElementRef<HTMLElement>;
@@ -29,12 +26,39 @@ export class CategoriesComponent implements AfterViewInit, OnDestroy {
   private readonly onScrollOrResize = () => this.checkStuck();
 
   readonly categories = computed(() =>
-    this.filters.categories().map((category, index) => ({
+    this.filters.categories().map(category => ({
       ...category,
-      emoji: category.emoji || '✨',
-      background: this.backgrounds[index % this.backgrounds.length],
+      photo: this.categoryPhoto(category.slug, category.name),
     }))
   );
+
+  /** Local generated photographs; slug and name keep the live catalogue editable. */
+  private categoryPhoto(slug: string | null | undefined, name: string) {
+    const value = ((slug ?? '') + ' ' + name).normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (value.includes('arte') || value.includes('creatividad')) return 'assets/images/categories/photos-v1/arte-creatividad';
+    if (value.includes('cuerpo') || value.includes('salud')) return 'assets/images/categories/photos-v1/cuerpo-salud';
+    if (value.includes('deporte')) return 'assets/images/categories/photos-v1/deporte';
+    if (value.includes('emprendimiento')) return 'assets/images/categories/photos-v1/emprendimiento';
+    if (value.includes('espiritualidad') || value.includes('energia')) return 'assets/images/categories/photos-v1/espiritualidad-energia';
+    if (value.includes('hielo') || value.includes('breathwork')) return 'assets/images/categories/photos-v1/hielo-breathwork';
+    if (value.includes('maternidad') || value.includes('familia')) return 'assets/images/categories/photos-v1/maternidad-familia';
+    if (value.includes('meditacion') || value.includes('mindfulness')) return 'assets/images/categories/photos-v1/meditacion-mindfulness';
+    if (value.includes('movimiento') || value.includes('pilates')) return 'assets/images/categories/photos-v1/movimiento';
+    if (value.includes('nutricion') || value.includes('cocina')) return 'assets/images/categories/photos-v1/nutricion-cocina';
+    if (value.includes('psicologia')) return 'assets/images/categories/photos-v1/psicologia';
+    if (value.includes('sonido') || value.includes('vibracion')) return 'assets/images/categories/photos-v1/sonido-vibracion';
+    if (value.includes('yoga')) return 'assets/images/categories/photos-v1/yoga';
+    return 'assets/images/categories/photos-v1/bienestar';
+  }
+
+  useFallbackPhoto(event: Event): void {
+    const image = event.target as HTMLImageElement | null;
+    if (!image || image.dataset['fallback']) return;
+    image.dataset['fallback'] = 'true';
+    image.srcset = '';
+    image.src = 'assets/images/categories/photos-v1/bienestar.webp';
+  }
 
   constructor() {
     // Refresca el catálogo cada vez que se muestra este widget, así las
