@@ -1,0 +1,132 @@
+<div class="login-layout">
+
+    <div class="login-image" aria-hidden="true">
+      <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=900&auto=format&fit=crop&q=85" alt=""
+        class="login-image__img" width="900" height="1200" />
+    </div>
+
+    <main class="login-panel" aria-labelledby="login-title">
+
+      <a routerLink="/" class="login-panel__logo" aria-label="Oona — Volver al inicio">
+        oona.
+      </a>
+
+      @if (errorMessage()) {
+      <div class="login-error-message" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="login-error-message__close" aria-label="Cerrar" (click)="dismissError()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      }
+
+      <h1 class="login-panel__title" id="login-title">
+        Crea tu cuenta<br>
+        <em>para continuar</em>
+      </h1>
+
+      <div class="login-form-wrap">
+        <div #googleBtn class="login-google-container"></div>
+
+        <div class="login-divider" aria-hidden="true">
+          <span>O CON EMAIL</span>
+        </div>
+
+        <form class="login-form" (ngSubmit)="onRegisterSubmit()" novalidate>
+
+          <div style="display: flex; gap: var(--space-4); width: 100%;">
+            <div class="login-field" style="flex: 1;">
+              <label for="reg-firstname" class="login-field__label">NOMBRE</label>
+              <input id="reg-firstname" type="text" name="regFirstName" class="login-field__input" placeholder="Tu nombre"
+                [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" required />
+            </div>
+
+            <div class="login-field" style="flex: 1;">
+              <label for="reg-lastname" class="login-field__label">APELLIDOS</label>
+              <input id="reg-lastname" type="text" name="regLastName" class="login-field__input"
+                placeholder="Tus apellidos" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" required />
+            </div>
+          </div>
+
+          <div class="login-field">
+            <label for="reg-email" class="login-field__label">EMAIL</label>
+            <input id="reg-email" type="email" name="regEmail" class="login-field__input" placeholder="tu@email.com"
+              [ngModel]="email()" (ngModelChange)="email.set($event)" autocomplete="email" required />
+          </div>
+
+          <div class="login-field">
+            <label for="reg-pwd" class="login-field__label">CONTRASEÑA</label>
+            <div class="login-field__input-wrap">
+              <input id="reg-pwd" [type]="showPassword() ? 'text' : 'password'" name="regPassword"
+                class="login-field__input" placeholder="Mínimo 8 caracteres" [ngModel]="password()"
+                (ngModelChange)="password.set($event)" autocomplete="new-password" required />
+              <button type="button" class="login-field__eye" (click)="togglePassword()">
+                @if (showPassword()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="login-field">
+            <label for="reg-confirmpwd" class="login-field__label">CONFIRMAR CONTRASEÑA</label>
+            <div class="login-field__input-wrap">
+              <input id="reg-confirmpwd" [type]="showConfirmPassword() ? 'text' : 'password'" name="regConfirmPassword"
+                class="login-field__input" placeholder="Repite la contraseña" [ngModel]="confirmPassword()"
+                (ngModelChange)="confirmPassword.set($event)" autocomplete="new-password" required />
+              <button type="button" class="login-field__eye" (click)="toggleConfirmPassword()">
+                @if (showConfirmPassword()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="login-submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+            <span class="login-submit__spinner" aria-hidden="true"></span> Creando cuenta...
+            } @else {
+            Crear cuenta en Oona
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+            }
+          </button>
+        </form>
+
+        <p class="login-register" style="margin-top: var(--space-4);">
+          ¿Ya tienes cuenta?
+          <button type="button" routerLink="/login" class="login-register__link"
+            style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; font-weight: bold;">Inicia
+            sesión</button>
+        </p>
+      </div>
+
+    </main>
+  </div>
