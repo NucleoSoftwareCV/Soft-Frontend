@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { CampaignEntrySummary } from '../shared/models/campania.model';
 
 export interface CheckoutAttendee {
   name: string;
@@ -46,6 +47,8 @@ export interface PaymentResponse {
   status: 'APROBADO' | 'RECHAZADO';
   externalReference: string | null;
   errorMessage: string | null;
+  /** Participaciones en sorteos generadas por este pago (vacía si ninguna). */
+  campaignEntries?: CampaignEntrySummary[];
 }
 
 export interface WhatsAppRedirect {

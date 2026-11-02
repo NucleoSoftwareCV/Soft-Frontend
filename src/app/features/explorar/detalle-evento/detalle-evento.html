@@ -146,6 +146,13 @@
 
       </div>
     }
+    @if (campaignBadge(); as badge) {
+      <div class="campaign-notice" role="note">
+        <app-campania-badge [badges]="event.campaignBadges" [inline]="true" />
+        <span>Reserva esta experiencia y participa en el sorteo: cada plaza confirmada es una participación.</span>
+        <a [routerLink]="['/sorteo', badge.slug]">Ver condiciones</a>
+      </div>
+    }
     <div class="title-row">
       <h1>{{ event.title }}</h1>
       <div class="actions">
@@ -751,6 +758,17 @@
             <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
               El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
             </p>
+            @for (entry of campaignEntries(); track entry.campaignSlug + entry.bookingCode) {
+              <p class="campaign-success">
+                🎁 ¡Ya participas en «{{ entry.campaignTitle }}» con
+                {{ entry.ticketCount }} {{ entry.ticketCount === 1 ? 'participación' : 'participaciones' }}!
+              </p>
+            }
+            @if (event.paymentMethod === 'WHATSAPP' && campaignBadge()) {
+              <p class="campaign-success">
+                🎁 Cuando el profesional confirme tu reserva, participarás en el sorteo.
+              </p>
+            }
 
             <div class="booking-summary-box mt-4">
               <h4>Resumen del evento</h4>

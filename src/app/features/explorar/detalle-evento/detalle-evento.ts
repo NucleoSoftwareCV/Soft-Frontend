@@ -15,11 +15,13 @@ import { EventoCardComponent } from '../../../shared/components/evento-card/even
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
+import { CampaniaBadgeComponent } from '../../../shared/components/campania-badge/campania-badge.component';
+import { CampaignEntrySummary } from '../../../shared/models/campania.model';
 import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent],
+  imports: [CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent, CampaniaBadgeComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -93,6 +95,10 @@ export class DetalleEvento implements OnDestroy{
   bookingLoading = signal(false);
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
+  /** Participaciones en sorteos generadas por el pago aprobado. */
+  campaignEntries = signal<CampaignEntrySummary[]>([]);
+  /** Campaña abierta en la que participa el evento (si hay varias, la primera). */
+  readonly campaignBadge = computed(() => this.evento()?.campaignBadges?.[0] ?? null);
 
   private galleryImages(): string[] {
     const images = this.evento()?.images ?? [];
@@ -650,6 +656,7 @@ export class DetalleEvento implements OnDestroy{
 
     this.bookingError.set(null);
     this.bookingLoading.set(false);
+    this.campaignEntries.set([]);
     this.bookingStep.set(1);
     this.numPlazas.set(1);
     this.yoTambienAsisto.set(true);
@@ -979,6 +986,7 @@ export class DetalleEvento implements OnDestroy{
             this.bookingLoading.set(false);
             if (payResult.status === 'APROBADO') {
               this.createdOrderCode.set(order.code);
+              this.campaignEntries.set(payResult.campaignEntries ?? []);
               this.bookingStep.set(3); // Éxito
               
               occurrence.reservedSpots += this.numPlazas();

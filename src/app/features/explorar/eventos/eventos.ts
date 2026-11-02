@@ -12,6 +12,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map, Observable, Subscription } from 'rxjs';
 
 import { EventosService } from '../../../services/eventos.service';
+import { CampaniasService } from '../../../services/campanias.service';
+import { CampaignSummary } from '../../../shared/models/campania.model';
+import { CampaniaBadgeComponent } from '../../../shared/components/campania-badge/campania-badge.component';
 import { FiltrosService } from '../../../services/filtros.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -51,13 +54,14 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
+  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent, CampaniaBadgeComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Eventos {
   private readonly eventosService = inject(EventosService);
+  private readonly campaniasService = inject(CampaniasService);
   private readonly filtrosService = inject(FiltrosService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -105,6 +109,24 @@ export class Eventos {
   calendarSelectionMode = signal<'quick' | 'custom'>('quick');
 
   readonly skeletonCards = Array.from({ length: 8 });
+
+  /** Campañas publicadas no cerradas; alimentan el banner promocional. */
+  readonly campaigns = signal<CampaignSummary[]>([]);
+
+  /** Campaña del banner: la filtrada si existe; si no, la primera abierta. */
+  readonly bannerCampaign = computed<CampaignSummary | null>(() => {
+    const list = this.campaigns();
+    const selected = this.filtrosService.filterCampaign();
+    return (
+      list.find((campaign) => campaign.slug === selected) ??
+      list.find((campaign) => campaign.phase === 'ABIERTA') ??
+      null
+    );
+  });
+
+  get filterCampaign() {
+    return this.filtrosService.filterCampaign;
+  }
 
   readonly fallbackImage =
     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
@@ -166,13 +188,32 @@ export class Eventos {
     this.loadExperienceTypes();
 
     this.searchQuery.set(this.route.snapshot.queryParamMap.get('q') ?? '');
+    this.filtrosService.filterCampaign.set(this.route.snapshot.queryParamMap.get('campania'));
+    this.loadCampaigns();
+
+    // Mantiene `?campania=` en la URL para poder compartir el listado filtrado.
+    effect(() => {
+      const campania = this.filtrosService.filterCampaign();
+      if ((this.route.snapshot.queryParamMap.get('campania') ?? null) === campania) {
+        return;
+      }
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { campania },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
 
     effect((onCleanup) => {
       const filters = this.buildFilters();
       const session = this.authService.currentUser();
 
+      // Las recomendaciones no conocen las campañas: con el filtro activo se usa el catálogo.
       const useRecommendations =
-        this.effectiveSort().sort === 'recommended' && this.canUseRecommendations();
+        this.effectiveSort().sort === 'recommended' &&
+        this.canUseRecommendations() &&
+        !filters.campaignSlug;
 
       this.recommendationVersion();
 
@@ -305,6 +346,22 @@ export class Eventos {
         detail: this.filterMood(),
       }));
     }
+  }
+
+  campaignEndLabel(campaign: CampaignSummary): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      timeZone: 'Europe/Madrid',
+    }).format(new Date(campaign.participationEndsAt));
+  }
+
+  showCampaignOnly(slug: string): void {
+    this.filtrosService.filterCampaign.set(slug);
+  }
+
+  clearCampaignFilter(): void {
+    this.filtrosService.filterCampaign.set(null);
   }
 
   clearFilters(): void {
@@ -742,6 +799,13 @@ export class Eventos {
     });
   }
 
+  private loadCampaigns(): void {
+    this.campaniasService.getActive().subscribe({
+      next: (campaigns) => this.campaigns.set(campaigns),
+      error: () => this.campaigns.set([]),
+    });
+  }
+
   private loadEventos(filters: EventFilterParams, useRecommendations: boolean): Subscription {
     this.loading.set(true);
     this.error.set(null);
@@ -857,6 +921,7 @@ export class Eventos {
 
       sort: this.effectiveSort().sort === 'recommended' ? undefined : this.effectiveSort().sort,
       mood: this.moodFor(this.filterMood()),
+      campaignSlug: this.filtrosService.filterCampaign() ?? undefined,
     };
   }
 

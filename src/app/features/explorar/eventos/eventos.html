@@ -214,6 +214,32 @@
          RESULTADOS
          ===================================================== -->
 
+    @if (bannerCampaign(); as campaign) {
+    <aside class="campaign-banner" aria-label="Campaña promocional">
+      <span class="campaign-banner-icon" aria-hidden="true">🎁</span>
+      <div class="campaign-banner-text">
+        <span class="campaign-banner-kicker">{{ campaign.subtitle || 'Sorteo' }}</span>
+        <strong>{{ campaign.title }}</strong>
+        <span>
+          Reserva hasta el {{ campaignEndLabel(campaign) }}
+          una experiencia con el distintivo y participa.
+        </span>
+      </div>
+      <div class="campaign-banner-actions">
+        @if (filterCampaign() === campaign.slug) {
+        <button type="button" class="campaign-banner-btn secondary" (click)="clearCampaignFilter()">
+          Ver todas las experiencias
+        </button>
+        } @else {
+        <button type="button" class="campaign-banner-btn" (click)="showCampaignOnly(campaign.slug)">
+          Ver solo las que participan
+        </button>
+        }
+        <a class="campaign-banner-link" [routerLink]="['/sorteo', campaign.slug]">Ver el sorteo</a>
+      </div>
+    </aside>
+    }
+
     <div class="catalog-layout">
       <app-advanced-event-filters />
       <div class="catalog-results">
@@ -234,6 +260,13 @@
           Mapa general de eventos
         }
       </strong>
+
+      @if (filterCampaign()) {
+      <button type="button" class="campaign-chip" (click)="clearCampaignFilter()"
+        aria-label="Quitar el filtro de sorteo">
+        <span aria-hidden="true">🎁</span> Sorteo <span aria-hidden="true">×</span>
+      </button>
+      }
 
 
       <div class="results-actions">
@@ -518,6 +551,8 @@
             [alt]="item.title"
             loading="lazy"
           />
+
+          <app-campania-badge [badges]="item.campaignBadges" />
 
 
           <!-- FAVORITO -->

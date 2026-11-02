@@ -40,6 +40,11 @@ export class FiltrosService {
   filterSpecialistId = signal<number | null>(null);
   filterSpecialistName = signal<string | null>(null);
   filterMood = signal<string | null>(null);
+  /**
+   * Slug de campaña promocional (`/explorar?campania=`). No forma parte del estado
+   * del modal de filtros: lo gestiona Explorar junto con su banner.
+   */
+  filterCampaign = signal<string | null>(null);
 
   readonly categories = signal<CategoryCatalogItem[]>([]);
   readonly experienceTypes = signal<ExperienceTypeCatalogItem[]>([]);
@@ -87,7 +92,8 @@ export class FiltrosService {
       (this.filterRecurrence() ? 1 : 0) +
       (this.filterPrice() ? 1 : 0) +
       (this.filterSpecialistId() !== null ? 1 : 0) +
-      (this.filterMood() ? 1 : 0)
+      (this.filterMood() ? 1 : 0) +
+      (this.filterCampaign() ? 1 : 0)
     );
   }
 
@@ -260,6 +266,7 @@ export class FiltrosService {
     this.filterSpecialistId.set(null);
     this.filterSpecialistName.set(null);
     this.filterMood.set(null);
+    this.filterCampaign.set(null);
   }
 
   // ── Mapeo interno estado → parámetros de la API ──
