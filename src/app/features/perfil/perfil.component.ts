@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, inject } from '@angular/core';
+import { Component, signal, computed, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -185,6 +185,10 @@ readonly professionalApplicationDismissed = signal(false);
         this.bookingsLoading.set(false);
       }
     });
+  }
+  @HostListener('window:focus')
+  refreshVisibleBookings(): void {
+    if (this.seccionCliente() === 'reservas' && !this.bookingsLoading()) this.loadMyBookings();
   }
 loadMyProfessionalApplication(): void {
   if (!this.authService.isLoggedIn) return;

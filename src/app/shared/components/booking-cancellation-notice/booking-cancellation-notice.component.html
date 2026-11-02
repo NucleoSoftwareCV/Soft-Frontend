@@ -1,0 +1,46 @@
+@if (notices().length) {
+  <div class="notice__backdrop" (click)="dismiss()">
+    <section
+      class="notice"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="notice-title"
+      (click)="$event.stopPropagation()">
+      <button class="notice__close" type="button" aria-label="Cerrar" (click)="dismiss()">
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+
+      <div class="notice__icon" aria-hidden="true">
+        <svg lucideCircleAlert></svg>
+      </div>
+      <h2 id="notice-title">
+        {{ notices().length === 1 ? 'Una de tus reservas fue cancelada' : 'Algunas de tus reservas fueron canceladas' }}
+      </h2>
+
+      <ul class="notice__list">
+        @for (booking of notices(); track booking.code) {
+          <li>
+            <strong>{{ booking.eventTitle }}</strong>
+            <span class="notice__date">{{ booking.occurrenceStartsAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            @if (booking.cancellationCause === 'RECHAZADA') {
+              <p>
+                El profesional rechazó la reserva.
+                @if (booking.cancellationReason) { <span>Motivo: «{{ booking.cancellationReason }}».</span> }
+              </p>
+            } @else {
+              <p>La reserva expiró porque el pago no se completó a tiempo. La plaza quedó libre.</p>
+            }
+          </li>
+        }
+      </ul>
+      <p class="notice__hint">{{ notices().length === 1 ? 'No se realizó ningún cobro por esta reserva.' : 'No se realizó ningún cobro por estas reservas.' }}</p>
+
+      <footer class="notice__actions">
+        <a class="notice__button notice__button--secondary" routerLink="/perfil" [queryParams]="{ tab: 'reservas' }" (click)="dismiss()">
+          Ver mis reservas
+        </a>
+        <button class="notice__button notice__button--primary" type="button" (click)="dismiss()">Entendido</button>
+      </footer>
+    </section>
+  </div>
+}
