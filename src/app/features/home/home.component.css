@@ -1,2 +1,4 @@
 /* HomeComponent no necesita estilos propios,
    cada sección tiene sus propios estilos encapsulados */
+
+.home-location-notice { max-width: 1240px; padding: 0 20px; margin: 0 auto; }

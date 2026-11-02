@@ -2,6 +2,7 @@
 
   <div class="container">
 
+    <app-location-notice />
     <h1 class="title">
       Experiencias y eventos de bienestar
     </h1>
@@ -703,6 +704,8 @@
 
           </div>
 
+
+          <app-event-travel [occurrenceId]="item.occurrenceId" [modality]="item.modality" />
 
           <!-- TÍTULO -->
 

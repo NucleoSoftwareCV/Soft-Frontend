@@ -282,6 +282,7 @@
             <div class="section-title">
               <h2>Dónde se realiza</h2>
             </div>
+            <div class="venue-travel-layout"><div class="venue-location">
             @if (mapOccurrence()?.location; as location) {
               <p><strong>{{ location.name }}</strong></p>
               <p>{{ location.address }} · {{ location.cityName }}</p>
@@ -313,6 +314,7 @@
             } @else {
               <p>La ubicación de esta sesión está por confirmar.</p>
             }
+            </div><aside class="venue-travel-info"><app-event-travel [occurrenceId]="mapOccurrence()?.id" [modality]="event.modality" [detail]="true" /></aside></div>
           </article>
         }
 

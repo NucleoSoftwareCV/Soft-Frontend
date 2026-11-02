@@ -1,3 +1,4 @@
+import { LocationNoticeComponent } from '../../shared/components/event-travel/event-travel.component';
 import { Component, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HeroComponent }              from './components/hero/hero.component';
@@ -20,6 +21,7 @@ interface HomeSectionViewModel extends HomeSectionResponse {
   standalone: true,
   imports: [
     HeroComponent,
+    LocationNoticeComponent,
     CategoriesComponent,
     EventRowComponent,
     ProfessionalsGridComponent,
@@ -71,6 +73,8 @@ export class HomeComponent implements OnInit {
   return events.map(event => ({
 
     id: event.id,
+    occurrenceId: event.occurrenceId,
+    modality: event.modality,
 
     title: event.title,
 

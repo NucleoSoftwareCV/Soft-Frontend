@@ -1,3 +1,5 @@
+import { ReferenceLocation } from './event-travel.model';
+
 export interface ClientInterestCategoryResponse {
   name: string;
 }
@@ -16,6 +18,7 @@ export interface ClientProfilePreferencesResponse {
   receiveReservationConfirmations: boolean;
   receiveWeeklySummary: boolean;
   interestCategories: ClientInterestCategoryResponse[];
+  referenceLocation?: ReferenceLocation | null;
 }
 
 export interface ClientProfilePreferencesRequest {
