@@ -146,10 +146,16 @@
 
       </div>
     }
-    @if (campaignBadge(); as badge) {
-      <div class="campaign-notice" role="note">
-        <app-campania-badge [badges]="event.campaignBadges" [inline]="true" />
-        <span>Reserva esta experiencia y participa en el sorteo: cada plaza confirmada es una participación.</span>
+    @for (badge of event.campaignBadges ?? []; track badge.slug; let first = $first) {
+      <div class="campaign-notice" [class.campaign-notice--stacked]="!first" role="note">
+        <app-campania-badge [badges]="[badge]" [inline]="true" />
+        <span>
+          @if ((event.campaignBadges?.length ?? 0) > 1) {
+            <strong>{{ badge.title }}</strong>: cada plaza confirmada es una participación en este sorteo.
+          } @else {
+            Reserva esta experiencia y participa en el sorteo: cada plaza confirmada es una participación.
+          }
+        </span>
         <a [routerLink]="['/sorteo', badge.slug]">Ver condiciones</a>
       </div>
     }
@@ -766,7 +772,7 @@
             }
             @if (event.paymentMethod === 'WHATSAPP' && campaignBadge()) {
               <p class="campaign-success">
-                🎁 Cuando el profesional confirme tu reserva, participarás en el sorteo.
+                🎁 Cuando el profesional confirme tu reserva, participarás en {{ (evento()?.campaignBadges?.length ?? 0) > 1 ? 'los sorteos' : 'el sorteo' }}.
               </p>
             }
 

@@ -2224,6 +2224,10 @@ swiper-slide{
   font-size: 14px;
 }
 
+.campaign-notice--stacked {
+  margin-top: -8px;
+}
+
 .campaign-notice a {
   color: var(--principal, #004e59);
   font-weight: 600;

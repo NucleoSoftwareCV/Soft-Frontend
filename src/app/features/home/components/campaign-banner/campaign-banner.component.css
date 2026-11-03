@@ -7,15 +7,18 @@
 }
 
 .campaign-home__inner {
-  display: flex;
-  align-items: center;
-  gap: 24px;
   max-width: 1280px;
   margin-inline: auto;
   padding: 24px 28px;
   border: 1px solid var(--color-divider, #dddede);
   border-radius: 20px;
   background: linear-gradient(120deg, #fff6f1 0%, #eef5f4 100%);
+}
+
+.campaign-home__slide {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .campaign-home__image {
@@ -91,15 +94,68 @@
   text-decoration: underline;
 }
 
+.campaign-home__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.campaign-home__arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--color-divider, #dddede);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--principal, #004e59);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.campaign-home__dots {
+  display: flex;
+  gap: 8px;
+}
+
+.campaign-home__dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 78 89 / 25%);
+  cursor: pointer;
+}
+
+.campaign-home__dot.active {
+  width: 22px;
+  border-radius: 999px;
+  background: var(--principal, #004e59);
+}
+
+.campaign-home__arrow:focus-visible,
+.campaign-home__dot:focus-visible {
+  outline: 2px solid var(--principal, #004e59);
+  outline-offset: 2px;
+}
+
 @media (max-width: 720px) {
   .campaign-home {
     padding: 16px;
   }
 
   .campaign-home__inner {
+    padding: 20px;
+  }
+
+  .campaign-home__slide {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
   }
 
   .campaign-home__actions {

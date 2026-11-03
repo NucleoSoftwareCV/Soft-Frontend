@@ -84,6 +84,26 @@
   font-weight: 600;
 }
 
+.hero-winner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--color-coral, #d4856a);
+  border-radius: 16px;
+  background: #fff6f1;
+  color: var(--color-ink-light, #4a4a4a);
+}
+
+.hero-winner > span {
+  font-size: 30px;
+}
+
+.hero-winner strong {
+  display: block;
+  color: #8f4b33;
+}
+
 .hero-actions,
 .share-actions {
   display: flex;

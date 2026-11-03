@@ -1462,6 +1462,31 @@
   color: var(--principal, #004e59);
 }
 
+.campaign-banner-nav {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-ink-light, #4a4a4a);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.campaign-banner-nav button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-divider, #dddede);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--principal, #004e59);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .campaign-banner-link {
   color: var(--principal, #004e59);
   font-size: 14px;

@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 
 import { CampaignBadge } from '../../models/campania.model';
 
-/** Distintivo «🎁 Participa en el sorteo» para experiencias incluidas en una campaña abierta. */
+/** Distintivo «🎁 Participa en el sorteo» (o «en N sorteos») para experiencias incluidas en campañas abiertas. */
 @Component({
   selector: 'app-campania-badge',
   standalone: true,
@@ -10,7 +10,7 @@ import { CampaignBadge } from '../../models/campania.model';
     @if (badge(); as current) {
       <span class="campaign-badge" [class.inline]="inline()">
         <span aria-hidden="true">🎁</span>
-        {{ current.label }}
+        {{ label() }}
       </span>
     }
   `,
@@ -50,4 +50,10 @@ export class CampaniaBadgeComponent {
   readonly inline = input(false);
 
   readonly badge = computed(() => this.badges()?.[0] ?? null);
+
+  /** Sobre la tarjeta solo cabe un distintivo: con varias campañas se resume el número. */
+  readonly label = computed(() => {
+    const count = this.badges()?.length ?? 0;
+    return count > 1 && !this.inline() ? `Participa en ${count} sorteos` : this.badge()?.label ?? '';
+  });
 }

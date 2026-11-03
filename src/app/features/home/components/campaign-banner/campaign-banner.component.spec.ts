@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 
 import { CampaniasService } from '../../../../services/campanias.service';
 import { CampaignSummary } from '../../../../shared/models/campania.model';
-import { CampaignBannerComponent } from './campaign-banner.component';
+import { CAMPAIGN_ROTATION_MS, CampaignBannerComponent } from './campaign-banner.component';
 
 describe('CampaignBannerComponent', () => {
   const campaign = (slug: string, phase: CampaignSummary['phase']): CampaignSummary => ({
@@ -21,29 +21,73 @@ describe('CampaignBannerComponent', () => {
     });
     const fixture = TestBed.createComponent(CampaignBannerComponent);
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    return fixture;
   }
 
   beforeEach(() => getActive.mockReset());
+  afterEach(() => vi.useRealTimers());
 
   it('links to the open campaign and its eligible experiences', () => {
-    getActive.mockReturnValue(of([campaign('proxima', 'PROXIMA'), campaign('sorteo-bienestar', 'ABIERTA')]));
-    const el = render();
+    getActive.mockReturnValue(of([campaign('sorteo-bienestar', 'ABIERTA'), campaign('proxima', 'PROXIMA')]));
+    const el = render().nativeElement as HTMLElement;
     expect(el.querySelector('h2')?.textContent).toContain('Campaña sorteo-bienestar');
     expect(el.querySelector('.campaign-home__btn')?.getAttribute('href')).toBe('/sorteo/sorteo-bienestar');
     expect(el.querySelector('.campaign-home__link')?.getAttribute('href')).toBe('/explorar?campania=sorteo-bienestar');
     expect(el.textContent).toContain('600');
   });
 
-  it('announces an upcoming campaign without the experiences link', () => {
+  it('announces an upcoming campaign without the experiences link or carousel controls', () => {
     getActive.mockReturnValue(of([campaign('proxima', 'PROXIMA')]));
-    const el = render();
+    const el = render().nativeElement as HTMLElement;
     expect(el.textContent).toContain('Próximamente');
     expect(el.querySelector('.campaign-home__link')).toBeNull();
+    expect(el.querySelector('.campaign-home__nav')).toBeNull();
   });
 
   it('renders nothing when there is no campaign or the request fails', () => {
     getActive.mockReturnValue(throwError(() => new Error('down')));
-    expect(render().querySelector('section')).toBeNull();
+    expect((render().nativeElement as HTMLElement).querySelector('section')).toBeNull();
+  });
+
+  it('cycles through several campaigns with arrows, dots and rotation', () => {
+    vi.useFakeTimers();
+    getActive.mockReturnValue(of([campaign('a', 'ABIERTA'), campaign('b', 'ABIERTA'), campaign('c', 'PROXIMA')]));
+    const fixture = render();
+    const el = fixture.nativeElement as HTMLElement;
+    const title = () => el.querySelector('h2')?.textContent ?? '';
+
+    expect(el.querySelectorAll('.campaign-home__dot').length).toBe(3);
+    expect(title()).toContain('Campaña a');
+
+    el.querySelector<HTMLButtonElement>('[aria-label="Campaña siguiente"]')!.click();
+    fixture.detectChanges();
+    expect(title()).toContain('Campaña b');
+
+    el.querySelector<HTMLButtonElement>('[aria-label="Campaña anterior"]')!.click();
+    el.querySelector<HTMLButtonElement>('[aria-label="Campaña anterior"]')!.click();
+    fixture.detectChanges();
+    expect(title()).toContain('Campaña c');
+
+    el.querySelectorAll<HTMLButtonElement>('.campaign-home__dot')[0].click();
+    vi.advanceTimersByTime(CAMPAIGN_ROTATION_MS);
+    fixture.detectChanges();
+    expect(title()).toContain('Campaña b');
+  });
+
+  it('pauses the rotation while the visitor interacts', () => {
+    vi.useFakeTimers();
+    getActive.mockReturnValue(of([campaign('a', 'ABIERTA'), campaign('b', 'ABIERTA')]));
+    const fixture = render();
+    const section = (fixture.nativeElement as HTMLElement).querySelector('section')!;
+
+    section.dispatchEvent(new Event('mouseenter'));
+    vi.advanceTimersByTime(CAMPAIGN_ROTATION_MS * 2);
+    fixture.detectChanges();
+    expect(section.querySelector('h2')?.textContent).toContain('Campaña a');
+
+    section.dispatchEvent(new Event('mouseleave'));
+    vi.advanceTimersByTime(CAMPAIGN_ROTATION_MS);
+    fixture.detectChanges();
+    expect(section.querySelector('h2')?.textContent).toContain('Campaña b');
   });
 });

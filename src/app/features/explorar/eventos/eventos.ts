@@ -113,15 +113,21 @@ export class Eventos {
   /** Campañas publicadas no cerradas; alimentan el banner promocional. */
   readonly campaigns = signal<CampaignSummary[]>([]);
 
-  /** Campaña del banner: la filtrada si existe; si no, la primera abierta. */
-  readonly bannerCampaign = computed<CampaignSummary | null>(() => {
+  /**
+   * Campañas del banner: si se filtra por una, solo esa; si no, todas las abiertas
+   * (el backend las ordena por cierre más cercano) para recorrerlas en carrusel.
+   */
+  readonly bannerCampaigns = computed<CampaignSummary[]>(() => {
     const list = this.campaigns();
-    const selected = this.filtrosService.filterCampaign();
-    return (
-      list.find((campaign) => campaign.slug === selected) ??
-      list.find((campaign) => campaign.phase === 'ABIERTA') ??
-      null
-    );
+    const selected = list.find((campaign) => campaign.slug === this.filtrosService.filterCampaign());
+    return selected ? [selected] : list.filter((campaign) => campaign.phase === 'ABIERTA');
+  });
+
+  readonly bannerIndex = signal(0);
+
+  readonly bannerCampaign = computed<CampaignSummary | null>(() => {
+    const list = this.bannerCampaigns();
+    return list.length ? list[this.bannerIndex() % list.length] : null;
   });
 
   get filterCampaign() {
@@ -362,6 +368,14 @@ export class Eventos {
 
   clearCampaignFilter(): void {
     this.filtrosService.filterCampaign.set(null);
+    this.bannerIndex.set(0);
+  }
+
+  moveBanner(delta: number): void {
+    const total = this.bannerCampaigns().length;
+    if (total > 1) {
+      this.bannerIndex.update((i) => (((i + delta) % total) + total) % total);
+    }
   }
 
   clearFilters(): void {

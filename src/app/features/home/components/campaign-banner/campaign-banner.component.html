@@ -1,35 +1,62 @@
 @if (campaign(); as campaign) {
-  <section class="campaign-home" aria-labelledby="campaign-home-title">
+  <section
+    class="campaign-home"
+    aria-roledescription="carrusel"
+    aria-label="Sorteos y campañas"
+    (mouseenter)="pause(true)"
+    (mouseleave)="pause(false)"
+    (focusin)="pause(true)"
+    (focusout)="pause(false)">
     <div class="campaign-home__inner">
-      @if (campaign.heroImageUrl) {
-        <img class="campaign-home__image" [src]="campaign.heroImageUrl" alt="" aria-hidden="true" />
-      } @else {
-        <span class="campaign-home__icon" aria-hidden="true">🎁</span>
-      }
-
-      <div class="campaign-home__text">
-        <span class="campaign-home__kicker">
-          {{ campaign.phase === 'ABIERTA' ? 'Sorteo abierto' : 'Próximamente' }} · Premio de {{ prizeLabel(campaign) }}
-        </span>
-        <h2 id="campaign-home-title" class="campaign-home__title">{{ campaign.title }}</h2>
-        <p class="campaign-home__desc">
-          @if (campaign.phase === 'ABIERTA') {
-            Reserva hasta el {{ dateLabel(campaign.participationEndsAt) }} una experiencia con el distintivo
-            «{{ campaign.badgeLabel }}» y participa automáticamente.
-          } @else {
-            Podrás participar a partir del {{ dateLabel(campaign.participationStartsAt) }}.
-          }
-        </p>
-      </div>
-
-      <div class="campaign-home__actions">
-        <a class="campaign-home__btn" [routerLink]="['/sorteo', campaign.slug]">Ver el sorteo</a>
-        @if (campaign.phase === 'ABIERTA') {
-          <a class="campaign-home__link" routerLink="/explorar" [queryParams]="{ campania: campaign.slug }">
-            Ver experiencias que participan
-          </a>
+      <div class="campaign-home__slide" aria-live="polite">
+        @if (campaign.heroImageUrl) {
+          <img class="campaign-home__image" [src]="campaign.heroImageUrl" alt="" aria-hidden="true" />
+        } @else {
+          <span class="campaign-home__icon" aria-hidden="true">🎁</span>
         }
+
+        <div class="campaign-home__text">
+          <span class="campaign-home__kicker">
+            {{ campaign.phase === 'ABIERTA' ? 'Sorteo abierto' : 'Próximamente' }} · Premio de {{ prizeLabel(campaign) }}
+          </span>
+          <h2 class="campaign-home__title">{{ campaign.title }}</h2>
+          <p class="campaign-home__desc">
+            @if (campaign.phase === 'ABIERTA') {
+              Reserva hasta el {{ dateLabel(campaign.participationEndsAt) }} una experiencia con el distintivo
+              «{{ campaign.badgeLabel }}» y participa automáticamente.
+            } @else {
+              Podrás participar a partir del {{ dateLabel(campaign.participationStartsAt) }}.
+            }
+          </p>
+        </div>
+
+        <div class="campaign-home__actions">
+          <a class="campaign-home__btn" [routerLink]="['/sorteo', campaign.slug]">Ver el sorteo</a>
+          @if (campaign.phase === 'ABIERTA') {
+            <a class="campaign-home__link" routerLink="/explorar" [queryParams]="{ campania: campaign.slug }">
+              Ver experiencias que participan
+            </a>
+          }
+        </div>
       </div>
+
+      @if (slides().length > 1) {
+        <div class="campaign-home__nav">
+          <button type="button" class="campaign-home__arrow" aria-label="Campaña anterior" (click)="previous()">‹</button>
+          <div class="campaign-home__dots">
+            @for (slide of slides(); track slide.slug; let i = $index) {
+              <button
+                type="button"
+                class="campaign-home__dot"
+                [class.active]="i === index()"
+                [attr.aria-label]="'Ver ' + slide.title"
+                [attr.aria-current]="i === index() ? 'true' : null"
+                (click)="goTo(i)"></button>
+            }
+          </div>
+          <button type="button" class="campaign-home__arrow" aria-label="Campaña siguiente" (click)="next()">›</button>
+        </div>
+      }
     </div>
   </section>
 }

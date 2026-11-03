@@ -11,15 +11,18 @@ describe('CampaniaBadgeComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('muestra el texto de la primera campaña', () => {
-    const element = render([
+  it('muestra el texto de la campaña', () => {
+    const badge = render([{ slug: 'sorteo-bienestar', label: 'Participa en el sorteo' }]).querySelector('.campaign-badge');
+    expect(badge?.textContent).toContain('Participa en el sorteo');
+  });
+
+  it('resume varias campañas en un solo distintivo sobre la tarjeta', () => {
+    const badges = [
       { slug: 'sorteo-bienestar', label: 'Participa en el sorteo' },
       { slug: 'otra', label: 'Otra campaña' },
-    ]);
-
-    const badge = element.querySelector('.campaign-badge');
-    expect(badge?.textContent).toContain('Participa en el sorteo');
-    expect(badge?.textContent).not.toContain('Otra campaña');
+    ];
+    expect(render(badges).querySelector('.campaign-badge')?.textContent).toContain('Participa en 2 sorteos');
+    expect(render(badges, true).querySelector('.campaign-badge')?.textContent).toContain('Participa en el sorteo');
   });
 
   it('no pinta nada si el evento no participa', () => {

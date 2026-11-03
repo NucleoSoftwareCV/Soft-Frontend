@@ -237,6 +237,13 @@
         }
         <a class="campaign-banner-link" [routerLink]="['/sorteo', campaign.slug]">Ver el sorteo</a>
       </div>
+      @if (bannerCampaigns().length > 1) {
+      <div class="campaign-banner-nav">
+        <button type="button" aria-label="Campaña anterior" (click)="moveBanner(-1)">‹</button>
+        <span>{{ (bannerIndex() % bannerCampaigns().length) + 1 }} / {{ bannerCampaigns().length }}</span>
+        <button type="button" aria-label="Campaña siguiente" (click)="moveBanner(1)">›</button>
+      </div>
+      }
     </aside>
     }
 

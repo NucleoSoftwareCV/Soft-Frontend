@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/features/admin/campaigns/admin-campaigns.component.spec.ts",
+    "src/app/features/home/components/campaign-banner/campaign-banner.component.spec.ts",
+    "src/app/shared/components/campania-badge/campania-badge.component.spec.ts",
+    "src/app/features/explorar/eventos/eventos.campania.spec.ts",
+    "src/app/features/campania/campania-detalle.spec.ts",
+    "src/app/services/campanias.service.spec.ts",
+    "src/app/shared/components/evento-card/evento-card.component.spec.ts"
+  ]
+}

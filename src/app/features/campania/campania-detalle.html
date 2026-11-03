@@ -23,11 +23,23 @@
             <p class="hero-phase">Empieza el {{ formatDateTime(detail.summary.participationStartsAt) }}.</p>
           }
           @case ('CERRADA') {
-            <p class="hero-phase">
-              El periodo de participación terminó el {{ formatDate(detail.summary.participationEndsAt) }}.
-              @if (detail.summary.drawAt) { El sorteo se celebra el {{ formatDate(detail.summary.drawAt) }}. }
-            </p>
+            @if (!detail.winnerDisplayName) {
+              <p class="hero-phase">
+                El periodo de participación terminó el {{ formatDate(detail.summary.participationEndsAt) }}.
+                @if (detail.summary.drawAt) { El sorteo se celebra el {{ formatDate(detail.summary.drawAt) }}. }
+              </p>
+            }
           }
+        }
+
+        @if (detail.winnerDisplayName) {
+          <div class="hero-winner" role="status">
+            <span aria-hidden="true">🏆</span>
+            <div>
+              <strong>Sorteo realizado{{ detail.drawnAt ? ' el ' + formatDate(detail.drawnAt) : '' }}</strong>
+              <span>Ha ganado <b>{{ detail.winnerDisplayName }}</b> — ¡gracias a todas las personas que participaron!</span>
+            </div>
+          </div>
         }
 
         <div class="hero-actions">
