@@ -219,7 +219,7 @@
                       <span>{{ item.event.categoryName }}</span>
                     </div>
                     <h2>{{ item.event.title }}</h2>
-                    <p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : (item.event.priceFrom | currency:item.event.currency) }}</p>
+                    <p>{{ item.event.modality === 'ONLINE' ? 'Online' : 'Presencial' }} · {{ item.event.priceFrom === 0 ? 'Gratis' : formatearMoneda(item.event.priceFrom, item.event.currency) }}</p>
                   </div>
                   <div class="resource-actions">
                     <button (click)="openEditEvent(item)">
@@ -269,7 +269,7 @@
           @for (item of sessions(); track item.id) {
             <article class="resource-row">
               <div class="resource-row__marker"><svg lucideBriefcaseBusiness aria-hidden="true"></svg></div>
-              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.modality === 'AMBAS' ? 'Online y presencial' : item.modality }}</span></div><h2>{{ item.title }}</h2><p><svg lucideClock3 aria-hidden="true"></svg>{{ item.durationMinutes }} min · {{ item.price === 0 ? 'Gratis' : (item.price | currency:item.currency) }}</p></div>
+              <div class="resource-row__content"><div class="resource-row__eyebrow"><span class="status" [attr.data-status]="item.status">{{ item.status }}</span><span>{{ item.modality === 'AMBAS' ? 'Online y presencial' : item.modality }}</span></div><h2>{{ item.title }}</h2><p><svg lucideClock3 aria-hidden="true"></svg>{{ item.durationMinutes }} min · {{ item.price === 0 ? 'Gratis' : formatearMoneda(item.price, item.currency) }}</p></div>
               <div class="resource-actions">
                 <button (click)="openEditSession(item)">
                   <svg lucidePencil aria-hidden="true"></svg>Editar
@@ -487,7 +487,7 @@
                     <button type="button" [class.active]="eventForm.paymentMethod === 'ONLINE'" (click)="eventForm.paymentMethod = 'ONLINE'">Reserva Online</button>
                   </div>
                 </div>
-                <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="PEN">S/ (soles)</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
                 <label>Edad mínima<input name="eventAge" type="number" min="0" max="120" [(ngModel)]="eventForm.minimumAge"><small class="field-help">Usa 0 si es apto para todas las edades.</small></label>
               </div>
             </section>
@@ -718,7 +718,7 @@
                     }
                   </label>
                 }
-                <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="PEN">S/ (soles)</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
                 <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
               </div>
             </section>

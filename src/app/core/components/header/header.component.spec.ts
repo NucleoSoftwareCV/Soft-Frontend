@@ -15,8 +15,8 @@ function flushCatalogRequests(httpMock: HttpTestingController): void {
     .forEach(req => {
       if (req.request.url.endsWith('/cities')) {
         req.flush([
-          { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
-          { id: 2, name: 'Barcelona', province: 'Barcelona', countryCode: 'ES', active: true },
+          { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'ES', active: true },
+          { id: 2, name: 'Ica', province: 'Ica', countryCode: 'ES', active: true },
         ]);
       } else {
         req.flush([]);
@@ -60,7 +60,7 @@ describe('HeaderComponent', () => {
   });
 
   it('uses the first available city as the dynamic label when no city filter is selected', () => {
-    expect(component.selectedCityName()).toBe('Valencia');
+    expect(component.selectedCityName()).toBe('Arequipa');
   });
 
   it('prefills the email field with the logged-in user email when the popover opens', () => {
@@ -108,7 +108,7 @@ describe('HeaderComponent', () => {
 
     expect(component.cityInterestSubmitting()).toBe(false);
     expect(component.isCityOpen()).toBe(false);
-    expect(toastService.success).toHaveBeenCalledWith('¡Genial! Hemos guardado tu interés por Valencia');
+    expect(toastService.success).toHaveBeenCalledWith('¡Genial! Hemos guardado tu interés por Arequipa');
   });
 
   it('shows an inline error and keeps the popover open when the backend request fails', () => {

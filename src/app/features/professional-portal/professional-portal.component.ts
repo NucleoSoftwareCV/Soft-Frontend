@@ -46,6 +46,7 @@ import {
   SpecialistProfileService,
 } from '../../services/profesionales.service';
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
+import { formatearMonto } from '../../shared/utils/moneda.util';
 import {
   EventGalleryImage,
   EventManagementResponse,
@@ -1268,7 +1269,7 @@ export class ProfessionalPortalComponent {
       whatToBring: '',
       modality: 'ONLINE',
       priceFrom: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       minimumAge: 18,
       categoryId: null,
       paymentMethod: 'WHATSAPP',
@@ -1296,7 +1297,7 @@ export class ProfessionalPortalComponent {
       modality: 'ONLINE',
       locationId: null,
       price: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       status: 'PUBLICADO',
       workTopics: [],
       techniques: [],
@@ -1503,5 +1504,10 @@ export class ProfessionalPortalComponent {
 
   volverAListado(): void {
     this.selectedAttendeeDetail.set(null);
+  }
+
+  /** Formatea un importe con la moneda de OONA Perú: S/ 96 (o € 50, US$ 30). */
+  formatearMoneda(precio: number | string | null | undefined, moneda?: string | null): string {
+    return formatearMonto(precio, moneda);
   }
 }

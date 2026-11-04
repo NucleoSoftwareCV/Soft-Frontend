@@ -28,7 +28,7 @@ export class HeroComponent {
 
   searchQuery     = signal('');
   isSearchFocused = signal(false);
-  city            = signal('Valencia');
+  city            = signal('Arequipa');
   searchResults   = signal<SearchResults | null>(null);
   searching       = signal(false);
 

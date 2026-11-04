@@ -6,6 +6,7 @@ import { LucideChevronDown } from '@lucide/angular';
 
 import { OneToOneServicesService } from '../../services/one-to-one-services.service';
 import { OneToOneFilterOption, OneToOneServiceCardResponse } from '../../shared/models/one-to-one-service.model';
+import { formatearMonto } from '../../shared/utils/moneda.util';
 
 @Component({
   selector: 'app-sesiones',
@@ -156,11 +157,7 @@ export class SesionesComponent implements OnInit {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: sesion.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(Number(sesion.price));
+    return formatearMonto(sesion.price, sesion.currency);
   }
 
   durationLabel(sesion: OneToOneServiceCardResponse): string {

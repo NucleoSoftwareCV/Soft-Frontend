@@ -12,6 +12,7 @@ import { FavoritesService } from '../../../services/favorites.service';
 import { CheckoutService } from '../../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
+import { formatearMonto } from '../../../shared/utils/moneda.util';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 @Component({
@@ -281,11 +282,7 @@ export class DetalleEvento implements OnDestroy{
   formatPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(event.priceFrom);
+    return formatearMonto(event.priceFrom, event.currency);
   }
 
   formatOccurrenceDate(occurrence: EventOccurrenceResponse | undefined): string {
@@ -701,24 +698,14 @@ export class DetalleEvento implements OnDestroy{
     if (this.codigoAplicado()) {
       base = base * 0.9; // 10% discount
     }
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
+    return formatearMonto(base, event.currency, 2);
   }
 
   formatTotalBeforeDiscount(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return '';
     const base = event.priceFrom * this.numPlazas();
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
+    return formatearMonto(base, event.currency, 2);
   }
 
   onCardNumberInput(event: Event): void {

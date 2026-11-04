@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { OneToOneServiceCardResponse } from '../../models/one-to-one-service.model';
 import { resolveAssetUrl } from '../../utils/asset-url.util';
+import { formatearMonto } from '../../utils/moneda.util';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=700&auto=format&fit=crop&q=85';
@@ -35,11 +36,7 @@ export class SesionCardComponent {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: sesion.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(Number(sesion.price));
+    return formatearMonto(sesion.price, sesion.currency);
   }
 
   durationLabel(): string {

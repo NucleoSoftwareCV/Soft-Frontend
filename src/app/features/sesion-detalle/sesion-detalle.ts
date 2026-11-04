@@ -15,6 +15,7 @@ import {
   LucideBell,
 } from '@lucide/angular';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { formatearMonto } from '../../shared/utils/moneda.util';
 
 @Component({
   selector: 'app-sesion-detalle',
@@ -102,11 +103,7 @@ export class SesionDetalleComponent implements OnInit {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: current.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(Number(current.price));
+    return formatearMonto(current.price, current.currency);
   }
 
   durationLabel(): string {

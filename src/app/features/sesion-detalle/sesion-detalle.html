@@ -40,7 +40,7 @@
         @if (followError()) { <p class="session-follow-error" role="alert">{{ followError() }}</p> }
 
         <div class="session-meta" aria-label="Información de la sesión">
-          <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-euro h-4 w-4 text-primary"><path d="M4 10h12"></path><path d="M4 14h9"></path><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"></path></svg><strong>{{ formatPrice() }}</strong></span>
+          <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote h-4 w-4 text-primary"><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg><strong>{{ formatPrice() }}</strong></span>
           <span><svg lucideClock3 aria-hidden="true"></svg>{{ durationLabel() }}</span>
           <span><svg lucideMonitor aria-hidden="true"></svg>{{ modalityLabel() }}</span>
           <span *ngIf="current.locationName"><svg lucideMapPin aria-hidden="true"></svg>{{ current.locationName }}</span>

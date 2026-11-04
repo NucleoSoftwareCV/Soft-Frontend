@@ -40,9 +40,9 @@ export class ProfessionalsGridComponent {
   ] as const;
 
   readonly professionals: Professional[] = [
-    { id: 1, role: 'ORGANIZADORA', name: 'Sofoco',              location: 'Valencia', avatar: 'https://i.pravatar.cc/80?img=5',  tags: ['pilates', 'barre'],              extraTags: 9  },
-    { id: 2, role: 'PROFESIONAL',  name: 'Gema Horcajada Ortiz',location: 'Valencia', avatar: 'https://i.pravatar.cc/80?img=9',  tags: ['Gestión emocional','Autoconocimiento'], extraTags: 30 },
-    { id: 3, role: 'CENTRO',       name: 'Nude Studio',         location: 'Valencia', avatar: 'https://i.pravatar.cc/80?img=11', tags: ['Yoga', 'Pilates'],               extraTags: 5  },
-    { id: 4, role: 'PROFESIONAL',  name: 'Laurine Pigeau',      location: 'Valencia', avatar: 'https://i.pravatar.cc/80?img=20', tags: ['Nutrición integrativa','naturopatía'], extraTags: 16 },
+    { id: 1, role: 'ORGANIZADORA', name: 'Sofoco',              location: 'Arequipa', avatar: 'https://i.pravatar.cc/80?img=5',  tags: ['pilates', 'barre'],              extraTags: 9  },
+    { id: 2, role: 'PROFESIONAL',  name: 'Gema Horcajada Ortiz',location: 'Arequipa', avatar: 'https://i.pravatar.cc/80?img=9',  tags: ['Gestión emocional','Autoconocimiento'], extraTags: 30 },
+    { id: 3, role: 'CENTRO',       name: 'Nude Studio',         location: 'Arequipa', avatar: 'https://i.pravatar.cc/80?img=11', tags: ['Yoga', 'Pilates'],               extraTags: 5  },
+    { id: 4, role: 'PROFESIONAL',  name: 'Laurine Pigeau',      location: 'Arequipa', avatar: 'https://i.pravatar.cc/80?img=20', tags: ['Nutrición integrativa','naturopatía'], extraTags: 16 },
   ];
 }

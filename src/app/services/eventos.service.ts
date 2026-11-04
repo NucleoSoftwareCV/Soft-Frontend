@@ -153,7 +153,7 @@ export class EventosService {
   }
 
   getHomeSections(
-    cityName: string = 'Valencia',
+    cityName: string = 'Arequipa',
     limit: number = 4
   ): Observable<HomeEventSectionsResponse> {
 

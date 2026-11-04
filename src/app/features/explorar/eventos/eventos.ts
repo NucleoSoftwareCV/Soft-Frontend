@@ -26,6 +26,7 @@ import {
 } from '../../../shared/models/evento.model';
 
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
+import { formatearMonto } from '../../../shared/utils/moneda.util';
 import { ExperienceTypeCatalogItem } from '../../../shared/models/event-catalog.model';
 
 interface EventSortOption {
@@ -1201,17 +1202,7 @@ export class Eventos {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat(
-      'es-ES',
-      {
-        style: 'currency',
-        currency:
-          item.currency || 'EUR',
-        maximumFractionDigits: 0
-      }
-    ).format(
-      item.priceFrom
-    );
+    return formatearMonto(item.priceFrom, item.currency);
   }
 
   assetUrl(

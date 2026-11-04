@@ -81,9 +81,9 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
     expect(initial.request.params.get('maxPrice')).toBeNull();
     initial.flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
 
-    component.pendingSelectPrice('15–30€');
+    component.pendingSelectPrice('S/ 15–30');
 
-    expect(filtrosService.filterPrice()).toBe('15–30€');
+    expect(filtrosService.filterPrice()).toBe('S/ 15–30');
     expect(filtrosService.activeFilterCount).toBe(1);
 
     await waitForCountDebounce();
@@ -113,15 +113,15 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
   });
 
   it('deselecciona la pill al pulsarla de nuevo', () => {
-    component.pendingSelectPrice('Más de 50€');
-    expect(filtrosService.filterPrice()).toBe('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
+    expect(filtrosService.filterPrice()).toBe('Más de S/ 50');
 
-    component.pendingSelectPrice('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
     expect(filtrosService.filterPrice()).toBeNull();
   });
 
   it('"Quitar filtros" limpia también el precio', async () => {
-    filtrosService.filterPrice.set('Hasta 15€');
+    filtrosService.filterPrice.set('Hasta S/ 15');
     component.openFilter();
     flushCatalogRequests(httpMock);
     await waitForCountDebounce();
@@ -142,7 +142,7 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
     httpMock.expectOne(r => r.url.endsWith('/events'))
       .flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
 
-    component.pendingSelectPrice('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
     component.pendingSelectModality('Online');
     await waitForCountDebounce();
 

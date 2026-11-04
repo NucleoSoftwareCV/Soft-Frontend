@@ -28,7 +28,7 @@ describe('FiltrosService', () => {
       { id: 1, name: 'Talleres', slug: 'talleres', active: true, deletable: false },
     ]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'ES', active: true },
     ]);
 
     expect(service.categoryOptions).toEqual(['Yoga y Ballet']);
@@ -59,22 +59,22 @@ describe('FiltrosService', () => {
     http.expectOne(request => request.url.endsWith('/categories')).flush([]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
-      { id: 2, name: 'Barcelona', province: 'Barcelona', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'PE', active: true },
+      { id: 2, name: 'Ica', province: 'Ica', countryCode: 'PE', active: true },
     ]);
 
-    expect(service.cityOptions).toEqual(['Todas', 'Valencia', 'Barcelona']);
-    expect(service.getCityByName('Valencia')?.id).toBe(1);
+    expect(service.cityOptions).toEqual(['Todas', 'Arequipa', 'Ica']);
+    expect(service.getCityByName('Arequipa')?.id).toBe(1);
 
     service.filterCity.set('Barcelona');
     service.refreshCatalogs();
     http.expectOne(request => request.url.endsWith('/categories')).flush([]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'PE', active: true },
     ]);
 
     expect(service.filterCity()).toBe('Todas');
-    expect(service.cityOptions).toEqual(['Todas', 'Valencia']);
+    expect(service.cityOptions).toEqual(['Todas', 'Arequipa']);
   });
 });

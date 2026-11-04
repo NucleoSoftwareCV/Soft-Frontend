@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { EventCardResponse, EventModality } from '../../models/evento.model';
 import { resolveAssetUrl } from '../../utils/asset-url.util';
 import { categoryIcon } from '../../utils/category-icon.util';
+import { formatearMonto } from '../../utils/moneda.util';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
@@ -44,10 +45,6 @@ export class EventoCardComponent {
   formatPrice(): string {
     const item = this.evento();
     if (item.priceFrom === null || item.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: item.currency || 'EUR',
-      maximumFractionDigits: 0,
-    }).format(item.priceFrom);
+    return formatearMonto(item.priceFrom, item.currency);
   }
 }

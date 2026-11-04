@@ -66,7 +66,7 @@ describe('FavoritesService', () => {
       modality: 'PRESENCIAL',
       eventType: 'CLASE',
       priceFrom: 20,
-      currency: 'EUR',
+      currency: 'PEN',
       savedAt: '2026-07-30T00:00:00Z',
     }]);
   });
