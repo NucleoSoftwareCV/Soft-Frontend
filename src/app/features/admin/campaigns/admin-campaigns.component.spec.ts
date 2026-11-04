@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { AdminCampaniasService } from '../../../services/admin-campanias.service';
 import { EventosService } from '../../../services/eventos.service';
@@ -35,13 +35,14 @@ describe('AdminCampaignsComponent', () => {
     api = {
       list: vi.fn(() => of(list)),
       create: vi.fn((req) => of(campaign(99, 'BORRADOR', { eventIds: [] }))),
-      update: vi.fn((id) => of(list.find((c) => c.id === id)!)),
+      update: vi.fn((id) => of(list.find((c) => c.id === id) ?? campaign(id, 'BORRADOR'))),
       replaceEvents: vi.fn((id) => of(campaign(id, 'BORRADOR'))),
       updateStatus: vi.fn((id, status) => of({ ...list.find((c) => c.id === id)!, status })),
       draw: vi.fn((id) => of({
         ...list.find((c) => c.id === id)!, status: 'FINALIZADA' as const,
         winner: { entryCode: 'ENT-1', bookingCode: 'BKG-1', customerName: 'Ana López', customerEmail: 'ana@x.es', ticketCount: 2, drawnAt: START },
       })),
+      uploadImage: vi.fn((id) => of(campaign(id, 'BORRADOR'))),
       delete: vi.fn(() => of(undefined)),
       entries: vi.fn(() => of([])),
     };
@@ -142,6 +143,83 @@ describe('AdminCampaignsComponent', () => {
     component.save();
     expect(api['create']).toHaveBeenCalled();
     expect(api['replaceEvents']).toHaveBeenCalledWith(99, [7]);
+  });
+
+  describe('main image', () => {
+    const pick = (fixture: ReturnType<typeof render>, file: File) => {
+      const input = document.createElement('input');
+      Object.defineProperty(input, 'files', { value: [file] });
+      fixture.componentInstance.onImageSelected({ target: input } as unknown as Event);
+      fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn(() => 'blob:preview');
+      URL.revokeObjectURL = vi.fn();
+    });
+
+    it('offers a file picker instead of a URL field and uploads the image after saving', async () => {
+      const draft = campaign(2, 'BORRADOR');
+      const fixture = render([draft]);
+      fixture.componentInstance.openEdit(draft);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('input[type="file"]')).not.toBeNull();
+      expect(el.querySelector('input[name="heroImageUrl"]')).toBeNull();
+
+      const file = new File(['x'], 'hero.png', { type: 'image/png' });
+      pick(fixture, file);
+      expect(el.querySelector<HTMLImageElement>('.image-field__preview')?.getAttribute('src')).toBe('blob:preview');
+
+      fixture.componentInstance.save();
+      expect(api['uploadImage']).toHaveBeenCalledWith(2, file);
+    });
+
+    it('rejects other formats and oversized files', () => {
+      const fixture = render([]);
+      const component = fixture.componentInstance;
+      component.openNew();
+
+      pick(fixture, new File(['x'], 'hero.gif', { type: 'image/gif' }));
+      expect(component.formError()).toContain('JPG, PNG o WebP');
+
+      pick(fixture, new File(['x'], 'hero.webp', { type: 'image/webp' }));
+      expect(component.formError()).toBeNull();
+      component.removeImage();
+
+      pick(fixture, new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'hero.png', { type: 'image/png' }));
+      expect(component.formError()).toContain('5 MB');
+      expect(component.imagePreview()).toBe('');
+    });
+
+    it('removes the stored image and retries on the created campaign when the upload fails', () => {
+      const stored = campaign(2, 'BORRADOR');
+      stored.detail.summary.heroImageUrl = '/images/profile-images/2/campaign-hero/a.jpg';
+      const fixture = render([stored]);
+      const component = fixture.componentInstance;
+      component.openEdit(stored);
+      component.removeImage();
+      component.save();
+      expect(api['update'].mock.calls[0][1].heroImageUrl).toBeNull();
+      expect(api['uploadImage']).not.toHaveBeenCalled();
+
+      component.openNew();
+      component.onTitleChange('Sorteo nuevo');
+      component.form.description = 'Descripción';
+      component.form.prizeAmount = 300;
+      component.form.participationStartsAt = '2026-12-01T00:00';
+      component.form.participationEndsAt = '2026-12-20T00:00';
+      pick(fixture, new File(['x'], 'hero.png', { type: 'image/png' }));
+      api['uploadImage'].mockReturnValueOnce(throwError(() => new Error('down')));
+      component.save();
+      expect(component.formError()).toBeTruthy();
+
+      component.save();
+      expect(api['create']).toHaveBeenCalledTimes(1);
+      expect(api['update']).toHaveBeenCalledTimes(2);
+      expect(api['uploadImage']).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('helpers build slugs and edit dates in Madrid time regardless of the browser zone', () => {

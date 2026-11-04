@@ -196,10 +196,23 @@
           Descripción *
           <textarea name="description" rows="4" [(ngModel)]="form.description" required></textarea>
         </label>
-        <label class="wide">
-          URL de la imagen principal
-          <input name="heroImageUrl" type="url" [(ngModel)]="form.heroImageUrl" maxlength="500" placeholder="https://…" />
-        </label>
+        <div class="wide image-field">
+          <span class="image-field__label">Imagen principal</span>
+          @if (imagePreview(); as preview) {
+            <img class="image-field__preview" [src]="preview" alt="Vista previa de la imagen principal" />
+          }
+          <div class="image-field__actions">
+            <label class="table-action image-field__pick">
+              <svg lucideUpload aria-hidden="true"></svg>
+              {{ imagePreview() ? 'Cambiar imagen' : 'Subir imagen' }}
+              <input type="file" accept="image/jpeg,image/png,image/webp" [disabled]="saving()" (change)="onImageSelected($event)" />
+            </label>
+            @if (imagePreview()) {
+              <button class="table-action" type="button" [disabled]="saving()" (click)="removeImage()">Quitar</button>
+            }
+          </div>
+          <p class="hint">JPG, PNG o WebP, máximo 5 MB. Se sube al guardar la campaña.</p>
+        </div>
       </fieldset>
 
       <fieldset>

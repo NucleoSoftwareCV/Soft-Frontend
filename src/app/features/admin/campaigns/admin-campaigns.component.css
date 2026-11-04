@@ -550,3 +550,52 @@ input:disabled {
     padding: var(--space-4);
   }
 }
+
+.image-field {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.image-field__label {
+  color: var(--color-ink);
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.image-field__preview {
+  width: 160px;
+  height: 160px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.image-field__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-field__pick {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+
+.image-field__pick:focus-within {
+  box-shadow: var(--shadow-focus-ring);
+}
+
+.image-field__pick svg {
+  width: 16px;
+  height: 16px;
+}
+
+.image-field__pick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}

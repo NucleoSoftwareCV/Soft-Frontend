@@ -32,6 +32,12 @@ export class AdminCampaniasService {
     return this.http.put<AdminCampaign>(`${this.base}/${id}`, request);
   }
 
+  uploadImage(id: number, file: File): Observable<AdminCampaign> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<AdminCampaign>(`${this.base}/${id}/image`, formData);
+  }
+
   updateStatus(id: number, status: CampaignStatus): Observable<AdminCampaign> {
     return this.http.patch<AdminCampaign>(`${this.base}/${id}/status`, { status });
   }

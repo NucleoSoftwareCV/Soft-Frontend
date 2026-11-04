@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Observable, Subject, Subscription, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import { Observable, Subject, Subscription, catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
 
 import {
   LucideArrowDown,
@@ -15,6 +15,7 @@ import {
   LucideSearch,
   LucideTrash2,
   LucideTrophy,
+  LucideUpload,
   LucideUsers,
   LucideX,
 } from '@lucide/angular';
@@ -23,6 +24,7 @@ import { AdminCampaniasService } from '../../../services/admin-campanias.service
 import { EventosService } from '../../../services/eventos.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 import {
   AdminCampaign,
   AdminCampaignEntry,
@@ -30,6 +32,9 @@ import {
   CampaignStatus,
   CampaignUpsertRequest,
 } from '../../../shared/models/campania.model';
+
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 type View = 'list' | 'form' | 'entries';
 type StatusFilter = 'TODAS' | CampaignStatus;
@@ -99,6 +104,7 @@ const PHASE_LABELS = { PROXIMA: 'Próxima', ABIERTA: 'Abierta', CERRADA: 'Cerrad
     LucideSearch,
     LucideTrash2,
     LucideTrophy,
+    LucideUpload,
     LucideUsers,
     LucideX,
   ],
@@ -133,6 +139,9 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
   // --- Editor -------------------------------------------------------------------------------
   readonly editing = signal<AdminCampaign | null>(null);
   readonly formError = signal<string | null>(null);
+  /** Imagen elegida y aún sin subir: necesita el id de la campaña, así que se sube al guardar. */
+  private pendingImage: File | null = null;
+  private readonly pendingImageUrl = signal<string | null>(null);
   readonly selectedEvents = signal<SelectedEvent[]>([]);
   readonly searchResults = signal<{ id: number; title: string }[]>([]);
   readonly searching = signal(false);
@@ -396,6 +405,45 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
     this.selectedEvents.update((list) => list.filter((e) => e.id !== id || e.fixed));
   }
 
+  imagePreview(): string {
+    return this.pendingImageUrl() ?? resolveAssetUrl(this.form.heroImageUrl);
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    if (!IMAGE_TYPES.includes(file.type)) {
+      this.formError.set('La imagen debe ser JPG, PNG o WebP.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      this.formError.set('La imagen no puede superar los 5 MB.');
+      return;
+    }
+    this.formError.set(null);
+    this.clearPendingImage();
+    this.pendingImage = file;
+    this.pendingImageUrl.set(URL.createObjectURL(file));
+  }
+
+  removeImage(): void {
+    this.clearPendingImage();
+    this.form.heroImageUrl = '';
+  }
+
+  private clearPendingImage(): void {
+    const url = this.pendingImageUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+    this.pendingImage = null;
+    this.pendingImageUrl.set(null);
+  }
+
   save(): void {
     this.formError.set(null);
     const validation = this.validate();
@@ -407,11 +455,17 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
     const current = this.editing();
     const eventIds = this.selectedEvents().map((e) => e.id);
     const eventsChanged = !current || !sameIds(current.eventIds, eventIds);
+    const image = this.pendingImage;
 
     this.saving.set(true);
     const save$ = current ? this.api.update(current.id, request) : this.api.create(request);
     save$
-      .pipe(switchMap((saved) => (eventsChanged ? this.api.replaceEvents(saved.id, eventIds) : of(saved))))
+      .pipe(
+        // Si un paso posterior falla, reintentar debe actualizar la campaña ya creada, no crear otra.
+        tap((saved) => this.editing.set(saved)),
+        switchMap((saved) => (eventsChanged ? this.api.replaceEvents(saved.id, eventIds) : of(saved))),
+        switchMap((saved) => (image ? this.api.uploadImage(saved.id, image) : of(saved))),
+      )
       .subscribe({
         next: (saved) => {
           this.saving.set(false);
@@ -426,7 +480,7 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.saving.set(false);
           this.formError.set(errorMessage(err, 'No se pudo guardar la campaña.'));
-          // Si la campaña se creó pero falló la asignación de experiencias, refrescamos el listado.
+          // Si la campaña se creó pero falló un paso posterior, refrescamos el listado.
           this.load();
         },
       });
@@ -492,6 +546,7 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
   }
 
   private resetEditorState(): void {
+    this.clearPendingImage();
     this.formError.set(null);
     this.eventSearch = '';
     this.searchResults.set([]);

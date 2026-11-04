@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { CampaniasService } from '../../../../services/campanias.service';
 import { CampaignSummary } from '../../../../shared/models/campania.model';
+import { resolveAssetUrl } from '../../../../shared/utils/asset-url.util';
 
 export const CAMPAIGN_ROTATION_MS = 8000;
 
@@ -51,6 +52,10 @@ export class CampaignBannerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
+  }
+
+  imageUrl(campaign: CampaignSummary): string {
+    return resolveAssetUrl(campaign.heroImageUrl);
   }
 
   next(): void {

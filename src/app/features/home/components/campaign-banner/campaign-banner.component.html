@@ -10,7 +10,7 @@
     <div class="campaign-home__inner">
       <div class="campaign-home__slide" aria-live="polite">
         @if (campaign.heroImageUrl) {
-          <img class="campaign-home__image" [src]="campaign.heroImageUrl" alt="" aria-hidden="true" />
+          <img class="campaign-home__image" [src]="imageUrl(campaign)" alt="" aria-hidden="true" />
         } @else {
           <span class="campaign-home__icon" aria-hidden="true">🎁</span>
         }
