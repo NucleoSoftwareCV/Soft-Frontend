@@ -279,42 +279,44 @@
 
         @if (event.modality !== 'ONLINE') {
           <article class="info-card event-location-card">
-            <div class="section-title">
-              <h2>Dónde se realiza</h2>
-            </div>
-            <div class="venue-travel-layout"><div class="venue-location">
-            @if (mapOccurrence()?.location; as location) {
-              <p><strong>{{ location.name }}</strong></p>
-              <p>{{ location.address }} · {{ location.cityName }}</p>
-              @if (location.reference) {
-                <p>{{ location.reference }}</p>
-              }
-              @if (eventMapPoints().length) {
-                <button type="button" class="event-location-toggle"
-                  [attr.aria-expanded]="locationMapOpen()"
-                  aria-controls="event-location-map"
-                  (click)="locationMapOpen.set(!locationMapOpen())">
-                  {{ locationMapOpen() ? 'Cerrar mapa' : 'Ver ubicación en el mapa' }}
-                </button>
-              } @else {
-                <p class="event-location-note">Esta dirección todavía no tiene un punto disponible en el mapa.</p>
-              }
-              @if (locationMapOpen() && eventMapPoints().length) {
-                <div id="event-location-map">
-                  <app-event-map [points]="eventMapPoints()" label="Ubicación de la sesión seleccionada" />
+            <div class="venue-travel-layout">
+              <section class="venue-location" aria-labelledby="event-venue-title">
+                <h2 id="event-venue-title">Dónde se realiza</h2>
+                <div class="venue-location-body">
+                  @if (mapOccurrence()?.location; as location) {
+                    <p class="venue-location-name"><strong>{{ location.name }}</strong></p>
+                    <p>{{ location.address }} · {{ location.cityName }}</p>
+                    @if (location.reference) { <p>{{ location.reference }}</p> }
+                    @if (!eventMapPoints().length) {
+                      <p class="event-location-note">Esta dirección todavía no tiene un punto disponible en el mapa.</p>
+                    }
+                  } @else { <p>La ubicación de esta sesión está por confirmar.</p> }
+                </div>
+                <div class="venue-location-actions">
                   @if (eventMapPoints().length) {
-                    <a class="event-location-link" target="_blank" rel="noopener noreferrer"
-                      [href]="'https://www.openstreetmap.org/?mlat=' + location.latitude +
-                        '&mlon=' + location.longitude + '#map=16/' + location.latitude + '/' + location.longitude">
-                      Abrir ubicación en otra pestaña
-                    </a>
+                    <button type="button" class="event-location-toggle"
+                      [attr.aria-expanded]="locationMapOpen()" aria-controls="event-location-map"
+                      (click)="locationMapOpen.set(!locationMapOpen())">
+                      {{ locationMapOpen() ? 'Cerrar mapa' : 'Ver ubicación en el mapa' }}
+                    </button>
                   }
                 </div>
+              </section>
+              <app-event-travel class="venue-travel-info" [occurrenceId]="mapOccurrence()?.id"
+                [modality]="event.modality" [detail]="true" />
+            </div>
+            @if (locationMapOpen() && eventMapPoints().length) {
+              @if (mapOccurrence()?.location; as location) {
+                <div id="event-location-map">
+                  <app-event-map [points]="eventMapPoints()" label="Ubicación de la sesión seleccionada" />
+                  <a class="event-location-link" target="_blank" rel="noopener noreferrer"
+                    [href]="'https://www.openstreetmap.org/?mlat=' + location.latitude +
+                      '&mlon=' + location.longitude + '#map=16/' + location.latitude + '/' + location.longitude">
+                    Abrir ubicación en otra pestaña
+                  </a>
+                </div>
               }
-            } @else {
-              <p>La ubicación de esta sesión está por confirmar.</p>
             }
-            </div><aside class="venue-travel-info"><app-event-travel [occurrenceId]="mapOccurrence()?.id" [modality]="event.modality" [detail]="true" /></aside></div>
           </article>
         }
 
