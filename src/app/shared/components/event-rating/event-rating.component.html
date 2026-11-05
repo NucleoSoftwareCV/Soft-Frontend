@@ -1,0 +1,27 @@
+<div class="rating-strip">
+  @if ((reviewCount() ?? 0) > 0 && averageRating() != null) {
+    @if (authors().length > 0) {
+      <span class="rating-strip__avatars" aria-label="Autores de reseñas de este evento">
+        @for (author of authors(); track $index) {
+          <span class="rating-strip__avatar" [title]="author.authorName">
+            @if (photo(author) && !failedPhotos().has(photo(author))) {
+              <img [src]="photo(author)" [alt]="author.authorName" loading="lazy" (error)="markPhotoFailed(photo(author))">
+            } @else {
+              <span role="img" [attr.aria-label]="author.authorName">{{ initials(author.authorName) }}</span>
+            }
+          </span>
+        }
+        @if (remaining() > 0) {
+          <span class="rating-strip__more" [attr.aria-label]="remaining() + ' autores más'">+{{ remaining() }}</span>
+        }
+      </span>
+    }
+    <span class="rating-strip__score">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2-5.7-3-5.7 3 1.1-6.2L3.2 9.6l6.3-.9Z"/></svg>
+      <strong>{{ average() }}</strong>
+      <span>({{ reviewCount() }} {{ reviewCount() === 1 ? 'reseña' : 'reseñas' }})</span>
+    </span>
+  } @else {
+    <span class="rating-strip__empty">Sin reseñas</span>
+  }
+</div>

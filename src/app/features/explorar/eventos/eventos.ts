@@ -1,3 +1,4 @@
+import { EventRatingComponent } from '../../../shared/components/event-rating/event-rating.component';
 import { EventTravelComponent, LocationNoticeComponent } from '../../../shared/components/event-travel/event-travel.component';
 import {
   ChangeDetectionStrategy,
@@ -52,7 +53,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
+  imports: [EventRatingComponent, EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

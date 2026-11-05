@@ -1398,3 +1398,9 @@
   .catalog-results .cards-grid,
   .catalog-results .skeleton-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Fecha con icono decorativo; el texto conserva su etiqueta completa. */
+.date-label { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.date-label svg { flex: 0 0 13px; }
+.author span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.author img { flex-shrink: 0; }
