@@ -18,12 +18,19 @@
       <ul class="categories__track" role="list">
         @for (cat of categories(); track cat.id) {
           <li class="categories__item">
-            <a routerLink="/explorar" (click)="selectCategory(cat.name)" class="categories__link">
+            <a routerLink="/explorar" (click)="selectCategory(cat.name)" class="categories__link"
+              [attr.aria-label]="cat.name" [attr.title]="cat.name">
               <span
                 class="categories__icon"
-                [style.background-color]="cat.background"
                 aria-hidden="true"
-              >{{ cat.emoji }}</span>
+              >
+                <img class="categories__photo"
+                  [src]="cat.photo + '.webp'"
+                  [attr.srcset]="cat.photo + '-160.webp 160w, ' + cat.photo + '.webp 320w'"
+                  sizes="(max-width: 767px) 80px, 88px"
+                  width="88" height="88" alt="" loading="lazy" decoding="async"
+                  (error)="useFallbackPhoto($event)" />
+              </span>
               <span class="categories__label">{{ cat.name }}</span>
             </a>
           </li>

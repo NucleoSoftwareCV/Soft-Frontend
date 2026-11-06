@@ -1,4 +1,5 @@
 
+import { EventTravelComponent } from '../../../../shared/components/event-travel/event-travel.component';
 import {
   Component,
   input,
@@ -22,6 +23,8 @@ import { AuthService } from '../../../../core/services/auth.service';
 
 
 export interface EventItem {
+  occurrenceId?: number | null;
+  modality?: string;
   id: number;
   title: string;
   dateLabel: string;
@@ -45,7 +48,7 @@ function getCardsPerPage(viewportWidth: number): number {
 @Component({
   selector: 'app-event-row',
   standalone: true,
-  imports: [RouterLink, AppIcon],
+  imports: [RouterLink, AppIcon, EventTravelComponent],
   templateUrl: './event-row.component.html',
   styleUrl: './event-row.component.css',
 })

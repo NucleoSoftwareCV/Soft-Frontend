@@ -6,8 +6,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GoogleIdentityService } from '../../../core/services/google-identity.service';
 
 type AccountType = 'usuario' | 'profesional';
-type ViewType = 'login' | 'register';
-type RegisterStep = 'role-selection' | 'form';
 
 @Component({
   selector: 'app-login',
@@ -47,17 +45,11 @@ export class LoginComponent {
   }
 
   activeTab = signal<AccountType>('usuario');
-  currentView = signal<ViewType>('login');
-  registerStep = signal<RegisterStep>('role-selection');
 
   email = signal('');
   password = signal('');
-  confirmPassword = signal('');
-  firstName = signal('');
-  lastName = signal('');
 
   showPassword = signal(false);
-  showConfirmPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   roleChoice = signal(false);
@@ -80,31 +72,8 @@ export class LoginComponent {
     this.errorMessage.set(null);
   }
 
-  setView(view: ViewType): void {
-    this.currentView.set(view);
-    this.registerStep.set('role-selection');
-    this.errorMessage.set(null);
-    this.email.set('');
-    this.password.set('');
-    this.confirmPassword.set('');
-    this.firstName.set('');
-    this.lastName.set('');
-  }
-
-  handleRegisterNavigation(): void {
-    if (this.activeTab() === 'profesional') {
-      this.router.navigate(['/circulo-oona']);
-    } else {
-      this.registerStep.set('form');
-    }
-  }
-
   togglePassword(): void {
     this.showPassword.update(v => !v);
-  }
-
-  toggleConfirmPassword(): void {
-    this.showConfirmPassword.update(v => !v);
   }
 
   onSubmit(): void {
@@ -146,72 +115,6 @@ export class LoginComponent {
   goToProfessionalPanel(): void {
     this.roleChoice.set(false);
     this.router.navigate(['/profesional']);
-  }
-
-  onRegisterSubmit(): void {
-    if (!this.firstName() || !this.email() || !this.password() || !this.confirmPassword()) {
-      this.showError('Completa todos los campos obligatorios para crear tu cuenta.');
-      return;
-    }
-
-    if (this.password() !== this.confirmPassword()) {
-      this.showError('Las contraseñas no coinciden');
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    const generatedUsername = this.email().split('@')[0] + Math.floor(100 + Math.random() * 900);
-
-    this.authService.register({
-      username: generatedUsername,
-      firstName: this.firstName(),
-      lastName: this.lastName(),
-      email: this.email(),
-      password: this.password()
-    }).subscribe({
-      next: () => {
-        this.authService.login({
-          username: generatedUsername,
-          password: this.password()
-        }).subscribe({
-          next: () => {
-            this.isLoading.set(false);
-            this.router.navigate(['/onboarding']);
-          },
-          error: (err) => {
-            this.isLoading.set(false);
-            this.setView('login');
-            console.error(err);
-          }
-        });
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.showError(this.parseRegisterError(err));
-        console.error(err);
-      }
-    });
-  }
-
-  private parseRegisterError(err: any): string {
-    const body = err?.error;
-    const fieldErrors: { field: string; message: string }[] = body?.errors ?? [];
-
-    if (fieldErrors.some(e => e.field === 'password')) {
-      return 'La contraseña debe tener entre 8 y 72 caracteres.';
-    }
-    if (fieldErrors.some(e => e.field === 'username')) {
-      return 'El nombre de usuario no es válido: usa letras, números, puntos o guiones (3 a 20 caracteres).';
-    }
-    if (fieldErrors.some(e => e.field === 'email')) {
-      return 'Introduce un email válido.';
-    }
-    if (body?.detail) {
-      return body.detail;
-    }
-    return 'Error al registrar la cuenta. Inténtalo de nuevo.';
   }
 
   private handleGoogleToken(idToken: string): void {

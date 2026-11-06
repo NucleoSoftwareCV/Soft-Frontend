@@ -4,13 +4,14 @@ import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './core/components/header/header.component';
 import { FooterComponent } from './core/components/footer/footer.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
+import { BookingCancellationNoticeComponent } from './shared/components/booking-cancellation-notice/booking-cancellation-notice.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, ToastComponent],
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, ToastComponent, BookingCancellationNoticeComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

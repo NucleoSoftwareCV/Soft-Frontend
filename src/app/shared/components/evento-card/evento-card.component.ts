@@ -1,3 +1,4 @@
+import { EventTravelComponent } from '../event-travel/event-travel.component';
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -12,7 +13,7 @@ const FALLBACK_IMAGE =
 @Component({
   selector: 'app-evento-card',
   standalone: true,
-  imports: [RouterLink, CampaniaBadgeComponent],
+  imports: [RouterLink, CampaniaBadgeComponent, EventTravelComponent],
   templateUrl: './evento-card.component.html',
   styleUrl: './evento-card.component.css',
 })

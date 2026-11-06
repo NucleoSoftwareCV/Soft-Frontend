@@ -902,6 +902,7 @@
 
       <!-- Pestaña Reservas -->
       @if (seccionCliente() === 'reservas') {
+        <button class="btn-outline" type="button" (click)="loadMyBookings()" [disabled]="bookingsLoading()">Actualizar reservas</button>
         @if (bookingsLoading()) {
           <div class="following-state" aria-live="polite">Cargando tus reservas...</div>
         } @else if (bookingsError()) {
