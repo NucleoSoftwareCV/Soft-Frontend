@@ -269,16 +269,16 @@ height: 16px;
 
 .profile-about__sidebar {
   border-left: 1px solid hsl(100deg 30% 94%);
-  padding: 32px;
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .info-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .info-block h3 {
