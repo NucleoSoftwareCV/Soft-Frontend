@@ -1,7 +1,7 @@
 .match-page {
   background-color: var(--color-bg);
   min-height: 100vh;
-  padding-bottom: var(--space-16);
+  padding-bottom: 0;
   font-family: var(--font-body);
   overflow-x: hidden;
 }
@@ -34,7 +34,7 @@ main {
   width: 100%;
   max-width: 672px;
   margin: 32px auto 0;
-  padding: 0 16px 64px;
+  padding: 0 16px 24px;
   box-sizing: border-box;
   position: relative;
   z-index: 10;
