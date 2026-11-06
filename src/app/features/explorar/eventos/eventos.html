@@ -11,7 +11,7 @@
       [class.expanded]="expandedDescription()"
     >
       <p class="subtitle">
-        Encuentra planes de yoga, meditación, breathwork,
+        Encuentra planes de yoga, meditaci├│n, breathwork,
         movimiento, retiros y talleres de bienestar.
         Descubre experiencias para desconectar, cuidarte
         y conectar con otras personas.
@@ -141,7 +141,7 @@
             !!filterWhen()
             ) {
             <span class="filter-check">
-                ✓
+                Ô£ô
               </span>
             }
 
@@ -186,7 +186,7 @@
 
 
     <!-- =====================================================
-         BÚSQUEDA
+         B├ÜSQUEDA
          ===================================================== -->
 
     @if (searchQuery()) {
@@ -194,7 +194,7 @@
     <div class="search-banner">
 
         <span>
-          Resultados para «{{ searchQuery() }}»
+          Resultados para ┬½{{ searchQuery() }}┬╗
         </span>
 
       <button
@@ -202,7 +202,7 @@
         class="search-banner-clear"
         (click)="clearSearchQuery()"
       >
-        Quitar búsqueda ×
+        Quitar b├║squeda ├ù
       </button>
 
     </div>
@@ -249,7 +249,7 @@
               <rect x="3" y="14" width="7" height="7" rx="1" />
               <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
-            Cuadrícula
+            Cuadr├¡cula
           </button>
           <button type="button"
             [class.active]="catalogView() === 'map'"
@@ -557,7 +557,7 @@
           </button>
 
 
-          <!-- UBICACIÓN -->
+          <!-- UBICACI├ôN -->
 
           <span class="location">
 
@@ -642,7 +642,7 @@
 
         <div class="card-body">
 
-          <!-- CATEGORÍA -->
+          <!-- CATEGOR├ìA -->
 
           <span class="tag">
 
@@ -704,14 +704,16 @@
           </div>
 
 
-          <!-- TÍTULO -->
+          <!-- T├ìTULO -->
 
           <h2>
             {{ item.title }}
+
           </h2>
+          <app-event-rating [averageRating]="item.averageRating" [reviewCount]="item.reviewCount" [reviewers]="item.reviewers" />
 
 
-          <!-- MOTIVO DE RECOMENDACIÓN -->
+          <!-- MOTIVO DE RECOMENDACI├ôN -->
 
           @if (recommendationReasons()[item.id]; as reason) {
 
@@ -762,13 +764,13 @@
     </div>
 
 
-    <!-- PAGINACIÓN -->
+    <!-- PAGINACI├ôN -->
 
     @if (totalPages() > 1) {
 
     <nav
       class="catalog-pagination"
-      aria-label="Paginación de eventos"
+      aria-label="Paginaci├│n de eventos"
     >
 
       <button
@@ -780,7 +782,7 @@
       </button>
 
       <span aria-live="polite">
-            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+            P├ígina {{ currentPage() + 1 }} de {{ totalPages() }}
           </span>
 
       <button
@@ -839,13 +841,13 @@
           aria-label="Cerrar calendario"
           (click)="closeDatePicker()"
         >
-          ×
+          ├ù
         </button>
 
       </div>
 
 
-      <!-- SELECCIONES RÁPIDAS -->
+      <!-- SELECCIONES R├üPIDAS -->
 
       <div class="date-quick-row">
 
@@ -858,7 +860,7 @@
 
           @if (filterWhen() === 'Esta semana') {
           <span class="quick-check">
-                ✓
+                Ô£ô
               </span>
           }
 
@@ -876,7 +878,7 @@
 
           @if (filterWhen() === 'Este finde') {
           <span class="quick-check">
-                ✓
+                Ô£ô
               </span>
           }
 
@@ -889,29 +891,29 @@
           type="button"
           class="date-quick-btn"
           [class.active]="
-              filterWhen() === 'Próxima semana' ||
+              filterWhen() === 'Pr├│xima semana' ||
               filterWhen() === 'Proxima semana'
             "
-          (click)="selectQuickCalendarRange('Próxima semana')"
+          (click)="selectQuickCalendarRange('Pr├│xima semana')"
         >
 
           @if (
-          filterWhen() === 'Próxima semana' ||
+          filterWhen() === 'Pr├│xima semana' ||
           filterWhen() === 'Proxima semana'
           ) {
           <span class="quick-check">
-                ✓
+                Ô£ô
               </span>
           }
 
-          Próxima semana
+          Pr├│xima semana
 
         </button>
 
       </div>
 
 
-      <!-- NAVEGACIÓN DEL MES -->
+      <!-- NAVEGACI├ôN DEL MES -->
 
       <div class="calendar-month-header">
 
@@ -928,7 +930,7 @@
             aria-label="Mes anterior"
             (click)="previousMonth()"
           >
-            ‹
+            ÔÇ╣
           </button>
 
           <button
@@ -937,7 +939,7 @@
             aria-label="Mes siguiente"
             (click)="nextMonth()"
           >
-            ›
+            ÔÇ║
           </button>
 
         </div>
@@ -945,7 +947,7 @@
       </div>
 
 
-      <!-- DÍAS DE LA SEMANA -->
+      <!-- D├ìAS DE LA SEMANA -->
 
       <div class="calendar-weekdays">
 
@@ -954,7 +956,7 @@
         <span>MI</span>
         <span>JU</span>
         <span>VI</span>
-        <span>SÁ</span>
+        <span>S├ü</span>
         <span>DO</span>
 
       </div>
@@ -1066,7 +1068,7 @@
           experiencias
 
           <span class="calendar-apply-icon">
-              📅
+              ­ƒôà
             </span>
 
         </button>
@@ -1081,7 +1083,7 @@
 
 
   <!-- =====================================================
-       CARD FAVORITOS — USUARIO NO AUTENTICADO
+       CARD FAVORITOS ÔÇö USUARIO NO AUTENTICADO
        ===================================================== -->
 
   @if (showFavoriteLoginCard()) {
@@ -1105,7 +1107,7 @@
         aria-label="Cerrar"
         (click)="cerrarFavoriteLoginCard()"
       >
-        ×
+        ├ù
       </button>
 
 

@@ -93,7 +93,7 @@
   border-radius: 1rem;
   position: relative;
 
-  /* SOLUCIÓN ANTI-SUBPIXEL: Fuerza el renderizado correcto del border-radius */
+  /* SOLUCIÃ“N ANTI-SUBPIXEL: Fuerza el renderizado correcto del border-radius */
   will-change: transform;
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
@@ -140,13 +140,13 @@
   border-radius: 14px;     /* Le aplica el borde redondeado directamente a la imagen */
 }
 
-/* 2 IMÁGENES */
+/* 2 IMÃGENES */
 .gallery-2 {
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 100%; /* Forzado al alto total */
 }
 
-/* 3 IMÁGENES */
+/* 3 IMÃGENES */
 .gallery-3 {
   grid-template-columns: repeat(2, 1fr);
   /* Restamos 1 gap del total y dividimos entre 2 filas exactas */
@@ -156,14 +156,14 @@
   grid-row: span 2;
 }
 
-/* 4 IMÁGENES */
+/* 4 IMÃGENES */
 .gallery-4 {
   grid-template-columns: repeat(2, 1fr);
-  /* Restamos el gap para evitar desbordes matemáticos abajo */
+  /* Restamos el gap para evitar desbordes matemÃ¡ticos abajo */
   grid-template-rows: calc((100% - var(--gap)) / 2) calc((100% - var(--gap)) / 2);
 }
 
-/* 5 IMÁGENES (Corregido usando 100% en vez del valor fijo) */
+/* 5 IMÃGENES (Corregido usando 100% en vez del valor fijo) */
 .gallery-5 {
   grid-template-columns: 2fr 1fr 1fr;
   grid-template-rows: calc((100% - var(--gap)) / 2) calc((100% - var(--gap)) / 2);
@@ -294,7 +294,7 @@
   display:none;
 }
 
-/* ========= GALERÍA MOBILE ========= */
+/* ========= GALERÃA MOBILE ========= */
 .gallery-mobile{
   position:relative;
   width:100%;
@@ -368,31 +368,31 @@ swiper-slide{
 }
 
 .hero-dots{
-    position:absolute;
-    left:50%;
-    bottom:18px;
-    transform:translateX(-50%);
-    display:flex;
-    gap:8px;
-    z-index:10;
+  position:absolute;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:8px;
+  z-index:10;
 }
 
 .gallery-swiper::part(bullet){
-    width:6px;
-    height:6px;
-    background: rgb(255 255 255);
-    opacity:.5;
+  width:6px;
+  height:6px;
+  background: rgb(255 255 255);
+  opacity:.5;
 }
 
 .gallery-swiper::part(bullet-active){
-    width:20px;
-    height: 6px;
-    border-radius:50px;
-    background:white;
-    opacity:1;
+  width:20px;
+  height: 6px;
+  border-radius:50px;
+  background:white;
+  opacity:1;
 }
 
-/* TÍTULO */
+/* TÃTULO */
 .title-row {
   margin-top: 20px;
   margin-bottom: 20px;
@@ -638,14 +638,14 @@ swiper-slide{
   gap: 14px;
 }
 .organizer-info{
-  flex: 1 1 0%;             
+  flex: 1 1 0%;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 64px;          
+  height: 64px;
   padding: 8px;
-  margin-left: -8px; 
+  margin-left: -8px;
   border-radius: 16px;
   box-sizing: border-box;
   color: rgb(0, 66, 87);
@@ -653,8 +653,8 @@ swiper-slide{
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   line-height: 24px;
   transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+  border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .organizadorlink :hover{
   background-color: rgb(245,249,250, 0.5);
@@ -680,7 +680,7 @@ swiper-slide{
 }
 
 .follow-btn {
-  display: inline-flex;     /* Activa flexbox manteniendo el botón como elemento de línea */
+  display: inline-flex;     /* Activa flexbox manteniendo el botÃ³n como elemento de lÃ­nea */
   align-items: center;      /* Centra verticalmente el SVG y el texto */
   justify-content: center;   /* Centra horizontalmente el contenido */
   gap: .5rem;
@@ -728,7 +728,7 @@ swiper-slide{
   text-align: right;
 }
 
-/* CARDS DE INFORMACIÓN */
+/* CARDS DE INFORMACIÃ“N */
 .info-card {
   padding: 22px;
 }
@@ -2181,11 +2181,11 @@ swiper-slide{
 
 
 
-/* --- BOTÓN COMPARTIR DESKTOP --- */
+/* --- BOTÃ“N COMPARTIR DESKTOP --- */
 .title-row .actions {
   display: flex;
   align-items: center;
-  gap: 12px; /* Espaciado entre botón compartir y corazón */
+  gap: 12px; /* Espaciado entre botÃ³n compartir y corazÃ³n */
 }
 
 .share-btn-desktop {
@@ -2223,7 +2223,7 @@ swiper-slide{
 
 .share-modal-container {
   position: relative;
-  background-color: #f7f8f4; /* Color off-white cálido de oona */
+  background-color: #f7f8f4; /* Color off-white cÃ¡lido de oona */
   border-radius: 16px;
   padding: 40px 32px 36px;
   width: 100%;
@@ -2252,7 +2252,7 @@ swiper-slide{
 }
 
 .share-title {
-  font-family: 'Georgia', serif; /* Tipografía para los headers */
+  font-family: 'Georgia', serif; /* TipografÃ­a para los headers */
   color: #004e59;
   font-size: 1.65rem;
   font-weight: 700;
@@ -2322,7 +2322,7 @@ swiper-slide{
 
 .share-link-input {
   width: 100%;
-  padding: 14px 110px 14px 16px; /* Espacio derecho para el botón */
+  padding: 14px 110px 14px 16px; /* Espacio derecho para el botÃ³n */
   border: 1px solid #c8dce1;
   border-radius: 999px;
   background-color: #ffffff;
@@ -2455,7 +2455,7 @@ swiper-slide{
 }
 
 
-/* Ubicación de la sesión seleccionada. */
+/* UbicaciÃ³n de la sesiÃ³n seleccionada. */
 .event-location-toggle {
   display: inline-flex;
   justify-content: center;
@@ -2480,3 +2480,29 @@ swiper-slide{
   text-decoration: underline;
 }
 .event-location-note { color: #61757a; }
+
+/* Calificaciones del evento */
+.event-reviews { margin: 32px 0; padding: 24px; border: 1px solid #dbe6e1; border-radius: 16px; background: #fff; }
+.event-reviews h2 { margin: 0 0 16px; }
+.event-reviews p { margin: 12px 0; }
+.event-reviews__summary > span { color: #986b00; font-size: 24px; }
+.event-reviews__form fieldset { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.event-reviews__stars { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.event-reviews__star { display: inline-flex; align-items: center; gap: 3px; padding: 4px; cursor: pointer; color: #6b7280; }
+.event-reviews__star > span { font-size: 32px; line-height: 1; }
+.event-reviews__star.is-selected { color: #986b00; }
+.event-reviews__star:focus-within { outline: 2px solid #285f46; outline-offset: 2px; border-radius: 4px; }
+.event-reviews__star input { accent-color: #285f46; }
+.event-reviews textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0 16px; padding: 12px; border: 1px solid #aabbb3; border-radius: 8px; font: inherit; resize: vertical; }
+.event-reviews button { padding: 10px 16px; border: 1px solid #285f46; border-radius: 8px; background: #285f46; color: #fff; font: inherit; cursor: pointer; }
+.event-reviews button:disabled { opacity: .55; cursor: not-allowed; }
+.event-reviews button:focus-visible, .event-reviews textarea:focus-visible { outline: 3px solid #285f46; outline-offset: 3px; }
+.event-reviews [role="alert"] { color: #a12622; }
+@media (max-width: 560px) { .event-reviews { padding: 16px; } }
+
+.event-reviews__item { border-top: 1px solid #dbe6e1; padding: 16px 0; }
+.event-reviews__item header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.event-reviews__item time { font-size: .875rem; color: #52635c; }
+.event-reviews__rating { color: #986b00; letter-spacing: 2px; }
+.event-reviews__comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.event-reviews__pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 12px 0 20px; }

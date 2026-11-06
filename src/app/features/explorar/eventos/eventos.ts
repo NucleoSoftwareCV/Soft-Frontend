@@ -28,6 +28,7 @@ import { RecommendationFilterParams } from '../../../shared/models/recommendatio
 import { categoryIcon } from '../../../shared/utils/category-icon.util';
 import { EventsMapPanelComponent } from './events-map-panel.component';
 import { AdvancedEventFiltersComponent } from './advanced-event-filters.component';
+import { EventRatingComponent } from '../../../shared/components/event-rating/event-rating.component';
 
 interface EventSortOption {
   label: string;
@@ -51,7 +52,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
+  imports: [CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent, EventRatingComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -111,11 +112,11 @@ export class Eventos {
 
   readonly sortOptions: EventSortOption[] = [
     {
-      label: 'Fecha más próxima',
+      label: 'Fecha m├ís pr├│xima',
       sort: 'startsAt,asc',
     },
     {
-      label: 'Recién añadidos',
+      label: 'Reci├®n a├▒adidos',
       sort: 'createdAt,desc',
     },
     {
@@ -211,7 +212,7 @@ export class Eventos {
     });
   }
 
-  // Acceso y búsqueda
+  // Acceso y b├║squeda
 
   cerrarFavoriteLoginCard(): void {
     this.showFavoriteLoginCard.set(false);
@@ -279,10 +280,10 @@ export class Eventos {
     if (
       option === 'Esta semana' ||
       option === 'Este finde' ||
-      option === 'Próxima semana' ||
+      option === 'Pr├│xima semana' ||
       option === 'Proxima semana'
     ) {
-      this.selectQuickCalendarRange(option === 'Proxima semana' ? 'Próxima semana' : option);
+      this.selectQuickCalendarRange(option === 'Proxima semana' ? 'Pr├│xima semana' : option);
       return;
     }
 
@@ -536,7 +537,7 @@ export class Eventos {
     if (
       current === 'Esta semana' ||
       current === 'Este finde' ||
-      current === 'Próxima semana' ||
+      current === 'Pr├│xima semana' ||
       current === 'Proxima semana'
     ) {
       this.selectQuickCalendarRange(current);
@@ -602,7 +603,7 @@ export class Eventos {
       : `${this.formatShortDate(from)} - ${this.formatShortDate(to)}`;
   }
 
-  // Orden y paginación
+  // Orden y paginaci├│n
 
   toggleSortMenu(): void {
     this.showSortMenu.update((value) => !value);
@@ -649,7 +650,7 @@ export class Eventos {
     return this.favoritos().has(item.id);
   }
 
-  // Presentación
+  // Presentaci├│n
 
   categoryEmoji(name: string | null): string {
     return categoryIcon(name);
@@ -820,8 +821,8 @@ export class Eventos {
 
         this.error.set(
           error.status === 401 || error.status === 403
-            ? 'Inicia sesión con una cuenta de usuario para consultar recomendaciones.'
-            : 'No pudimos cargar los eventos. Inténtalo nuevamente.',
+            ? 'Inicia sesi├│n con una cuenta de usuario para consultar recomendaciones.'
+            : 'No pudimos cargar los eventos. Int├®ntalo nuevamente.',
         );
 
         this.loading.set(false);
@@ -869,7 +870,7 @@ export class Eventos {
       return undefined;
     }
 
-    if (value === 'Híbrida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
+    if (value === 'H├¡brida' || value.toUpperCase() === 'HIBRIDA') return EventModality.HIBRIDA;
     return value.toLowerCase() === 'online' ? EventModality.ONLINE : EventModality.PRESENCIAL;
   }
 
@@ -888,9 +889,9 @@ export class Eventos {
   private timeRangeFor(value: string | null): Pick<EventFilterParams, 'hourFrom' | 'hourTo'> {
     const ranges: Record<string, Pick<EventFilterParams, 'hourFrom' | 'hourTo'>> = {
       Manana: { hourFrom: 6, hourTo: 12 },
-      Mañana: { hourFrom: 6, hourTo: 12 },
+      'Ma\u00F1ana': { hourFrom: 6, hourTo: 12 },
       Mediodia: { hourFrom: 12, hourTo: 16 },
-      Mediodía: { hourFrom: 12, hourTo: 16 },
+      'Mediod\u00EDa': { hourFrom: 12, hourTo: 16 },
       Tarde: { hourFrom: 16, hourTo: 20 },
       Noche: { hourFrom: 20, hourTo: 23 },
     };
@@ -921,7 +922,7 @@ export class Eventos {
     let start = new Date(today);
     let end = new Date(today);
 
-    if (value === 'Mañana' || value === 'Manana') {
+    if (value === 'Ma├▒ana' || value === 'Manana') {
       start.setDate(today.getDate() + 1);
       end.setDate(today.getDate() + 1);
     } else if (value === 'Este finde') {
@@ -945,7 +946,7 @@ export class Eventos {
 
       end = new Date(today);
       end.setDate(today.getDate() + daysUntilSunday);
-    } else if (value === 'Próxima semana' || value === 'Proxima semana') {
+    } else if (value === 'Pr├│xima semana' || value === 'Proxima semana') {
       start = this.getMonday(today);
       start.setDate(start.getDate() + 7);
 

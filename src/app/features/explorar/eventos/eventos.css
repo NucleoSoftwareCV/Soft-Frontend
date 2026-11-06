@@ -1,4 +1,4 @@
-* {
+﻿* {
   box-sizing: border-box;
 }
 
@@ -176,7 +176,7 @@
 }
 
 /* ============================================
-   4 FILTROS RÁPIDOS
+   4 FILTROS R├üPIDOS
    SIEMPRE BLANCOS
    ============================================ */
 
@@ -448,7 +448,7 @@
 }
 
 /* ============================================
-   CORAZÓN
+   CORAZ├ôN
    ============================================ */
 
 .heart {
@@ -501,7 +501,7 @@
 }
 
 /* ============================================
-   UBICACIÓN
+   UBICACI├ôN
    ============================================ */
 
 .location {
@@ -718,7 +718,7 @@
 }
 
 /* ============================================
-   ESTADOS VACÍOS
+   ESTADOS VAC├ìOS
    ============================================ */
 
 .empty-state,
@@ -926,7 +926,7 @@
 }
 
 /* ============================================
-   DÍAS SEMANA
+   D├ìAS SEMANA
    ============================================ */
 
 .calendar-weekdays {
@@ -1068,7 +1068,7 @@
 }
 
 /* ============================================
-   DÍAS PASADOS
+   D├ìAS PASADOS
    ============================================ */
 
 .calendar-day.past-day {
@@ -1345,7 +1345,7 @@
   cursor: default;
 }
 
-/* Selector de vistas del catálogo. */
+/* Selector de vistas del cat├ílogo. */
 .results-actions { flex-wrap: wrap; }
 .catalog-view-switch {
   display: inline-flex;
@@ -1397,4 +1397,26 @@
 @media (max-width: 639px) {
   .catalog-results .cards-grid,
   .catalog-results .skeleton-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Fecha con icono decorativo; el texto conserva su etiqueta completa. */
+.date-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.date-label svg {
+  flex: 0 0 13px;
+}
+
+.author span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author img {
+  flex-shrink: 0;
 }

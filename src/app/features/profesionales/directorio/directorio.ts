@@ -1,295 +1,140 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-
-import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
-import { AppIcon, IconName } from '../../../shared/components/icon/icon';
-import { TarjetaDirectorio } from '../../../shared/models/tarjeta-directorio.model';
-import { toTarjetaDirectorio } from '../../../shared/utils/tarjeta-directorio.util';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, of, switchMap } from 'rxjs';
+import { AppIcon } from '../../../shared/components/icon/icon';
+import { SpecialistProfileService } from '../../../services/profesionales.service';
+import {
+  DirectoryFeaturedService, DirectoryProfile, DirectoryType,
+  ProfessionalDirectoryService,
+} from '../../../services/professional-directory.service';
 
 @Component({
   selector: 'app-directorio',
   standalone: true,
-  imports: [CommonModule, AppIcon],
+  imports: [CommonModule, FormsModule, RouterLink, AppIcon],
   templateUrl: './directorio.html',
   styleUrl: './directorio.css',
 })
 export class Directorio implements OnInit {
+  private readonly service = inject(ProfessionalDirectoryService);
+  private readonly assets = inject(SpecialistProfileService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly requests = new Subject<void>();
 
-  // =====================================================
-  // SERVICIOS
-  // =====================================================
-
-  private readonly specialistProfileService =
-    inject(SpecialistProfileService);
-
-  private readonly router =
-    inject(Router);
-
-  // =====================================================
-  // ESTADO
-  // =====================================================
-
-  categoriaActiva =
-    signal('todos');
-
-  searchQuery =
-    signal('');
-
-   isDropdownOpen =
-    signal(false);
-
-  cargando =
-    signal(false);
-
-  totalPerfiles =
-    signal(0);
-
-  private readonly listado =
-    signal<TarjetaDirectorio[]>([]);
-
-  // Perfiles solicitados por peticion al backend y tope de seguridad
-  // para no colgar la app si el directorio crece mucho.
-  private static readonly PAGE_SIZE = 50;
-  private static readonly MAX_PERFILES = 500;
-
-  // =====================================================
-  // CICLO DE VIDA
-  // =====================================================
+  search = '';
+  location = '';
+  readonly type = signal<DirectoryType>('professionals');
+  readonly specialty = signal('');
+  readonly profiles = signal<DirectoryProfile[]>([]);
+  readonly specialties = signal<string[]>([]);
+  readonly featured = signal<DirectoryFeaturedService | null>(null);
+  readonly total = signal(0);
+  readonly page = signal(0);
+  readonly loading = signal(true);
+  readonly error = signal(false);
+  private readonly appliedSearch = signal('');
+  private readonly appliedLocation = signal('');
+  readonly types: { value: DirectoryType; label: string }[] = [
+    { value: 'professionals', label: 'Profesionales' },
+    { value: 'centers', label: 'Centros' },
+  ];
 
   ngOnInit(): void {
-    this.cargarPerfiles();
-  }
-
-  // =====================================================
-  // CARGAR PERFILES
-  // =====================================================
-
-  cargarPerfiles(): void {
-
-    this.cargando.set(true);
-
-    this.cargarPagina(0, []);
-
-  }
-
-  // =====================================================
-  // CARGA PAGINADA ACUMULATIVA
-  // =====================================================
-
-  // El backend pagina los perfiles (10 por defecto, aqui pedimos
-  // 50 por peticion). Mientras queden paginas (page + 1 < totalPages)
-  // y no se supere el tope de seguridad, se pide la siguiente pagina
-  // y se acumula. Asi el filtro por categoria y la busqueda en cliente
-  // se aplican sobre el directorio COMPLETO y no solo sobre la pagina 0.
-  private cargarPagina(
-    page: number,
-    acumulado: SpecialistProfileResponse[]
-  ): void {
-
-    this.specialistProfileService
-      .getPublicProfiles(
-        undefined,
-        undefined,
-        Directorio.PAGE_SIZE,
-        page
-      )
-      .subscribe({
-
-        next: (response) => {
-
-          const perfiles = [...acumulado, ...(response.content ?? [])];
-
-          const quedanPaginas =
-            page + 1 < (response.totalPages ?? 0);
-
-          const dentroDelTope =
-            perfiles.length < Directorio.MAX_PERFILES;
-
-          if (quedanPaginas && dentroDelTope) {
-
-            this.cargarPagina(page + 1, perfiles);
-
-            return;
-
-          }
-
-          this.listado.set(
-            perfiles.map(perfil =>
-              this.convertirPerfil(perfil)
-            )
-          );
-
-          this.totalPerfiles.set(perfiles.length);
-
-          this.cargando.set(false);
-
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Error al cargar perfiles:',
-            error
-          );
-
-          // Si ya habiamos acumulado perfiles de paginas anteriores,
-          // los mostramos en lugar de dejar la pagina vacia.
-          this.listado.set(
-            acumulado.map(perfil =>
-              this.convertirPerfil(perfil)
-            )
-          );
-
-          this.totalPerfiles.set(acumulado.length);
-
-          this.cargando.set(false);
-
-        }
-
-      });
-
-  }
-
-  // =====================================================
-  // CONVERTIR PERFIL
-  // =====================================================
-
-  private convertirPerfil(
-    perfil: SpecialistProfileResponse
-  ): TarjetaDirectorio {
-
-    const tarjeta = toTarjetaDirectorio(
-      perfil,
-      url => this.specialistProfileService.resolveAssetUrl(url)
-    );
-
-    return {
-      ...tarjeta,
-      cita: perfil.biography,
-      bio: perfil.biography,
-      tags: tarjeta.tags.slice(0, 5),
-    };
-  }
-
-  // =====================================================
-  // ICONO SEGÚN EL TIPO
-  // =====================================================
-
-  getIconName(
-    tipo: TarjetaDirectorio['tipo']
-  ): IconName {
-
-    switch (tipo) {
-
-      case 'Profesional':
-        return 'user';
-
-      case 'Centro':
-        return 'users';
-
-      case 'Organizador de eventos':
-        return 'user';
-
-      default:
-        return 'user';
-
-    }
-
-  }
-
-  // =====================================================
-  // FILTRO
-  // =====================================================
-
-  perfilesFiltrados =
-    computed(() => {
-
-      const categoria =
-        this.categoriaActiva();
-
-      const query =
-        this.searchQuery()
-          .toLowerCase()
-          .trim();
-
-      return this.listado().filter(perfil => {
-
-        const matchCategoria =
-
-          categoria === 'todos'
-
-          ||
-
-          (categoria === 'profesionales'
-            && perfil.tipo === 'Profesional')
-
-          ||
-
-          (categoria === 'centros'
-            && perfil.tipo === 'Centro')
-
-          ||
-
-          (categoria === 'organizadores'
-            && perfil.tipo === 'Organizador de eventos');
-
-        const matchQuery =
-
-          !query
-
-          ||
-
-          perfil.nombre
-            .toLowerCase()
-            .includes(query)
-
-          ||
-
-          perfil.ubicacion
-            .toLowerCase()
-            .includes(query)
-
-          ||
-
-          perfil.tags.some(tag =>
-            tag.toLowerCase().includes(query)
-          );
-
-        return matchCategoria && matchQuery;
-
-      });
-
+    this.requests.pipe(
+      switchMap(() => {
+        this.loading.set(true);
+        this.error.set(false);
+        this.profiles.set([]);
+        this.featured.set(null);
+        return this.service.get({ search: this.appliedSearch(), location: this.appliedLocation(),
+          type: this.type(), specialty: this.specialty(), page: this.page() }).pipe(
+          catchError(() => of(null)));
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(response => {
+      this.loading.set(false);
+      if (!response) {
+        this.error.set(true);
+        return;
+      }
+      this.profiles.set(response.content);
+      this.total.set(response.totalElements);
+      this.specialties.set(response.specialties);
+      this.featured.set(response.featured);
     });
-
-  // =====================================================
-  // EVENTOS
-  // =====================================================
-
-  actualizarCategoria(
-    categoria: string
-  ): void {
-
-    this.categoriaActiva.set(categoria);
+    this.requests.next();
   }
 
-  actualizarBusqueda(
-    event: Event
-  ): void {
-
-    const input =
-      event.target as HTMLInputElement;
-
-    this.searchQuery.set(input.value);
+  buscar(): void {
+    this.appliedSearch.set(this.search.trim());
+    this.appliedLocation.set(this.location.trim());
+    this.page.set(0);
+    this.requests.next();
   }
 
-  verPerfil(
-    perfil: TarjetaDirectorio
-  ): void {
+  cambiarTipo(type: DirectoryType): void {
+    this.type.set(type);
+    this.specialty.set('');
+    this.page.set(0);
+    this.requests.next();
+  }
 
-    this.router.navigate([
-      '/profesionales',
-      perfil.slug
-    ]);
+  cambiarEspecialidad(value: string): void {
+    this.specialty.set(value);
+    this.page.set(0);
+    this.requests.next();
+  }
+
+  cambiarPagina(delta: number): void {
+    const next = this.page() + delta;
+    if (next < 0 || next * 20 >= this.total() || this.loading()) return;
+    this.page.set(next);
+    this.requests.next();
+  }
+
+  reintentar(): void { this.requests.next(); }
+
+  limpiar(): void {
+    this.search = '';
+    this.location = '';
+    this.type.set('professionals');
+    this.specialty.set('');
+    this.buscar();
+  }
+
+  asset(url: string | null): string | undefined {
+    return this.assets.resolveAssetUrl(url ?? undefined);
+  }
+
+  imageError(event: Event): void {
+    // La inicial o el fondo siguen visibles; no se inventan fotografías.
+    (event.target as HTMLImageElement).hidden = true;
+  }
+
+  initials(name: string): string {
+    return name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  rating(value: number): string {
+    return new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
+  }
+
+  price(value: number, currency: string | null): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency', currency: currency || 'EUR', maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  date(value: string): string {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid',
+    }).format(new Date(value));
+  }
+
+  serviceRoute(service: DirectoryFeaturedService): (string | number)[] {
+    return [service.type === 'EVENT' ? '/evento' : '/sesiones', service.id];
   }
 }
