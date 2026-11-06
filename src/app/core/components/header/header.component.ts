@@ -505,7 +505,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       return 'Fecha por confirmar';
     }
 
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'short',
       day: '2-digit',
       month: 'short',
@@ -804,7 +804,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const [, from, to] = when.split(':');
 
     const label = (iso: string) =>
-      new Intl.DateTimeFormat('es-ES', {
+      new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
         day: 'numeric',
         month: 'short',
       })
@@ -853,7 +853,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   readonly monthLabel = computed(() => {
-    const label = new Intl.DateTimeFormat('es-ES', {
+    const label = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       month: 'long',
       year: 'numeric',
     }).format(this.calendarMonth());

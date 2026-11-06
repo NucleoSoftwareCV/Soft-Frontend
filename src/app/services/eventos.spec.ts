@@ -28,7 +28,7 @@ describe('EventosService', () => {
   it('requests public events with optional filters', () => {
     service.getEventos({
       categoryId: 2,
-      cityName: 'Valencia',
+      cityName: 'Arequipa',
       modality: EventModality.PRESENCIAL,
       dateFrom: '2026-06-26',
       dateTo: '2026-06-27',
@@ -40,7 +40,7 @@ describe('EventosService', () => {
     const req = http.expectOne(request =>
       request.url.endsWith('/events') &&
       request.params.get('categoryId') === '2' &&
-      request.params.get('cityName') === 'Valencia' &&
+      request.params.get('cityName') === 'Arequipa' &&
       request.params.get('modality') === 'PRESENCIAL' &&
       request.params.get('dateFrom') === '2026-06-26' &&
       request.params.get('dateTo') === '2026-06-27' &&
@@ -89,4 +89,11 @@ describe('EventosService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, number: 0, size: 12 });
   });
+  it('uses Arequipa by default for the Peruvian home catalogue', () => {
+    service.getHomeSections().subscribe();
+    const req = http.expectOne(request => request.url.endsWith('/home/event-sections'));
+    expect(req.request.params.get('cityName')).toBe('Arequipa');
+    req.flush({});
+  });
+
 });

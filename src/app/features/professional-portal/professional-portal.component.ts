@@ -1274,7 +1274,7 @@ export class ProfessionalPortalComponent {
       whatToBring: '',
       modality: 'ONLINE',
       priceFrom: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       minimumAge: 18,
       categoryId: null,
       paymentMethod: 'WHATSAPP',
@@ -1302,7 +1302,7 @@ export class ProfessionalPortalComponent {
       modality: 'ONLINE',
       locationId: null,
       price: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       status: 'PUBLICADO',
       workTopics: [],
       techniques: [],
@@ -1474,7 +1474,7 @@ export class ProfessionalPortalComponent {
 
   // ── Participants modal methods ──────────────────────────────────────────
   verParticipantes(occurrence: EventOccurrenceManagement): void {
-    const label = new Date(occurrence.startsAt).toLocaleString('es-ES', {
+    const label = new Date(occurrence.startsAt).toLocaleString('es-PE', { timeZone: 'America/Lima',
       day: '2-digit', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });
