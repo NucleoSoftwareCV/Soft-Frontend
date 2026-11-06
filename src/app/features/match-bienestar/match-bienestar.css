@@ -20,7 +20,7 @@ main {
   position: relative;
   display: block;
   width: 100vw;
-  min-height: 480px;
+  min-height: 400px;
   height: auto;
   overflow: hidden;
   box-sizing: border-box;
