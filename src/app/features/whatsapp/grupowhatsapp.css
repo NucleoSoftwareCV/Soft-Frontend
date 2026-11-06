@@ -1,131 +1,1104 @@
-.gw-container {
-    display: block;
-    width: 100%;
-    min-height: 100vh; 
-    margin: 0;
-    box-sizing: border-box;
-    background-color: rgb(236, 242, 231); 
-    color: rgb(0, 66, 87);
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    line-height: 24px;
-}
+    .gw-container {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-height: 100vh; 
+        margin: 0;
+        box-sizing: border-box;
+        background-color: rgb(236, 242, 231); 
+        color: rgb(0, 66, 87);
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        line-height: 24px;
+    }
 
-.gw-inner {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 836px; /* Limitamos el contenido a 836px pero lo centramos */
-    margin: 0 auto; /* Esto centra el contenido y quita el espacio blanco de los lados */
-    box-sizing: border-box;
-}
+    /* html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
 
-.gw-section1 {
-    display: block;
-    width: 100%;
-    padding: 96px 32px;
-    box-sizing: border-box;
-    background-color: rgb(236, 242, 231);
-    color: rgb(0, 66, 87);
-    line-height: 24px;
-}
+    body {
+        min-width: 0;
+    }
 
-.gw-div3 {
-    display: block;
-    width: 100%;
-    margin-inline: 0px;
-    box-sizing: border-box;
-    text-align: center;
-}
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    } */
 
-.gw-section1 h1 {
-    display: block;
-    width: 100%;
-    margin: 0 0 24px 0;
-    box-sizing: border-box;
-    color: rgb(0, 78, 89);
-    font-family: Sunset, Georgia, serif;
-    font-size: 48px;
-    font-weight: 700;
-    line-height: 48px;
-    text-align: center;
-}
+    /* =========================================================
+    SECCION 1 DESKTOP
+    769px → 1024px
+    ========================================================= */
 
-.gw-section1 p {
-    display: block;
-    width: 100%;
-    margin: 0 0 32px 0;
-    box-sizing: border-box;
-    color: rgb(0, 66, 87);
-    font-size: 24px;
-    line-height: 32px;
-    text-align: center;
-}
 
-.gw-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 233.74px;
-    height: 48px;
-    padding: 24px 32px;
-    box-sizing: border-box;
-    cursor: pointer;
-    background-color: rgb(74, 139, 44);
-    border-radius: 9999px;
-    color: rgb(255, 255, 255);
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 28px;
-    text-align: center;
-    white-space: nowrap;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.gw-section1 .gw-p2 {
-    display: block;
-    width: 100%; 
-    height: auto; 
-    margin: 16px 0 0 0;
-    box-sizing: border-box;
-    border: 0px solid rgb(238, 244, 235);
-    color: rgb(97, 117, 87); 
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 18px; 
-    line-height: 28px;
-    text-align: center;
-}
+    .gw-section1 {
+        display: block;
+        width: 100%;
+        padding: 96px 32px;
+        box-sizing: border-box;
+        background-color: rgb(236, 242, 231);
+        color: rgb(0, 66, 87);
+        line-height: 24px;
+    }
 
-.gw-section2 {
-    display: block;
-    width: 100%;
-    padding: 32px;
-    box-sizing: border-box;
-    color: rgb(0, 66, 87);
-}
+    .gw-div3 {
+        display: block;
+        width: 100%;
+        margin-inline: 0px;
+        box-sizing: border-box;
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
-.gw-div4 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 16px;
-    width: 100%;
-    max-width: 1152px;
-    margin-inline: 0;
-    box-sizing: border-box;
-}
+    .gw-section1 h1 {
+        display: block;
+        width: 100%;
+        margin: 0 0 24px 0;
+        box-sizing: border-box;
+        color: rgb(0, 78, 89);
+        font-family: Sunset, Georgia, serif;
+        font-size: 60px;
+        font-weight: 700;
+        line-height: 48px;
+        text-align: center;
+    }
 
-.gw-div5 {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    box-sizing: border-box;
-    border-radius: 24px;
-}
+    .gw-section1 p {
+        display: block;
+        width: 100%;
+        margin: 0 0 32px 0;
+        box-sizing: border-box;
+        color: rgb(0, 66, 87);
+        font-size: 24px;
+        line-height: 32px;
+        text-align: center;
+    }
 
-.gw-imagenes {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    vertical-align: middle;
-}
+    .gw-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: fit-content;
+        height: 48px;
+        padding: 24px 32px;
+        box-sizing: border-box;
+        cursor: pointer;
+        background-color: rgb(74, 139, 44);
+        border-radius: 9999px;
+        color: rgb(255, 255, 255);
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 28px;
+        text-align: center;
+        white-space: nowrap;
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gw-section1 .gw-p2 {
+        display: block;
+        width: 100%; 
+        height: auto; 
+        margin: 16px 0 0 0;
+        box-sizing: border-box;
+        border: 0px solid rgb(238, 244, 235);
+        color: rgb(97, 117, 87); 
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 18px; 
+        line-height: 28px;
+        text-align: center;
+    }
+
+    /* =========================================================
+    TABLET
+    769px → 1024px
+    ========================================================= */
+
+    @media screen and (max-width: 1024px) {
+
+        .gw-section1 {
+            padding: 72px 50px;
+        }
+
+        .gw-div3 {
+            max-width: 760px;
+        }
+
+        .gw-section1 h1 {
+            font-size: 48px;
+            line-height: 44px;
+            margin-bottom: 20px;
+        }
+
+        .gw-section1 p {
+            font-size: 21px;
+            line-height: 29px;
+            margin-bottom: 28px;
+        }
+
+        .gw-link {
+            min-height: 46px;
+            padding: 11px 26px;
+            font-size: 17px;
+            line-height: 24px;
+        }
+
+        .gw-link .chaticono {
+            width: 22px;
+            height: 22px;
+        }
+
+        .gw-section1 .gw-p2 {
+            margin-top: 14px;
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
+
+    /* =========================================================
+    MÓVIL
+    0px → 600px
+    ========================================================= */
+
+    @media screen and (max-width: 600px) {
+
+        .gw-section1 {
+            padding: 56px 50px;
+        }
+
+        .gw-div3 {
+            max-width: 100%;
+        }
+
+        .gw-section1 h1 {
+            font-size: 36px;
+            line-height: 36px;
+            margin-bottom: 18px;
+        }
+
+        .gw-section1 p {
+            font-size: 18px;
+            line-height: 26px;
+            margin-bottom: 24px;
+        }
+
+        .gw-link {
+            width: 100%;
+            max-width: 320px;
+
+            min-height: 46px;
+            padding: 11px 20px;
+
+            font-size: 16px;
+            line-height: 22px;
+
+            white-space: normal;
+        }
+
+        .gw-link .chaticono {
+            width: 21px;
+            height: 21px;
+        }
+
+        .gw-section1 .gw-p2 {
+            margin-top: 12px;
+
+            font-size: 15px;
+            line-height: 22px;
+        }
+    }
+
+    /* =========================================================
+    SECCION 2 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section2 {
+        display: block;
+        width: 100%;
+        padding: 32px;
+        box-sizing: border-box;
+        background-color: rgb(236, 242, 231);
+        color: rgb(0, 66, 87);
+    }
+
+    .gw-section2 .gw-content {
+        display: block;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .gw-gallery {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gw-gallery-item {
+        display: block;
+        width: 100%;
+        height: 320px;
+        overflow: hidden;
+        box-sizing: border-box;
+        border-radius: 24px;
+        box-shadow: 0 4px 12px rgba(0, 66, 87, 0.08);
+    }
+
+    .gw-imagenes {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        vertical-align: middle;
+    }
+
+    /* =========================================================
+    TABLET
+    601px → 1024px
+    ========================================================= */
+
+    @media screen and (max-width: 1024px) {
+
+        .gw-section2 {
+            padding: 28px;
+        }
+
+        .gw-section2 .gw-content {
+            max-width: 900px;
+        }
+
+        .gw-gallery {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .gw-gallery-item {
+            height: 340px;
+            border-radius: 20px;
+        }
+
+        .gw-imagenes {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+
+    /* =========================================================
+    MÓVIL
+    0px → 600px
+    ========================================================= */
+
+    @media screen and (max-width: 600px) {
+
+        .gw-section2 {
+            padding: 24px 0;
+        }
+
+        .gw-section2 .gw-content {
+            width: 100%;
+            max-width: none;
+        }
+
+        .gw-gallery {
+            display: flex;
+            gap: 12px;
+
+            width: 100%;
+
+            overflow-x: auto;
+            overflow-y: hidden;
+
+            padding: 0 20px 8px;
+
+            box-sizing: border-box;
+
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .gw-gallery::-webkit-scrollbar {
+            display: none;
+        }
+
+        /*
+        * Cada tarjeta ocupa casi toda la pantalla
+        */
+        .gw-gallery-item {
+            flex: 0 0 calc(100vw - 56px);
+
+            width: calc(100vw - 56px);
+            height: 300px;
+
+            border-radius: 20px;
+
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+        }
+
+        .gw-imagenes {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+
+    /* =========================================================
+    SECCION 3 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section3 {
+        display: block;
+        width: 100%;
+        padding: 64px 32px;
+        box-sizing: border-box; 
+        background-color: rgb(255, 255, 255);
+        color: rgb(0, 66, 87);
+    }
+
+    .gw-section3 .gw-content {
+        display: block;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .gw-section3-header {
+        display: block;
+        width: 100%;
+        margin: 0 0 32px 0;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .gw-section3-header h2 {
+        display: block;
+        width: 100%;
+        margin: 0 0 8px 0;
+        box-sizing: border-box;
+        color: rgb(0, 78, 89);
+        font-family: Sunset, Georgia, serif;
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 44px;
+        text-align: center;
+    }
+
+    .gw-section3-header p {
+        display: block;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        color: rgb(97, 117, 87);
+        font-size: 18px;
+        line-height: 28px;
+        text-align: center;
+    }
+
+    .gw-benefits {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gw-benefit {
+        display: block;
+        width: 100%;
+        padding: 24px;
+        box-sizing: border-box;
+        background-color: rgb(236, 242, 231);
+        border-radius: 24px;
+        box-shadow: 0 4px 12px rgba(0, 66, 87, 0.08);
+    }
+
+    .gw-benefit-icon {
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 0 0 16px 0;
+        box-sizing: border-box;
+        color: rgb(74, 139, 44);
+    }
+
+    .gw-benefit h3 {
+        display: block;
+        width: 100%;
+        margin: 0 0 12px 0;
+        box-sizing: border-box;
+        color: rgb(0, 66, 87);
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 28px;
+    }
+
+    .gw-benefit p {
+        display: block;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        color: rgb(0, 66, 87);
+        font-size: 17px;
+        line-height: 26px;
+    }
+
+    /* =========================================
+   TABLET
+   ========================================= */
+
+    @media (max-width: 900px) {
+
+        .gw-section3 {
+            padding: 56px 24px;
+        }
+
+        .gw-section3 .gw-content {
+            max-width: 760px;
+        }
+
+        .gw-section3-header {
+            margin-bottom: 28px;
+        }
+
+        .gw-section3-header h2 {
+            font-size: 36px;
+            line-height: 42px;
+        }
+
+        .gw-section3-header p {
+            font-size: 17px;
+            line-height: 26px;
+        }
+
+        .gw-benefits {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .gw-benefit {
+            padding: 22px;
+            border-radius: 22px;
+        }
+
+        .gw-benefit-icon {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 14px;
+        }
+
+        .gw-benefit h3 {
+            font-size: 19px;
+            line-height: 26px;
+            margin-bottom: 10px;
+        }
+
+        .gw-benefit p {
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
+
+    /* =========================================
+    MÓVIL
+    ========================================= */
+
+    @media (max-width: 600px) {
+
+        .gw-section3 {
+            padding: 48px 16px;
+        }
+
+        .gw-section3 .gw-content {
+            max-width: 100%;
+        }
+
+        .gw-section3-header {
+            margin-bottom: 24px;
+        }
+
+        .gw-section3-header h2 {
+            font-size: 32px;
+            line-height: 38px;
+            margin-bottom: 6px;
+        }
+
+        .gw-section3-header p {
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        .gw-benefits {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .gw-benefit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .gw-benefit-icon {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 12px;
+        }
+
+        .gw-benefit h3 {
+            font-size: 19px;
+            line-height: 25px;
+            margin-bottom: 8px;
+        }
+
+        .gw-benefit p {
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
+    /* =========================================================
+    SECCION 4 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section4 {
+        display: block;
+        width: 100%;
+        padding: 80px 32px;
+        box-sizing: border-box;
+        background-color: hsl(206 72% 76%);
+        color: rgb(0, 66, 87);
+    }
+
+    .gw-section4 .gw-content {
+        display: block;
+        width: 100%;
+        max-width: 836px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .gw-section4-header {
+        display: block;
+        width: 100%;
+        margin: 0 0 32px 0;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .gw-section4-header h2 {
+        display: block;
+        width: 100%;
+        margin: 0 0 8px 0;
+        box-sizing: border-box;
+        color: rgb(0, 78, 89);
+        font-family: Sunset, Georgia, serif;
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 44px;
+        text-align: center;
+    }
+
+    .gw-section4-header p {
+        display: block;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        color: rgb(97, 117, 87);
+        font-size: 18px;
+        line-height: 28px;
+        text-align: center;
+    }
+
+    .gw-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gw-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gw-step-number {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        box-sizing: border-box;
+        border-radius: 50%;
+        background-color: rgb(74, 139, 44);
+        color: rgb(255, 255, 255);
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .gw-step-content {
+        display: block;
+        flex: 1;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gw-step-content h3 {
+        display: block;
+        width: 100%;
+        margin: 0 0 8px 0;
+        box-sizing: border-box;
+        color: rgb(0, 66, 87);
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 28px;
+    }
+
+    .gw-step-content p {
+        display: block;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        color: rgb(0, 66, 87);
+        font-size: 17px;
+        line-height: 26px;
+    }
+
+    .gw-section4-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin: 32px 0 0 0;
+        box-sizing: border-box;
+    }
+
+    .gw-section4 .gw-link-dark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: auto;
+        min-height: 44px;
+        padding: 8px 32px;
+        box-sizing: border-box;
+        background-color: rgb(0, 78, 89);
+        border-radius: 9999px;
+        color: rgb(255, 255, 255);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        white-space: nowrap;
+    }
+
+    /* =========================================
+   TABLET
+   ========================================= */
+    @media (max-width: 1024px) {
+
+        .gw-section4 {
+            padding: 70px 30px;
+        }
+
+        .gw-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .gw-section4-header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .gw-section4-header h2 {
+            font-size: 42px;
+            line-height: 1.15;
+            margin-bottom: 12px;
+        }
+
+        .gw-section4-header p {
+            font-size: 20px;
+            line-height: 1.4;
+        }
+
+        .gw-steps {
+            gap: 30px;
+        }
+
+        .gw-step {
+            gap: 20px;
+        }
+
+        .gw-step-number {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            font-size: 22px;
+        }
+
+        .gw-step-content h3 {
+            font-size: 22px;
+            line-height: 1.25;
+            margin-bottom: 8px;
+        }
+
+        .gw-step-content p {
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .gw-section4-button {
+            margin-top: 45px;
+            text-align: center;
+        }
+
+        .gw-link {
+            font-size: 17px;
+            padding: 15px 25px;
+        }
+
+    }
+
+    /* =========================================
+   MÓVIL
+   ========================================= */
+    @media (max-width: 767px) {
+
+        .gw-section4 {
+            padding: 50px 20px;
+        }
+
+        .gw-content {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .gw-section4-header {
+            margin-bottom: 35px;
+        }
+
+        .gw-section4-header h2 {
+            font-size: 32px;
+            line-height: 1.15;
+            margin-bottom: 8px;
+        }
+
+        .gw-section4-header p {
+            font-size: 17px;
+            line-height: 1.4;
+        }
+
+        .gw-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .gw-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .gw-step-number {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            font-size: 18px;
+        }
+
+        .gw-step-content {
+            flex: 1;
+        }
+
+        .gw-step-content h3 {
+            font-size: 19px;
+            line-height: 1.3;
+            margin: 0 0 6px;
+        }
+
+        .gw-step-content p {
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .gw-section4-button {
+            margin-top: 35px;
+        }
+
+        .gw-link {
+            width: 100%;
+            justify-content: center;
+            font-size: 16px;
+            padding: 14px 20px;
+        }
+
+        .gw-link svg {
+            width: 21px;
+            height: 21px;
+        }
+
+    }
+
+    /* =========================================================
+    SECCION 5 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section5 {
+        width: 100%;
+        padding: 80px 32px;
+        box-sizing: border-box;
+
+        background-color: white;
+        color: rgb(0, 66, 87);
+    }
+
+    .gw-section5-inner {
+        width: 100%;
+        max-width: 836px;
+        margin: 0 auto;
+    }
+
+    .gw-section5 h2 {
+        margin: 0 0 48px;
+
+        color: rgb(0, 78, 89);
+        font-family: Sunset, Georgia, serif;
+        font-size: 48px;
+        line-height: 48px;
+        text-align: center;
+    }
+
+    .gw-faq {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .gw-faq-item {
+        width: 100%;
+        padding: 28px 32px;
+        box-sizing: border-box;
+
+        background-color: rgb(236, 242, 231);
+        border-radius: 24px;
+    }
+
+    .gw-faq-item h3 {
+        margin: 0 0 12px;
+
+        color: rgb(0, 66, 87);
+        font-size: 21px;
+        line-height: 28px;
+        font-weight: 600;
+    }
+
+    .gw-faq-item p {
+        margin: 0;
+        color: rgb(0, 66, 87);
+        font-size: 17px;
+        line-height: 26px;
+    }
+
+    /* =========================================
+   TABLET
+   1024px o menos
+   ========================================= */
+
+    @media (max-width: 1024px) {
+
+        .gw-section5 {
+            padding: 70px 28px;
+        }
+
+        .gw-section5-inner {
+            max-width: 760px;
+        }
+
+        .gw-section5 h2 {
+            margin-bottom: 40px;
+            font-size: 42px;
+            line-height: 44px;
+        }
+
+        .gw-faq {
+            gap: 14px;
+        }
+
+        .gw-faq-item {
+            padding: 24px 28px;
+            border-radius: 20px;
+        }
+
+        .gw-faq-item h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+            line-height: 27px;
+        }
+
+        .gw-faq-item p {
+            font-size: 16px;
+            line-height: 25px;
+        }
+    }
+
+
+    /* =========================================
+    MÓVIL
+    767px o menos
+    ========================================= */
+
+    @media (max-width: 767px) {
+
+        .gw-section5 {
+            padding: 55px 20px;
+        }
+
+        .gw-section5-inner {
+            max-width: 100%;
+        }
+
+        .gw-section5 h2 {
+            margin-bottom: 32px;
+            font-size: 32px;
+            line-height: 38px;
+        }
+
+        .gw-faq {
+            gap: 12px;
+        }
+
+        .gw-faq-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 20px;
+            text-align: center;
+            padding: 22px 20px;
+        }
+
+        .gw-faq-item h3 {
+            margin-bottom: 9px;
+            font-size: 18px;
+            line-height: 24px;
+        }
+
+        .gw-faq-item p {
+            font-size: 15px;
+            line-height: 23px;
+            text-align: justify;
+        }
+    }
+
+    /* =========================================================
+    SECCION 6 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section6 {
+        display: block;
+        width: 100%;
+        padding: 35px 32px;
+        box-sizing: border-box;
+        background-color: rgb(255, 255, 255);
+        color: rgb(0, 66, 87);
+    }
+
+    .gw-section6 .gw-content {
+        display: block;
+        width: 100%;
+        max-width: 836px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .gw-section6 .gw-content p {
+        display: block;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        color: rgb(97, 117, 87);
+        font-size: 14px;
+        line-height: 20px;
+        text-align: center;
+    }
+
+    /* =========================================================
+    SECCION 7 DESKTOP
+    769px → 1024px
+    ========================================================= */
+
+    .gw-section7 {
+        padding: 64px 32px;
+        box-sizing: border-box;
+        background-color: rgb(74 139 44);
+        color: white;
+        text-align: center;
+    }
+
+    .gw-section7-content {
+        width: 100%;
+        max-width: 836px;
+        margin: 0 auto;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .gw-section7 h2 {
+        margin: 0 0 24px 0;
+        color: white;
+        font-family: Sunset, Georgia, serif;
+        font-size: 36px;
+        line-height: 48px;
+        text-align: center;
+    }
+
+    .gw-section7 p {
+        margin: 0 0 32px 0;
+
+        color: white;
+        font-size: 20px;
+        line-height: 32px;
+        text-align: center;
+    }
+
+    .gw-section7 .gw-link {
+        background-color: white;
+        color: rgb(74 139 44);
+    }
