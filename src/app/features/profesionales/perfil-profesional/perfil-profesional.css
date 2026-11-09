@@ -192,8 +192,8 @@
   height: 16px;
 }
 .profile-follow-btn--active:not(:disabled):hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: #465365;
+  color: #ffffff !important;
 }
 .follow-label-default{
   color:rgb(146, 64, 14);
@@ -665,8 +665,9 @@ margin-top: 24px;
 
 .tarjeta12--active {
   order: 2;
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid #ffdf82;
 }
 
 .tarjeta13 {
@@ -727,7 +728,13 @@ margin-top: 24px;
 .tarjeta17,
 .tarjeta17-full,
 .tarjeta17-short {
-  color: #ffffff;
+  color: inherit;
+}
+
+.tarjeta15--primary .tarjeta17,
+.tarjeta15--primary .tarjeta17-full,
+.tarjeta15--primary .tarjeta17-short {
+  color: #004e59;
 }
 .tarjeta17full--primary{
 color:rgb(255, 255, 255);
@@ -1001,7 +1008,6 @@ height: 16px;
     padding: 10px 20px;
   }
 }
-
 .profile-appointment-btn {
   display: inline-flex;
   align-items: center;
@@ -1024,4 +1030,11 @@ height: 16px;
 .profile-appointment-intro { margin: 0 0 20px; }
 @media (max-width: 620px) {
   .profile-appointment-btn { width: 100%; }
+}
+
+.tarjeta12--active,
+.tarjeta12--active .tarjeta13,
+.tarjeta12--active .tarjeta13-full,
+.tarjeta12--active .tarjeta13-short {
+  color: #ffffff !important;
 }
