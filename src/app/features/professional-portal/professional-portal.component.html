@@ -53,6 +53,9 @@
       <button title="Reservas" [class.active]="section() === 'reservations'" (click)="show('reservations')">
         <svg lucideUsers aria-hidden="true"></svg><span class="nav-label">Reservas</span>
       </button>
+      <button title="Notificaciones" [class.active]="section() === 'notifications'" (click)="show('notifications')">
+        <svg lucideBell aria-hidden="true"></svg><span class="nav-label">Notificaciones ({{ notificationsService.unreadCount() }})</span>
+      </button>
     </nav>
     <div class="portal__sidebar-footer">
       <a href="/" title="Ver sitio publico">
@@ -75,7 +78,9 @@
     @if (loading()) {
       <section class="portal__content"><div class="loading-block"></div><div class="loading-block"></div></section>
     } @else if (section() === 'reservations') {
-      <app-professional-reservations (changed)="refreshBookingAvailability()" />
+      <app-professional-reservations [openCode]="requestedBooking()" (changed)="refreshBookingAvailability()" />
+    } @else if (section() === 'notifications') {
+      <app-notifications-inbox />
     } @else if (section() === 'summary') {
       <section class="portal__content">
         <div class="page-heading">
@@ -483,13 +488,6 @@
                   <div class="segmented-control" aria-label="Modalidad del evento">
                     <button type="button" [class.active]="eventForm.modality === 'ONLINE'" (click)="setEventModality('ONLINE')">Online</button>
                     <button type="button" [class.active]="eventForm.modality === 'PRESENCIAL'" (click)="setEventModality('PRESENCIAL')">Presencial</button>
-                  </div>
-                </div>
-                <div class="form-control wide">
-                  <span class="form-label">Método de Pago</span>
-                  <div class="segmented-control" aria-label="Método de pago del evento">
-                    <button type="button" [class.active]="eventForm.paymentMethod === 'WHATSAPP'" (click)="eventForm.paymentMethod = 'WHATSAPP'">Contacto por WhatsApp</button>
-                    <button type="button" [class.active]="eventForm.paymentMethod === 'ONLINE'" (click)="eventForm.paymentMethod = 'ONLINE'">Reserva Online</button>
                   </div>
                 </div>
                 <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>

@@ -81,6 +81,15 @@
         <span class="nav-label">Sorteos</span>
       </button>
 
+      <button
+        title="Reservas"
+        [class.active]="section() === 'bookings'"
+        (click)="show('bookings')"
+      >
+        <svg lucideCalendarCheck aria-hidden="true"></svg>
+        <span class="nav-label">Reservas</span>
+      </button>
+
     </nav>
 
     <button
@@ -118,7 +127,9 @@
                   ? 'Catálogos de eventos'
                   : section() === 'campaigns'
                     ? 'Sorteos y campañas'
-                    : 'Solicitudes profesionales'
+                    : section() === 'bookings'
+                      ? 'Reservas y pagos'
+                      : 'Solicitudes profesionales'
           }}
         </strong>
       </div>
@@ -1359,6 +1370,10 @@
 
     @else if (section() === 'campaigns') {
       <app-admin-campaigns />
+    }
+
+    @else if (section() === 'bookings') {
+      <app-admin-bookings />
     }
 
   </main>

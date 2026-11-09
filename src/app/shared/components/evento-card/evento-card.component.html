@@ -34,6 +34,7 @@
 
     <app-event-travel [occurrenceId]="evento().occurrenceId" [modality]="evento().modality" />
     <h2>{{ evento().title }}</h2>
+    <app-booking-indicator [eventId]="evento().id" />
 
     <div class="card-author">
       <div class="author">

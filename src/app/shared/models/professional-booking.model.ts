@@ -1,14 +1,14 @@
 import { SpringPage } from './evento.model';
 
-export type BookingStatus = 'PENDIENTE' | 'CONFIRMADA' | 'CANCELADA' | 'LISTA_ESPERA' | 'COMPLETADA' | 'NO_ASISTIO';
+export type BookingStatus = 'PENDIENTE' | 'ACEPTADA' | 'CONFIRMADA' | 'CANCELADA' | 'LISTA_ESPERA' | 'COMPLETADA' | 'NO_ASISTIO';
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  PENDIENTE: 'Pendiente', CONFIRMADA: 'Confirmada', CANCELADA: 'Rechazada / cancelada',
+  PENDIENTE: 'Pendiente', ACEPTADA: 'Aceptada, pendiente de pago', CONFIRMADA: 'Confirmada y pagada', CANCELADA: 'Rechazada / cancelada',
   LISTA_ESPERA: 'Lista de espera', COMPLETADA: 'Completada', NO_ASISTIO: 'No asistió',
 };
 export interface ProfessionalBooking {
   code: string; customerName: string; eventId: number; eventTitle: string;
   occurrenceId: number; occurrenceStartsAt: string; quantity: number; totalAmount: number;
-  currency: string; status: BookingStatus; createdAt: string;
+  currency: string; status: BookingStatus; createdAt: string; paymentDeadline?: string | null;
 }
 export interface BookingHistory {
   previousStatus: string; newStatus: string; changedBy: string | null; reason: string | null; createdAt: string;

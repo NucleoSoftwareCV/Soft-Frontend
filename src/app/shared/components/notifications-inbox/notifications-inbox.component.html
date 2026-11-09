@@ -1,0 +1,50 @@
+<section class="inbox" aria-labelledby="inbox-title">
+  <header>
+    <h2 id="inbox-title">Notificaciones</h2>
+    @if (unread() > 0) {
+      <button type="button" class="inbox-link" (click)="markAllRead()">Marcar todas como leídas</button>
+    }
+  </header>
+
+  @if (loading() && !page()) {
+    <p class="inbox-state" aria-live="polite">Cargando notificaciones…</p>
+  } @else if (error()) {
+    <div class="inbox-state" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" class="inbox-link" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (page(); as result) {
+    @if (result.content.length === 0) {
+      <p class="inbox-state">Aún no tienes notificaciones. Aquí verás los cambios de tus reservas.</p>
+    } @else {
+      <ul>
+        @for (item of result.content; track item.id) {
+          <li [class.unread]="!item.read">
+            <div class="inbox-meta">
+              <span class="inbox-type">{{ typeLabels[item.type] }}</span>
+              @if (!item.read) {
+                <span class="inbox-new">Nueva</span>
+              }
+              <time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</time>
+            </div>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.message }}</p>
+            @if (item.eventTitle) {
+              <small>{{ item.eventTitle }}</small>
+            }
+            @if (item.bookingCode && item.actionLabel) {
+              <button type="button" class="inbox-action" (click)="open(item)">{{ item.actionLabel }}</button>
+            }
+          </li>
+        }
+      </ul>
+      @if (result.totalPages > 1) {
+        <nav aria-label="Páginas de notificaciones">
+          <button type="button" class="inbox-link" [disabled]="result.number === 0" (click)="load(result.number - 1)">Anterior</button>
+          <span>Página {{ result.number + 1 }} de {{ result.totalPages }}</span>
+          <button type="button" class="inbox-link" [disabled]="result.number + 1 >= result.totalPages" (click)="load(result.number + 1)">Siguiente</button>
+        </nav>
+      }
+    }
+  }
+</section>

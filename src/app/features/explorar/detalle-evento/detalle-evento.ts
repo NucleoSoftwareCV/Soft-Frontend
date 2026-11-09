@@ -10,19 +10,22 @@ import { ProfessionalFollowService } from '../../../services/professional-follow
 import { EventCardResponse, EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
-import { CheckoutService } from '../../../services/checkout.service';
+import { CheckoutService, MyBooking } from '../../../services/checkout.service';
+import { MyBookingsStore } from '../../../services/my-bookings.store';
+import { NotificationsService } from '../../../services/notifications.service';
+import { BookingIndicatorComponent } from '../../../shared/components/booking-indicator/booking-indicator.component';
+import { BookingPaymentDialogComponent } from '../../../shared/components/booking-payment-dialog/booking-payment-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
 import { CampaniaBadgeComponent } from '../../../shared/components/campania-badge/campania-badge.component';
-import { CampaignEntrySummary } from '../../../shared/models/campania.model';
 import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [EventTravelComponent, CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent, CampaniaBadgeComponent],
+  imports: [BookingIndicatorComponent, BookingPaymentDialogComponent, EventTravelComponent, CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent, CampaniaBadgeComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -35,6 +38,8 @@ export class DetalleEvento implements OnDestroy{
   private readonly authService = inject(AuthService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
+  private readonly myBookings = inject(MyBookingsStore);
+  private readonly notifications = inject(NotificationsService);
   private readonly platformId = inject(PLATFORM_ID);
   private carouselInterval?: ReturnType<typeof setInterval>;
 
@@ -63,7 +68,7 @@ export class DetalleEvento implements OnDestroy{
 
   // Reserva y Checkout
   showBookingModal = signal(false);
-  bookingStep = signal(1); // 1: Datos de asistentes, 2: Pago online, 3: Éxito
+  bookingStep = signal(1); // 1: Datos de asistentes, 3: Solicitud enviada
   selectedOccurrence = signal<EventOccurrenceResponse | null>(null);
   numPlazas = signal(1);
   
@@ -77,29 +82,19 @@ export class DetalleEvento implements OnDestroy{
   asistentesAdicionales = signal<{ name: string; lastName: string; email: string }[]>([]);
   yoTambienAsisto = signal(true);
 
-  // Descuento
-  tieneCodigoDescuento = signal(false);
-  codigoDescuento = signal('');
-  codigoAplicado = signal(false);
-  mensajeDescuento = signal<string | null>(null);
-
-  // Datos de pago
-  paymentMethod = signal<'TARJETA' | 'YAPE'>('TARJETA');
-  cardNumber = signal('');
-  cardExpiration = signal('');
-  cardCvv = signal('');
-  cardHolderName = signal('');
-  yapePhone = signal('');
-  yapeOtp = signal('');
-
   // Estados de carga y error local
   bookingLoading = signal(false);
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
-  /** Participaciones en sorteos generadas por el pago aprobado. */
-  campaignEntries = signal<CampaignEntrySummary[]>([]);
   /** Campaña abierta en la que participa el evento (si hay varias, la primera). */
   readonly campaignBadge = computed(() => this.evento()?.campaignBadges?.[0] ?? null);
+  /** Reserva activa del cliente en la fecha elegida: una fecha admite una sola. */
+  readonly selectedBooking = computed(() => {
+    const occurrence = this.selectedOccurrence();
+    return occurrence ? this.myBookings.forOccurrence(occurrence.id) : null;
+  });
+  /** Reserva aceptada que se está pagando. */
+  readonly paymentBooking = signal<MyBooking | null>(null);
 
   private galleryImages(): string[] {
     const images = this.evento()?.images ?? [];
@@ -646,6 +641,34 @@ export class DetalleEvento implements OnDestroy{
     this.selectedOccurrence.set(occurrence);
   }
 
+  bookingActionDisabled(): boolean {
+    return !this.selectedBooking() && !this.isOccurrenceBookable(this.selectedOccurrence());
+  }
+
+  bookingActionLabel(): string {
+    const booking = this.selectedBooking();
+    if (booking) {
+      return booking.status === 'ACEPTADA' ? 'Completar pago' : 'Ver mi reserva';
+    }
+    return this.occurrenceUnavailableLabel(this.selectedOccurrence()) ?? `Solicitar reserva - ${this.formatPrice()}`;
+  }
+
+  bookingAction(): void {
+    const booking = this.selectedBooking();
+    if (!booking) {
+      this.abrirReserva();
+    } else if (booking.status === 'ACEPTADA') {
+      this.paymentBooking.set(booking);
+    } else {
+      void this.router.navigate(['/perfil'], { queryParams: { tab: 'reservas', reserva: booking.code } });
+    }
+  }
+
+  onBookingPaid(): void {
+    this.myBookings.refresh();
+    this.notifications.refreshUnread();
+  }
+
   abrirReserva(): void {
     if (!this.authService.isLoggedIn) {
       void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
@@ -657,14 +680,9 @@ export class DetalleEvento implements OnDestroy{
 
     this.bookingError.set(null);
     this.bookingLoading.set(false);
-    this.campaignEntries.set([]);
     this.bookingStep.set(1);
     this.numPlazas.set(1);
     this.yoTambienAsisto.set(true);
-    this.tieneCodigoDescuento.set(false);
-    this.codigoDescuento.set('');
-    this.codigoAplicado.set(false);
-    this.mensajeDescuento.set(null);
     this.asistentesAdicionales.set([]);
     this.recalcularAsistentes();
     
@@ -674,14 +692,6 @@ export class DetalleEvento implements OnDestroy{
     this.compradorEmail.set(user?.email ?? '');
     this.compradorTelefono.set('');
 
-    // Reset payment data
-    this.paymentMethod.set('TARJETA');
-    this.cardNumber.set('');
-    this.cardExpiration.set('');
-    this.cardCvv.set('');
-    this.cardHolderName.set(user?.username ?? '');
-    this.yapePhone.set('');
-    this.yapeOtp.set('');
     this.createdOrderCode.set(null);
 
     this.showBookingModal.set(true);
@@ -721,40 +731,9 @@ export class DetalleEvento implements OnDestroy{
     this.recalcularAsistentes();
   }
 
-  aplicarCodigoDescuento(): void {
-    const codigo = this.codigoDescuento().trim().toUpperCase();
-    if (!codigo) {
-      this.mensajeDescuento.set(null);
-      this.codigoAplicado.set(false);
-      return;
-    }
-    if (codigo === 'DESCUENTO10') {
-      this.codigoAplicado.set(true);
-      this.mensajeDescuento.set('Código DESCUENTO10 aplicado correctamente.');
-    } else {
-      this.codigoAplicado.set(false);
-      this.mensajeDescuento.set('Código de descuento inválido.');
-    }
-  }
-
   formatTotalPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-    let base = event.priceFrom * this.numPlazas();
-    if (this.codigoAplicado()) {
-      base = base * 0.9; // 10% discount
-    }
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
-  }
-
-  formatTotalBeforeDiscount(): string {
-    const event = this.evento();
-    if (!event || event.priceFrom === null || event.priceFrom === undefined) return '';
     const base = event.priceFrom * this.numPlazas();
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -762,58 +741,6 @@ export class DetalleEvento implements OnDestroy{
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(base);
-  }
-
-  onCardNumberInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 16) val = val.substring(0, 16);
-    const matches = val.match(/\d{1,4}/g);
-    const formatted = matches ? matches.join(' ') : '';
-    this.cardNumber.set(formatted);
-    input.value = formatted;
-  }
-
-  onCardExpirationInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 4) val = val.substring(0, 4);
-    if (val.length > 2) {
-      val = val.substring(0, 2) + '/' + val.substring(2);
-    }
-    this.cardExpiration.set(val);
-    input.value = val;
-  }
-
-  onCardCvvInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 4) val = val.substring(0, 4);
-    this.cardCvv.set(val);
-    input.value = val;
-  }
-
-  onCardHolderNameInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/[^a-zA-Z\s]/g, '');
-    this.cardHolderName.set(val);
-    input.value = val;
-  }
-
-  onYapePhoneInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 9) val = val.substring(0, 9);
-    this.yapePhone.set(val);
-    input.value = val;
-  }
-
-  onYapeOtpInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 6) val = val.substring(0, 6);
-    this.yapeOtp.set(val);
-    input.value = val;
   }
 
   confirmarReserva(): void {
@@ -858,103 +785,8 @@ export class DetalleEvento implements OnDestroy{
         ]
       : adicionales;
 
-    if (event.paymentMethod === 'WHATSAPP') {
-      this.bookingLoading.set(true);
-      const requestPayload = {
-        items: [
-          {
-            referenceId: occurrence.id,
-            itemType: 'EVENTO' as const,
-            quantity: this.numPlazas(),
-            attendees: attendeesPayload
-          }
-        ],
-        billingName: this.compradorNombre()
-      };
-
-      this.checkoutService.createOrder(requestPayload).subscribe({
-        next: order => {
-          this.checkoutService.getWhatsAppLink(order.code).subscribe({
-            next: redirect => {
-              this.bookingLoading.set(false);
-              this.createdOrderCode.set(order.code);
-              this.bookingStep.set(3); // success screen
-              if (redirect.redirectUrl) {
-                window.open(redirect.redirectUrl, '_blank');
-              }
-            },
-            error: () => {
-              this.bookingLoading.set(false);
-              this.bookingError.set('No se pudo generar el enlace de WhatsApp.');
-            }
-          });
-        },
-        error: error => {
-          this.bookingLoading.set(false);
-          this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
-        }
-      });
-    } else {
-      if (this.bookingStep() === 1) {
-        this.bookingStep.set(2);
-      }
-    }
-  }
-
-  realizarPagoOnline(): void {
-    const occurrence = this.selectedOccurrence();
-    if (!occurrence) return;
-
-    if (this.paymentMethod() === 'TARJETA') {
-      const cleanCard = this.cardNumber().replace(/\s/g, '');
-      if (cleanCard.length < 15 || cleanCard.length > 16) {
-        this.bookingError.set('El número de tarjeta debe tener 15 o 16 dígitos.');
-        return;
-      }
-      if (!/^\d{2}\/\d{2}$/.test(this.cardExpiration())) {
-        this.bookingError.set('La fecha de expiración debe tener el formato MM/AA.');
-        return;
-      }
-      const month = parseInt(this.cardExpiration().substring(0, 2), 10);
-      if (month < 1 || month > 12) {
-        this.bookingError.set('El mes de expiración no es válido (debe ser de 01 a 12).');
-        return;
-      }
-      if (this.cardCvv().length < 3 || this.cardCvv().length > 4) {
-        this.bookingError.set('El CVV debe tener 3 o 4 dígitos.');
-        return;
-      }
-      if (!this.cardHolderName().trim()) {
-        this.bookingError.set('Por favor, indica el nombre del titular.');
-        return;
-      }
-    } else {
-      if (this.yapePhone().length !== 9) {
-        this.bookingError.set('El número de celular de Yape debe tener exactamente 9 dígitos.');
-        return;
-      }
-      if (this.yapeOtp().length !== 6) {
-        this.bookingError.set('El código de aprobación de Yape debe tener exactamente 6 dígitos.');
-        return;
-      }
-    }
-
     this.bookingLoading.set(true);
-    this.bookingError.set(null);
-
-    const adicionales = this.asistentesAdicionales();
-    const attendeesPayload = this.yoTambienAsisto()
-      ? [
-          {
-            name: this.compradorNombre(),
-            lastName: this.compradorApellido(),
-            email: this.compradorEmail()
-          },
-          ...adicionales
-        ]
-      : adicionales;
-
-    const orderRequest = {
+    this.checkoutService.createOrder({
       items: [
         {
           referenceId: occurrence.id,
@@ -964,47 +796,19 @@ export class DetalleEvento implements OnDestroy{
         }
       ],
       billingName: this.compradorNombre()
-    };
-
-    this.checkoutService.createOrder(orderRequest).subscribe({
+    }).subscribe({
       next: order => {
-        const paymentPayload = this.paymentMethod() === 'TARJETA' 
-          ? {
-              method: 'TARJETA' as const,
-              cardNumber: this.cardNumber(),
-              cardExpiration: this.cardExpiration(),
-              cardCvv: this.cardCvv(),
-              cardHolderName: this.cardHolderName() || this.compradorNombre()
-            }
-          : {
-              method: 'YAPE' as const,
-              yapePhone: this.yapePhone(),
-              yapeOtp: this.yapeOtp()
-            };
-
-        this.checkoutService.processPayment(order.code, paymentPayload).subscribe({
-          next: payResult => {
-            this.bookingLoading.set(false);
-            if (payResult.status === 'APROBADO') {
-              this.createdOrderCode.set(order.code);
-              this.campaignEntries.set(payResult.campaignEntries ?? []);
-              this.bookingStep.set(3); // Éxito
-              
-              occurrence.reservedSpots += this.numPlazas();
-              occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
-            } else {
-              this.bookingError.set(payResult.errorMessage || 'El pago fue rechazado. Revisa tus fondos o tarjeta.');
-            }
-          },
-          error: error => {
-            this.bookingLoading.set(false);
-            this.bookingError.set(error.error?.message || 'Error procesando el pago. Inténtalo de nuevo.');
-          }
-        });
+        this.bookingLoading.set(false);
+        this.createdOrderCode.set(order.code);
+        this.bookingStep.set(3);
+        occurrence.reservedSpots += this.numPlazas();
+        occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
+        this.myBookings.refresh();
+        this.notifications.refreshUnread();
       },
       error: error => {
         this.bookingLoading.set(false);
-        this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
+        this.bookingError.set(error.error?.detail || error.error?.message || 'No se pudo enviar la solicitud.');
       }
     });
   }

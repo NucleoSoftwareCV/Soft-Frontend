@@ -74,7 +74,6 @@ export interface EventUpsertRequest {
   minimumAge?: number | null;
   featured: boolean;
   categoryId: number;
-  paymentMethod: 'WHATSAPP' | 'ONLINE';
   experienceTypeId: number;
   specialistId: number;
 }

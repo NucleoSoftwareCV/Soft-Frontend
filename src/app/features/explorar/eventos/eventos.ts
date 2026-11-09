@@ -16,6 +16,7 @@ import { EventosService } from '../../../services/eventos.service';
 import { CampaniasService } from '../../../services/campanias.service';
 import { CampaignSummary } from '../../../shared/models/campania.model';
 import { CampaniaBadgeComponent } from '../../../shared/components/campania-badge/campania-badge.component';
+import { BookingIndicatorComponent } from '../../../shared/components/booking-indicator/booking-indicator.component';
 import { FiltrosService } from '../../../services/filtros.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -55,7 +56,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent, CampaniaBadgeComponent],
+  imports: [EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent, CampaniaBadgeComponent, BookingIndicatorComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
