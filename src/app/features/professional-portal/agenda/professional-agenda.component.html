@@ -1,0 +1,109 @@
+<section class="appointment" aria-labelledby="agenda-title">
+  <h1 id="agenda-title">Agenda de citas</h1><p>Configura tus horarios y revisa las solicitudes individuales. Hora de Perú.</p>
+  @if (error()) { <p class="notice notice--error" role="alert">{{ error() }}</p> }
+  @if (message()) { <p class="notice" role="status">{{ message() }}</p> }
+  <details><summary>Configurar disponibilidad semanal</summary>
+    <p>La duración de cada cita se toma del servicio publicado. Añade franjas separadas para dejar descansos.</p>
+    <form (ngSubmit)="saveRule()"><fieldset [disabled]="saving()">
+      <div class="form-grid">
+        <label>Día<select name="day" [(ngModel)]="day">@for (label of days; track $index) { <option [ngValue]="$index + 1">{{ label }}</option> }</select></label>
+        <label>Modalidad y sede<select name="venue" [(ngModel)]="locationId"><option [ngValue]="null">Videollamada</option>
+          @for (venue of venues(); track venue.id) { <option [ngValue]="venue.id">Presencial · {{ venue.name }}</option> }
+        </select></label>
+        <label>Desde<input type="time" name="start" required [(ngModel)]="start"></label>
+        <label>Hasta<input type="time" name="end" required [(ngModel)]="end"></label>
+        <label>Válida desde<input type="date" name="from" required [(ngModel)]="validFrom"></label>
+        <label>Válida hasta (opcional)<input type="date" name="until" [min]="validFrom" [(ngModel)]="validUntil"></label>
+      </div><button type="submit" class="primary">{{ saving() ? 'Guardando...' : 'Añadir franja' }}</button>
+    </fieldset></form>
+    <ul class="rule-list">@for (rule of rules(); track rule.id) {
+      <li><div><strong>{{ days[rule.dayOfWeek - 1] }} · {{ rule.startTime.slice(0,5) }}–{{ rule.endTime.slice(0,5) }}</strong>
+        <p>{{ rule.venue ? 'Presencial · ' + rule.venue.name : 'Videollamada' }} · Desde {{ rule.validFrom }}{{ rule.validUntil ? ' hasta ' + rule.validUntil : '' }}</p></div>
+        <button type="button" [disabled]="saving()" (click)="removeRule(rule.id)">Eliminar franja</button></li>
+    } @empty { <li>Aún no hay franjas configuradas.</li> }</ul>
+  </details>
+  <app-confirm-dialog [open]="appointmentToCancel() !== null"
+    [title]="appointmentToCancel()?.status === 'PENDIENTE' ? 'Rechazar solicitud' : 'Cancelar cita'"
+    description="El horario quedará disponible para otra solicitud."
+    [confirmLabel]="appointmentToCancel()?.status === 'PENDIENTE' ? 'Rechazar solicitud' : 'Cancelar cita'"
+    reasonLabel="Motivo" [reasonRequired]="true"
+    reasonPlaceholder="Ej. No tendré disponibilidad en ese horario"
+    (confirmed)="confirmCancellation($event)" (cancelled)="appointmentToCancel.set(null)" />
+  <section class="agenda-workspace" aria-labelledby="period-title">
+    <nav class="view-switch" aria-label="Vista de agenda">
+      @for (option of views; track option.key) {
+        <button type="button" [class.selected]="view() === option.key" [attr.aria-pressed]="view() === option.key" (click)="setView(option.key)">{{ option.label }}</button>
+      }
+    </nav>
+    <div class="period-toolbar">
+      <h2 id="period-title">{{ periodLabel() }}</h2>
+      <div class="period-actions">
+        @if (view() !== 'pending') {
+          <button type="button" aria-label="Periodo anterior" (click)="move(-1)">‹</button>
+          <button type="button" aria-label="Periodo siguiente" (click)="move(1)">›</button>
+          <button type="button" (click)="selectDate(validToday())">Hoy</button>
+          <input type="date" aria-label="Fecha de la agenda" [ngModel]="agendaDate()" (ngModelChange)="selectDate($event)">
+        }
+        <button type="button" (click)="loadAgenda()">Actualizar</button>
+      </div>
+    </div>
+    @if (!loading() && !error()) {
+      <div class="agenda-metrics">
+        <div><strong>{{ totals().all }}</strong><span>Solicitudes</span></div>
+        <div><strong>{{ totals().pending }}</strong><span>Pendientes</span></div>
+        <div><strong>{{ totals().confirmed }}</strong><span>Confirmadas</span></div>
+      </div>
+    }
+    <div class="agenda-filters">
+      <label>Buscar<input type="search" placeholder="Servicio, cliente o referencia" [ngModel]="search()" (ngModelChange)="search.set($event)"></label>
+      @if (view() !== 'pending') {
+        <label>Estado<select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <option value="">Todos los estados</option>
+          @for (status of statusLabels | keyvalue; track status.key) {
+            <option [value]="status.key">{{ status.value }}</option>
+          }
+        </select></label>
+      }
+    </div>
+    @if ((view() === 'week' || view() === 'month') && !loading() && !error()) {
+      @let grid = calendar();
+      <div class="calendar-grid" aria-label="Calendario de citas">
+        @for (day of days; track day) { <span class="calendar-weekday">{{ day.slice(0, 3) }}</span> }
+        @for (blank of grid.blanks; track $index) { <span aria-hidden="true"></span> }
+        @for (day of grid.days; track day.date) {
+          <button type="button" class="calendar-day" [class.has-cites]="day.count > 0" [class.is-today]="day.today"
+            [attr.aria-label]="day.label + ', ' + day.count + ' solicitudes'" (click)="selectDate(day.date, true)">
+            <strong>{{ day.number }}</strong>
+            @if (day.count) { <span>{{ day.count }}</span> }
+          </button>
+        }
+      </div>
+    }
+    @if (loading()) { <p role="status">Cargando agenda...</p> }
+    @else { @for (item of visibleAppointments(); track item.id) {
+    <article class="request"><h3>{{ item.title }}</h3><p><strong>{{ item.customerName }}</strong> · <span class="status-badge" [attr.data-status]="item.status">{{ statusLabels[item.status] || item.status }}</span></p>
+      <p>{{ formatDate(item.startsAt) }} – {{ formatDate(item.endsAt) }}</p>
+      <p>{{ item.modality === 'ONLINE' ? 'Videollamada' : 'Presencial · ' + item.venue?.name }} · {{ item.price | currency:item.currency:'symbol':'1.2-2':'es-PE' }}</p>
+      @if (item.status === 'PENDIENTE' && item.expiresAt) {
+        <p class="deadline">Responder antes del {{ formatDate(item.expiresAt) }}</p>
+      }
+      <details class="request-details"><summary>Ver detalles</summary>
+        @if (item.reason) { <p class="reason">{{ item.reason }}</p> }
+        @if (item.status === 'CANCELADA' && item.cancellationReason) {
+          <div class="cancellation-detail">
+            <strong>{{ cancellationActor(item) }}</strong>
+            <p class="reason">{{ item.cancellationReason }}</p>
+            @if (item.cancelledAt) { <small>{{ formatDate(item.cancelledAt) }}</small> }
+          </div>
+        }
+        <p>Referencia {{ item.code }}</p>
+      </details>
+      <div class="choices">
+        @if (item.status === 'PENDIENTE' && canCancel(item)) { <button type="button" class="primary" [disabled]="saving()" (click)="decide(item.id, 'CONFIRMADA')">Aceptar</button><button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Rechazar</button> }
+        @if (item.status === 'CONFIRMADA' && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
+        @if (canComplete(item)) { <button type="button" [disabled]="saving()" (click)="decide(item.id, 'COMPLETADA')">Marcar completada</button> }
+      </div>
+    </article>
+  } @empty { @if (!error()) { <p>{{ search() || statusFilter() ? 'No hay solicitudes que coincidan con los filtros.' : view() === 'pending' ? 'No tienes solicitudes por responder.' : 'No hay solicitudes en este periodo.' }}</p> } } }
+  </section>
+</section>

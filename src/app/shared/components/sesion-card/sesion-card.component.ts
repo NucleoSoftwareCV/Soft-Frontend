@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { OneToOneServiceCardResponse } from '../../models/one-to-one-service.model';
@@ -10,12 +11,16 @@ const FALLBACK_IMAGE =
 @Component({
   selector: 'app-sesion-card',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NgTemplateOutlet],
   templateUrl: './sesion-card.component.html',
   styleUrl: './sesion-card.component.css',
 })
 export class SesionCardComponent {
   readonly sesion = input.required<OneToOneServiceCardResponse>();
+  readonly selectionMode = input(false);
+  readonly selected = input(false);
+  readonly selectionDisabled = input(false);
+  readonly serviceSelected = output<number>();
 
   imageFor(): string {
     return resolveAssetUrl(this.sesion().imageUrl) || FALLBACK_IMAGE;

@@ -1,0 +1,36 @@
+<div class="reschedule-backdrop" role="presentation" (click)="closed.emit()">
+  <section class="reschedule-dialog" role="dialog" aria-modal="true" aria-labelledby="reschedule-title" (click)="$event.stopPropagation()">
+    <header><div><span>GESTIÓN DE CITA</span><h2 id="reschedule-title">Reprogramar cita</h2></div>
+      <button type="button" aria-label="Cerrar" (click)="closed.emit()">×</button></header>
+    <p class="current"><strong>Horario actual</strong><br>{{ formatDate(appointment().startsAt) }} · {{ appointment().professionalName }}</p>
+    @if (error()) { <p class="notice notice--error" role="alert">{{ error() }}</p> }
+    @if (loading()) { <p role="status">Cargando horarios...</p> }
+    @else if (options(); as vm) {
+      <form (ngSubmit)="submit()"><fieldset [disabled]="saving()">
+        <div class="mode-options" aria-label="Modalidad">
+          @for (mode of vm.modalities; track mode) {
+            <button type="button" [class.selected]="modality === mode" (click)="changeModality(mode)">{{ mode === 'ONLINE' ? 'Videollamada' : 'Presencial' }}</button>
+          }
+        </div>
+        @if (modality === 'PRESENCIAL') {
+          <label>Sede<select name="venue" [(ngModel)]="locationId" (ngModelChange)="loadSlots()">
+            @for (venue of vm.venues; track venue.id) { <option [ngValue]="venue.id">{{ venue.name }}</option> }
+          </select></label>
+        }
+        <label>Nueva fecha<input type="date" name="date" required [min]="vm.minDate" [max]="vm.maxDate" [(ngModel)]="date" (ngModelChange)="loadSlots()"></label>
+        @if (loadingSlots()) { <p role="status">Consultando disponibilidad...</p> }
+        @else {
+          <div class="slots" aria-label="Nuevos horarios">
+            @for (slot of slots(); track slot.startsAt) {
+              <button type="button" [class.selected]="selected()?.startsAt === slot.startsAt" (click)="selected.set(slot)">{{ time(slot.startsAt) }}</button>
+            } @empty { <p>No hay otros horarios disponibles para esta fecha.</p> }
+          </div>
+        }
+        <label>Motivo del cambio<textarea name="reason" rows="3" maxlength="500" required [(ngModel)]="reason" placeholder="Explica brevemente por qué necesitas otro horario"></textarea></label>
+        <p class="hint">El nuevo horario quedará pendiente hasta que el profesional lo acepte.</p>
+        <footer><button type="button" (click)="closed.emit()">Volver</button>
+          <button type="submit" class="primary" [disabled]="!selected() || !reason.trim() || loadingSlots()">{{ saving() ? 'Reprogramando...' : 'Solicitar cambio' }}</button></footer>
+      </fieldset></form>
+    }
+  </section>
+</div>

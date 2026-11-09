@@ -902,7 +902,70 @@
 
       <!-- Pestaña Reservas -->
       @if (seccionCliente() === 'reservas') {
-        <button class="btn-outline" type="button" (click)="loadMyBookings()" [disabled]="bookingsLoading()">Actualizar reservas</button>
+        <button class="btn-outline" type="button" (click)="loadMyBookings()"
+          [disabled]="bookingsLoading() || appointmentsLoading()">Actualizar reservas y citas</button>
+        <section class="client-appointments" aria-labelledby="client-appointments-title">
+          <h2 id="client-appointments-title">Mis citas 1:1</h2>
+          @if (cancellationMessage()) { <p role="status">{{ cancellationMessage() }}</p> }
+          @if (cancellationError()) { <p role="alert">{{ cancellationError() }}</p> }
+          <app-confirm-dialog [open]="appointmentToCancel() !== null"
+            title="Cancelar cita" description="El horario quedará disponible para otra solicitud."
+            confirmLabel="Cancelar cita" [loading]="cancellingAppointment() || appointmentsLoading()"
+            reasonLabel="Motivo" [reasonRequired]="true"
+            reasonPlaceholder="Ej. Ya no podré asistir en ese horario"
+            (confirmed)="confirmAppointmentCancellation($event)" (cancelled)="appointmentToCancel.set(null)" />
+          @if (appointmentToReschedule(); as appointment) {
+            <app-appointment-reschedule [appointment]="appointment"
+              (closed)="appointmentToReschedule.set(null)"
+              (rescheduled)="onAppointmentRescheduled($event)" />
+          }
+          @if (appointmentsLoading()) {
+            <p role="status">Cargando tus citas...</p>
+          } @else if (appointmentsError()) {
+            <p role="alert">No pudimos actualizar tus citas.</p>
+            <button class="btn-outline" type="button" (click)="loadMyAppointments()">Reintentar citas</button>
+          } @else {
+            <div class="mi-espacio__guardados-grid">
+              @for (appointment of myAppointments(); track appointment.id) {
+                <article class="saved-card">
+                  <div class="saved-card__body">
+                    <h3 class="saved-card__title">{{ appointment.title }}</h3>
+                    <p><strong>{{ appointmentStatuses[appointment.status] || appointment.status }}</strong></p>
+                    <p>{{ appointment.professionalName }} · {{ appointmentDate(appointment.startsAt) }} (hora de Perú)</p>
+                    <p>{{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</p>
+                    <p>Referencia {{ appointment.code }}</p>
+                    @if (appointment.status === 'CANCELADA' && appointment.cancellationReason) {
+                      <div class="appointment-cancellation">
+                        <strong>{{ appointment.cancelledBy === 'CLIENTE' ? 'Cancelaste esta cita' : 'Cancelada por el profesional' }}</strong>
+                        <p>{{ appointment.cancellationReason }}</p>
+                        @if (appointment.cancelledAt) { <small>{{ appointmentDate(appointment.cancelledAt) }}</small> }
+                      </div>
+                    }
+                    @if (appointment.rescheduledAt && appointment.previousStartsAt) {
+                      <div class="appointment-reschedule-history">
+                        <strong>Horario reprogramado</strong>
+                        <p>Antes: {{ appointmentDate(appointment.previousStartsAt) }}</p>
+                        @if (appointment.rescheduleReason) { <p>Motivo: {{ appointment.rescheduleReason }}</p> }
+                        <small>Solicitado {{ appointmentDate(appointment.rescheduledAt) }}</small>
+                      </div>
+                    }
+                    @if (canCancelAppointment(appointment)) {
+                      <div class="appointment-actions">
+                        @if (canRescheduleAppointment(appointment)) {
+                          <button type="button" class="btn-outline" (click)="appointmentToReschedule.set(appointment)">Reprogramar</button>
+                        }
+                        <button type="button" class="btn-outline btn-outline--danger" (click)="appointmentToCancel.set(appointment)">Cancelar cita</button>
+                      </div>
+                    }
+                  </div>
+                </article>
+              } @empty {
+                <p>Aún no tienes solicitudes de cita.</p>
+              }
+            </div>
+          }
+        </section>
+        <h2>Reservas de eventos</h2>
         @if (bookingsLoading()) {
           <div class="following-state" aria-live="polite">Cargando tus reservas...</div>
         } @else if (bookingsError()) {
@@ -921,7 +984,7 @@
                 <path d="M9 16l2 2 4-4"></path>
               </svg>
             </div>
-            <h2 class="mi-espacio__empty-title">Aún no tienes reservas</h2>
+            <h2 class="mi-espacio__empty-title">Aún no tienes reservas de eventos</h2>
             <p class="mi-espacio__empty-text">
               Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
             </p>

@@ -1,5 +1,6 @@
+import { AuthReturnService } from '../../../core/services/auth-return.service';
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 
 type AccountType = 'usuario' | 'profesional';
 
@@ -12,6 +13,9 @@ type AccountType = 'usuario' | 'profesional';
 })
 export class RoleSelectionComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly authReturn = inject(AuthReturnService);
+  readonly authQueryParams = this.authReturn.queryParams(this.route.snapshot);
 
   activeTab = signal<AccountType>('usuario');
   errorMessage = signal<string | null>(null);
@@ -29,7 +33,7 @@ export class RoleSelectionComponent {
     if (this.activeTab() === 'profesional') {
       this.router.navigate(['/circulo-oona']);
     } else {
-      this.router.navigate(['/auth/register']);
+      this.router.navigate(['/auth/register'], { queryParams: this.authQueryParams });
     }
   }
 }

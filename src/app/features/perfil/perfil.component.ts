@@ -7,8 +7,10 @@ import { ProfessionalFollowService } from '../../services/professional-follow.se
 import { FollowedProfessionalResponse } from '../../shared/models/professional-follow.model';
 import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
+import { AppointmentReceipt, AppointmentService, appointmentDate } from '../../services/appointment.service';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
 
@@ -45,7 +47,7 @@ interface ItemCreado {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, AppointmentRescheduleComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
@@ -61,6 +63,21 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   readonly favoritesDetails = signal<FavoriteResponse[]>([]);
   readonly favoritesLoading = signal(false);
   readonly favoritesError = signal<string | null>(null);
+
+  private readonly appointmentService = inject(AppointmentService);
+  readonly myAppointments = signal<AppointmentReceipt[]>([]);
+  readonly appointmentsLoading = signal(false);
+  readonly appointmentsError = signal(false);
+  readonly appointmentToCancel = signal<AppointmentReceipt | null>(null);
+  readonly appointmentToReschedule = signal<AppointmentReceipt | null>(null);
+  readonly cancellingAppointment = signal(false);
+  readonly cancellationError = signal('');
+  readonly cancellationMessage = signal('');
+  readonly appointmentDate = appointmentDate;
+  readonly appointmentStatuses: Record<string, string> = {
+    PENDIENTE: 'Pendiente de aceptación', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
+    COMPLETADA: 'Completada', EXPIRADA: 'Vencida',
+  };
 
   readonly myBookings = signal<MyBooking[]>([]);
   readonly bookingsLoading = signal(false);
@@ -173,6 +190,7 @@ readonly professionalApplicationDismissed = signal(false);
   loadMyBookings(): void {
     if (!this.authService.isLoggedIn) return;
 
+    this.loadMyAppointments();
     this.bookingsLoading.set(true);
     this.bookingsError.set(null);
     this.checkoutService.getMyBookings().subscribe({
@@ -186,6 +204,62 @@ readonly professionalApplicationDismissed = signal(false);
       }
     });
   }
+  loadMyAppointments(): void {
+    if (this.appointmentsLoading() || this.cancellingAppointment()) return;
+    this.appointmentsLoading.set(true);
+    this.appointmentsError.set(false);
+    this.appointmentService.myAppointments().subscribe({
+      next: appointments => {
+        this.myAppointments.set(appointments);
+        this.appointmentsLoading.set(false);
+      },
+      error: () => {
+        this.appointmentsError.set(true);
+        this.appointmentsLoading.set(false);
+      },
+    });
+  }
+
+  canCancelAppointment(appointment: AppointmentReceipt): boolean {
+    const now = Date.now();
+    return Date.parse(appointment.startsAt) > now &&
+      (appointment.status === 'CONFIRMADA' || (appointment.status === 'PENDIENTE' &&
+        (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
+  }
+
+  canRescheduleAppointment(appointment: AppointmentReceipt): boolean {
+    return this.canCancelAppointment(appointment);
+  }
+
+  onAppointmentRescheduled(updated: AppointmentReceipt): void {
+    this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+    this.appointmentToReschedule.set(null);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('Cambio de horario solicitado. La cita quedó pendiente de aceptación del profesional.');
+  }
+
+  confirmAppointmentCancellation(reason: string): void {
+    const appointment = this.appointmentToCancel();
+    if (!appointment || this.cancellingAppointment() || this.appointmentsLoading()) return;
+    this.cancellingAppointment.set(true);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('');
+    this.appointmentService.cancelMyAppointment(appointment.id, reason).subscribe({
+      next: updated => {
+        this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.cancellingAppointment.set(false);
+        this.appointmentToCancel.set(null);
+        this.cancellationMessage.set('Cita cancelada. El horario quedó liberado.');
+      },
+      error: err => {
+        this.cancellingAppointment.set(false);
+        this.appointmentToCancel.set(null);
+        this.cancellationError.set(err.error?.detail || 'No pudimos cancelar la cita.');
+        this.loadMyAppointments();
+      },
+    });
+  }
+
   @HostListener('window:focus')
   refreshVisibleBookings(): void {
     if (this.seccionCliente() === 'reservas' && !this.bookingsLoading()) this.loadMyBookings();

@@ -27,4 +27,22 @@ describe('ConfirmDialogComponent', () => {
 
     expect(confirmed).toHaveBeenCalledOnce();
   });
+
+  it('requires and emits a cancellation reason when configured', () => {
+    const confirmed = vi.fn();
+    fixture.componentInstance.confirmed.subscribe(confirmed);
+    fixture.componentRef.setInput('open', true);
+    fixture.componentRef.setInput('reasonLabel', 'Motivo');
+    fixture.componentRef.setInput('reasonRequired', true);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.confirm-dialog__button--danger').click();
+    fixture.detectChanges();
+    expect(confirmed).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Escribe un motivo');
+
+    fixture.componentInstance.reason.set('Cambio de planes');
+    fixture.nativeElement.querySelector('.confirm-dialog__button--danger').click();
+    expect(confirmed).toHaveBeenCalledWith('Cambio de planes');
+  });
 });
