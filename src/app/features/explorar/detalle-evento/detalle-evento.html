@@ -279,42 +279,44 @@
 
         @if (event.modality !== 'ONLINE') {
           <article class="info-card event-location-card">
-            <div class="section-title">
-              <h2>Dónde se realiza</h2>
-            </div>
-            <div class="venue-travel-layout"><div class="venue-location">
-            @if (mapOccurrence()?.location; as location) {
-              <p><strong>{{ location.name }}</strong></p>
-              <p>{{ location.address }} · {{ location.cityName }}</p>
-              @if (location.reference) {
-                <p>{{ location.reference }}</p>
-              }
-              @if (eventMapPoints().length) {
-                <button type="button" class="event-location-toggle"
-                  [attr.aria-expanded]="locationMapOpen()"
-                  aria-controls="event-location-map"
-                  (click)="locationMapOpen.set(!locationMapOpen())">
-                  {{ locationMapOpen() ? 'Cerrar mapa' : 'Ver ubicación en el mapa' }}
-                </button>
-              } @else {
-                <p class="event-location-note">Esta dirección todavía no tiene un punto disponible en el mapa.</p>
-              }
-              @if (locationMapOpen() && eventMapPoints().length) {
-                <div id="event-location-map">
-                  <app-event-map [points]="eventMapPoints()" label="Ubicación de la sesión seleccionada" />
+            <div class="venue-travel-layout">
+              <section class="venue-location" aria-labelledby="event-venue-title">
+                <h2 id="event-venue-title">Dónde se realiza</h2>
+                <div class="venue-location-body">
+                  @if (mapOccurrence()?.location; as location) {
+                    <p class="venue-location-name"><strong>{{ location.name }}</strong></p>
+                    <p>{{ location.address }} · {{ location.cityName }}</p>
+                    @if (location.reference) { <p>{{ location.reference }}</p> }
+                    @if (!eventMapPoints().length) {
+                      <p class="event-location-note">Esta dirección todavía no tiene un punto disponible en el mapa.</p>
+                    }
+                  } @else { <p>La ubicación de esta sesión está por confirmar.</p> }
+                </div>
+                <div class="venue-location-actions">
                   @if (eventMapPoints().length) {
-                    <a class="event-location-link" target="_blank" rel="noopener noreferrer"
-                      [href]="'https://www.openstreetmap.org/?mlat=' + location.latitude +
-                        '&mlon=' + location.longitude + '#map=16/' + location.latitude + '/' + location.longitude">
-                      Abrir ubicación en otra pestaña
-                    </a>
+                    <button type="button" class="event-location-toggle"
+                      [attr.aria-expanded]="locationMapOpen()" aria-controls="event-location-map"
+                      (click)="locationMapOpen.set(!locationMapOpen())">
+                      {{ locationMapOpen() ? 'Cerrar mapa' : 'Ver ubicación en el mapa' }}
+                    </button>
                   }
                 </div>
+              </section>
+              <app-event-travel class="venue-travel-info" [occurrenceId]="mapOccurrence()?.id"
+                [modality]="event.modality" [detail]="true" />
+            </div>
+            @if (locationMapOpen() && eventMapPoints().length) {
+              @if (mapOccurrence()?.location; as location) {
+                <div id="event-location-map">
+                  <app-event-map [points]="eventMapPoints()" label="Ubicación de la sesión seleccionada" />
+                  <a class="event-location-link" target="_blank" rel="noopener noreferrer"
+                    [href]="'https://www.openstreetmap.org/?mlat=' + location.latitude +
+                      '&mlon=' + location.longitude + '#map=16/' + location.latitude + '/' + location.longitude">
+                    Abrir ubicación en otra pestaña
+                  </a>
+                </div>
               }
-            } @else {
-              <p>La ubicación de esta sesión está por confirmar.</p>
             }
-            </div><aside class="venue-travel-info"><app-event-travel [occurrenceId]="mapOccurrence()?.id" [modality]="event.modality" [detail]="true" /></aside></div>
           </article>
         }
 
@@ -473,6 +475,103 @@
           </ng-template>-->
       </section>
 
+      <section class="event-reviews" aria-labelledby="event-reviews-title">
+        <h2 id="event-reviews-title">Calificaciones del evento</h2>
+        <div aria-live="polite" [attr.aria-busy]="cargandoCalificaciones()">
+          @if (cargandoCalificaciones()) {
+            <p>Cargando calificaciones...</p>
+          } @else if (errorCalificaciones()) {
+            <p role="alert">{{ errorCalificaciones() }}</p>
+            <button type="button" (click)="cargarCalificaciones(event.id)">Reintentar consulta</button>
+          } @else if (resumenCalificacion(); as summary) {
+            @if (summary.reviewCount === 0) {
+              <p>Este evento todavía no tiene reseñas.</p>
+            } @else {
+              <p class="event-reviews__summary">
+                <span aria-hidden="true">★</span>
+                <strong>{{ promedioCalificacionTexto() }} de 5</strong>
+                · {{ summary.reviewCount }} {{ summary.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+              </p>
+            }
+          } @else {
+            <p>Calificaciones pendientes de consulta.</p>
+          }
+        </div>
+
+        <div class="event-reviews__list" aria-live="polite" [attr.aria-busy]="cargandoResenas()">
+          @if (cargandoResenas()) {
+            <p>Cargando reseñas...</p>
+          } @else if (errorResenas()) {
+            <p role="alert">{{ errorResenas() }}</p>
+            <button type="button" (click)="cargarResenas(event.id, paginaResenas()?.number ?? 0)">Reintentar reseñas</button>
+          } @else if (paginaResenas(); as page) {
+            @for (review of page.content; track review.id) {
+              <article class="event-reviews__item" [id]="'review-' + review.id">
+                <header><strong>{{ review.authorName }}</strong><time [attr.datetime]="review.createdAt">{{ fechaResena(review.createdAt) }}</time></header>
+                <p class="event-reviews__rating" [attr.aria-label]="review.stars + ' de 5 estrellas'">
+                  @for (star of estrellasDisponibles; track star) {
+                    <span aria-hidden="true">{{ star <= review.stars ? '★' : '☆' }}</span>
+                  }
+                </p>
+                @if (review.comment) { <p class="event-reviews__comment">{{ review.comment }}</p> }
+              </article>
+            }
+            @if (page.totalPages > 1) {
+              <nav class="event-reviews__pagination" aria-label="Páginas de reseñas">
+                <button type="button" [disabled]="page.first" (click)="cargarResenas(event.id, page.number - 1)">Anterior</button>
+                <span>Página {{ page.number + 1 }} de {{ page.totalPages }}</span>
+                <button type="button" [disabled]="page.last" (click)="cargarResenas(event.id, page.number + 1)">Siguiente</button>
+              </nav>
+            }
+          }
+        </div>
+
+        @if (!sesionCalificacionActiva()) {
+          <p>Inicia sesión para comprobar si puedes calificar este evento.</p>
+          <button type="button" (click)="iniciarSesionParaCalificar()">Iniciar sesión</button>
+        } @else if (consultandoPermisoCalificacion()) {
+          <p role="status">Comprobando permiso para calificar...</p>
+        } @else if (errorPermisoCalificacion()) {
+          <p role="alert">{{ errorPermisoCalificacion() }}</p>
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso</button>
+        } @else if (permisoCalificacion(); as permission) {
+          @if (permission.canReview) {
+            <form (ngSubmit)="enviarCalificacion()" class="event-reviews__form">
+              <fieldset [disabled]="enviandoCalificacion()">
+                <legend>Tu calificación (obligatoria)</legend>
+                <div class="event-reviews__stars">
+                  @for (star of estrellasDisponibles; track star) {
+                    <label class="event-reviews__star" [class.is-selected]="star <= estrellasSeleccionadas()">
+                      <input type="radio" name="eventRating" [value]="star"
+                             [ngModel]="estrellasSeleccionadas()"
+                             (ngModelChange)="seleccionarEstrellas($event)"
+                             [attr.aria-label]="star + (star === 1 ? ' estrella' : ' estrellas')" required>
+                      <span aria-hidden="true">★</span>
+                    </label>
+                  }
+                </div>
+                <label for="event-review-comment">Comentario (opcional, hasta 2000 caracteres)</label>
+                <textarea id="event-review-comment" name="reviewComment" rows="4" maxlength="2000"
+                          [ngModel]="comentarioResena()" (ngModelChange)="comentarioResena.set($event)"></textarea>
+                <button type="submit" [disabled]="!puedeEnviarCalificacion()">
+                  {{ enviandoCalificacion() ? 'Enviando...' : 'Enviar calificación' }}
+                </button>
+              </fieldset>
+            </form>
+          } @else {
+            <p>{{ permission.reason || 'Actualmente no puedes calificar este evento.' }}</p>
+          }
+        } @else {
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso para calificar</button>
+        }
+        @if (errorRegistroCalificacion()) {
+          <p role="alert">{{ errorRegistroCalificacion() }}</p>
+        }
+        @if (mensajeCalificacion()) {
+          <p role="status">{{ mensajeCalificacion() }}</p>
+        }
+      </section>
+
       @if (eventosSimilares().length > 0) {
         <section class="related-events" aria-labelledby="similar-events-title">
           <div class="related-events__header">
@@ -606,7 +705,7 @@
                   WhatsApp <span class="required">*</span>
                 </span>
               </div>
-              <input type="tel" [(ngModel)]="compradorTelefono" placeholder="+34 600 000 000" />
+              <input type="tel" [(ngModel)]="compradorTelefono" placeholder="+51 900 000 000" />
               <p class="field-help-text">El profesional te enviará información del evento por WhatsApp.</p>
             </div>
 

@@ -50,6 +50,9 @@
       <button title="Sesiones 1:1" [class.active]="section() === 'sessions'" (click)="show('sessions')">
         <svg lucideBriefcaseBusiness aria-hidden="true"></svg><span class="nav-label">Sesiones 1:1</span>
       </button>
+      <button title="Agenda de citas" [class.active]="section() === 'agenda'" (click)="show('agenda')">
+        <svg lucideCalendarDays aria-hidden="true"></svg><span class="nav-label">Agenda de citas</span>
+      </button>
       <button title="Reservas" [class.active]="section() === 'reservations'" (click)="show('reservations')">
         <svg lucideUsers aria-hidden="true"></svg><span class="nav-label">Reservas</span>
       </button>
@@ -74,6 +77,8 @@
 
     @if (loading()) {
       <section class="portal__content"><div class="loading-block"></div><div class="loading-block"></div></section>
+    } @else if (section() === 'agenda') {
+      <app-professional-agenda />
     } @else if (section() === 'reservations') {
       <app-professional-reservations (changed)="refreshBookingAvailability()" />
     } @else if (section() === 'summary') {
@@ -492,7 +497,7 @@
                     <button type="button" [class.active]="eventForm.paymentMethod === 'ONLINE'" (click)="eventForm.paymentMethod = 'ONLINE'">Reserva Online</button>
                   </div>
                 </div>
-                <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Precio desde<div class="input-group"><input name="eventPrice" type="number" min="0" step="0.01" [(ngModel)]="eventForm.priceFrom" required><select name="eventCurrency" [(ngModel)]="eventForm.currency" aria-label="Moneda"><option value="PEN">Soles (PEN)</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
                 <label>Edad mínima<input name="eventAge" type="number" min="0" max="120" [(ngModel)]="eventForm.minimumAge"><small class="field-help">Usa 0 si es apto para todas las edades.</small></label>
               </div>
             </section>
@@ -723,7 +728,7 @@
                     }
                   </label>
                 }
-                <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="EUR">EUR</option><option value="PEN">PEN</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
+                <label>Precio<div class="input-group"><input name="sessionPrice" type="number" min="0" step="0.01" [(ngModel)]="sessionForm.price" required><select name="sessionCurrency" [(ngModel)]="sessionForm.currency" aria-label="Moneda"><option value="PEN">Soles (PEN)</option></select></div><small class="field-help">Usa 0 para mostrar “Gratis”.</small></label>
                 <label>Visibilidad<select name="sessionStatus" [(ngModel)]="sessionForm.status"><option value="PUBLICADO">Publicado</option><option value="BORRADOR">Borrador</option><option value="OCULTO">Oculto</option></select><small class="field-help">Publicado aparecerá en Sesiones 1:1.</small></label>
               </div>
             </section>

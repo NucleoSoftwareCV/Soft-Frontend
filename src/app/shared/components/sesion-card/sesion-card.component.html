@@ -1,4 +1,14 @@
-<div class="sesion-card" [routerLink]="['/sesiones', sesion().id]">
+@if (selectionMode()) {
+  <button type="button" class="sesion-card" [class.sesion-card--selected]="selected()" [attr.aria-pressed]="selected()" [disabled]="selectionDisabled()" (click)="serviceSelected.emit(sesion().id)">
+    <ng-container [ngTemplateOutlet]="cardContent" />
+    <span class="card-selection">{{ selected() ? 'Servicio seleccionado' : 'Elegir para mi cita' }}</span>
+  </button>
+} @else {
+  <a class="sesion-card" [routerLink]="['/sesiones', sesion().id]">
+    <ng-container [ngTemplateOutlet]="cardContent" />
+  </a>
+}
+<ng-template #cardContent>
   <div class="card-imagen-wrapper">
     <img [src]="imageFor()" [alt]="sesion().title" class="card-imagen" />
     <span class="badge-sesion">Sesión 1:1</span>
@@ -20,4 +30,4 @@
       <span class="precio-duracion"> · {{ durationLabel() }}</span>
     </p>
   </div>
-</div>
+</ng-template>

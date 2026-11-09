@@ -24,40 +24,58 @@ export class LocationNoticeComponent { readonly travel = inject(EventTravelServi
 
 @Component({
   selector: 'app-event-travel',
+  host: { '[class.event-travel-detail]': 'detail() && modality() !== "ONLINE"' },
   standalone: true,
   imports: [RouterLink, LocationNoticeComponent],
   template: `@if (modality() !== 'ONLINE') {
     @if (detail()) {
-      <div class="travel travel--detail">
-        <h3>Tu desplazamiento</h3><app-location-notice />
-        @if (travel.eligible() && travel.location()) {
-          @if (result(); as value) {
-            @if (value.status === 'AVAILABLE' && value.distanceKm !== null) {
-              <p class="origin">Desde {{ travel.location()?.label }}</p>
-              <p class="metrics"><strong>{{ distance(value.distanceKm) }} km</strong>
-                <span>{{ value.method === 'ROUTE' ? 'por carretera' : 'en línea recta' }}</span></p>
-              @if (value.durationMinutes !== null) {
-                <p class="time">{{ duration(value.durationMinutes) }} · En coche</p>
-              } @else { <p class="time">Tiempo de viaje no disponible</p> }
-              @if (value.approximate) { <small>Ubicación aproximada · trayecto orientativo</small> }
-              @if (value.method === 'ROUTE') { <small>Estimación sin tráfico en tiempo real.</small> }
-              @if (value.directionsUrl) {
+      <section class="travel travel--detail" aria-label="Tu desplazamiento">
+        <h3>Tu desplazamiento</h3>
+        <div class="travel-body">
+          <app-location-notice />
+          @if (travel.eligible() && travel.location()) {
+            @if (result(); as value) {
+              @if (value.status === 'AVAILABLE' && value.distanceKm !== null) {
+                <p class="origin">Desde {{ travel.location()?.label }}</p>
+                <p class="metrics"><strong>{{ distance(value.distanceKm) }} km</strong>
+                  <span>{{ value.method === 'ROUTE' ? 'por carretera' : 'en línea recta' }}</span></p>
+                @if (value.durationMinutes !== null) {
+                  <p class="time">{{ duration(value.durationMinutes) }} · En coche</p>
+                } @else { <p class="time">Tiempo de viaje no disponible</p> }
+                @if (value.approximate) { <small>Ubicación aproximada · trayecto orientativo</small> }
+                @if (value.method === 'ROUTE') { <small>Estimación sin tráfico en tiempo real.</small> }
+              } @else { <p>No hay una ubicación válida y disponible para calcular este trayecto.</p> }
+            } @else if (occurrenceId()) { <p role="status">Calculando distancia…</p> }
+            @else { <p>Selecciona una sesión con ubicación para consultar el trayecto.</p> }
+          } @else if (!travel.eligible()) {
+            <p>Inicia sesión como cliente y añade tu ubicación en Preferencias para consultar el trayecto.</p>
+          }
+        </div>
+        <div class="travel-actions">
+          @if (travel.eligible() && travel.location()) {
+            @if (result(); as value) {
+              @if (value.status === 'AVAILABLE' && value.distanceKm !== null && value.directionsUrl) {
                 <a class="route" [href]="value.directionsUrl" target="_blank" rel="noopener noreferrer">
                   {{ value.approximate ? 'Ver ruta orientativa' : 'Cómo llegar' }} ↗
                 </a>
-                <small>Al abrir la ruta, compartirás estos puntos con Google Maps.</small>
               }
-              <a routerLink="/preferencias">Cambiar mi ubicación</a>
-            } @else { <p>No hay una ubicación válida y disponible para calcular este trayecto.</p> }
-            @if (value.status !== 'AVAILABLE' || value.durationMinutes === null) {
-              <button type="button" class="retry-route" (click)="travel.retryTravel(occurrenceId())">Reintentar trayecto</button>
+              @if (value.status !== 'AVAILABLE' || value.durationMinutes === null) {
+                <button type="button" class="retry-route" (click)="travel.retryTravel(occurrenceId())">Reintentar trayecto</button>
+              }
             }
-          } @else if (occurrenceId()) { <p role="status">Calculando distancia…</p> }
-          @else { <p>Selecciona una sesión con ubicación para consultar el trayecto.</p> }
-        } @else if (!travel.eligible()) {
-          <p>Inicia sesión como cliente y añade tu ubicación en Preferencias para consultar el trayecto.</p>
-        }
-      </div>
+          }
+        </div>
+        <div class="travel-footer">
+          @if (travel.eligible() && travel.location()) {
+            @if (result(); as value) {
+              @if (value.status === 'AVAILABLE' && value.distanceKm !== null) {
+                @if (value.directionsUrl) { <small>Al abrir la ruta, compartirás estos puntos con Google Maps.</small> }
+                <a routerLink="/preferencias">Cambiar mi ubicación</a>
+              }
+            }
+          }
+        </div>
+      </section>
     } @else if (travel.eligible() && travel.location()) {
       @if (result(); as value) {
         @if (value.status === 'AVAILABLE' && value.distanceKm !== null) {
@@ -97,7 +115,7 @@ export class EventTravelComponent {
       untracked(() => onCleanup(this.travel.watch(id)));
     });
   }
-  distance(km: number): string { return new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(km); }
+  distance(km: number): string { return new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(km); }
   shortDuration(minutes: number): string {
     if (minutes < 1) return '<1 min';
     const rounded = Math.ceil(minutes);

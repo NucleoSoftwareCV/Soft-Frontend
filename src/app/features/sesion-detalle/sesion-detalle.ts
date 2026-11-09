@@ -102,9 +102,9 @@ export class SesionDetalleComponent implements OnInit {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: current.currency || 'EUR',
+      currency: current.currency || 'PEN',
       maximumFractionDigits: 0,
     }).format(Number(current.price));
   }

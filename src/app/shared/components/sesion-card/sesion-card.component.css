@@ -120,3 +120,12 @@
   font-weight: 400;
   margin-left: 4px;
 }
+
+:host { display: block; height: 100%; }
+.sesion-card { display: flex; flex-direction: column; width: 100%; height: 100%; box-sizing: border-box; padding: 0; text-align: left; text-decoration: none; color: inherit; font: inherit; }
+.sesion-card .card-body { flex: 1; }
+.sesion-card--selected { border-color: #00515f; box-shadow: 0 0 0 2px #00515f; }
+.sesion-card:focus-visible { outline: 3px solid #cc7f59; outline-offset: 4px; }
+.sesion-card:disabled { opacity: .65; cursor: wait; }
+.card-selection { display: block; width: 100%; box-sizing: border-box; padding: 12px 15px; border-top: 1px solid #e0eae7; font-size: .82rem; font-weight: 600; color: #00515f; }
+.sesion-card--selected .card-selection { background: #edf6f2; }

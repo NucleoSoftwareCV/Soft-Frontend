@@ -1,3 +1,4 @@
+import { EventRatingComponent } from '../../../shared/components/event-rating/event-rating.component';
 import { EventTravelComponent, LocationNoticeComponent } from '../../../shared/components/event-travel/event-travel.component';
 import {
   ChangeDetectionStrategy,
@@ -52,7 +53,7 @@ interface CatalogPage {
 @Component({
   selector: 'app-eventos',
   standalone: true,
-  imports: [EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
+  imports: [EventRatingComponent, EventTravelComponent, LocationNoticeComponent, CommonModule, RouterLink, EventsMapPanelComponent, AdvancedEventFiltersComponent],
   templateUrl: './eventos.html',
   styleUrl: './eventos.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -402,7 +403,7 @@ export class Eventos {
   }
 
   calendarMonthLabel(): string {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       month: 'long',
       year: 'numeric',
     })
@@ -665,7 +666,7 @@ export class Eventos {
       return 'Fecha por confirmar';
     }
 
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'short',
       day: '2-digit',
       month: 'short',
@@ -679,9 +680,9 @@ export class Eventos {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: item.currency || 'EUR',
+      currency: item.currency || 'PEN',
       maximumFractionDigits: 0,
     }).format(item.priceFrom);
   }
@@ -713,7 +714,7 @@ export class Eventos {
       return 'Fecha';
     }
 
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       day: '2-digit',
       month: 'short',
     }).format(new Date(`${value}T00:00:00`));

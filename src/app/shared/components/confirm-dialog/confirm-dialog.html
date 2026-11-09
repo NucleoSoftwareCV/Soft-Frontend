@@ -1,5 +1,5 @@
 @if (open()) {
-  <div class="confirm-dialog__backdrop" (click)="cancelled.emit()">
+  <div class="confirm-dialog__backdrop" (click)="cancel()">
     <section
       class="confirm-dialog"
       role="alertdialog"
@@ -12,7 +12,7 @@
         type="button"
         aria-label="Cerrar"
         [disabled]="loading()"
-        (click)="cancelled.emit()">
+        (click)="cancel()">
         <svg lucideX aria-hidden="true"></svg>
       </button>
 
@@ -22,6 +22,17 @@
       <div class="confirm-dialog__content">
         <h2 id="confirm-dialog-title">{{ title() }}</h2>
         <p id="confirm-dialog-description">{{ description() }}</p>
+        @if (reasonLabel()) {
+          <label class="confirm-dialog__reason">
+            <span>{{ reasonLabel() }}</span>
+            <textarea rows="3" [attr.maxlength]="reasonMaxLength()" [placeholder]="reasonPlaceholder()"
+              [ngModel]="reason()" (ngModelChange)="reason.set($event)" [disabled]="loading()"></textarea>
+            <small>{{ reason().length }}/{{ reasonMaxLength() }}</small>
+          </label>
+          @if (reasonRequired() && reasonTouched() && !reason().trim()) {
+            <p class="confirm-dialog__error" role="alert">Escribe un motivo para continuar.</p>
+          }
+        }
       </div>
 
       <footer class="confirm-dialog__actions">
@@ -29,14 +40,14 @@
           class="confirm-dialog__button confirm-dialog__button--secondary"
           type="button"
           [disabled]="loading()"
-          (click)="cancelled.emit()">
+          (click)="cancel()">
           {{ cancelLabel() }}
         </button>
         <button
           class="confirm-dialog__button confirm-dialog__button--danger"
           type="button"
           [disabled]="loading()"
-          (click)="confirmed.emit()">
+          (click)="confirm()">
           {{ loading() ? 'Procesando...' : confirmLabel() }}
         </button>
       </footer>

@@ -1,6 +1,7 @@
+import { AuthReturnService } from '../../../core/services/auth-return.service';
 import { Component, ElementRef, effect, inject, signal, viewChild, PLATFORM_ID, NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { GoogleIdentityService } from '../../../core/services/google-identity.service';
@@ -17,6 +18,9 @@ type AccountType = 'usuario' | 'profesional';
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly authReturn = inject(AuthReturnService);
+  readonly authQueryParams = this.authReturn.queryParams(this.route.snapshot);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly ngZone = inject(NgZone);
   private readonly googleIdentity = inject(GoogleIdentityService);
@@ -92,11 +96,11 @@ export class LoginComponent {
       next: response => {
         this.isLoading.set(false);
         if (response.onboardingRequired) {
-          this.router.navigate(['/onboarding']);
+          this.router.navigate(['/onboarding'], { queryParams: this.authQueryParams });
         } else if (this.authService.roles.includes('PROFESSIONAL')) {
           this.roleChoice.set(true);
         } else {
-          this.router.navigate(['/']);
+          this.authReturn.resume(this.route.snapshot);
         }
       },
       error: (err) => {
@@ -109,7 +113,7 @@ export class LoginComponent {
 
   goToPublicSite(): void {
     this.roleChoice.set(false);
-    this.router.navigate(['/']);
+    this.authReturn.resume(this.route.snapshot);
   }
 
   goToProfessionalPanel(): void {
@@ -125,11 +129,11 @@ export class LoginComponent {
       next: response => {
         this.isLoading.set(false);
         if (response.newlyRegistered || response.onboardingRequired) {
-          this.router.navigate(['/onboarding']);
+          this.router.navigate(['/onboarding'], { queryParams: this.authQueryParams });
         } else if (this.authService.roles.includes('PROFESSIONAL')) {
           this.roleChoice.set(true);
         } else {
-          this.router.navigate(['/']);
+          this.authReturn.resume(this.route.snapshot);
         }
       },
       error: (err) => {

@@ -19,6 +19,11 @@ export class GoogleIdentityService {
   private readonly ngZone = inject(NgZone);
   private scriptLoadPromise: Promise<void> | null = null;
   private googleInitialized = false;
+  private renderVersion = 0;
+  private activeHandlers: {
+    onToken: (idToken: string) => void;
+    onError: (message: string) => void;
+  } | null = null;
 
   renderButton(
     container: HTMLElement,
@@ -34,17 +39,20 @@ export class GoogleIdentityService {
       return;
     }
 
+    const renderVersion = ++this.renderVersion;
+    this.activeHandlers = { onToken, onError };
     this.loadScript()
       .then(() => {
+        if (renderVersion !== this.renderVersion) return;
         if (!this.googleInitialized) {
           google.accounts.id.initialize({
             client_id: environment.googleClientId,
             callback: (response: { credential?: string }) => {
               this.ngZone.run(() => {
                 if (response?.credential) {
-                  onToken(response.credential);
+                  this.activeHandlers?.onToken(response.credential);
                 } else {
-                  onError('No se recibió el token de Google.');
+                  this.activeHandlers?.onError('No se recibió el token de Google.');
                 }
               });
             },
@@ -66,8 +74,9 @@ export class GoogleIdentityService {
         });
       })
       .catch(() => {
+        if (renderVersion !== this.renderVersion) return;
         this.ngZone.run(() => {
-          onError('No se pudo cargar Google Identity Services.');
+          this.activeHandlers?.onError('No se pudo cargar Google Identity Services.');
         });
       });
   }

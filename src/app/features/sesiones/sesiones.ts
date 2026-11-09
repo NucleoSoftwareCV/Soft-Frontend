@@ -156,9 +156,9 @@ export class SesionesComponent implements OnInit {
       return 'Gratis';
     }
 
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: sesion.currency || 'EUR',
+      currency: sesion.currency || 'PEN',
       maximumFractionDigits: 0,
     }).format(Number(sesion.price));
   }

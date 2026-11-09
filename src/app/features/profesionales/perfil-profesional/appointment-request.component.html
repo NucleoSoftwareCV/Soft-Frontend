@@ -1,0 +1,60 @@
+<section class="appointment" aria-labelledby="request-title">
+  <h3 id="request-title">Solicitar una cita</h3>
+  @if (loading()) { <p role="status">Cargando opciones...</p> }
+  @if (error()) { <p class="notice notice--error" role="alert">{{ error() }}</p> }
+  @if (receipt(); as result) {
+    <div class="notice" role="status">
+      <h4>Solicitud enviada · Pendiente de aceptación</h4>
+      <p>Referencia: <strong>{{ result.code }}</strong></p>
+      <p>{{ result.title }} · {{ formatDate(result.startsAt) }} (hora de Perú)</p>
+      <p>{{ result.modality === 'ONLINE' ? 'Videollamada' : 'Presencial · ' + result.venue?.name }}</p>
+      <p>La cita todavía no está confirmada. El profesional debe aceptar tu solicitud.</p>
+      @if (result.expiresAt) { <p>Si no se acepta antes del {{ formatDate(result.expiresAt) }}, el horario se libera.</p> }
+    </div>
+  } @else if (options(); as vm) {
+    <p>{{ vm.title }} · {{ vm.durationMinutes }} min · {{ vm.price | currency:vm.currency:'symbol':'1.2-2':'es-PE' }}</p>
+    @if (!reviewing()) {
+      <form (ngSubmit)="review()">
+        <fieldset [disabled]="saving()">
+          <legend>Modalidad</legend>
+          <div class="choices">
+            @for (mode of vm.modalities; track mode) {
+              <button type="button" [class.selected]="modality === mode" [attr.aria-pressed]="modality === mode" (click)="changeModality(mode)">{{ mode === 'ONLINE' ? 'Videollamada' : 'Presencial' }}</button>
+            }
+          </div>
+          @if (modality === 'PRESENCIAL') {
+            <label>Sede<select name="venue" [ngModel]="locationId" (ngModelChange)="changeVenue($event)">
+              @for (venue of vm.venues; track venue.id) { <option [ngValue]="venue.id">{{ venue.name }} · {{ venue.address }}</option> }
+            </select></label>
+            @if (!vm.venues.length) { <p>No hay sedes con disponibilidad configurada para este servicio.</p> }
+          }
+          @if (scheduleSummary()) { <p class="schedule-hint"><strong>Horarios de atención:</strong> {{ scheduleSummary() }}</p> }
+          <label>Fecha<input type="date" name="date" required [min]="vm.minDate" [max]="vm.maxDate" [ngModel]="date" (ngModelChange)="date = $event; loadSlots()"></label>
+          <p>Todos los horarios se muestran en hora de Perú.</p>
+          @if (scheduleMessage()) { <p class="notice" role="status">{{ scheduleMessage() }}</p> }
+          @if (loadingSlots()) { <p role="status">Consultando horarios...</p> }
+          @else if (!slots().length && !error() && !scheduleMessage()) { <p role="status">No hay horarios disponibles para esta fecha y modalidad. Prueba otra fecha.</p> }
+          <div class="choices" aria-label="Horarios disponibles">
+            @for (slot of slots(); track slot.startsAt) {
+              <button type="button" [class.selected]="selected()?.startsAt === slot.startsAt" [attr.aria-pressed]="selected()?.startsAt === slot.startsAt" (click)="selected.set(slot)">{{ time(slot.startsAt) }} – {{ time(slot.endsAt) }}</button>
+            }
+          </div>
+          <label>Motivo de la consulta<textarea name="reason" required maxlength="2000" rows="3" [(ngModel)]="reason" placeholder="Cuéntale al profesional qué te gustaría trabajar."></textarea></label>
+          <button type="submit" class="primary" [disabled]="!selected() || !reason.trim() || loadingSlots()">Revisar solicitud</button>
+        </fieldset>
+      </form>
+    } @else {
+      <h4>Revisa tu solicitud</h4>
+      <p>{{ vm.professionalName }} · {{ vm.title }}</p>
+      <p>{{ formatDate(selected()!.startsAt) }} · {{ vm.durationMinutes }} min · Hora de Perú</p>
+      <p>{{ modality === 'ONLINE' ? 'Videollamada' : 'Presencial' }}</p>
+      @if (modality === 'PRESENCIAL') {
+        @for (venue of vm.venues; track venue.id) { @if (venue.id === locationId) { <p>{{ venue.name }} · {{ venue.address }}</p> } }
+      }
+      <p class="reason">{{ reason }}</p>
+      <p>Se usará tu cuenta de Oona para identificar la solicitud. No se realiza ningún cobro en este paso.</p>
+      <div class="choices"><button type="button" [disabled]="saving()" (click)="reviewing.set(false)">Volver</button>
+        <button type="button" class="primary" [disabled]="saving()" (click)="submit()">{{ saving() ? 'Enviando...' : 'Enviar solicitud' }}</button></div>
+    }
+  }
+</section>

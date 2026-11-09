@@ -90,6 +90,9 @@ export class HomeComponent implements OnInit {
 
     image: this.optimizarImagen(event.coverImageUrl),
 
+    averageRating: event.averageRating ?? null,
+    reviewCount: event.reviewCount ?? 0,
+    reviewers: event.reviewers ?? [],
     spotsLeft: null
 
   }));
@@ -113,7 +116,7 @@ private formatearFecha(fecha: string | null): string {
 
   if (!fecha) return '';
 
-  return new Date(fecha).toLocaleString('es-ES', {
+  return new Date(fecha).toLocaleString('es-PE', { timeZone: 'America/Lima',
     weekday: 'short',
     day: '2-digit',
     month: 'short',

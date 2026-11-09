@@ -1,3 +1,4 @@
+import { ProfessionalAgendaComponent } from './agenda/professional-agenda.component';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -68,7 +69,7 @@ import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'agenda';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -161,6 +162,7 @@ interface OccurrenceForm {
   standalone: true,
   imports: [
     ProfessionalReservationsComponent,
+    ProfessionalAgendaComponent,
     CommonModule,
     FormsModule,
     ImageCropperComponent,
@@ -1274,7 +1276,7 @@ export class ProfessionalPortalComponent {
       whatToBring: '',
       modality: 'ONLINE',
       priceFrom: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       minimumAge: 18,
       categoryId: null,
       paymentMethod: 'WHATSAPP',
@@ -1302,7 +1304,7 @@ export class ProfessionalPortalComponent {
       modality: 'ONLINE',
       locationId: null,
       price: 0,
-      currency: 'EUR',
+      currency: 'PEN',
       status: 'PUBLICADO',
       workTopics: [],
       techniques: [],
@@ -1467,6 +1469,13 @@ export class ProfessionalPortalComponent {
 
   private apiError(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
+      const violations: unknown = error.error?.errors;
+      if (Array.isArray(violations)) {
+        const messages = violations
+          .map(item => item?.message)
+          .filter((message): message is string => typeof message === 'string' && message.trim().length > 0);
+        if (messages.length) return [...new Set(messages)].join(' ');
+      }
       return error.error?.message || error.error?.detail || fallback;
     }
     return fallback;
@@ -1474,7 +1483,7 @@ export class ProfessionalPortalComponent {
 
   // ── Participants modal methods ──────────────────────────────────────────
   verParticipantes(occurrence: EventOccurrenceManagement): void {
-    const label = new Date(occurrence.startsAt).toLocaleString('es-ES', {
+    const label = new Date(occurrence.startsAt).toLocaleString('es-PE', { timeZone: 'America/Lima',
       day: '2-digit', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });

@@ -2182,33 +2182,88 @@ swiper-slide{
 
 
 
-/* Ubicación de la sesión seleccionada. */
+/* Las columnas comparten filas para alinear títulos y acciones sin alturas fijas. */
+.venue-travel-layout {
+  --venue-rows: subgrid;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto auto;
+  column-gap: 20px;
+  align-items: stretch;
+}
+.venue-location {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: var(--venue-rows);
+  min-width: 0;
+  padding: 22px;
+  border-radius: 16px;
+  background: #f1f6f4;
+  box-sizing: border-box;
+}
+.event-location-card .venue-location h2 {
+  margin: 0 0 18px;
+  color: #004f59;
+  font: 600 22px/1.3 Georgia, serif;
+  overflow-wrap: anywhere;
+}
+.venue-location-body { min-width: 0; padding-bottom: 20px; color: #38616a; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.venue-location-body p { margin: 0 0 10px; }
+.venue-location-body p:last-child { margin-bottom: 0; }
+.venue-location-name { color: #004f59; font-size: 16px; }
+.venue-location-actions { grid-row: 3; min-width: 0; }
+.venue-travel-info { min-width: 0; }
 .event-location-toggle {
   display: inline-flex;
+  align-items: center;
   justify-content: center;
-  min-height: 44px;
-  margin: 12px 0 20px;
-  padding: 12px 20px;
-  border: 1px solid #004e59;
-  border-radius: 24px;
-  background: #004e59;
-  color: #fff;
-  font: inherit;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid #00545d;
+  border-radius: 12px;
+  background: #00545d;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
   cursor: pointer;
+  box-sizing: border-box;
 }
-.event-location-toggle:focus-visible {
-  outline: 3px solid #d4856a;
-  outline-offset: 3px;
-}
-.event-location-link {
-  display: inline-block;
-  margin-top: 14px;
-  color: #004e59;
-  text-decoration: underline;
-}
+.event-location-toggle:focus-visible { outline: 3px solid #d4856a; outline-offset: 3px; }
+#event-location-map { margin-top: 22px; }
+.event-location-link { display: inline-block; margin-top: 14px; color: #004e59; text-decoration: underline; }
 .event-location-note { color: #61757a; }
+@media (max-width: 620px) {
+  .venue-travel-layout { --venue-rows: auto auto auto auto; display: block; }
+  .venue-location { margin-bottom: 16px; }
+}
 
+/* Calificaciones del evento */
+.event-reviews { margin: 32px 0; padding: 24px; border: 1px solid #dbe6e1; border-radius: 16px; background: #fff; }
+.event-reviews h2 { margin: 0 0 16px; }
+.event-reviews p { margin: 12px 0; }
+.event-reviews__summary > span { color: #986b00; font-size: 24px; }
+.event-reviews__form fieldset { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.event-reviews__stars { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.event-reviews__star { display: inline-flex; align-items: center; gap: 3px; padding: 4px; cursor: pointer; color: #6b7280; }
+.event-reviews__star > span { font-size: 32px; line-height: 1; }
+.event-reviews__star.is-selected { color: #986b00; }
+.event-reviews__star:focus-within { outline: 2px solid #285f46; outline-offset: 2px; border-radius: 4px; }
+.event-reviews__star input { accent-color: #285f46; }
+.event-reviews textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0 16px; padding: 12px; border: 1px solid #aabbb3; border-radius: 8px; font: inherit; resize: vertical; }
+.event-reviews button { padding: 10px 16px; border: 1px solid #285f46; border-radius: 8px; background: #285f46; color: #fff; font: inherit; cursor: pointer; }
+.event-reviews button:disabled { opacity: .55; cursor: not-allowed; }
+.event-reviews button:focus-visible, .event-reviews textarea:focus-visible { outline: 3px solid #285f46; outline-offset: 3px; }
+.event-reviews [role="alert"] { color: #a12622; }
+@media (max-width: 560px) { .event-reviews { padding: 16px; } }
 
-.venue-travel-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,1fr);gap:24px;align-items:start}
-.venue-location,.venue-travel-info{min-width:0}
-@media(max-width:900px){.venue-travel-layout{grid-template-columns:1fr}}
+.event-reviews__item { border-top: 1px solid #dbe6e1; padding: 16px 0; }
+.event-reviews__item header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.event-reviews__item time { font-size: .875rem; color: #52635c; }
+.event-reviews__rating { color: #986b00; letter-spacing: 2px; }
+.event-reviews__comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.event-reviews__pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 12px 0 20px; }
