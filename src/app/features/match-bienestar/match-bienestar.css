@@ -1,7 +1,7 @@
 .match-page {
   background-color: var(--color-bg);
   min-height: 100vh;
-  padding-bottom: var(--space-16);
+  padding-bottom: 0;
   font-family: var(--font-body);
   overflow-x: hidden;
 }
@@ -20,7 +20,7 @@ main {
   position: relative;
   display: block;
   width: 100vw;
-  min-height: 480px;
+  min-height: 400px;
   height: auto;
   overflow: hidden;
   box-sizing: border-box;
@@ -34,7 +34,7 @@ main {
   width: 100%;
   max-width: 672px;
   margin: 32px auto 0;
-  padding: 0 16px 64px;
+  padding: 0 16px 24px;
   box-sizing: border-box;
   position: relative;
   z-index: 10;
@@ -174,7 +174,7 @@ main {
 .formlogin {
   display: block;
   width: min(672px, 100%);
-  margin-top: -32px;
+  margin-top: 0 px;
   padding: 32px;
   box-sizing: border-box;
   background-color: rgb(255, 255, 255);
@@ -360,9 +360,9 @@ main {
 }
 
 .match-chip--selected {
-  background-color: rgba(76, 140, 43, 0.08); 
-  border-color: rgb(76, 140, 43); 
-  color: rgb(76, 140, 43) !important; 
+  background-color: rgba(76, 140, 43, 0.08);
+  border-color: rgb(76, 140, 43);
+  color: rgb(76, 140, 43) !important;
 }
 
 .match-chip--with-icon {
@@ -417,14 +417,14 @@ main {
 
 .match-cat-card:hover:not(:disabled) {
   background-color: #eceee8;
-  border-color: rgb(76, 140, 43); 
+  border-color: rgb(76, 140, 43);
   transform: translateY(-1px);
 }
 
 .match-cat-card--selected {
-  background-color: rgba(76, 140, 43, 0.08); 
-  border-color: rgb(76, 140, 43); 
-  color: rgb(76, 140, 43) !important; 
+  background-color: rgba(76, 140, 43, 0.08);
+  border-color: rgb(76, 140, 43);
+  color: rgb(76, 140, 43) !important;
   font-weight: 600;
 }
 

@@ -269,16 +269,16 @@ height: 16px;
 
 .profile-about__sidebar {
   border-left: 1px solid hsl(100deg 30% 94%);
-  padding: 32px;
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .info-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .info-block h3 {
@@ -630,32 +630,47 @@ align-items: center;
 gap: 10px;
 margin-top: 24px;
 }
-.tarjeta12{
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-min-width: 112px;
-height: 44px;
-padding: 10px 24px;
-background-color: rgb(253, 230, 138);
-color: rgb(146, 64, 14);
-border-radius: 9999px;
-font-size: 16px;
-font-weight: 600;
-line-height: 24px;
-cursor: pointer;
-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+.tarjeta12 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 132px;
+  height: 46px;
+  padding: 0 24px;
+  background-color: #ffdf82;
+  color: #493a1b;
+  border: 1px solid #ffdf82;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
+.tarjeta12:not(.tarjeta12--active):hover {
+  background-color: #ffe9a8;
+  border-color: #ffe9a8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
 .tarjeta12--active {
   order: 2;
   color: #fff !important;
   background: rgba(255, 255, 255, 0.1);
 }
 
-.tarjeta13{
-color:rgb(146, 64, 14);
+.tarjeta13 {
+  color: #493a1b;
 }
 
 .tarjeta13--active{
@@ -665,24 +680,39 @@ color:rgb(146, 64, 14);
   background: rgba(255, 255, 255, 0.2);
   color: #fff !important;
 }
-.tarjeta15{
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-flex-shrink: 0;
-height: 44px;
-padding: 0 24px;
-background-color: transparent;
-color: rgb(255, 255, 255);
-border: 1px solid rgba(255, 255, 255, 0.3);
-border-radius: 9999px;
-font-size: 16px;
-font-weight: 600;
-line-height: 24px;
-cursor: pointer;
-transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+.tarjeta15 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex-shrink: 0;
+  min-width: 132px;
+  height: 46px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
+.tarjeta15:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
 
 .tarjeta15--primary {
   background-color: #fff;
@@ -694,8 +724,10 @@ transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cub
   background-color: #efece4;
   border-color: #efece4;
 }
-.tarjeta17{
-color:rgb(255, 255, 255);
+.tarjeta17,
+.tarjeta17-full,
+.tarjeta17-short {
+  color: #ffffff;
 }
 .tarjeta17full--primary{
 color:rgb(255, 255, 255);

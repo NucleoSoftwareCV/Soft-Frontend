@@ -55,9 +55,10 @@
         </ng-template>
       </div>
     </section>
-
+    <div class="session-info-card">
     <section class="detail-section">
-      <h2>Sobre esta sesión</h2>
+
+      <h2> Sobre esta sesión</h2>
       <div *ngIf="getDescripcionParrafos().length; else noDescription">
         <p *ngFor="let paragraph of getDescripcionParrafos()">{{ paragraph }}</p>
       </div>
@@ -78,6 +79,7 @@
         </li>
       </ul>
     </section>
+    </div>
   </div>
 </main>
 
