@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -138,6 +139,70 @@ export class AdminComponent {
 
   totalElements =
     signal(0);
+
+  // Estadísticas globales, independientes del filtro y la página actual.
+  summaryTotal = signal<number | null>(null);
+  summaryPending = signal<number | null>(null);
+  summaryApproved = signal<number | null>(null);
+  summaryRejected = signal<number | null>(null);
+
+  // Solicitudes pendientes para el resumen
+  summaryPendingApplications =
+    signal<ProfessionalApplicationResponse[]>([]);
+
+// Últimas solicitudes, independientemente de su estado
+  summaryRecentApplications =
+    signal<ProfessionalApplicationResponse[]>([]);
+
+  loadSummaryApplications(): void {
+
+    this.applicationsApi
+      .getForAdmin('PENDIENTE', 0, 5)
+      .subscribe({
+        next: response => {
+          this.summaryPendingApplications.set(response.content);
+        },
+        error: () => {
+          this.summaryPendingApplications.set([]);
+        }
+      });
+
+    this.applicationsApi
+      .getForAdmin(null, 0, 5)
+      .subscribe({
+        next: response => {
+          this.summaryRecentApplications.set(response.content);
+        },
+        error: () => {
+          this.summaryRecentApplications.set([]);
+        }
+      });
+
+  }
+
+  loadSummaryStats(): void {
+    this.loadSummaryApplications();
+    const queries: Array<{
+      status: ProfessionalApplicationStatus | null;
+      target: ReturnType<typeof signal<number | null>>;
+    }> = [
+      { status: null, target: this.summaryTotal },
+      { status: 'PENDIENTE', target: this.summaryPending },
+      { status: 'APROBADO', target: this.summaryApproved },
+      { status: 'RECHAZADO', target: this.summaryRejected },
+    ];
+
+    queries.forEach(({ status, target }) => {
+      this.applicationsApi.getForAdmin(status, 0, 1).subscribe({
+        next: response => target.set(response.totalElements),
+        error: () => {
+          target.set(null);
+          this.toastService.error('No se pudieron cargar las estadísticas.');
+        },
+      });
+    });
+  }
+
 
   approvePending =
     signal(false);
@@ -329,6 +394,7 @@ export class AdminComponent {
 
   constructor() {
     this.load(0);
+    this.loadSummaryStats();
   }
 
 
@@ -1177,7 +1243,7 @@ export class AdminComponent {
   }
 
 
- 
+
 select(item: ProfessionalApplicationResponse): void {
   this.selected.set(item);
 
@@ -1644,6 +1710,7 @@ select(item: ProfessionalApplicationResponse): void {
     this.approvePending.set(false);
 
     this.load(this.page());
+    this.loadSummaryStats();
 
   }
 

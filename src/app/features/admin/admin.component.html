@@ -1,3 +1,4 @@
+
 <div class="erp" [class.erp--collapsed]="sidebarCollapsed()">
 
   <!-- ========================================================= -->
@@ -188,65 +189,129 @@
         <div class="metric-grid">
 
           <article>
-            <span>Solicitudes en la vista</span>
-            <strong>{{ totalElements() }}</strong>
+            <span>Total de solicitudes</span>
+            <strong>{{ summaryTotal() ?? '—' }}</strong>
           </article>
 
           <article>
-            <span>Pendientes en página</span>
-            <strong>{{ pendingOnPage() }}</strong>
+            <span>Pendientes</span>
+            <strong>{{ summaryPending() ?? '—' }}</strong>
           </article>
 
           <article>
-            <span>Filtro activo</span>
-            <strong class="metric-grid__text">
-              {{ status() || 'TODAS' }}
-            </strong>
+            <span>Aprobadas</span>
+            <strong>{{ summaryApproved() ?? '—' }}</strong>
+          </article>
+
+          <article>
+            <span>Rechazadas</span>
+            <strong>{{ summaryRejected() ?? '—' }}</strong>
           </article>
 
         </div>
 
 
+        <!-- SOLICITUDES PENDIENTES -->
+
         <section class="queue-preview">
 
           <div>
             <h2>Revisión pendiente</h2>
-            <p>
-              Solicitudes ordenadas por fecha de envío más reciente.
-            </p>
+            <p>Solicitudes que necesitan una decisión administrativa.</p>
           </div>
 
-          @if (loading()) {
-
-            <div class="skeleton-row"></div>
-            <div class="skeleton-row"></div>
-
-          } @else if (!applications().length) {
+          @if (summaryPendingApplications().length === 0) {
 
             <p class="empty">
-              No hay solicitudes con el filtro actual.
+              No hay solicitudes pendientes de revisión.
             </p>
 
           } @else {
 
             @for (
-              item of applications().slice(0, 5);
+                item of summaryPendingApplications();
               track item.id
-            ) {
+              ) {
 
               <button
                 class="preview-row"
+                type="button"
                 (click)="show('applications'); select(item)"
               >
 
-                <span>
-  <strong>{{ item.fullName }}</strong>
-  {{
-    item.professionalType
-      ? professionalTypeLabel(item.professionalType)
-      : '-'
-  }}
-</span>
+        <span>
+          <strong>{{ item.fullName }}</strong>
+
+          {{
+            item.professionalType
+              ? professionalTypeLabel(item.professionalType)
+              : '-'
+          }}
+        </span>
+
+                <time>
+                  {{ item.createdAt | date:'dd/MM/yyyy' }}
+                </time>
+
+              </button>
+
+            }
+
+          }
+
+        </section>
+
+
+        <!-- SOLICITUDES RECIENTES -->
+
+        <section class="queue-preview">
+
+          <div>
+            <h2>Solicitudes recientes</h2>
+            <p>Últimas solicitudes recibidas y su estado actual.</p>
+          </div>
+
+          @if (summaryRecentApplications().length === 0) {
+
+            <p class="empty">
+              No hay solicitudes registradas.
+            </p>
+
+          } @else {
+
+            @for (
+                item of summaryRecentApplications();
+              track item.id
+              ) {
+
+              <button
+                class="preview-row"
+                type="button"
+                (click)="show('applications'); select(item)"
+              >
+
+        <span>
+          <strong>{{ item.fullName }}</strong>
+
+          {{
+            item.professionalType
+              ? professionalTypeLabel(item.professionalType)
+              : '-'
+          }}
+
+          <span
+            class="status"
+            [attr.data-status]="item.status"
+          >
+            {{
+              item.status === 'APROBADO'
+                ? 'Aprobada'
+                : item.status === 'RECHAZADO'
+                  ? 'Rechazada'
+                  : 'Pendiente'
+            }}
+          </span>
+        </span>
 
                 <time>
                   {{ item.createdAt | date:'dd/MM/yyyy' }}
@@ -264,345 +329,345 @@
 
     }
 
-<!-- ========================================================= -->
-<!-- SOLICITUDES -->
-<!-- ========================================================= -->
+    <!-- ========================================================= -->
+    <!-- SOLICITUDES -->
+    <!-- ========================================================= -->
 
-@else if (section() === 'applications') {
+    @else if (section() === 'applications') {
 
-  <section class="erp__content">
+      <section class="erp__content">
 
-    <div class="erp__heading">
+        <div class="erp__heading">
 
-      <div>
-        <h1>Solicitudes profesionales</h1>
-        <p>
-          Consulta la información declarada y registra una decisión.
-        </p>
-      </div>
+          <div>
+            <h1>Solicitudes profesionales</h1>
+            <p>
+              Consulta la información declarada y registra una decisión.
+            </p>
+          </div>
 
-    </div>
-
-
-    <div class="toolbar">
-
-      @for (
-        option of [
-          { value: null, label: 'Todas' },
-          { value: 'PENDIENTE', label: 'Pendientes' },
-          { value: 'APROBADO', label: 'Aprobadas' },
-          { value: 'RECHAZADO', label: 'Rechazadas' }
-        ];
-        track option.label
-      ) {
-
-        <button
-          [class.active]="status() === option.value"
-          (click)="filter($any(option.value))"
-        >
-          {{ option.label }}
-        </button>
-
-      }
-
-    </div>
+        </div>
 
 
-    <div class="table-shell">
+        <div class="toolbar">
 
-      <table>
-
-        <thead>
-
-          <tr>
-            <th>Solicitante</th>
-            <th>Tipo</th>
-            <th>Ciudad</th>
-            <th>Enviada</th>
-            <th>Estado</th>
-            <th></th>
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          @if (loading()) {
-
-            @for (_ of [1,2,3,4]; track $index) {
-
-              <tr>
-                <td colspan="6">
-                  <div class="skeleton-row"></div>
-                </td>
-              </tr>
-
-            }
-
-          } @else {
-
-            @for (
-              item of applications();
-              track item.id
+          @for (
+              option of [
+            { value: null, label: 'Todas' },
+            { value: 'PENDIENTE', label: 'Pendientes' },
+            { value: 'APROBADO', label: 'Aprobadas' },
+            { value: 'RECHAZADO', label: 'Rechazadas' }
+          ];
+            track option.label
             ) {
 
-              <tr>
+            <button
+              [class.active]="status() === option.value"
+              (click)="filter($any(option.value))"
+            >
+              {{ option.label }}
+            </button>
 
-                <td>
-                  <strong>{{ item.fullName }}</strong>
-                  <small>{{ item.email }}</small>
-                </td>
+          }
 
-                <td>
-  {{
-    item.professionalType
-      ? professionalTypeLabel(item.professionalType)
-      : '-'
-  }}
-</td>
+        </div>
 
-<td>
-{{ item.cityName || '-' }}
-</td>
 
-                <td>
-                  {{ item.createdAt | date:'dd/MM/yyyy' }}
-                </td>
+        <div class="table-shell">
 
-                <td>
+          <table>
+
+            <thead>
+
+            <tr>
+              <th>Solicitante</th>
+              <th>Tipo</th>
+              <th>Ciudad</th>
+              <th>Enviada</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+              @if (loading()) {
+
+                @for (_ of [1,2,3,4]; track $index) {
+
+                  <tr>
+                    <td colspan="6">
+                      <div class="skeleton-row"></div>
+                    </td>
+                  </tr>
+
+                }
+
+              } @else {
+
+                @for (
+                    item of applications();
+                  track item.id
+                  ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>{{ item.fullName }}</strong>
+                      <small>{{ item.email }}</small>
+                    </td>
+
+                    <td>
+                      {{
+                        item.professionalType
+                          ? professionalTypeLabel(item.professionalType)
+                          : '-'
+                      }}
+                    </td>
+
+                    <td>
+                      {{ item.cityName || '-' }}
+                    </td>
+
+                    <td>
+                      {{ item.createdAt | date:'dd/MM/yyyy' }}
+                    </td>
+
+                    <td>
                   <span
                     class="status"
                     [attr.data-status]="item.status"
                   >
                     {{ item.status }}
                   </span>
-                </td>
+                    </td>
 
-                <td>
-                  <button
-                    class="table-action"
-                    (click)="select(item)"
-                  >
-                    Revisar
-                  </button>
-                </td>
+                    <td>
+                      <button
+                        class="table-action"
+                        (click)="select(item)"
+                      >
+                        Revisar
+                      </button>
+                    </td>
 
-              </tr>
+                  </tr>
 
-            } @empty {
+                } @empty {
 
-              <tr>
-                <td
-                  colspan="6"
-                  class="empty"
-                >
-                  No hay solicitudes con estos criterios.
-                </td>
-              </tr>
+                  <tr>
+                    <td
+                      colspan="6"
+                      class="empty"
+                    >
+                      No hay solicitudes con estos criterios.
+                    </td>
+                  </tr>
 
-            }
+                }
 
-          }
+              }
 
-        </tbody>
+            </tbody>
 
-      </table>
+          </table>
 
-    </div>
+        </div>
 
 
-    <footer class="pagination">
+        <footer class="pagination">
 
       <span>
         Página {{ page() + 1 }} de {{ totalPages() || 1 }}
       </span>
 
-      <div>
+          <div>
 
-        <button
-          [disabled]="page() === 0"
-          (click)="load(page() - 1)"
-        >
-          Anterior
-        </button>
+            <button
+              [disabled]="page() === 0"
+              (click)="load(page() - 1)"
+            >
+              Anterior
+            </button>
 
-        <button
-          [disabled]="page() + 1 >= totalPages()"
-          (click)="load(page() + 1)"
-        >
-          Siguiente
-        </button>
+            <button
+              [disabled]="page() + 1 >= totalPages()"
+              (click)="load(page() + 1)"
+            >
+              Siguiente
+            </button>
 
-      </div>
+          </div>
 
-    </footer>
+        </footer>
 
-  </section>
+      </section>
 
-}
-
-
-<!-- ========================================================= -->
-<!-- CIUDADES -->
-<!-- ========================================================= -->
-
-@else if (section() === 'cities') {
-
-  <section class="erp__content">
-
-    <div class="erp__heading">
-
-      <div>
-        <h1>Catálogo de ciudades</h1>
-        <p>
-          Gestiona las ciudades activas disponibles para ubicar
-          los eventos y sesiones.
-        </p>
-      </div>
-
-      <button
-        class="primary icon-inline"
-        (click)="openNewCity()"
-      >
-        <svg
-          lucidePlus
-          aria-hidden="true"
-          class="icon-md"
-        ></svg>
-
-        Nueva ciudad
-      </button>
-
-    </div>
+    }
 
 
-    <div class="table-shell">
+    <!-- ========================================================= -->
+    <!-- CIUDADES -->
+    <!-- ========================================================= -->
 
-      <table>
+    @else if (section() === 'cities') {
 
-        <thead>
+      <section class="erp__content">
 
-          <tr>
-            <th>Ciudad</th>
-            <th>Provincia / Región</th>
-            <th>Código de País</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
+        <div class="erp__heading">
 
-        </thead>
+          <div>
+            <h1>Catálogo de ciudades</h1>
+            <p>
+              Gestiona las ciudades activas disponibles para ubicar
+              los eventos y sesiones.
+            </p>
+          </div>
 
-        <tbody>
+          <button
+            class="primary icon-inline"
+            (click)="openNewCity()"
+          >
+            <svg
+              lucidePlus
+              aria-hidden="true"
+              class="icon-md"
+            ></svg>
 
-          @if (loading()) {
+            Nueva ciudad
+          </button>
 
-            @for (_ of [1,2,3]; track $index) {
+        </div>
 
-              <tr>
-                <td colspan="5">
-                  <div class="skeleton-row"></div>
-                </td>
-              </tr>
 
-            }
+        <div class="table-shell">
 
-          } @else {
+          <table>
 
-            @for (
-              city of cities();
-              track city.id
-            ) {
+            <thead>
 
-              <tr>
+            <tr>
+              <th>Ciudad</th>
+              <th>Provincia / Región</th>
+              <th>Código de País</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
 
-                <td>
-                  <strong>{{ city.name }}</strong>
-                </td>
+            </thead>
 
-                <td>
-                  {{ city.province || '-' }}
-                </td>
+            <tbody>
 
-                <td>
+              @if (loading()) {
+
+                @for (_ of [1,2,3]; track $index) {
+
+                  <tr>
+                    <td colspan="5">
+                      <div class="skeleton-row"></div>
+                    </td>
+                  </tr>
+
+                }
+
+              } @else {
+
+                @for (
+                    city of cities();
+                  track city.id
+                  ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>{{ city.name }}</strong>
+                    </td>
+
+                    <td>
+                      {{ city.province || '-' }}
+                    </td>
+
+                    <td>
                   <span class="code-chip">
                     {{ city.countryCode }}
                   </span>
-                </td>
+                    </td>
 
-                <td>
+                    <td>
 
-                  <button
-                    type="button"
-                    class="status status--toggle"
-                    [attr.data-status]="
+                      <button
+                        type="button"
+                        class="status status--toggle"
+                        [attr.data-status]="
                       city.active ? 'APROBADO' : 'RECHAZADO'
                     "
-                    (click)="toggleCityActive(city)"
-                    title="Haga clic para cambiar el estado"
-                  >
-                    {{ city.active ? 'ACTIVA' : 'INACTIVA' }}
-                  </button>
+                        (click)="toggleCityActive(city)"
+                        title="Haga clic para cambiar el estado"
+                      >
+                        {{ city.active ? 'ACTIVA' : 'INACTIVA' }}
+                      </button>
 
-                </td>
+                    </td>
 
-                <td>
+                    <td>
 
-                  <div class="row-actions">
+                      <div class="row-actions">
 
-                    <button
-                      class="table-action table-action--square"
-                      (click)="openEditCity(city)"
-                      title="Editar"
+                        <button
+                          class="table-action table-action--square"
+                          (click)="openEditCity(city)"
+                          title="Editar"
+                        >
+                          <svg
+                            lucidePencil
+                            aria-hidden="true"
+                            class="icon-sm"
+                          ></svg>
+                        </button>
+
+                        <button
+                          class="table-action table-action--square table-action--danger"
+                          (click)="confirmDeleteCity(city)"
+                          title="Eliminar"
+                        >
+                          <svg
+                            lucideTrash2
+                            aria-hidden="true"
+                            class="icon-sm"
+                          ></svg>
+                        </button>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                } @empty {
+
+                  <tr>
+                    <td
+                      colspan="5"
+                      class="empty"
                     >
-                      <svg
-                        lucidePencil
-                        aria-hidden="true"
-                        class="icon-sm"
-                      ></svg>
-                    </button>
+                      No hay ciudades registradas.
+                    </td>
+                  </tr>
 
-                    <button
-                      class="table-action table-action--square table-action--danger"
-                      (click)="confirmDeleteCity(city)"
-                      title="Eliminar"
-                    >
-                      <svg
-                        lucideTrash2
-                        aria-hidden="true"
-                        class="icon-sm"
-                      ></svg>
-                    </button>
+                }
 
-                  </div>
+              }
 
-                </td>
+            </tbody>
 
-              </tr>
+          </table>
 
-            } @empty {
+        </div>
 
-              <tr>
-                <td
-                  colspan="5"
-                  class="empty"
-                >
-                  No hay ciudades registradas.
-                </td>
-              </tr>
+      </section>
 
-            }
-
-          }
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  </section>
-
-}
+    }
     <!-- ========================================================= -->
     <!-- CATÁLOGOS -->
     <!-- ========================================================= -->
@@ -708,7 +773,7 @@
         @if (
           catalogTab() === 'categories' ||
           catalogTab() === 'experienceTypes'
-        ) {
+          ) {
 
           <!-- ================= DESKTOP ================= -->
 
@@ -718,13 +783,13 @@
 
               <thead>
 
-                <tr>
-                  <th>Nombre</th>
-                  <th>Slug</th>
-                  <th>Descripción</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
+              <tr>
+                <th>Nombre</th>
+                <th>Slug</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
 
               </thead>
 
@@ -745,13 +810,13 @@
                 } @else {
 
                   @for (
-                    item of (
-                      catalogTab() === 'categories'
-                        ? categories()
-                        : experienceTypes()
-                    );
+                      item of (
+                    catalogTab() === 'categories'
+                      ? categories()
+                      : experienceTypes()
+                  );
                     track item.id
-                  ) {
+                    ) {
 
                     <tr>
 
@@ -872,13 +937,13 @@
             } @else {
 
               @for (
-                item of (
-                  catalogTab() === 'categories'
-                    ? categories()
-                    : experienceTypes()
-                );
+                  item of (
+                catalogTab() === 'categories'
+                  ? categories()
+                  : experienceTypes()
+              );
                 track item.id
-              ) {
+                ) {
 
                 <article
                   class="catalog-mobile-card"
@@ -1069,11 +1134,11 @@
 
               <thead>
 
-                <tr>
-                  <th>Nombre</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
+              <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
 
               </thead>
 
@@ -1094,9 +1159,9 @@
                 } @else {
 
                   @for (
-                    item of activeSessionCatalogList;
+                      item of activeSessionCatalogList;
                     track item.id
-                  ) {
+                    ) {
 
                     <tr>
 
@@ -1191,9 +1256,9 @@
             } @else {
 
               @for (
-                item of activeSessionCatalogList;
+                  item of activeSessionCatalogList;
                 track item.id
-              ) {
+                ) {
 
                 <article
                   class="catalog-mobile-card"
@@ -1362,162 +1427,162 @@
     ></button>
 
     <aside
-  class="drawer"
-  aria-label="Detalle de solicitud"
->
-
-  <header>
-
-    <div>
-      <span>Solicitud #{{ item.id }}</span>
-      <h2>{{ item.fullName }}</h2>
-    </div>
-
-    <button
-      aria-label="Cerrar"
-      (click)="closeDetail()"
+      class="drawer"
+      aria-label="Detalle de solicitud"
     >
-      ×
-    </button>
 
-  </header>
-
-
-  <dl>
-
-    <div>
-      <dt>Email</dt>
-      <dd>{{ item.email }}</dd>
-    </div>
-
-    <div>
-      <dt>Ciudad</dt>
-      <dd>{{ item.cityName || '-' }}</dd>
-    </div>
-
-    <div>
-  <dt>Tipo profesional</dt>
-  <dd>
-    {{
-      item.professionalType
-        ? professionalTypeLabel(item.professionalType)
-        : '-'
-    }}
-  </dd>
-</div>
-
-    <div>
-      <dt>WhatsApp</dt>
-      <dd>{{ item.whatsappPhone || '-' }}</dd>
-    </div>
-
-    <div class="wide">
-      <dt>Motivación y experiencia</dt>
-      <dd>{{ item.motivation || '-' }}</dd>
-    </div>
-
-    <div>
-      <dt>Creada</dt>
-      <dd>{{ item.createdAt | date:'medium' }}</dd>
-    </div>
-
-    <div>
-      <dt>Actualizada</dt>
-      <dd>{{ item.updatedAt | date:'medium' }}</dd>
-    </div>
-
-  </dl>
-
-
-  @if (item.status === 'PENDIENTE') {
-
-    <div class="drawer__actions">
-
-      @if (rejectMode()) {
-
-        <label>
-          Motivo del rechazo
-
-          <textarea
-            [(ngModel)]="rejectionReason"
-            maxlength="500"
-            rows="4"
-          ></textarea>
-        </label>
+      <header>
 
         <div>
-
-          <button
-            (click)="rejectMode.set(false)"
-          >
-            Cancelar
-          </button>
-
-          <button
-            class="danger"
-            [disabled]="deciding()"
-            (click)="reject()"
-          >
-            Confirmar rechazo
-          </button>
-
+          <span>Solicitud #{{ item.id }}</span>
+          <h2>{{ item.fullName }}</h2>
         </div>
 
-      } @else if (approvePending()) {
+        <button
+          aria-label="Cerrar"
+          (click)="closeDetail()"
+        >
+          ×
+        </button>
 
-        <p>
-          ¿Confirmas que esta persona puede acceder
-          al portal profesional?
-        </p>
+      </header>
+
+
+      <dl>
 
         <div>
+          <dt>Email</dt>
+          <dd>{{ item.email }}</dd>
+        </div>
 
-          <button
-            (click)="approvePending.set(false)"
-          >
-            Cancelar
-          </button>
+        <div>
+          <dt>Ciudad</dt>
+          <dd>{{ item.cityName || '-' }}</dd>
+        </div>
 
-          <button
-            class="primary"
-            [disabled]="deciding()"
-            (click)="approve()"
-          >
-            Confirmar aprobación
-          </button>
+        <div>
+          <dt>Tipo profesional</dt>
+          <dd>
+            {{
+              item.professionalType
+                ? professionalTypeLabel(item.professionalType)
+                : '-'
+            }}
+          </dd>
+        </div>
+
+        <div>
+          <dt>WhatsApp</dt>
+          <dd>{{ item.whatsappPhone || '-' }}</dd>
+        </div>
+
+        <div class="wide">
+          <dt>Motivación y experiencia</dt>
+          <dd>{{ item.motivation || '-' }}</dd>
+        </div>
+
+        <div>
+          <dt>Creada</dt>
+          <dd>{{ item.createdAt | date:'medium' }}</dd>
+        </div>
+
+        <div>
+          <dt>Actualizada</dt>
+          <dd>{{ item.updatedAt | date:'medium' }}</dd>
+        </div>
+
+      </dl>
+
+
+      @if (item.status === 'PENDIENTE') {
+
+        <div class="drawer__actions">
+
+          @if (rejectMode()) {
+
+            <label>
+              Motivo del rechazo
+
+              <textarea
+                [(ngModel)]="rejectionReason"
+                maxlength="500"
+                rows="4"
+              ></textarea>
+            </label>
+
+            <div>
+
+              <button
+                (click)="rejectMode.set(false)"
+              >
+                Cancelar
+              </button>
+
+              <button
+                class="danger"
+                [disabled]="deciding()"
+                (click)="reject()"
+              >
+                Confirmar rechazo
+              </button>
+
+            </div>
+
+          } @else if (approvePending()) {
+
+            <p>
+              ¿Confirmas que esta persona puede acceder
+              al portal profesional?
+            </p>
+
+            <div>
+
+              <button
+                (click)="approvePending.set(false)"
+              >
+                Cancelar
+              </button>
+
+              <button
+                class="primary"
+                [disabled]="deciding()"
+                (click)="approve()"
+              >
+                Confirmar aprobación
+              </button>
+
+            </div>
+
+          } @else {
+
+            <button
+              class="danger-outline"
+              (click)="rejectMode.set(true)"
+            >
+              Rechazar
+            </button>
+
+            <button
+              class="primary"
+              (click)="approvePending.set(true)"
+            >
+              Aprobar
+            </button>
+
+          }
 
         </div>
 
       } @else {
 
-        <button
-          class="danger-outline"
-          (click)="rejectMode.set(true)"
-        >
-          Rechazar
-        </button>
-
-        <button
-          class="primary"
-          (click)="approvePending.set(true)"
-        >
-          Aprobar
-        </button>
+        <p class="decision-note">
+          Esta solicitud ya fue
+          {{ item.status.toLowerCase() }}.
+        </p>
 
       }
 
-    </div>
-
-  } @else {
-
-    <p class="decision-note">
-      Esta solicitud ya fue
-      {{ item.status.toLowerCase() }}.
-    </p>
-
-  }
-
-</aside>
+    </aside>
 
   }
 
@@ -1863,9 +1928,9 @@
             >
 
               @for (
-                emoji of categoryEmojis;
+                  emoji of categoryEmojis;
                 track emoji
-              ) {
+                ) {
 
                 <button
                   type="button"
