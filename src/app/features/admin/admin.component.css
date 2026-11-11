@@ -2336,3 +2336,163 @@ tbody tr:hover {
     }
   }
 }
+/* ==========================================
+   RESUMEN - TARJETAS ESTADÍSTICAS
+========================================== */
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-grid > article {
+  min-width: 0;
+}
+
+/* ==========================================
+   DISTRIBUCIÓN DE SOLICITUDES
+========================================== */
+
+.summary-distribution {
+  margin-top: 20px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.summary-distribution__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.summary-distribution__header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #005365;
+}
+
+.summary-distribution__header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.summary-distribution__total {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #edf7f8;
+  color: #005365;
+  font-size: 12px;
+}
+
+/* BARRA */
+
+.summary-distribution__bar {
+  display: flex;
+  width: 100%;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e9eef0;
+}
+
+.summary-distribution__segment {
+  height: 100%;
+  transition: width 0.35s ease;
+}
+
+.summary-distribution__segment--approved {
+  background: #26976c;
+}
+
+.summary-distribution__segment--pending {
+  background: #e9ad40;
+}
+
+.summary-distribution__segment--rejected {
+  background: #d95d65;
+}
+
+/* LEYENDA */
+
+.summary-distribution__legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.summary-distribution__item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f8fafb;
+  color: #475569;
+  font-size: 13px;
+}
+
+.summary-distribution__item strong {
+  margin-left: auto;
+  color: #0f172a;
+}
+
+.summary-distribution__item small {
+  width: 100%;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.summary-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.summary-dot--approved {
+  background: #26976c;
+}
+
+.summary-dot--pending {
+  background: #e9ad40;
+}
+
+.summary-dot--rejected {
+  background: #d95d65;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-distribution__legend {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-distribution {
+    padding: 16px;
+  }
+}

@@ -146,6 +146,16 @@ export class AdminComponent {
   summaryApproved = signal<number | null>(null);
   summaryRejected = signal<number | null>(null);
 
+  summaryPercentage(value: number | null): number {
+    const total = this.summaryTotal() ?? 0;
+
+    if (total <= 0 || value === null) {
+      return 0;
+    }
+
+    return (value / total) * 100;
+  }
+
   // Solicitudes pendientes para el resumen
   summaryPendingApplications =
     signal<ProfessionalApplicationResponse[]>([]);
@@ -409,6 +419,10 @@ export class AdminComponent {
       'cities' |
       'catalogs'
   ): void {
+    if (section === 'summary') {
+      this.loadSummaryStats();
+      this.loadSummaryApplications();
+    }
 
     this.section.set(section);
 
@@ -1712,6 +1726,8 @@ select(item: ProfessionalApplicationResponse): void {
     this.load(this.page());
     this.loadSummaryStats();
 
+    this.loadSummaryStats();
+    this.loadSummaryApplications();
   }
 
 

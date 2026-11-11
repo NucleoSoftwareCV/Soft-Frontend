@@ -210,6 +210,79 @@
 
         </div>
 
+        <!-- DISTRIBUCIÓN DE SOLICITUDES -->
+        <section class="summary-distribution">
+
+          <div class="summary-distribution__header">
+            <div>
+              <h2>Distribución de solicitudes</h2>
+              <p>
+                Visualiza la proporción de solicitudes
+                según su estado actual.
+              </p>
+            </div>
+
+            <strong class="summary-distribution__total">
+              {{ summaryTotal() ?? 0 }} solicitudes
+            </strong>
+          </div>
+
+          <div
+            class="summary-distribution__bar"
+            role="img"
+            aria-label="Distribución de solicitudes por estado"
+          >
+            <div
+              class="summary-distribution__segment
+             summary-distribution__segment--approved"
+              [style.width.%]="summaryPercentage(summaryApproved())"
+            ></div>
+
+            <div
+              class="summary-distribution__segment
+             summary-distribution__segment--pending"
+              [style.width.%]="summaryPercentage(summaryPending())"
+            ></div>
+
+            <div
+              class="summary-distribution__segment
+             summary-distribution__segment--rejected"
+              [style.width.%]="summaryPercentage(summaryRejected())"
+            ></div>
+          </div>
+
+          <div class="summary-distribution__legend">
+
+            <div class="summary-distribution__item">
+              <span class="summary-dot summary-dot--approved"></span>
+              <span>Aprobadas</span>
+              <strong>{{ summaryApproved() ?? 0 }}</strong>
+              <small>
+                {{ summaryPercentage(summaryApproved()) | number:'1.0-1' }}%
+              </small>
+            </div>
+
+            <div class="summary-distribution__item">
+              <span class="summary-dot summary-dot--pending"></span>
+              <span>Pendientes</span>
+              <strong>{{ summaryPending() ?? 0 }}</strong>
+              <small>
+                {{ summaryPercentage(summaryPending()) | number:'1.0-1' }}%
+              </small>
+            </div>
+
+            <div class="summary-distribution__item">
+              <span class="summary-dot summary-dot--rejected"></span>
+              <span>Rechazadas</span>
+              <strong>{{ summaryRejected() ?? 0 }}</strong>
+              <small>
+                {{ summaryPercentage(summaryRejected()) | number:'1.0-1' }}%
+              </small>
+            </div>
+
+          </div>
+
+        </section>
 
         <!-- SOLICITUDES PENDIENTES -->
 
