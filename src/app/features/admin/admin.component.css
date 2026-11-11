@@ -2590,3 +2590,75 @@ tbody tr:hover {
     width: 100%;
   }
 }
+/* FILTROS DE CIUDADES */
+
+.city-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0 12px;
+}
+
+.city-filters__search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 440px;
+}
+
+.city-filters__search input,
+.city-filters select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dce5e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 14px;
+}
+
+.city-filters select {
+  width: auto;
+  min-width: 150px;
+  cursor: pointer;
+}
+
+.city-filters__search input:focus,
+.city-filters select:focus {
+  outline: none;
+  border-color: #005365;
+  box-shadow: 0 0 0 3px rgba(0, 83, 101, 0.1);
+}
+
+.city-filters__reset {
+  padding: 12px 16px;
+  border: 1px solid #005365;
+  border-radius: 10px;
+  background: #fff;
+  color: #005365;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.city-results {
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .city-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .city-filters__search {
+    max-width: none;
+    width: 100%;
+  }
+
+  .city-filters select {
+    width: 100%;
+  }
+}

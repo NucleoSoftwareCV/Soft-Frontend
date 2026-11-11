@@ -254,6 +254,42 @@ export class AdminComponent {
   cities =
     signal<CityResponse[]>([]);
 
+// Búsqueda de ciudades
+  citySearch = signal('');
+
+// Filtro por estado
+  cityStatusFilter = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+// Ciudades filtradas
+  filteredCities = computed(() => {
+    const query = this.citySearch()
+      .trim()
+      .toLocaleLowerCase();
+
+    const status = this.cityStatusFilter();
+
+    return this.cities().filter(city => {
+      const matchesSearch =
+        !query ||
+        (city.name ?? '').toLocaleLowerCase().includes(query) ||
+        (city.province ?? '').toLocaleLowerCase().includes(query) ||
+        (city.countryCode ?? '').toLocaleLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && city.active) ||
+        (status === 'INACTIVE' && !city.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+// Limpiar filtros
+  resetCityFilters(): void {
+    this.citySearch.set('');
+    this.cityStatusFilter.set('ALL');
+  }
+
   selectedCity =
     signal<CityResponse | null>(null);
 

@@ -677,7 +677,44 @@
           </button>
 
         </div>
+        <!-- BUSCADOR Y FILTROS DE CIUDADES -->
 
+        <div class="city-filters">
+
+          <div class="city-filters__search">
+            <input
+              type="search"
+              placeholder="Buscar por ciudad, provincia o país..."
+              aria-label="Buscar ciudades"
+              [value]="citySearch()"
+              (input)="citySearch.set($any($event.target).value)"
+            />
+          </div>
+
+          <select
+            aria-label="Filtrar ciudades por estado"
+            [value]="cityStatusFilter()"
+            (change)="cityStatusFilter.set($any($event.target).value)"
+          >
+            <option value="ALL">Todas</option>
+            <option value="ACTIVE">Activas</option>
+            <option value="INACTIVE">Inactivas</option>
+          </select>
+
+          <button
+            type="button"
+            class="city-filters__reset"
+            (click)="resetCityFilters()"
+          >
+            Limpiar filtros
+          </button>
+
+        </div>
+
+        <p class="city-results">
+          Mostrando {{ filteredCities().length }}
+          de {{ cities().length }} ciudades
+        </p>
 
         <div class="table-shell">
 
@@ -711,10 +748,7 @@
 
               } @else {
 
-                @for (
-                    city of cities();
-                  track city.id
-                  ) {
+                @for (city of filteredCities(); track city.id) {
 
                   <tr>
 
