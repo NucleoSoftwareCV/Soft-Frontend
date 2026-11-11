@@ -445,6 +445,71 @@
 
         </div>
 
+        <!-- BÚSQUEDA Y FILTROS DE SOLICITUDES -->
+
+        <div class="application-search">
+
+          <input
+            type="search"
+            placeholder="Buscar por nombre o correo..."
+            [value]="applicationSearch()"
+            (input)="applicationSearch.set($any($event.target).value)"
+          />
+
+          <button
+            type="button"
+            (click)="applicationSearch.set('')"
+            [disabled]="!applicationSearch()"
+          >
+            Limpiar búsqueda
+          </button>
+
+        </div>
+
+        <div class="application-filters">
+
+          <div class="application-filters__field">
+            <label for="application-period">Período</label>
+
+            <select
+              id="application-period"
+              [value]="applicationPeriod()"
+              (change)="applicationPeriod.set($any($event.target).value)"
+            >
+              <option value="ALL">Todas las fechas</option>
+              <option value="7">Últimos 7 días</option>
+              <option value="30">Últimos 30 días</option>
+            </select>
+          </div>
+
+          <div class="application-filters__field">
+            <label for="application-order">Ordenar por</label>
+
+            <select
+              id="application-order"
+              [value]="applicationOrder()"
+              (change)="applicationOrder.set($any($event.target).value)"
+            >
+              <option value="NEWEST">Más recientes primero</option>
+              <option value="OLDEST">Más antiguas primero</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="application-filters__reset"
+            (click)="resetApplicationFilters()"
+          >
+            Limpiar filtros
+          </button>
+
+        </div>
+
+        <p class="application-results">
+          Mostrando {{ filteredApplications().length }}
+          de {{ applications().length }} solicitudes de esta página
+        </p>
+
 
         <div class="table-shell">
 
@@ -480,9 +545,9 @@
               } @else {
 
                 @for (
-                    item of applications();
+                    item of filteredApplications();
                   track item.id
-                  ) {
+                  ){
 
                   <tr>
 

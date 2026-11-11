@@ -131,6 +131,16 @@ export class AdminComponent {
   status =
     signal<ProfessionalApplicationStatus | null>('PENDIENTE');
 
+  // ============================================================
+// BÚSQUEDA Y FILTROS DE SOLICITUDES
+// ============================================================
+
+  applicationSearch = signal('');
+
+  applicationPeriod = signal<'ALL' | '7' | '30'>('ALL');
+
+  applicationOrder = signal<'NEWEST' | 'OLDEST'>('NEWEST');
+
   page =
     signal(0);
 
@@ -396,7 +406,55 @@ export class AdminComponent {
         )
         .length
   );
+  filteredApplications = computed(() => {
+    const query = this.applicationSearch()
+      .trim()
+      .toLocaleLowerCase();
 
+    const period = this.applicationPeriod();
+    const order = this.applicationOrder();
+
+    const now = Date.now();
+
+    let items = [...this.applications()];
+
+    if (query) {
+      items = items.filter(item =>
+        (item.fullName ?? '').toLocaleLowerCase().includes(query) ||
+        (item.email ?? '').toLocaleLowerCase().includes(query)
+      );
+    }
+
+    if (period !== 'ALL') {
+      const days = Number(period);
+      const startDate = now - days * 24 * 60 * 60 * 1000;
+
+      items = items.filter(item => {
+        const date = new Date(item.createdAt).getTime();
+        return Number.isFinite(date) &&
+          date >= startDate &&
+          date <= now;
+      });
+    }
+
+    items.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+
+      return order === 'NEWEST'
+        ? dateB - dateA
+        : dateA - dateB;
+    });
+
+    return items;
+
+  });
+  resetApplicationFilters(): void {
+    this.applicationSearch.set('');
+    this.applicationPeriod.set('ALL');
+    this.applicationOrder.set('NEWEST');
+    this.filter(null);
+  }
 
   // ============================================================
   // CONSTRUCTOR
