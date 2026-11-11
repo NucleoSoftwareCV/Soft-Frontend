@@ -45,7 +45,7 @@
         <div class="form-row">
           <div class="form-group">
             <label for="telefono">Teléfono</label>
-            <input id="telefono" type="tel" class="form-input" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" placeholder="+34 600 000 000" />
+            <input id="telefono" type="tel" class="form-input" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" placeholder="+51 900 000 000" />
           </div>
           <div class="form-group">
             <label for="ubicacion">Ubicación</label>
@@ -110,7 +110,7 @@
                     <p class="item-desc">{{ item.descripcion || 'Sin descripción' }}</p>
                     <div class="item-meta">
                       <span>📍 {{ item.ubicacion || 'Sin ubicación' }}</span>
-                      <span>💶 {{ item.precio > 0 ? item.precio + '€' : 'Gratis' }}</span>
+                      <span>💶 {{ item.precio > 0 ? 'S/ ' + item.precio : 'Gratis' }}</span>
                       <span>📅 {{ item.cuando || (item.fecha | slice:0:10) }}</span>
                       <span>👥 {{ item.plazasOcupadas }}/{{ item.plazas }} plazas</span>
                     </div>
@@ -354,7 +354,7 @@
           <!-- Precio + Duración -->
           <div class="form-row">
             <div class="form-group">
-              <label>Precio (€)</label>
+              <label>Precio (S/)</label>
               <input type="number" class="form-input" [ngModel]="sesionPrecio()" (ngModelChange)="sesionPrecio.set($event)" min="0" />
             </div>
             <div class="form-group">
@@ -531,7 +531,7 @@
           <!-- Precio + Fecha -->
           <div class="form-row">
             <div class="form-group">
-              <label>Precio (€)</label>
+              <label>Precio (S/)</label>
               <input type="number" class="form-input" [ngModel]="eventoPrecio()" (ngModelChange)="eventoPrecio.set($event)" min="0" />
             </div>
             <div class="form-group">
@@ -1049,7 +1049,7 @@
 
                     @if (fav.price !== null && fav.price !== undefined) {
                       <span class="saved-card__price">
-                        {{ fav.price === 0 ? 'Gratis' : 'Desde ' + fav.price + (fav.currency === 'EUR' ? '€' : fav.currency) }}
+                        {{ fav.price === 0 ? 'Gratis' : 'Desde ' + (fav.currency === 'PEN' ? 'S/ ' : (fav.currency ?? 'PEN') + ' ') + fav.price }}
                       </span>
                     }
                   </div>

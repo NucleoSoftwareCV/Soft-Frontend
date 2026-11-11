@@ -120,7 +120,7 @@ export class EventMapComponent {
       this.map = leaflet.map(this.canvas().nativeElement, {
         scrollWheelZoom: false,
         zoomControl: false,
-      }).setView([40.4168, -3.7038], 5);
+      }).setView([-12.046, -77.043], 11);
       leaflet.control.zoom({ position: 'bottomright' }).addTo(this.map);
       leaflet.control.scale({ imperial: false, position: 'bottomleft' }).addTo(this.map);
       this.referenceMarker = leaflet.layerGroup().addTo(this.map);
@@ -257,8 +257,8 @@ export class EventMapComponent {
       const title = document.createElement('strong');
       title.textContent = point.title;
       const date = document.createElement('p');
-      date.textContent = new Intl.DateTimeFormat('es-ES', {
-        dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Madrid',
+      date.textContent = new Intl.DateTimeFormat('es-PE', {
+        dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Lima',
       }).format(new Date(point.startsAt)) + ' · ' + this.price(point);
       const address = document.createElement('p');
       address.textContent = [point.address, point.cityName].filter(Boolean).join(', ');
@@ -299,8 +299,8 @@ export class EventMapComponent {
     if (point.priceFrom === null) return 'Ver precio';
     if (point.priceFrom === 0) return 'Gratis';
     try {
-      return new Intl.NumberFormat('es-ES', {
-        style: 'currency', currency: point.currency || 'EUR', maximumFractionDigits: 2,
+      return new Intl.NumberFormat('es-PE', {
+        style: 'currency', currency: point.currency || 'PEN', maximumFractionDigits: 2,
       }).format(point.priceFrom);
     } catch {
       return String(point.priceFrom);
