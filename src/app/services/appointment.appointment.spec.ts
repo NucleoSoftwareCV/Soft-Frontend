@@ -31,4 +31,12 @@ describe('API de citas individuales', () => {
     const reschedule = { modality: 'ONLINE' as const, locationId: null, startsAt: '2026-11-09T15:00:00Z', reason: 'Necesito otro horario' };
     api.rescheduleMyAppointment(8, reschedule).subscribe(); const movement = http.expectOne(`${environment.apiUrl}/appointments/requests/8/reschedule`); expect(movement.request.method).toBe('PATCH'); expect(movement.request.body).toEqual(reschedule); movement.flush({});
   });
+  it('reserva una cita confirmada desde un contacto real', () => {
+    const input = { serviceId: 5, modality: 'ONLINE' as const, locationId: null, startsAt: '2026-11-09T14:00:00Z', reason: 'Seguimiento' };
+    api.bookContact(21, input).subscribe();
+    const req = http.expectOne(`${environment.apiUrl}/professional-agenda/contacts/21/appointments`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(input);
+    req.flush({ status: 'CONFIRMADA' });
+  });
 });

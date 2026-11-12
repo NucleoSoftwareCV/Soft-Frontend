@@ -3,12 +3,16 @@ import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AppointmentService, AvailabilityRule, AppointmentReceipt, appointmentDate, peruToday } from '../../../services/appointment.service';
+import { AppointmentBlock, AppointmentService, AppointmentSummary, AvailabilityRule, AppointmentReceipt,
+  AppointmentModality, AppointmentOptions, AppointmentSlot,
+  ProfessionalContact, ProfessionalContactDetail, appointmentDate, peruToday } from '../../../services/appointment.service';
 import { OneToOneServicesService } from '../../../services/one-to-one-services.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { LocationResponse } from '../../../shared/models/evento.model';
+import { AppointmentRescheduleComponent } from '../../perfil/appointment-reschedule.component';
+import { OneToOneServiceDetailResponse } from '../../../shared/models/one-to-one-service.model';
 
-type AgendaView = 'day' | 'week' | 'month' | 'pending';
+type AgendaView = 'day' | 'week' | 'month' | 'pending' | 'contacts';
 
 const dateKey = (date: Date) => date.toISOString().slice(0, 10);
 const addDays = (value: string, days: number) => {
@@ -22,8 +26,9 @@ const localDay = new Intl.DateTimeFormat('en-CA', {
 const dayLabel = new Intl.DateTimeFormat('es-PE', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
 const monthLabel = new Intl.DateTimeFormat('es-PE', { timeZone: 'UTC', month: 'long', year: 'numeric' });
 
-@Component({ selector: 'app-professional-agenda', standalone: true, imports: [CommonModule, FormsModule, ConfirmDialogComponent],
-  templateUrl: './professional-agenda.component.html', styleUrl: './professional-agenda.component.css' })
+@Component({ selector: 'app-professional-agenda', standalone: true,
+  templateUrl: './professional-agenda.component.html', styleUrl: './professional-agenda.component.css',
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, AppointmentRescheduleComponent] })
 export class ProfessionalAgendaComponent implements OnInit {
   private readonly api = inject(AppointmentService);
   private readonly sessions = inject(OneToOneServicesService);
@@ -31,6 +36,15 @@ export class ProfessionalAgendaComponent implements OnInit {
   readonly rules = signal<AvailabilityRule[]>([]);
   readonly appointmentToCancel = signal<AppointmentReceipt | null>(null);
   readonly appointments = signal<AppointmentReceipt[]>([]);
+  readonly blocks = signal<AppointmentBlock[]>([]);
+  readonly summary = signal<AppointmentSummary | null>(null);
+  readonly contacts = signal<ProfessionalContact[]>([]);
+  readonly contactDetail = signal<ProfessionalContactDetail | null>(null);
+  readonly contactBooking = signal<ProfessionalContact | null>(null);
+  readonly professionalServices = signal<OneToOneServiceDetailResponse[]>([]);
+  readonly contactBookingOptions = signal<AppointmentOptions | null>(null);
+  readonly contactBookingSlots = signal<AppointmentSlot[]>([]);
+  readonly appointmentToReschedule = signal<AppointmentReceipt | null>(null);
   readonly venues = signal<LocationResponse[]>([]);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -40,17 +54,26 @@ export class ProfessionalAgendaComponent implements OnInit {
   readonly formatDate = appointmentDate;
   readonly validToday = peruToday;
   day = 1; start = '09:00'; end = '12:00'; validFrom = peruToday(); validUntil = ''; locationId: number | null = null;
+  breakMinutes = 0; virtualUrl = '';
+  blockStart = ''; blockEnd = ''; blockReason = '';
+  contactName = ''; contactEmail = ''; contactPhone = ''; contactNotes = '';
+  contactServiceId: number | null = null;
+  contactModality: AppointmentModality = 'ONLINE';
+  contactLocationId: number | null = null;
+  contactBookingDate = peruToday();
+  contactStartsAt = '';
+  contactBookingReason = '';
   readonly agendaDate = signal(peruToday());
   readonly view = signal<AgendaView>('pending');
   readonly views: { key: AgendaView; label: string }[] = [
     { key: 'pending', label: 'Pendientes' }, { key: 'day', label: 'Día' },
-    { key: 'week', label: 'Semana' }, { key: 'month', label: 'Mes' },
+    { key: 'week', label: 'Semana' }, { key: 'month', label: 'Mes' }, { key: 'contacts', label: 'Contactos' },
   ];
   readonly statusFilter = signal('');
   readonly search = signal('');
   readonly statusLabels: Record<string, string> = {
     PENDIENTE: 'Pendiente', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
-    COMPLETADA: 'Completada', EXPIRADA: 'Vencida',
+    COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Cambio propuesto',
   };
   private agendaRequest?: Subscription;
 
@@ -71,6 +94,7 @@ export class ProfessionalAgendaComponent implements OnInit {
   });
   readonly periodLabel = computed(() => {
     if (this.view() === 'pending') return 'Solicitudes por responder';
+    if (this.view() === 'contacts') return 'Contactos';
     const { from, to } = this.period();
     if (this.view() === 'month') return monthLabel.format(new Date(from));
     return from === to ? dayLabel.format(new Date(from)) :
@@ -109,7 +133,7 @@ export class ProfessionalAgendaComponent implements OnInit {
     if (this.view() === view) return;
     this.view.set(view);
     this.statusFilter.set('');
-    this.loadAgenda();
+    if(view==='contacts') this.loadContacts(); else this.loadAgenda();
   }
 
   selectDate(date: string, openDay = false): void {
@@ -130,7 +154,7 @@ export class ProfessionalAgendaComponent implements OnInit {
     this.selectDate(addDays(current, direction * (this.view() === 'week' ? 7 : 1)));
   }
   ngOnInit(): void {
-    this.loadRules(); this.loadAgenda();
+    this.loadRules(); this.loadAgenda(); this.loadBlocks(); this.loadSummary();
     this.sessions.getActiveLocations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: venues => this.venues.set(venues), error: () => this.error.set('No pudimos cargar las sedes. Recarga la página para reintentar.') });
   }
   loadRules(): void {
@@ -141,6 +165,7 @@ export class ProfessionalAgendaComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.appointments.set([]);
+    if(this.view()==='contacts') { this.loading.set(false); this.loadContacts(); return; }
     const { from, to } = this.period();
     const view = this.view();
     const request = view === 'pending' ? this.api.pending() :
@@ -156,13 +181,100 @@ export class ProfessionalAgendaComponent implements OnInit {
   saveRule(): void {
     if (this.saving()) return;
     this.saving.set(true); this.error.set(null); this.message.set(null);
-    this.api.addRule({ dayOfWeek: Number(this.day), startTime: this.start, endTime: this.end, validFrom: this.validFrom, validUntil: this.validUntil || null, locationId: this.locationId })
+    this.api.addRule({ dayOfWeek: Number(this.day), startTime: this.start, endTime: this.end, validFrom: this.validFrom, validUntil: this.validUntil || null,
+      locationId: this.locationId, breakMinutes: Number(this.breakMinutes), virtualUrl: this.locationId===null?(this.virtualUrl.trim()||null):null })
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { this.saving.set(false); this.message.set('Disponibilidad guardada.'); this.loadRules(); }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos guardar la franja.'); } });
   }
   removeRule(id: number): void {
     if (this.saving()) return; this.saving.set(true); this.error.set(null);
     this.api.removeRule(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { this.saving.set(false); this.loadRules(); }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos eliminar la franja.'); } });
   }
+  loadBlocks(): void { this.api.blocks().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: items=>this.blocks.set(items), error: err=>this.error.set(err.error?.detail||'No pudimos cargar los bloqueos.') }); }
+  saveBlock(): void {
+    if(!this.blockStart||!this.blockEnd||!this.blockReason.trim()||this.saving()) return;
+    this.saving.set(true); this.api.addBlock({ startsAt:this.blockStart, endsAt:this.blockEnd, reason:this.blockReason.trim() })
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next:()=>{ this.saving.set(false); this.blockStart=''; this.blockEnd=''; this.blockReason=''; this.message.set('Fecha bloqueada.'); this.loadBlocks(); }, error:err=>{ this.saving.set(false); this.error.set(err.error?.detail||'No pudimos guardar el bloqueo.'); } });
+  }
+  removeBlock(id:number):void { if(this.saving()) return; this.saving.set(true); this.api.removeBlock(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next:()=>{this.saving.set(false);this.loadBlocks();},error:err=>{this.saving.set(false);this.error.set(err.error?.detail||'No pudimos eliminar el bloqueo.');} }); }
+  loadSummary():void { this.api.summary().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:value=>this.summary.set(value)}); }
+  loadContacts():void { this.loading.set(true); this.api.contacts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:items=>{this.contacts.set(items);this.loading.set(false);},error:err=>{this.loading.set(false);this.error.set(err.error?.detail||'No pudimos cargar los contactos.');}}); }
+  saveContact():void {
+    if(!this.contactName.trim()||this.saving()) return; this.saving.set(true);
+    this.api.addContact({displayName:this.contactName.trim(),email:this.contactEmail.trim()||null,phone:this.contactPhone.trim()||null,notes:this.contactNotes.trim()||null})
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:()=>{this.saving.set(false);this.contactName='';this.contactEmail='';this.contactPhone='';this.contactNotes='';this.loadContacts();},error:err=>{this.saving.set(false);this.error.set(err.error?.detail||'No pudimos guardar el contacto.');}});
+  }
+  openContact(key:string):void { this.api.contact(key).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:value=>this.contactDetail.set(value),error:err=>this.error.set(err.error?.detail||'No pudimos abrir el contacto.')}); }
+  openContactBooking(contact: ProfessionalContact): void {
+    if (contact.source !== 'CLIENTE' || contact.customerId === null) return;
+    this.contactBooking.set(contact);
+    this.contactServiceId = null;
+    this.contactBookingOptions.set(null);
+    this.contactBookingSlots.set([]);
+    this.contactStartsAt = '';
+    this.contactBookingReason = '';
+    this.sessions.getMyServices().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.professionalServices.set(items.filter(item => item.status === 'PUBLICADO')),
+      error: err => this.error.set(err.error?.detail || 'No pudimos cargar tus sesiones publicadas.'),
+    });
+  }
+  closeContactBooking(): void {
+    this.contactBooking.set(null);
+    this.contactBookingOptions.set(null);
+    this.contactBookingSlots.set([]);
+  }
+  selectContactService(): void {
+    this.contactBookingOptions.set(null);
+    this.contactBookingSlots.set([]);
+    this.contactStartsAt = '';
+    if (this.contactServiceId === null) return;
+    this.api.options(this.contactServiceId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: options => {
+        this.contactBookingOptions.set(options);
+        this.contactModality = options.modalities[0] ?? 'ONLINE';
+        this.contactLocationId = this.contactModality === 'PRESENCIAL' ? options.venues[0]?.id ?? null : null;
+      },
+      error: err => this.error.set(err.error?.detail || 'No pudimos cargar las opciones de la sesión.'),
+    });
+  }
+  contactModalityChanged(): void {
+    const options = this.contactBookingOptions();
+    this.contactLocationId = this.contactModality === 'PRESENCIAL' ? options?.venues[0]?.id ?? null : null;
+    this.contactBookingSlots.set([]);
+    this.contactStartsAt = '';
+  }
+  loadContactSlots(): void {
+    if (this.contactServiceId === null || !this.contactBookingDate ||
+      (this.contactModality === 'PRESENCIAL' && this.contactLocationId === null)) return;
+    this.loading.set(true);
+    this.api.availability(this.contactServiceId, this.contactBookingDate, this.contactModality, this.contactLocationId)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: availability => { this.contactBookingSlots.set(availability.slots); this.contactStartsAt = ''; this.loading.set(false); },
+        error: err => { this.loading.set(false); this.error.set(err.error?.detail || 'No pudimos consultar los horarios disponibles.'); },
+      });
+  }
+  saveContactAppointment(): void {
+    const contact = this.contactBooking();
+    if (!contact?.customerId || this.contactServiceId === null || !this.contactStartsAt || !this.contactBookingReason.trim() || this.saving()) return;
+    this.saving.set(true); this.error.set(null); this.message.set(null);
+    this.api.bookContact(contact.customerId, {
+      serviceId: this.contactServiceId,
+      modality: this.contactModality,
+      locationId: this.contactModality === 'PRESENCIAL' ? this.contactLocationId : null,
+      startsAt: this.contactStartsAt,
+      reason: this.contactBookingReason.trim(),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: receipt => {
+        this.saving.set(false);
+        this.message.set(`Cita confirmada con ${receipt.customerName} para el ${this.formatDate(receipt.startsAt)}.`);
+        this.closeContactBooking();
+        this.openContact(contact.key);
+        this.loadContacts();
+        this.loadSummary();
+      },
+      error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos reservar la cita desde el contacto.'); },
+    });
+  }
+  removeContact(contact:ProfessionalContact):void { if(contact.source!=='MANUAL'||this.saving()) return; this.saving.set(true); this.api.removeContact(contact.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:()=>{this.saving.set(false);this.contactDetail.set(null);this.loadContacts();},error:err=>{this.saving.set(false);this.error.set(err.error?.detail||'No pudimos eliminar el contacto.');}}); }
   decide(id: number, status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA', reason?: string): void {
     if (this.saving()) return; this.saving.set(true); this.error.set(null);
     this.api.decide(id, status, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { this.saving.set(false); this.message.set(status === 'CANCELADA' ? 'La cita se canceló y el horario quedó disponible.' : null); this.loadAgenda(); }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos actualizar la solicitud.'); } });
@@ -173,6 +285,7 @@ export class ProfessionalAgendaComponent implements OnInit {
     this.appointmentToCancel.set(null);
     this.decide(item.id, 'CANCELADA', reason);
   }
+  onProfessionalRescheduled(updated:AppointmentReceipt):void { this.appointmentToReschedule.set(null); this.message.set('Propuesta enviada al cliente.'); this.loadAgenda(); this.loadSummary(); }
 
   cancellationActor(item: AppointmentReceipt): string {
     return item.cancelledBy === 'CLIENTE' ? 'Cancelada por el cliente' : 'Cancelada por el profesional';

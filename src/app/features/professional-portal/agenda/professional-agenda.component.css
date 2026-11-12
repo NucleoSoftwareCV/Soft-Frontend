@@ -22,7 +22,7 @@ button:disabled { opacity: .55; cursor: default; } button:focus-visible, input:f
 .period-toolbar { justify-content: space-between; margin: 18px 0; }
 .period-toolbar h2 { margin: 0; }
 .period-actions input { width: auto; min-height: 44px; padding: 8px 10px; }
-.agenda-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.agenda-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .agenda-metrics div { display: grid; gap: 3px; background: #edf6f2; border-radius: 12px; padding: 12px; }
 .agenda-metrics strong { font-size: 1.45rem; }
 .agenda-metrics span { font-size: .85rem; overflow-wrap: anywhere; }
@@ -42,7 +42,29 @@ button.calendar-day { padding: 4px; display: flex; align-items: center; justify-
 .cancellation-detail { margin: 10px 0; padding: 12px; border-left: 3px solid #b42318; border-radius: 6px; background: #fff5f3; color: #6f2a22; }
 .cancellation-detail p { margin: 4px 0; }
 .cancellation-detail small { color: #745d59; }
+.form-grid__wide { grid-column: 1 / -1; }
+.next-appointment { margin: 12px 0 0; padding: 14px 16px; border-left: 4px solid #00515f; border-radius: 10px; background: #f4f8f6; }
+.contacts-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr); gap: 24px; align-items: start; }
+.contact-list { display: grid; gap: 10px; }
+button.contact-card { display: grid; width: 100%; gap: 4px; text-align: left; padding: 16px; }
+.contact-card span, .contact-card small { color: #536c69; }
+.contact-form, .contact-detail { padding: 20px; border: 1px solid #d5e2df; border-radius: 14px; background: #f8fbfa; }
+.contact-form h3, .contact-detail h3 { margin-top: 0; }
+.contact-detail { position: relative; margin-top: 20px; }
+.contact-detail__close { position: absolute; top: 12px; right: 12px; }
+.contact-detail__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+.contact-detail__actions small { max-width: 48rem; color: #536c69; }
+.contact-booking { margin: 20px 0; padding: 20px; border: 1px solid #b9cfca; border-radius: 14px; background: #fff; }
+.contact-booking__heading { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.contact-booking__heading h4, .contact-booking__heading p { margin-top: 0; }
+.contact-booking__hint { color: #536c69; }
+.slot-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.slot-picker label { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border: 1px solid #bdcfcd; border-radius: 10px; font-weight: 500; cursor: pointer; }
+.slot-picker input { width: auto; }
+.status-badge[data-status="REPROGRAMACION_PROPUESTA"] { background: #e8eefc; color: #294f91; }
 @media (max-width: 620px) {
+  .agenda-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contacts-layout { grid-template-columns: 1fr; }
   .agenda-filters { grid-template-columns: 1fr; gap: 0; }
   .agenda-filters label { margin: 8px 0; }
   .calendar-grid { gap: 3px; }

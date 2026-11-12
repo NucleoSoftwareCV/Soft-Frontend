@@ -76,7 +76,7 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   readonly appointmentDate = appointmentDate;
   readonly appointmentStatuses: Record<string, string> = {
     PENDIENTE: 'Pendiente de aceptación', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
-    COMPLETADA: 'Completada', EXPIRADA: 'Vencida',
+    COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Nuevo horario propuesto',
   };
 
   readonly myBookings = signal<MyBooking[]>([]);
@@ -223,12 +223,33 @@ readonly professionalApplicationDismissed = signal(false);
   canCancelAppointment(appointment: AppointmentReceipt): boolean {
     const now = Date.now();
     return Date.parse(appointment.startsAt) > now &&
-      (appointment.status === 'CONFIRMADA' || (appointment.status === 'PENDIENTE' &&
+      (appointment.status === 'CONFIRMADA' || appointment.status === 'REPROGRAMACION_PROPUESTA' || (appointment.status === 'PENDIENTE' &&
         (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
   }
 
   canRescheduleAppointment(appointment: AppointmentReceipt): boolean {
-    return this.canCancelAppointment(appointment);
+    return this.canCancelAppointment(appointment) && appointment.status !== 'REPROGRAMACION_PROPUESTA';
+  }
+
+  respondToAppointmentProposal(appointment: AppointmentReceipt, accepted: boolean): void {
+    if (this.cancellingAppointment()) return;
+    this.cancellingAppointment.set(true);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('');
+    this.appointmentService.respondProposal(appointment.id, accepted).subscribe({
+      next: updated => {
+        this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.cancellingAppointment.set(false);
+        this.cancellationMessage.set(accepted
+          ? 'Aceptaste el nuevo horario. La cita quedó confirmada.'
+          : 'Rechazaste la propuesta. El horario quedó disponible.');
+      },
+      error: err => {
+        this.cancellingAppointment.set(false);
+        this.cancellationError.set(err.error?.detail || 'No pudimos responder a la propuesta.');
+        this.loadMyAppointments();
+      },
+    });
   }
 
   onAppointmentRescheduled(updated: AppointmentReceipt): void {

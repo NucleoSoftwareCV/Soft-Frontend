@@ -14,6 +14,7 @@ import {
 })
 export class AppointmentRescheduleComponent {
   readonly appointment = input.required<AppointmentReceipt>();
+  readonly professionalMode = input(false);
   readonly closed = output<void>();
   readonly rescheduled = output<AppointmentReceipt>();
   private readonly api = inject(AppointmentService);
@@ -72,9 +73,12 @@ export class AppointmentRescheduleComponent {
     const slot = this.selected();
     if (!slot || !this.reason.trim() || this.saving()) return;
     this.saving.set(true); this.error.set('');
-    this.api.rescheduleMyAppointment(this.appointment().id, {
+    const input = {
       modality: this.modality, locationId: this.locationId, startsAt: slot.startsAt, reason: this.reason.trim(),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    };
+    const request = this.professionalMode() ? this.api.proposeReschedule(this.appointment().id, input) :
+      this.api.rescheduleMyAppointment(this.appointment().id, input);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: result => { this.saving.set(false); this.rescheduled.emit(result); },
       error: err => {
         this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos reprogramar la cita.');

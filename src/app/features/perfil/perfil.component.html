@@ -943,11 +943,20 @@
                     }
                     @if (appointment.rescheduledAt && appointment.previousStartsAt) {
                       <div class="appointment-reschedule-history">
-                        <strong>Horario reprogramado</strong>
+                        <strong>{{ appointment.rescheduledBy === 'PROFESIONAL' ? 'El profesional propuso este horario' : 'Horario reprogramado' }}</strong>
                         <p>Antes: {{ appointmentDate(appointment.previousStartsAt) }}</p>
                         @if (appointment.rescheduleReason) { <p>Motivo: {{ appointment.rescheduleReason }}</p> }
                         <small>Solicitado {{ appointmentDate(appointment.rescheduledAt) }}</small>
                       </div>
+                    }
+                    @if (appointment.status === 'REPROGRAMACION_PROPUESTA') {
+                      <div class="appointment-actions appointment-actions--proposal">
+                        <button type="button" class="btn-primary" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, true)">Aceptar nuevo horario</button>
+                        <button type="button" class="btn-outline btn-outline--danger" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, false)">Rechazar propuesta</button>
+                      </div>
+                    }
+                    @if (appointment.virtualUrl) {
+                      <p><a class="btn-outline" [href]="appointment.virtualUrl" target="_blank" rel="noopener">Entrar a Google Meet</a></p>
                     }
                     @if (canCancelAppointment(appointment)) {
                       <div class="appointment-actions">

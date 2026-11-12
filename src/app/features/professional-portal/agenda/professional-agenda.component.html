@@ -3,7 +3,7 @@
   @if (error()) { <p class="notice notice--error" role="alert">{{ error() }}</p> }
   @if (message()) { <p class="notice" role="status">{{ message() }}</p> }
   <details><summary>Configurar disponibilidad semanal</summary>
-    <p>La duración de cada cita se toma del servicio publicado. Añade franjas separadas para dejar descansos.</p>
+    <p>La duración de cada cita se toma del servicio publicado. Puedes definir una pausa automática entre citas.</p>
     <form (ngSubmit)="saveRule()"><fieldset [disabled]="saving()">
       <div class="form-grid">
         <label>Día<select name="day" [(ngModel)]="day">@for (label of days; track $index) { <option [ngValue]="$index + 1">{{ label }}</option> }</select></label>
@@ -12,15 +12,27 @@
         </select></label>
         <label>Desde<input type="time" name="start" required [(ngModel)]="start"></label>
         <label>Hasta<input type="time" name="end" required [(ngModel)]="end"></label>
+        <label>Descanso entre citas (minutos)<input type="number" name="breakMinutes" min="0" max="240" step="5" [(ngModel)]="breakMinutes"></label>
+        @if (locationId === null) { <label>Enlace de Google Meet (opcional)<input type="url" name="virtualUrl" maxlength="1000" placeholder="https://meet.google.com/abc-defg-hij" [(ngModel)]="virtualUrl"></label> }
         <label>Válida desde<input type="date" name="from" required [(ngModel)]="validFrom"></label>
         <label>Válida hasta (opcional)<input type="date" name="until" [min]="validFrom" [(ngModel)]="validUntil"></label>
       </div><button type="submit" class="primary">{{ saving() ? 'Guardando...' : 'Añadir franja' }}</button>
     </fieldset></form>
     <ul class="rule-list">@for (rule of rules(); track rule.id) {
       <li><div><strong>{{ days[rule.dayOfWeek - 1] }} · {{ rule.startTime.slice(0,5) }}–{{ rule.endTime.slice(0,5) }}</strong>
-        <p>{{ rule.venue ? 'Presencial · ' + rule.venue.name : 'Videollamada' }} · Desde {{ rule.validFrom }}{{ rule.validUntil ? ' hasta ' + rule.validUntil : '' }}</p></div>
+        <p>{{ rule.venue ? 'Presencial · ' + rule.venue.name : 'Videollamada' }} · Desde {{ rule.validFrom }}{{ rule.validUntil ? ' hasta ' + rule.validUntil : '' }} · Descanso {{ rule.breakMinutes }} min</p>
+        @if (rule.virtualUrl) { <p><a [href]="rule.virtualUrl" target="_blank" rel="noopener">Abrir Meet configurado</a></p> }</div>
         <button type="button" [disabled]="saving()" (click)="removeRule(rule.id)">Eliminar franja</button></li>
     } @empty { <li>Aún no hay franjas configuradas.</li> }</ul>
+  </details>
+  <details class="block-editor"><summary>Bloquear fechas particulares</summary>
+    <p>Impide que se ofrezcan horarios durante vacaciones, reuniones u otros compromisos.</p>
+    <form (ngSubmit)="saveBlock()"><fieldset [disabled]="saving()"><div class="form-grid">
+      <label>Desde<input type="datetime-local" name="blockStart" required [(ngModel)]="blockStart"></label>
+      <label>Hasta<input type="datetime-local" name="blockEnd" required [(ngModel)]="blockEnd"></label>
+      <label class="form-grid__wide">Motivo<input name="blockReason" maxlength="500" required [(ngModel)]="blockReason" placeholder="Ej. Vacaciones"></label>
+    </div><button type="submit" class="primary" [disabled]="!blockStart || !blockEnd || !blockReason.trim()">Bloquear periodo</button></fieldset></form>
+    <ul class="rule-list">@for (block of blocks(); track block.id) { <li><div><strong>{{ formatDate(block.startsAt) }} – {{ formatDate(block.endsAt) }}</strong><p>{{ block.reason }}</p></div><button type="button" (click)="removeBlock(block.id)">Eliminar bloqueo</button></li> } @empty { <li>No hay fechas bloqueadas.</li> }</ul>
   </details>
   <app-confirm-dialog [open]="appointmentToCancel() !== null"
     [title]="appointmentToCancel()?.status === 'PENDIENTE' ? 'Rechazar solicitud' : 'Cancelar cita'"
@@ -29,12 +41,78 @@
     reasonLabel="Motivo" [reasonRequired]="true"
     reasonPlaceholder="Ej. No tendré disponibilidad en ese horario"
     (confirmed)="confirmCancellation($event)" (cancelled)="appointmentToCancel.set(null)" />
+  @if (appointmentToReschedule(); as appointment) {
+    <app-appointment-reschedule [appointment]="appointment" [professionalMode]="true"
+      (closed)="appointmentToReschedule.set(null)" (rescheduled)="onProfessionalRescheduled($event)" />
+  }
   <section class="agenda-workspace" aria-labelledby="period-title">
     <nav class="view-switch" aria-label="Vista de agenda">
       @for (option of views; track option.key) {
         <button type="button" [class.selected]="view() === option.key" [attr.aria-pressed]="view() === option.key" (click)="setView(option.key)">{{ option.label }}</button>
       }
     </nav>
+    @if (view() === 'contacts') {
+      <section class="contacts-panel">
+        <div class="contacts-layout">
+          <div><h2>Directorio de contactos</h2><p>Clientes con historial real y contactos añadidos manualmente.</p>
+            <div class="contact-list">@for (contact of contacts(); track contact.key) {
+              <button type="button" class="contact-card" (click)="openContact(contact.key)"><strong>{{ contact.displayName }}</strong><span>{{ contact.source === 'CLIENTE' ? contact.appointmentCount + ' citas' : 'Contacto manual' }}</span><small>{{ contact.nextAppointment ? 'Próxima: ' + formatDate(contact.nextAppointment) : contact.email || contact.phone || 'Sin datos adicionales' }}</small></button>
+            } @empty { <p>Aún no hay contactos.</p> }</div>
+          </div>
+          <form class="contact-form" (ngSubmit)="saveContact()"><h3>Nuevo contacto</h3>
+            <label>Nombre<input name="contactName" required maxlength="200" [(ngModel)]="contactName"></label>
+            <label>Correo<input name="contactEmail" type="email" maxlength="150" [(ngModel)]="contactEmail"></label>
+            <label>Teléfono<input name="contactPhone" maxlength="25" [(ngModel)]="contactPhone"></label>
+            <label>Notas<textarea name="contactNotes" maxlength="1000" rows="3" [(ngModel)]="contactNotes"></textarea></label>
+            <button type="submit" class="primary" [disabled]="saving() || !contactName.trim()">Guardar contacto</button>
+          </form>
+        </div>
+        @if (contactDetail(); as detail) {
+          <section class="contact-detail">
+            <button type="button" class="contact-detail__close" (click)="contactDetail.set(null); closeContactBooking()">Cerrar</button>
+            <h3>{{ detail.contact.displayName }}</h3>
+            <p>{{ detail.contact.email || 'Sin correo' }} · {{ detail.contact.phone || 'Sin teléfono' }}</p>
+            @if (detail.contact.notes) { <p>{{ detail.contact.notes }}</p> }
+            <div class="contact-detail__actions">
+              @if (detail.contact.source === 'CLIENTE') {
+                <button type="button" class="primary" (click)="openContactBooking(detail.contact)">Reservar una cita</button>
+              } @else {
+                <small>Para reservar, este contacto debe vincularse con una cuenta de cliente registrada.</small>
+                <button type="button" (click)="removeContact(detail.contact)">Eliminar contacto</button>
+              }
+            </div>
+            @if (contactBooking(); as bookingContact) {
+              <form class="contact-booking" (ngSubmit)="saveContactAppointment()">
+                <div class="contact-booking__heading"><div><h4>Nueva cita</h4><p>La cita se confirmará directamente para {{ bookingContact.displayName }}.</p></div><button type="button" (click)="closeContactBooking()">Cancelar</button></div>
+                <div class="form-grid">
+                  <label>Sesión
+                    <select name="contactServiceId" required [(ngModel)]="contactServiceId" (ngModelChange)="selectContactService()">
+                      <option [ngValue]="null">Selecciona una sesión</option>
+                      @for (service of professionalServices(); track service.id) { <option [ngValue]="service.id">{{ service.title }}</option> }
+                    </select>
+                  </label>
+                  @if (contactBookingOptions(); as options) {
+                    <label>Modalidad<select name="contactModality" [(ngModel)]="contactModality" (ngModelChange)="contactModalityChanged()">@for (modality of options.modalities; track modality) { <option [value]="modality">{{ modality === 'ONLINE' ? 'Videollamada' : 'Presencial' }}</option> }</select></label>
+                    @if (contactModality === 'PRESENCIAL') {
+                      <label>Sede<select name="contactLocationId" required [(ngModel)]="contactLocationId" (ngModelChange)="contactBookingSlots.set([]); contactStartsAt = ''">@for (venue of options.venues; track venue.id) { <option [ngValue]="venue.id">{{ venue.name }}</option> }</select></label>
+                    }
+                    <label>Fecha<input type="date" name="contactBookingDate" required [min]="options.minDate" [max]="options.maxDate" [(ngModel)]="contactBookingDate" (ngModelChange)="contactBookingSlots.set([]); contactStartsAt = ''"></label>
+                  }
+                </div>
+                @if (contactBookingOptions()) { <button type="button" (click)="loadContactSlots()" [disabled]="loading()">{{ loading() ? 'Consultando...' : 'Consultar horarios' }}</button> }
+                @if (contactBookingSlots().length) {
+                  <fieldset class="slot-picker"><legend>Horario disponible</legend>@for (slot of contactBookingSlots(); track slot.startsAt) { <label><input type="radio" name="contactStartsAt" [value]="slot.startsAt" [(ngModel)]="contactStartsAt">{{ formatDate(slot.startsAt) }}</label> }</fieldset>
+                } @else if (contactBookingOptions() && !loading()) { <p class="contact-booking__hint">Consulta la fecha para ver sus horarios disponibles.</p> }
+                <label>Motivo de la cita<textarea name="contactBookingReason" rows="3" maxlength="2000" required [(ngModel)]="contactBookingReason" placeholder="Ej. Sesión de seguimiento"></textarea></label>
+                <button type="submit" class="primary" [disabled]="saving() || !contactStartsAt || !contactBookingReason.trim()">{{ saving() ? 'Reservando...' : 'Confirmar cita' }}</button>
+              </form>
+            }
+            <h4>Historial de citas</h4>
+            @for (item of detail.history; track item.id) { <p><strong>{{ item.title }}</strong> · {{ formatDate(item.startsAt) }} · {{ statusLabels[item.status] || item.status }}</p> } @empty { <p>Sin historial de citas.</p> }
+          </section>
+        }
+      </section>
+    } @else {
     <div class="period-toolbar">
       <h2 id="period-title">{{ periodLabel() }}</h2>
       <div class="period-actions">
@@ -49,10 +127,13 @@
     </div>
     @if (!loading() && !error()) {
       <div class="agenda-metrics">
-        <div><strong>{{ totals().all }}</strong><span>Solicitudes</span></div>
-        <div><strong>{{ totals().pending }}</strong><span>Pendientes</span></div>
-        <div><strong>{{ totals().confirmed }}</strong><span>Confirmadas</span></div>
+        <div><strong>{{ summary()?.total ?? totals().all }}</strong><span>Solicitudes</span></div>
+        <div><strong>{{ summary()?.pending ?? totals().pending }}</strong><span>Pendientes</span></div>
+        <div><strong>{{ summary()?.confirmed ?? totals().confirmed }}</strong><span>Confirmadas</span></div>
+        <div><strong>{{ summary()?.completed ?? 0 }}</strong><span>Completadas</span></div>
+        <div><strong>{{ summary()?.proposed ?? 0 }}</strong><span>Cambios propuestos</span></div>
       </div>
+      @if (summary()?.nextAppointment; as next) { <p class="next-appointment"><strong>Próxima reunión:</strong> {{ next.title }} con {{ next.customerName }} · {{ formatDate(next.startsAt) }}</p> }
     }
     <div class="agenda-filters">
       <label>Buscar<input type="search" placeholder="Servicio, cliente o referencia" [ngModel]="search()" (ngModelChange)="search.set($event)"></label>
@@ -100,10 +181,12 @@
       </details>
       <div class="choices">
         @if (item.status === 'PENDIENTE' && canCancel(item)) { <button type="button" class="primary" [disabled]="saving()" (click)="decide(item.id, 'CONFIRMADA')">Aceptar</button><button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Rechazar</button> }
+        @if ((item.status === 'CONFIRMADA' || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
         @if (item.status === 'CONFIRMADA' && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
         @if (canComplete(item)) { <button type="button" [disabled]="saving()" (click)="decide(item.id, 'COMPLETADA')">Marcar completada</button> }
       </div>
     </article>
   } @empty { @if (!error()) { <p>{{ search() || statusFilter() ? 'No hay solicitudes que coincidan con los filtros.' : view() === 'pending' ? 'No tienes solicitudes por responder.' : 'No hay solicitudes en este periodo.' }}</p> } } }
+  }
   </section>
 </section>
