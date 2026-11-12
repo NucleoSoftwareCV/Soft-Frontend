@@ -320,6 +320,63 @@ export class AdminComponent {
       'techniques'
     >('categories');
 
+  // Búsqueda y filtros de catálogos
+  catalogSearch = signal('');
+
+  catalogStatusFilter = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+// Filtrar categorías y tipos de experiencia
+  filteredCatalogItems = computed(() => {
+    const query = this.catalogSearch().trim().toLowerCase();
+    const status = this.catalogStatusFilter();
+
+    const items = this.catalogTab() === 'categories'
+      ? this.categories()
+      : this.experienceTypes();
+
+    return items.filter(item => {
+      const matchesSearch =
+        !query ||
+        item.name.toLowerCase().includes(query) ||
+        (item.description ?? '').toLowerCase().includes(query) ||
+        (item.slug ?? '').toLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && item.active) ||
+        (status === 'INACTIVE' && !item.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+// Filtrar temas y técnicas de sesión
+  filteredSessionCatalogItems = computed(() => {
+    const query = this.catalogSearch().trim().toLowerCase();
+    const status = this.catalogStatusFilter();
+
+    const items = this.catalogTab() === 'workTopics'
+      ? this.sessionWorkTopics()
+      : this.sessionTechniques();
+
+    return items.filter(item => {
+      const matchesSearch =
+        !query || item.name.toLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && item.active) ||
+        (status === 'INACTIVE' && !item.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+  resetCatalogFilters(): void {
+    this.catalogSearch.set('');
+    this.catalogStatusFilter.set('ALL');
+  }
+
   categories =
     signal<CategoryCatalogItem[]>([]);
 
@@ -559,6 +616,8 @@ export class AdminComponent {
   ): void {
 
     this.catalogTab.set(tab);
+
+    this.resetCatalogFilters();
 
     // Cerramos cualquier accordion abierto
     // cuando el usuario cambia de catálogo.

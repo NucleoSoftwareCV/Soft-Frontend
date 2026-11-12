@@ -936,7 +936,36 @@
           </button>
 
         </div>
+        <!-- BÚSQUEDA Y FILTROS DE CATÁLOGOS -->
 
+        <div class="catalog-filters">
+
+          <input
+            type="search"
+            placeholder="Buscar elementos del catálogo..."
+            aria-label="Buscar elementos del catálogo"
+            [value]="catalogSearch()"
+            (input)="catalogSearch.set($any($event.target).value)"
+          />
+
+          <select
+            aria-label="Filtrar elementos por estado"
+            [value]="catalogStatusFilter()"
+            (change)="catalogStatusFilter.set($any($event.target).value)"
+          >
+            <option value="ALL">Todos</option>
+            <option value="ACTIVE">Activos</option>
+            <option value="INACTIVE">Inactivos</option>
+          </select>
+
+          <button
+            type="button"
+            (click)="resetCatalogFilters()"
+          >
+            Limpiar filtros
+          </button>
+
+        </div>
 
         <!-- ===================================================== -->
         <!-- CATEGORÍAS / TIPOS DE EXPERIENCIA -->
@@ -982,11 +1011,7 @@
                 } @else {
 
                   @for (
-                      item of (
-                    catalogTab() === 'categories'
-                      ? categories()
-                      : experienceTypes()
-                  );
+                      item of filteredCatalogItems();
                     track item.id
                     ) {
 
@@ -1109,11 +1134,7 @@
             } @else {
 
               @for (
-                  item of (
-                catalogTab() === 'categories'
-                  ? categories()
-                  : experienceTypes()
-              );
+                  item of filteredCatalogItems();
                 track item.id
                 ) {
 
@@ -1331,10 +1352,9 @@
                 } @else {
 
                   @for (
-                      item of activeSessionCatalogList;
+                      item of filteredSessionCatalogItems();
                     track item.id
                     ) {
-
                     <tr>
 
                       <td>
