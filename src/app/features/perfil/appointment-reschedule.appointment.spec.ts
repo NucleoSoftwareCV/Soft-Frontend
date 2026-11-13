@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
 import { AppointmentOptions, AppointmentReceipt, AppointmentService } from '../../services/appointment.service';
@@ -15,13 +15,19 @@ describe('Reprogramación de una cita', () => {
     serviceId: 5, title: 'Consulta', professionalName: 'Ana', durationMinutes: 60, price: 50, currency: 'PEN',
     modalities: ['ONLINE'], venues: [], timeZone: 'America/Lima', minDate: '2026-11-09', maxDate: '2027-02-07', openings: [],
   };
-  let api: { options: ReturnType<typeof vi.fn>; availability: ReturnType<typeof vi.fn>; rescheduleMyAppointment: ReturnType<typeof vi.fn> };
+  let api: {
+    options: ReturnType<typeof vi.fn>; availability: ReturnType<typeof vi.fn>;
+    professionalRescheduleAvailability: ReturnType<typeof vi.fn>;
+    rescheduleMyAppointment: ReturnType<typeof vi.fn>; proposeReschedule: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     api = {
       options: vi.fn().mockReturnValue(of(options)),
       availability: vi.fn().mockReturnValue(of({ date: '2026-11-10', timeZone: 'America/Lima', slots: [nextSlot] })),
+      professionalRescheduleAvailability: vi.fn().mockReturnValue(of({ date: '2026-11-10', timeZone: 'America/Lima', slots: [nextSlot] })),
       rescheduleMyAppointment: vi.fn(),
+      proposeReschedule: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [AppointmentRescheduleComponent],
@@ -29,9 +35,10 @@ describe('Reprogramación de una cita', () => {
     }).compileComponents();
   });
 
-  function fixture() {
+  function fixture(professionalMode = false) {
     const fixture = TestBed.createComponent(AppointmentRescheduleComponent);
     fixture.componentRef.setInput('appointment', current);
+    fixture.componentRef.setInput('professionalMode', professionalMode);
     fixture.detectChanges();
     return fixture;
   }
@@ -61,5 +68,24 @@ describe('Reprogramación de una cita', () => {
     const updated = { ...current, ...nextSlot, status: 'PENDIENTE', rescheduledAt: '2026-11-09T14:00:00Z' };
     response.next(updated);
     expect(emitted).toHaveBeenCalledWith(updated);
+  });
+
+  it('consulta la disponibilidad de reprogramación con el contexto de la cita profesional', () => {
+    fixture(true);
+    expect(api.professionalRescheduleAvailability).toHaveBeenCalledWith(8, '2026-11-10', 'ONLINE', null);
+    expect(api.availability).not.toHaveBeenCalled();
+  });
+
+  it('conserva el motivo del conflicto mientras actualiza los horarios disponibles', () => {
+    api.proposeReschedule.mockReturnValue(throwError(() => ({
+      status: 409, error: { detail: 'El cliente ya tiene otra cita en ese horario.' },
+    })));
+    const component = fixture(true).componentInstance;
+    component.selected.set(nextSlot);
+    component.reason = 'Propuesta alternativa';
+    component.submit();
+    expect(component.error()).toBe('El cliente ya tiene otra cita en ese horario.');
+    expect(api.professionalRescheduleAvailability).toHaveBeenCalledTimes(2);
+    expect(component.slots()).toEqual([nextSlot]);
   });
 });

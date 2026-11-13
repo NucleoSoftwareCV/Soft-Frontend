@@ -44,6 +44,17 @@ interface ItemCreado {
   asistentes: { nombre: string; email: string; fecha: string }[];
 }
 
+export function isActiveAppointmentReservation(appointment: AppointmentReceipt, now = Date.now()): boolean {
+  if (Date.parse(appointment.startsAt) <= now) return false;
+  if (!['PENDIENTE', 'CONFIRMADA', 'REPROGRAMACION_PROPUESTA'].includes(appointment.status)) return false;
+  return appointment.status !== 'PENDIENTE' || !appointment.expiresAt || Date.parse(appointment.expiresAt) > now;
+}
+
+export function isActiveEventReservation(booking: MyBooking, now = Date.now()): boolean {
+  return Date.parse(booking.occurrenceStartsAt) > now &&
+    ['PENDIENTE', 'CONFIRMADA'].includes(booking.status);
+}
+
 @Component({
   selector: 'app-perfil',
   standalone: true,
@@ -82,6 +93,46 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   readonly myBookings = signal<MyBooking[]>([]);
   readonly bookingsLoading = signal(false);
   readonly bookingsError = signal<string | null>(null);
+  readonly activeAppointments = computed(() =>
+    this.myAppointments().filter(appointment => this.isActiveAppointment(appointment)),
+  );
+  readonly activeEventBookings = computed(() =>
+    this.myBookings().filter(booking => this.isActiveEventBooking(booking)),
+  );
+  readonly activeReservationCount = computed(() =>
+    this.activeAppointments().length + this.activeEventBookings().length,
+  );
+  readonly nextReservationAt = computed(() => {
+    const candidates = [
+      ...this.activeAppointments().map(appointment => appointment.startsAt),
+      ...this.activeEventBookings().map(booking => booking.occurrenceStartsAt),
+    ]
+      .map(value => Date.parse(value))
+      .filter(value => Number.isFinite(value) && value > Date.now())
+      .sort((left, right) => left - right);
+
+    return candidates[0] ?? null;
+  });
+  readonly nextReservationLabel = computed(() => {
+    const next = this.nextReservationAt();
+    if (!next) return '—';
+
+    return new Intl.DateTimeFormat('es-PE', {
+      timeZone: 'America/Lima',
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(next));
+  });
+  readonly orderedAppointments = computed(() =>
+    [...this.myAppointments()].sort((left, right) => {
+      const leftActive = this.isActiveAppointment(left) ? 0 : 1;
+      const rightActive = this.isActiveAppointment(right) ? 0 : 1;
+      if (leftActive !== rightActive) return leftActive - rightActive;
+      return Date.parse(left.startsAt) - Date.parse(right.startsAt);
+    }),
+  );
   readonly professionalApplication = signal<ProfessionalApplicationResponse | null>(null);
 readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
@@ -225,6 +276,18 @@ readonly professionalApplicationDismissed = signal(false);
     return Date.parse(appointment.startsAt) > now &&
       (appointment.status === 'CONFIRMADA' || appointment.status === 'REPROGRAMACION_PROPUESTA' || (appointment.status === 'PENDIENTE' &&
         (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
+  }
+
+  isActiveAppointment(appointment: AppointmentReceipt, now = Date.now()): boolean {
+    return isActiveAppointmentReservation(appointment, now);
+  }
+
+  isActiveEventBooking(booking: MyBooking, now = Date.now()): boolean {
+    return isActiveEventReservation(booking, now);
+  }
+
+  appointmentStatusClass(status: string): string {
+    return status.toLocaleLowerCase('es-PE').replaceAll('_', '-');
   }
 
   canRescheduleAppointment(appointment: AppointmentReceipt): boolean {

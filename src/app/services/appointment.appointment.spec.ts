@@ -17,6 +17,13 @@ describe('API de citas individuales', () => {
     api.availability(5, '2026-11-09', 'PRESENCIAL', 7).subscribe();
     const req = http.expectOne(r => r.url.endsWith('/availability')); expect(req.request.params.get('locationId')).toBe('7'); req.flush({ slots: [] });
   });
+  it('consulta horarios para una propuesta profesional usando la cita como contexto', () => {
+    api.professionalRescheduleAvailability(8, '2026-11-17', 'ONLINE', null).subscribe();
+    const req = http.expectOne(`${environment.apiUrl}/professional-agenda/requests/8/availability?date=2026-11-17&modality=ONLINE`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.has('locationId')).toBe(false);
+    req.flush({ slots: [] });
+  });
   it('envía solo los datos de la solicitud, sin fijar cliente, precio ni estado', () => {
     const input = { serviceId: 5, modality: 'ONLINE' as const, locationId: null, startsAt: '2026-11-09T14:00:00Z', reason: 'Bienestar' };
     api.request(input).subscribe(); const req = http.expectOne(`${environment.apiUrl}/appointments/requests`);

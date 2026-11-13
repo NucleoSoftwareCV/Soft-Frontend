@@ -56,13 +56,17 @@ export class AppointmentRescheduleComponent {
     this.loadSlots();
   }
 
-  loadSlots(): void {
+  loadSlots(preserveError = false): void {
     this.slotsRequest?.unsubscribe();
-    this.slots.set([]); this.selected.set(null); this.error.set('');
+    this.slots.set([]); this.selected.set(null);
+    if (!preserveError) this.error.set('');
     const options = this.options();
     if (!options || !this.date || (this.modality === 'PRESENCIAL' && this.locationId === null)) return;
     this.loadingSlots.set(true);
-    this.slotsRequest = this.api.availability(options.serviceId, this.date, this.modality, this.locationId)
+    const availability = this.professionalMode()
+      ? this.api.professionalRescheduleAvailability(this.appointment().id, this.date, this.modality, this.locationId)
+      : this.api.availability(options.serviceId, this.date, this.modality, this.locationId);
+    this.slotsRequest = availability
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: response => { this.slots.set(response.slots); this.loadingSlots.set(false); },
         error: err => { this.loadingSlots.set(false); this.error.set(err.error?.detail || 'No pudimos consultar los nuevos horarios.'); },
@@ -82,7 +86,7 @@ export class AppointmentRescheduleComponent {
       next: result => { this.saving.set(false); this.rescheduled.emit(result); },
       error: err => {
         this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos reprogramar la cita.');
-        if (err.status === 409) this.loadSlots();
+        if (err.status === 409) this.loadSlots(true);
       },
     });
   }

@@ -56,6 +56,13 @@ export class AppointmentService {
     if (locationId !== null) params = params.set('locationId', locationId);
     return this.http.get<AppointmentAvailability>(`${this.base}/appointments/services/${id}/availability`, { params });
   }
+  professionalRescheduleAvailability(id: number, date: string, modality: AppointmentModality, locationId: number | null) {
+    let params = new HttpParams().set('date', date).set('modality', modality);
+    if (locationId !== null) params = params.set('locationId', locationId);
+    return this.http.get<AppointmentAvailability>(
+      `${this.base}/professional-agenda/requests/${id}/availability`, { params },
+    );
+  }
   request(input: AppointmentRequest) { return this.http.post<AppointmentReceipt>(`${this.base}/appointments/requests`, input); }
   myAppointments() {
     return this.http.get<AppointmentReceipt[]>(`${this.base}/appointments/requests/me`);
