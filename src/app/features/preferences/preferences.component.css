@@ -197,7 +197,7 @@
   cursor: pointer;
   font: 500 0.8rem var(--font-body);
   font-size: 14px;
-  border: 1px solid transparent; 
+  border: 1px solid transparent;
   transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 .choice-chip2 {
@@ -617,7 +617,7 @@ transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preferences-section__title-row h2 {
-  margin: 0; 
+  margin: 0;
 }
 
 .section-pending {
@@ -641,4 +641,77 @@ transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   width: 65.8889px;
+}
+
+
+/* ===== CORRECCIONES RESPONSIVE: MIS PREFERENCIAS ===== */
+
+@media (max-width: 720px) {
+
+  .preferences-page__shell {
+    width: 100%;
+    padding-inline: 16px;
+    box-sizing: border-box;
+  }
+
+  .preferences-page__content,
+  .preferences-form,
+  .preferences-form__header {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Título y subtítulo */
+  .preferences-form__header h1,
+  .preferences-form__header p,
+  .preferences-state h1,
+  .preferences-state p {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* Títulos de las secciones */
+  .preferences-section__heading h2 {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Campos del formulario */
+  .preferences-select select,
+  .text-field,
+  .mapa {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  /* Textos informativos */
+  .preferences-section__note,
+  .oracion {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* Opciones de notificaciones */
+  .notification-list label {
+    min-width: 0;
+  }
+
+  .notification-list label > span {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: break-word;
+  }
 }
