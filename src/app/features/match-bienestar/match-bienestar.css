@@ -471,20 +471,30 @@ main {
   padding-top: var(--space-6);
 }
 
+
 .match-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 14px 20px;
   background-color: #4b8535;
   color: #ffffff;
   font-family: var(--font-body);
   font-size: 1.05rem;
   font-weight: 600;
-  padding: 14px 200px;
+  white-space: nowrap;
+  text-align: center;
+  border: none;
   border-radius: var(--radius-md);
   box-shadow: 0 4px 10px rgba(75, 133, 53, 0.2);
   transition: all var(--transition-normal);
   cursor: pointer;
-  border: none;
-  width: 100%;
 }
+
 
 .estrella2 {
   display: block;
@@ -505,12 +515,12 @@ main {
   line-height: 2px;
 }
 
-@media (min-width: 600px) {
-  .match-submit-btn {
-    width: auto;
-    min-width: 280px;
-  }
-}
+/*@media (min-width: 600px) {*/
+/*  .match-submit-btn {*/
+/*    width: auto;*/
+/*    min-width: 280px;*/
+/*  }*/
+/*}*/
 
 .match-submit-btn:hover:not(:disabled) {
   background-color: #3b6b28;
