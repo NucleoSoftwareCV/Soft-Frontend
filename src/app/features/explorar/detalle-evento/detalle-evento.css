@@ -2209,6 +2209,40 @@ swiper-slide{
 .event-location-note { color: #61757a; }
 
 
+/* Campaña promocional (sorteo) */
+.campaign-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 20px 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-coral, #d4856a);
+  border-radius: 14px;
+  background: #fff6f1;
+  color: var(--color-ink-light, #4a4a4a);
+  font-size: 14px;
+}
+
+.campaign-notice--stacked {
+  margin-top: -8px;
+}
+
+.campaign-notice a {
+  color: var(--principal, #004e59);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.campaign-success {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff6f1;
+  color: #8f4b33;
+  font-weight: 600;
+  text-align: center;
+}
 .venue-travel-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,1fr);gap:24px;align-items:start}
 .venue-location,.venue-travel-info{min-width:0}
 @media(max-width:900px){.venue-travel-layout{grid-template-columns:1fr}}

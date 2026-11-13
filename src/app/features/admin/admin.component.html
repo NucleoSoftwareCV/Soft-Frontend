@@ -72,6 +72,24 @@
         <span class="nav-label">Catálogos</span>
       </button>
 
+      <button
+        title="Sorteos"
+        [class.active]="section() === 'campaigns'"
+        (click)="show('campaigns')"
+      >
+        <svg lucideGift aria-hidden="true"></svg>
+        <span class="nav-label">Sorteos</span>
+      </button>
+
+      <button
+        title="Reservas"
+        [class.active]="section() === 'bookings'"
+        (click)="show('bookings')"
+      >
+        <svg lucideCalendarCheck aria-hidden="true"></svg>
+        <span class="nav-label">Reservas</span>
+      </button>
+
     </nav>
 
     <button
@@ -107,7 +125,11 @@
                 ? 'Catálogo de ciudades'
                 : section() === 'catalogs'
                   ? 'Catálogos de eventos'
-                  : 'Solicitudes profesionales'
+                  : section() === 'campaigns'
+                    ? 'Sorteos y campañas'
+                    : section() === 'bookings'
+                      ? 'Reservas y pagos'
+                      : 'Solicitudes profesionales'
           }}
         </strong>
       </div>
@@ -1344,6 +1366,14 @@
 
       </section>
 
+    }
+
+    @else if (section() === 'campaigns') {
+      <app-admin-campaigns />
+    }
+
+    @else if (section() === 'bookings') {
+      <app-admin-bookings />
     }
 
   </main>

@@ -9,6 +9,11 @@ import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { BookingPaymentDialogComponent } from '../../shared/components/booking-payment-dialog/booking-payment-dialog.component';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { MyBookingsStore } from '../../services/my-bookings.store';
+import { NotificationsService } from '../../services/notifications.service';
+import { bookingStatusLabel } from '../../shared/utils/booking-status.util';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
 
@@ -45,7 +50,7 @@ interface ItemCreado {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, BookingPaymentDialogComponent, NotificationsInboxComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
@@ -70,7 +75,16 @@ readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
 
   seccionActiva = signal<Seccion>('perfil');
-  readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
+  readonly seccionCliente = signal<'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'>('reservas');
+  readonly myBookingsStore = inject(MyBookingsStore);
+  readonly notificationsService = inject(NotificationsService);
+  readonly statusLabel = bookingStatusLabel;
+  readonly paymentBooking = signal<MyBooking | null>(null);
+  readonly detailBooking = signal<MyBooking | null>(null);
+  readonly cancellingBooking = signal<MyBooking | null>(null);
+  readonly cancelLoading = signal(false);
+  /** Reserva pedida por enlace (p. ej. desde una notificación), a abrir cuando carguen los datos. */
+  private requestedBooking: string | null = null;
   // La gestion profesional vive en /profesional; /perfil siempre es el espacio personal.
   readonly isProfessional = computed(() => false);
   readonly followedProfessionals = signal<FollowedProfessionalResponse[]>([]);
@@ -157,7 +171,7 @@ readonly professionalApplicationDismissed = signal(false);
 
   items = signal<ItemCreado[]>([]);
 
-  cambiarSeccionCliente(tab: 'reservas' | 'guardados' | 'siguiendo'): void {
+  cambiarSeccionCliente(tab: 'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'): void {
     this.seccionCliente.set(tab);
     if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
       this.loadFollowedProfessionals(0);
@@ -179,6 +193,7 @@ readonly professionalApplicationDismissed = signal(false);
       next: data => {
         this.myBookings.set(data);
         this.bookingsLoading.set(false);
+        this.openRequestedBooking();
       },
       error: () => {
         this.bookingsError.set('No pudimos cargar tus reservas.');
@@ -186,6 +201,54 @@ readonly professionalApplicationDismissed = signal(false);
       }
     });
   }
+  private openRequestedBooking(): void {
+    const booking = this.myBookings().find((b) => b.code === this.requestedBooking);
+    if (!booking) {
+      return;
+    }
+    this.requestedBooking = null;
+    if (booking.status === 'ACEPTADA') {
+      this.paymentBooking.set(booking);
+    } else {
+      this.detailBooking.set(booking);
+    }
+  }
+
+  canCancel(booking: MyBooking): boolean {
+    return booking.status === 'PENDIENTE' || booking.status === 'ACEPTADA';
+  }
+
+  activeBookingsCount(): number {
+    return this.myBookings().filter((b) => ['PENDIENTE', 'ACEPTADA', 'CONFIRMADA'].includes(b.status)).length;
+  }
+
+  confirmCancelBooking(): void {
+    const booking = this.cancellingBooking();
+    if (!booking || this.cancelLoading()) {
+      return;
+    }
+    this.cancelLoading.set(true);
+    this.checkoutService.cancelMyBooking(booking.code).subscribe({
+      next: () => {
+        this.cancelLoading.set(false);
+        this.cancellingBooking.set(null);
+        this.onBookingChanged();
+      },
+      error: (error) => {
+        this.cancelLoading.set(false);
+        this.cancellingBooking.set(null);
+        this.bookingsError.set(error.error?.detail || 'No se pudo cancelar la reserva.');
+        this.onBookingChanged();
+      },
+    });
+  }
+
+  onBookingChanged(): void {
+    this.loadMyBookings();
+    this.myBookingsStore.refresh();
+    this.notificationsService.refreshUnread();
+  }
+
   @HostListener('window:focus')
   refreshVisibleBookings(): void {
     if (this.seccionCliente() === 'reservas' && !this.bookingsLoading()) this.loadMyBookings();
@@ -368,8 +431,11 @@ ngOnInit(): void {
 
   this.route.queryParams.subscribe(params => {
     const tab = params['tab'];
+    this.requestedBooking = params['reserva'] ?? null;
 
-    if (tab === 'guardados') {
+    if (tab === 'notificaciones') {
+      this.cambiarSeccionCliente('notificaciones');
+    } else if (tab === 'guardados') {
       this.cambiarSeccionCliente('guardados');
     } else if (tab === 'siguiendo') {
       this.cambiarSeccionCliente('siguiendo');

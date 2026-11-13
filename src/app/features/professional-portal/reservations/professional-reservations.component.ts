@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ElementRef, HostListener, ViewChild, inject, output, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, ViewChild, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -25,6 +25,8 @@ export class ProfessionalReservationsComponent {
   private optionsRequest?: Subscription;
   @ViewChild('detailDialog') dialog?: ElementRef<HTMLDialogElement>;
   readonly changed = output<void>();
+  /** Reserva a abrir al llegar desde una notificación. */
+  readonly openCode = input<string | null>(null);
   readonly page = signal<ProfessionalBookingPage | null>(null);
   readonly events = signal<EventManagementResponse[]>([]);
   readonly occurrences = signal<EventOccurrenceManagement[]>([]);
@@ -36,9 +38,9 @@ export class ProfessionalReservationsComponent {
   readonly optionsError = signal('');
   readonly detailError = signal('');
   readonly notice = signal('');
-  readonly decision = signal<'CONFIRMADA' | 'CANCELADA' | null>(null);
+  readonly decision = signal<'ACEPTADA' | 'CANCELADA' | null>(null);
   readonly statusLabels = BOOKING_STATUS_LABELS;
-  readonly statuses: BookingStatus[] = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'LISTA_ESPERA', 'COMPLETADA', 'NO_ASISTIO'];
+  readonly statuses: BookingStatus[] = ['PENDIENTE', 'ACEPTADA', 'CONFIRMADA', 'CANCELADA', 'LISTA_ESPERA', 'COMPLETADA', 'NO_ASISTIO'];
   status: BookingStatus | '' = '';
   eventId: number | null = null;
   occurrenceId: number | null = null;
@@ -47,6 +49,14 @@ export class ProfessionalReservationsComponent {
   constructor() {
     this.load();
     this.loadEventOptions();
+    effect(() => {
+      const code = this.openCode();
+      if (code) queueMicrotask(() => this.open(code));
+    });
+  }
+
+  historyLabel(status: string): string {
+    return this.statusLabels[status as BookingStatus] ?? status;
   }
 
   loadEventOptions(): void {
@@ -137,7 +147,8 @@ export class ProfessionalReservationsComponent {
           this.detail.set(updated);
           this.decision.set(null);
           this.saving.set(false);
-          this.notice.set(decision === 'CONFIRMADA' ? 'Reserva aceptada.' : 'Reserva rechazada. Las plazas se han liberado.');
+          this.notice.set(decision === 'CANCELADA' ? 'Reserva rechazada. Las plazas se han liberado.'
+            : updated.booking.status === 'CONFIRMADA' ? 'Reserva confirmada.' : 'Reserva aceptada. El cliente ya puede pagar.');
           this.load(this.page()?.number ?? 0);
           this.readDetail(updated.booking.code);
           this.changed.emit();

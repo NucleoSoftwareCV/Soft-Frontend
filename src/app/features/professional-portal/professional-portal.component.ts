@@ -2,7 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NotificationsService } from '../../services/notifications.service';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
 import { map, of, switchMap } from 'rxjs';
 import {
   ImageCroppedEvent,
@@ -31,6 +34,7 @@ import {
   LucideRotateCw,
   LucideTriangleAlert,
   LucideUpload,
+  LucideBell,
   LucideUserRound,
   LucideZoomIn,
   LucideX,
@@ -68,7 +72,7 @@ import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'notifications';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -116,7 +120,6 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
-  paymentMethod: 'WHATSAPP' | 'ONLINE';
   experienceTypeId: number | null;
   occurrenceId: number | null;
   startsAt: string;
@@ -160,6 +163,7 @@ interface OccurrenceForm {
   selector: 'app-professional-portal',
   standalone: true,
   imports: [
+    NotificationsInboxComponent,
     ProfessionalReservationsComponent,
     CommonModule,
     FormsModule,
@@ -185,6 +189,7 @@ interface OccurrenceForm {
     LucideRotateCw,
     LucideTriangleAlert,
     LucideUpload,
+  LucideBell,
     LucideUserRound,
     LucideZoomIn,
     LucideX,
@@ -203,6 +208,10 @@ export class ProfessionalPortalComponent {
   private readonly sessionsApi = inject(OneToOneServicesService);
 
   section = signal<PortalSection>('summary');
+  /** Reserva pedida por enlace desde una notificación. */
+  requestedBooking = signal<string | null>(null);
+  private readonly route = inject(ActivatedRoute);
+  readonly notificationsService = inject(NotificationsService);
   profile = signal<SpecialistProfileResponse | null>(null);
   events = signal<EventManagementResponse[]>([]);
   sessions = signal<OneToOneServiceDetailResponse[]>([]);
@@ -318,6 +327,13 @@ export class ProfessionalPortalComponent {
 
   constructor() {
     this.loadAll();
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const section = params.get('seccion');
+      if (section === 'reservations' || section === 'notifications') {
+        this.section.set(section);
+      }
+      this.requestedBooking.set(params.get('reserva'));
+    });
   }
 
   show(section: PortalSection): void {
@@ -871,7 +887,6 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
-      paymentMethod: event.paymentMethod ?? 'WHATSAPP',
       experienceTypeId: event.experienceTypeId,
       occurrenceId: occurrence?.id ?? null,
       startsAt: occurrence ? this.toLocalInput(occurrence.startsAt) : this.localDateTime(2),
@@ -1236,7 +1251,6 @@ export class ProfessionalPortalComponent {
       minimumAge: this.eventForm.minimumAge,
       featured: false,
       categoryId: this.eventForm.categoryId!,
-      paymentMethod: this.eventForm.paymentMethod,
       experienceTypeId: this.eventForm.experienceTypeId!,
       specialistId,
     };
@@ -1277,7 +1291,6 @@ export class ProfessionalPortalComponent {
       currency: 'EUR',
       minimumAge: 18,
       categoryId: null,
-      paymentMethod: 'WHATSAPP',
       experienceTypeId: null,
       occurrenceId: null,
       startsAt: this.localDateTime(2),

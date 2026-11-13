@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/**/*.d.ts",
+    "src/app/shared/components/booking-payment-dialog/booking-payment-dialog.component.spec.ts",
+    "src/app/services/my-bookings.store.spec.ts",
+    "src/app/shared/components/notifications-inbox/notifications-inbox.component.spec.ts",
+    "src/app/features/admin/bookings/admin-bookings.component.spec.ts",
+    "src/app/features/explorar/detalle-evento/detalle-evento.booking.spec.ts",
+    "src/app/features/explorar/detalle-evento/detalle-evento.spec.ts",
+    "src/app/features/perfil/perfil.bookings.spec.ts",
+    "src/app/features/professional-portal/reservations/professional-reservations.component.spec.ts",
+    "src/app/services/professional-bookings.service.spec.ts",
+    "src/app/shared/components/booking-cancellation-notice/booking-cancellation-notice.component.spec.ts"
+  ]
+}

@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 
 import {
   LucideClipboardList,
+  LucideGift,
+  LucideCalendarCheck,
   LucideLayoutDashboard,
   LucideLogOut,
   LucideMapPin,
@@ -26,6 +28,8 @@ import { CityService } from '../../services/city.service';
 import { EventCatalogService } from '../../services/event-catalog.service';
 import { SessionCatalogService } from '../../services/session-catalog.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { AdminCampaignsComponent } from './campaigns/admin-campaigns.component';
+import { AdminBookingsComponent } from './bookings/admin-bookings.component';
 
 import { CityResponse } from '../../shared/models/evento.model';
 
@@ -54,8 +58,12 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    AdminBookingsComponent,
+    AdminCampaignsComponent,
 
     LucideClipboardList,
+  LucideGift,
+  LucideCalendarCheck,
     LucideLayoutDashboard,
     LucideLogOut,
     LucideMapPin,
@@ -109,7 +117,9 @@ export class AdminComponent {
     'summary' |
     'applications' |
     'cities' |
-    'catalogs'
+    'catalogs' |
+    'campaigns' |
+    'bookings'
   >('summary');
 
   applications =
@@ -341,7 +351,9 @@ export class AdminComponent {
       'summary' |
       'applications' |
       'cities' |
-      'catalogs'
+      'catalogs' |
+      'campaigns' |
+      'bookings'
   ): void {
 
     this.section.set(section);

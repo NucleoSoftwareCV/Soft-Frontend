@@ -44,6 +44,8 @@ interface CalendarDayCell {
   isPast: boolean;
 }
 
+import { NotificationsService } from '../../../services/notifications.service';
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -59,6 +61,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   readonly filtrosService = inject(FiltrosService);
   readonly authService = inject(AuthService);
+  readonly notificationsService = inject(NotificationsService);
 
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
@@ -1077,4 +1080,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   });
 
   readonly dateButtonLabel = computed(() => this.applyButtonLabel());
+
+  openNotifications(): void {
+    const professional = this.authService.currentUser()?.roles?.includes('PROFESSIONAL');
+    void this.router.navigate(
+      professional ? ['/profesional'] : ['/perfil'],
+      { queryParams: professional ? { seccion: 'notifications' } : { tab: 'notificaciones' } },
+    );
+  }
 }

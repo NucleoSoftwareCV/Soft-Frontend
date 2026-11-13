@@ -146,6 +146,19 @@
 
       </div>
     }
+    @for (badge of event.campaignBadges ?? []; track badge.slug; let first = $first) {
+      <div class="campaign-notice" [class.campaign-notice--stacked]="!first" role="note">
+        <app-campania-badge [badges]="[badge]" [inline]="true" />
+        <span>
+          @if ((event.campaignBadges?.length ?? 0) > 1) {
+            <strong>{{ badge.title }}</strong>: cada plaza confirmada es una participación en este sorteo.
+          } @else {
+            Reserva esta experiencia y participa en el sorteo: cada plaza confirmada es una participación.
+          }
+        </span>
+        <a [routerLink]="['/sorteo', badge.slug]">Ver condiciones</a>
+      </div>
+    }
     <div class="title-row">
       <h1>{{ event.title }}</h1>
       <div class="actions">
@@ -394,23 +407,14 @@
               </div>
             </div>
 
-            <!-- Botón de Pago / WhatsApp -->
+            <!-- Solicitud de reserva -->
+            <app-booking-indicator [eventId]="event.id" />
             <div class="pay-btn">
               <button
                 class="wait-btn"
-                [disabled]="!isOccurrenceBookable(selectedOccurrence())"
-                (click)="abrirReserva()">
-                <ng-container *ngIf="occurrenceUnavailableLabel(selectedOccurrence()) as unavailableLabel; else activeBookingBtn">
-                  <span>{{ unavailableLabel }}</span>
-                </ng-container>
-                <ng-template #activeBookingBtn>
-                  <ng-container *ngIf="event.paymentMethod === 'WHATSAPP'; else onlineBookingBtn">
-                    <span>Contactar por WhatsApp</span>
-                  </ng-container>
-                  <ng-template #onlineBookingBtn>
-                    <span>Comprar entrada - {{ formatPrice() }}</span>
-                  </ng-template>
-                </ng-template>
+                [disabled]="bookingActionDisabled()"
+                (click)="bookingAction()">
+                <span>{{ bookingActionLabel() }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
               </button>
             </div>
@@ -530,9 +534,9 @@
         </div>
 
         <button
-          [disabled]="!isOccurrenceBookable(selectedOccurrence())"
-          (click)="abrirReserva()">
-          {{ occurrenceUnavailableLabel(selectedOccurrence()) ?? (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
+          [disabled]="bookingActionDisabled()"
+          (click)="bookingAction()">
+          {{ selectedBooking() ? bookingActionLabel() : (occurrenceUnavailableLabel(selectedOccurrence()) ?? 'Solicitar reserva') }}
         </button>
       </div>
 
@@ -547,7 +551,7 @@
               {{ event.title }}
             </span>
             <h2 style="font-family: Sunset, Georgia, serif; font-size: 22px; font-weight: 700; color: white !important; margin: 2px 0 6px;">
-              ¡Reserva tu plaza!
+              Solicita tu reserva
             </h2>
             <div class="event-occurrence-time" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar" style="color: rgba(255, 255, 255, 0.85) !important;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></svg>
@@ -624,26 +628,8 @@
                   <span class="counter-val">{{ numPlazas() }}</span>
                   <button type="button" class="counter-btn" (click)="updatePlazas(1)" [disabled]="selectedOccurrence() && numPlazas() >= selectedOccurrence()!.availableSpots">+</button>
                 </div>
-                <label class="discount-checkbox-label">
-                  <input type="checkbox" [(ngModel)]="tieneCodigoDescuento" />
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag" style="color: #64748b !important;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                  <span>Tengo un código de descuento</span>
-                </label>
               </div>
 
-              <!-- Coupon Input Code Box -->
-              <div class="coupon-input-wrapper mt-3" *ngIf="tieneCodigoDescuento()">
-                <div style="display: flex; gap: 8px; width: 100%;">
-                  <input type="text" [(ngModel)]="codigoDescuento" placeholder="DESCUENTO10" style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; text-transform: uppercase;" />
-                  <button type="button" (click)="aplicarCodigoDescuento()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Aplicar</button>
-                </div>
-                <p class="coupon-msg" *ngIf="mensajeDescuento()" [style.color]="codigoAplicado() ? '#16a34a' : '#ef4444'" style="font-size: 11px; margin-top: 4px; font-weight: 600; text-align: left;">
-                  {{ mensajeDescuento() }}
-                </p>
-                <p class="coupon-msg text-muted" *ngIf="codigoAplicado()" style="font-size: 11px; margin-top: 2px; text-align: left; color: #64748b;">
-                  Total antes de descuento: {{ formatTotalBeforeDiscount() }}
-                </p>
-              </div>
             </div>
 
             <!-- Card: La reserva es para mí -->
@@ -685,59 +671,7 @@
             </section>
           </div>
 
-          <!-- STEP 2: Pago Online Ficticio -->
-          <div class="booking-step-content" *ngIf="bookingStep() === 2">
-            <section class="form-section">
-              <h3>Selecciona tu método de pago</h3>
-              <div class="payment-method-selector">
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'TARJETA'" (click)="paymentMethod.set('TARJETA')">
-                  Tarjeta de Crédito / Débito
-                </button>
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'YAPE'" (click)="paymentMethod.set('YAPE')">
-                  Yape
-                </button>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'TARJETA'">
-              <div class="form-grid">
-                <div class="form-group wide">
-                  <label>Número de tarjeta *</label>
-                  <input type="text" [(ngModel)]="cardNumber" (input)="onCardNumberInput($event)" placeholder="4111 2222 3333 4444" maxlength="19" required />
-                </div>
-                <div class="form-group">
-                  <label>Fecha de Expiración *</label>
-                  <input type="text" [(ngModel)]="cardExpiration" (input)="onCardExpirationInput($event)" placeholder="MM/AA" maxlength="5" required />
-                </div>
-                <div class="form-group">
-                  <label>CVV *</label>
-                  <input type="text" [(ngModel)]="cardCvv" (input)="onCardCvvInput($event)" placeholder="123" maxlength="4" required />
-                </div>
-                <div class="form-group wide">
-                  <label>Nombre del Titular *</label>
-                  <input type="text" [(ngModel)]="cardHolderName" (input)="onCardHolderNameInput($event)" placeholder="Como figura en la tarjeta" maxlength="50" required />
-                </div>
-              </div>
-              <div class="alert alert-info mt-3">
-                <p><strong>Nota de simulación:</strong> El número de tarjeta que termina en 4444 simulará fondos insuficientes (rechazo). Cualquier otro número será aprobado.</p>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'YAPE'">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Número de Celular *</label>
-                  <input type="text" [(ngModel)]="yapePhone" (input)="onYapePhoneInput($event)" placeholder="999888777" maxlength="9" required />
-                </div>
-                <div class="form-group">
-                  <label>Código de Aprobación *</label>
-                  <input type="text" [(ngModel)]="yapeOtp" (input)="onYapeOtpInput($event)" placeholder="123456" maxlength="6" required />
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <!-- STEP 3: Confirmación / Éxito -->
+          <!-- Solicitud enviada -->
           <div class="booking-step-content booking-success-content" *ngIf="bookingStep() === 3">
             <div class="success-icon-wrapper">
               <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -746,13 +680,16 @@
               </svg>
             </div>
             
-            <h2>¡Tu reserva está registrada!</h2>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'WHATSAPP'">
-              Hemos abierto WhatsApp para que coordines el pago directamente con el profesional. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+            <h2>Solicitud enviada correctamente</h2>
+            <p class="success-msg">
+              Tu solicitud de reserva ha sido enviada. Estamos esperando la respuesta del profesional.
+              Te avisaremos en tus notificaciones y, si la acepta, podrás pagar desde Mis reservas.
             </p>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
-              El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
-            </p>
+            @if (campaignBadge()) {
+              <p class="campaign-success">
+                🎁 Cuando tu reserva quede confirmada, participarás en {{ (evento()?.campaignBadges?.length ?? 0) > 1 ? 'los sorteos' : 'el sorteo' }}.
+              </p>
+            }
 
             <div class="booking-summary-box mt-4">
               <h4>Resumen del evento</h4>
@@ -760,7 +697,7 @@
                 <div class="summary-row"><span>Evento:</span><strong>{{ event.title }}</strong></div>
                 <div class="summary-row"><span>Fecha:</span><strong>{{ formatOccurrenceDate(selectedOccurrence() || undefined) }}</strong></div>
                 <div class="summary-row"><span>Hora:</span><strong>{{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</strong></div>
-                <div class="summary-row"><span>Plazas reservadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
+                <div class="summary-row"><span>Plazas solicitadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
                 <div class="summary-row total"><span>Monto Total:</span><strong>{{ formatTotalPrice() }}</strong></div>
               </div>
             </div>
@@ -777,33 +714,25 @@
             </strong>
           </div>
           <div class="footer-actions">
-            <button type="button" class="btn btn-secondary" *ngIf="bookingStep() === 2" (click)="bookingStep.set(1)" [disabled]="bookingLoading()">
-              Atrás
-            </button>
-            
             <!-- STEP 1 Action Buttons -->
             <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 1" (click)="confirmarReserva()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Generando...</span>
+              <span *ngIf="bookingLoading()">Enviando...</span>
               <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
-                Confirmar reserva <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                Enviar solicitud <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </span>
             </button>
 
-            <!-- STEP 2 Action Buttons -->
-            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 2" (click)="realizarPagoOnline()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Procesando...</span>
-              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
-                Confirmar pago <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </span>
-            </button>
-
-            <!-- STEP 3 Action Button -->
+            <!-- Solicitud enviada -->
             <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 3" (click)="cerrarReserva()">
               Entendido
             </button>
           </div>
         </footer>
       </div>
+
+      @if (paymentBooking(); as booking) {
+        <app-booking-payment-dialog [booking]="booking" (paid)="onBookingPaid()" (closed)="paymentBooking.set(null)" />
+      }
 
     </section>
   }

@@ -3,6 +3,8 @@ import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { EventCardResponse, EventModality } from '../../models/evento.model';
+import { CampaniaBadgeComponent } from '../campania-badge/campania-badge.component';
+import { BookingIndicatorComponent } from '../booking-indicator/booking-indicator.component';
 import { resolveAssetUrl } from '../../utils/asset-url.util';
 import { categoryIcon } from '../../utils/category-icon.util';
 
@@ -12,7 +14,7 @@ const FALLBACK_IMAGE =
 @Component({
   selector: 'app-evento-card',
   standalone: true,
-  imports: [RouterLink, EventTravelComponent],
+  imports: [RouterLink, CampaniaBadgeComponent, EventTravelComponent, BookingIndicatorComponent],
   templateUrl: './evento-card.component.html',
   styleUrl: './evento-card.component.css',
 })

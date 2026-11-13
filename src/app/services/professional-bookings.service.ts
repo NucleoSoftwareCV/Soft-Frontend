@@ -20,7 +20,7 @@ export class ProfessionalBookingsService {
     return this.http.get<ProfessionalBookingDetail>(`${this.base}/${encodeURIComponent(code)}`);
   }
 
-  decide(code: string, status: 'CONFIRMADA' | 'CANCELADA', reason?: string) {
+  decide(code: string, status: 'ACEPTADA' | 'CANCELADA', reason?: string) {
     return this.http.patch<ProfessionalBookingDetail>(`${this.base}/${encodeURIComponent(code)}/status`, { status, reason });
   }
 }

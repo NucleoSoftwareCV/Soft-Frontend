@@ -2280,3 +2280,105 @@
 .professional-application-card__button:hover {
   opacity: 0.85;
 }
+/* Acciones de Mis reservas */
+.booking-deadline {
+  color: #a34a12;
+  font-weight: 600;
+}
+
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.booking-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.booking-action--primary {
+  border-color: #005766;
+  background: #005766;
+  color: #fff;
+}
+
+.booking-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, .45);
+}
+
+.booking-detail {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1001;
+  display: grid;
+  gap: 12px;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e293b;
+  transform: translate(-50%, -50%);
+}
+
+.booking-detail h2 {
+  margin: 0;
+  color: #005766;
+  font-size: 20px;
+}
+
+.booking-detail p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.booking-detail dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.booking-detail dt {
+  color: #64748b;
+}
+
+.booking-detail dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.booking-detail footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.saved-card.saved-card--booking {
+  height: auto;
+  min-height: 195px;
+}
+
+.saved-card--booking .saved-card__img-wrap {
+  height: auto;
+  align-self: stretch;
+}

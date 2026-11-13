@@ -7,6 +7,7 @@ import { Eventos } from './eventos';
 import { EventsMapPanelComponent } from './events-map-panel.component';
 import { EventosService } from '../../../services/eventos.service';
 import { FiltrosService } from '../../../services/filtros.service';
+import { CampaniasService } from '../../../services/campanias.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -36,9 +37,10 @@ describe('Selector Cuadrícula / Mapa', () => {
         { provide: FiltrosService, useValue: {
           filterWhen: signal(null), filterCategories: signal([]), filterTypes: signal([]),
           filterCity: signal('Valencia'), filterTimeOfDay: signal(null), filterModality: signal(null),
-          filterRecurrence: signal(null), filterPrice: signal(null), filterSpecialistId: signal(null), filterMood: signal<string | null>(null), activeFilterCount: 0,
+          filterRecurrence: signal(null), filterPrice: signal(null), filterSpecialistId: signal(null), filterMood: signal<string | null>(null), filterCampaign: signal<string | null>(null), activeFilterCount: 0,
           priceRangeFor: () => ({}),
         }},
+        { provide: CampaniasService, useValue: { getActive: () => of([]) } },
         { provide: FavoritesService, useValue: { favoritedEventIds: signal(new Set<number>()) } },
         { provide: AuthService, useValue: { currentUser: signal(null), isLoggedIn: false } },
       ],

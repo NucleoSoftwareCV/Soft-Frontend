@@ -46,6 +46,21 @@ export const routes: Routes = [
         .then(m => m.Eventos),
   },
 
+  // Campañas promocionales (sorteos)
+  {
+    path: 'sorteo/:slug',
+    loadComponent: () =>
+      import('./features/campania/campania-detalle')
+        .then(m => m.CampaniaDetalleComponent),
+    title: 'Sorteo | Oona',
+  },
+
+  {
+    path: 'sorteo-bienestar',
+    redirectTo: 'sorteo/sorteo-bienestar',
+    pathMatch: 'full',
+  },
+
   {
     path: 'evento/:id',
     loadComponent: () =>
