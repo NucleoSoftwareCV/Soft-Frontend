@@ -28,7 +28,7 @@ describe('FiltrosService', () => {
       { id: 1, name: 'Talleres', slug: 'talleres', active: true, deletable: false },
     ]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'PE', active: true },
     ]);
 
     expect(service.categoryOptions).toEqual(['Yoga y Ballet']);
@@ -59,22 +59,32 @@ describe('FiltrosService', () => {
     http.expectOne(request => request.url.endsWith('/categories')).flush([]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
-      { id: 2, name: 'Barcelona', province: 'Barcelona', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'PE', active: true },
+      { id: 2, name: 'Cusco', province: 'Cusco', countryCode: 'PE', active: true },
     ]);
 
-    expect(service.cityOptions).toEqual(['Todas', 'Valencia', 'Barcelona']);
-    expect(service.getCityByName('Valencia')?.id).toBe(1);
+    expect(service.cityOptions).toEqual(['Todas', 'Arequipa', 'Cusco']);
+    expect(service.getCityByName('Arequipa')?.id).toBe(1);
 
-    service.filterCity.set('Barcelona');
+    service.filterCity.set('Cusco');
     service.refreshCatalogs();
     http.expectOne(request => request.url.endsWith('/categories')).flush([]);
     http.expectOne(request => request.url.endsWith('/experience-types')).flush([]);
     http.expectOne(request => request.url.endsWith('/cities')).flush([
-      { id: 1, name: 'Valencia', province: 'Valencia', countryCode: 'ES', active: true },
+      { id: 1, name: 'Arequipa', province: 'Arequipa', countryCode: 'PE', active: true },
     ]);
 
     expect(service.filterCity()).toBe('Todas');
-    expect(service.cityOptions).toEqual(['Todas', 'Valencia']);
+    expect(service.cityOptions).toEqual(['Todas', 'Arequipa']);
   });
+  it('builds price filters in soles and preserves free events as zero', () => {
+    http.expectOne(r => r.url.endsWith('/categories')).flush([]);
+    http.expectOne(r => r.url.endsWith('/experience-types')).flush([]);
+    http.expectOne(r => r.url.endsWith('/cities')).flush([]);
+    service.filterPrice.set('S/ 15–30');
+    expect(service.buildEventFilterParams(service.snapshot())).toMatchObject({ minPrice: 15, maxPrice: 30 });
+    service.filterPrice.set('Gratis');
+    expect(service.buildEventFilterParams(service.snapshot())).toMatchObject({ minPrice: 0, maxPrice: 0 });
+  });
+
 });

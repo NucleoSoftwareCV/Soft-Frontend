@@ -110,13 +110,13 @@ readonly professionalApplicationDismissed = signal(false);
   ];
   tiposExperiencia = ['Talleres', 'Retiros', 'Clases', 'Ceremonias', 'Encuentros Grupales', 'Formaciones'];
   cuandoOptions = ['Hoy', 'Mañana', 'Este finde', 'Esta semana', 'Próxima semana'];
-  ubicaciones = ['Valencia', 'Alicante', 'Castellón', 'Barcelona', 'Madrid'];
+  ubicaciones = ['Arequipa', 'Trujillo', 'Piura', 'Cusco', 'Lima'];
   precioOptions: { label: string; value: RangePrecio }[] = [
     { label: 'Gratis', value: 'gratis' },
-    { label: 'Hasta 15€', value: 'hasta15' },
-    { label: '15–30€', value: 'de15a30' },
-    { label: '30–50€', value: 'de30a50' },
-    { label: 'Más de 50€', value: 'mas50' },
+    { label: 'Hasta S/ 15', value: 'hasta15' },
+    { label: 'S/ 15–30', value: 'de15a30' },
+    { label: 'S/ 30–50', value: 'de30a50' },
+    { label: 'Más de S/ 50', value: 'mas50' },
   ];
   horaOptions = [
     { label: 'Mañana', sub: '6h – 12h' },
@@ -261,7 +261,7 @@ dismissProfessionalApplication(): void {
     if (!isoString) return '';
     try {
       const d = new Date(isoString);
-      const formatted = new Intl.DateTimeFormat('es-ES', {
+      const formatted = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -344,7 +344,7 @@ dismissProfessionalApplication(): void {
   }
 
   profileCategoryLabel(category: string): string {
-    const normalized = category.replaceAll('_', ' ').toLocaleLowerCase('es-ES');
+    const normalized = category.replaceAll('_', ' ').toLocaleLowerCase('es-PE');
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   }
 
@@ -385,7 +385,7 @@ ngOnInit(): void {
         descripcion: 'Un fin de semana de desconexión total. Yoga al amanecer, meditaciones guiadas, baños de sonido y alimentación consciente. Incluye alojamiento y todas las comidas.',
         precio: 250, rangoPrecio: 'mas50', fecha: '2026-07-15', cuando: 'Este finde',
         categoria: ['Yoga', 'Meditación y Mindfulness', 'Sonido y Vibración'],
-        tipoExperiencia: 'Retiros', ubicacion: 'Valencia', horaDia: 'Mañana',
+        tipoExperiencia: 'Retiros', ubicacion: 'Arequipa', horaDia: 'Mañana',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: 'Ctra. de la Marina, Km 5', plazas: 20, plazasOcupadas: 14, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400'],
         sesiones: [
@@ -415,7 +415,7 @@ ngOnInit(): void {
         descripcion: 'Sesión personalizada de sanación vibracional con cuencos tibetanos, gong y diapasones. Alineación de chakras y liberación de bloqueos energéticos.',
         precio: 65, rangoPrecio: 'mas50', fecha: new Date().toISOString(), cuando: 'Esta semana',
         categoria: ['Sonido y Vibración', 'Espiritualidad y Energía'],
-        tipoExperiencia: 'Clases', ubicacion: 'Valencia', horaDia: 'Tarde',
+        tipoExperiencia: 'Clases', ubicacion: 'Arequipa', horaDia: 'Tarde',
         modalidad: 'Presencial', recurrencia: 'Recurrente', direccion: '', plazas: 1, plazasOcupadas: 1, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400'],
         sesiones: [
@@ -432,7 +432,7 @@ ngOnInit(): void {
         descripcion: 'Aprende técnicas de respiración avanzadas para gestionar el estrés, mejorar tu concentración y conectar con tu cuerpo. Sesiones guiadas en grupo.',
         precio: 25, rangoPrecio: 'de15a30', fecha: '2026-07-22', cuando: 'Próxima semana',
         categoria: ['Hielo y Breathwork', 'Meditación y Mindfulness', 'Cuerpo y Salud'],
-        tipoExperiencia: 'Talleres', ubicacion: 'Barcelona', horaDia: 'Noche',
+        tipoExperiencia: 'Talleres', ubicacion: 'Cusco', horaDia: 'Noche',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: 'Carrer del Rosselló 142, local 3', plazas: 15, plazasOcupadas: 9, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400'],
         sesiones: [],
@@ -453,7 +453,7 @@ ngOnInit(): void {
         descripcion: 'Constelación familiar individual para identificar y sanar patrones heredados que limitan tu vida. Trabajo profundo con movimientos sistémicos.',
         precio: 120, rangoPrecio: 'mas50', fecha: new Date().toISOString(), cuando: 'Hoy',
         categoria: ['Espiritualidad y Energía', 'Psicología'],
-        tipoExperiencia: 'Ceremonias', ubicacion: 'Madrid', horaDia: 'Mañana',
+        tipoExperiencia: 'Ceremonias', ubicacion: 'Lima', horaDia: 'Mañana',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: '', plazas: 1, plazasOcupadas: 1, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400'],
         sesiones: [
@@ -468,7 +468,7 @@ ngOnInit(): void {
         descripcion: 'Encuentro sagrado de mujeres para conectar con la energía de la luna llena. Compartiremos ceremonias, meditación guiada, danza libre y té de cacao.',
         precio: 15, rangoPrecio: 'hasta15', fecha: '2026-07-28', cuando: 'Próxima semana',
         categoria: ['Espiritualidad y Energía', 'Meditación y Mindfulness', 'Arte y Creatividad'],
-        tipoExperiencia: 'Encuentros Grupales', ubicacion: 'Alicante', horaDia: 'Noche',
+        tipoExperiencia: 'Encuentros Grupales', ubicacion: 'Trujillo', horaDia: 'Noche',
         modalidad: 'Presencial', recurrencia: 'Recurrente', direccion: 'Playa de San Juan, junto al chiringuito 7', plazas: 30, plazasOcupadas: 22, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400'],
         sesiones: [
@@ -504,7 +504,7 @@ ngOnInit(): void {
         descripcion: 'Aprende a cocinar platos deliciosos y nutritivos con ingredientes de temporada. Incluye degustación y recetario digital.',
         precio: 35, rangoPrecio: 'de30a50', fecha: '2026-08-05', cuando: 'Elegir fecha',
         categoria: ['Nutrición y Cocina', 'Cuerpo y Salud'],
-        tipoExperiencia: 'Talleres', ubicacion: 'Castellón', horaDia: 'Mediodía',
+        tipoExperiencia: 'Talleres', ubicacion: 'Piura', horaDia: 'Mediodía',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: 'Av. de la Mar, 23', plazas: 12, plazasOcupadas: 7, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400'],
         sesiones: [],
@@ -523,7 +523,7 @@ ngOnInit(): void {
         descripcion: 'Sesión individual para aprender a portear a tu bebé de forma segura y ergonómica. Probamos diferentes portabebés y resolvemos tus dudas.',
         precio: 60, rangoPrecio: 'mas50', fecha: new Date().toISOString(), cuando: 'Mañana',
         categoria: ['Maternidad y Familia', 'Cuerpo y Salud'],
-        tipoExperiencia: 'Clases', ubicacion: 'Valencia', horaDia: 'Mañana',
+        tipoExperiencia: 'Clases', ubicacion: 'Arequipa', horaDia: 'Mañana',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: '', plazas: 1, plazasOcupadas: 0, estado: 'activo',
         imagenes: ['https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400'],
         sesiones: [
@@ -550,7 +550,7 @@ ngOnInit(): void {
         descripcion: 'Yoga suave y adaptado para cada trimestre del embarazo. Trabajaremos respiración, posturas seguras y relajación para conectar con tu bebé.',
         precio: 0, rangoPrecio: 'gratis', fecha: '2026-07-12', cuando: 'Este finde',
         categoria: ['Yoga', 'Maternidad y Familia', 'Cuerpo y Salud'],
-        tipoExperiencia: 'Clases', ubicacion: 'Barcelona', horaDia: 'Mañana',
+        tipoExperiencia: 'Clases', ubicacion: 'Cusco', horaDia: 'Mañana',
         modalidad: 'Presencial', recurrencia: 'Recurrente', direccion: 'C/ de la Diputació 255, 1r 1a', plazas: 10, plazasOcupadas: 8, estado: 'pausado',
         imagenes: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400'],
         sesiones: [
@@ -573,7 +573,7 @@ ngOnInit(): void {
         descripcion: 'Ven a conocer nuestro espacio de bienestar. Clases demo gratuitas, sesiones express de 15 min, degustación de tés y sorteos. Trae a tus amigos.',
         precio: 0, rangoPrecio: 'gratis', fecha: '2026-08-01', cuando: 'Elegir fecha',
         categoria: ['Movimiento', 'Meditación y Mindfulness', 'Emprendimiento'],
-        tipoExperiencia: 'Encuentros Grupales', ubicacion: 'Valencia', horaDia: 'Mañana',
+        tipoExperiencia: 'Encuentros Grupales', ubicacion: 'Arequipa', horaDia: 'Mañana',
         modalidad: 'Presencial', recurrencia: 'Único', direccion: 'C/ del Poeta Querol 10, bajo', plazas: 50, plazasOcupadas: 8, estado: 'cancelado',
         imagenes: ['https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400'],
         sesiones: [],

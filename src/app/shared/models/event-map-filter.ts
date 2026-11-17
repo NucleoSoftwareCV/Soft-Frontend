@@ -28,8 +28,8 @@ export function filterMapPoints(
     if (filters.dateFrom || filters.dateTo || filters.hourFrom != null || filters.hourTo != null) {
       const startsAt = new Date(point.startsAt);
       if (!Number.isFinite(startsAt.getTime())) return false;
-      const parts = new Intl.DateTimeFormat('es-ES', {
-        timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+      const parts = new Intl.DateTimeFormat('es-PE', {
+        timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit',
         hour: '2-digit', hourCycle: 'h23',
       }).formatToParts(startsAt);
       const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';

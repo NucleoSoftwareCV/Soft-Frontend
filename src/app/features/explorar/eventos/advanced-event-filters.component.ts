@@ -80,14 +80,14 @@ type ProfessionalOption = Pick<SpecialistProfileResponse, 'id' | 'publicName'>;
         }
 
         <label class="field-label price-heading" for="advanced-price">
-          Precio máximo <output for="advanced-price">{{ maxPrice() === null ? 'Sin límite' : maxPrice() + ' €' }}</output>
+          Precio máximo <output for="advanced-price">{{ maxPrice() === null ? 'Sin límite' : 'S/ ' + maxPrice() }}</output>
         </label>
         <input id="advanced-price" type="range" min="0" [max]="sliderMax()" step="5"
           [value]="maxPrice() ?? 250"
-          [attr.aria-valuetext]="maxPrice() === null ? 'Sin límite' : maxPrice() + ' euros'"
+          [attr.aria-valuetext]="maxPrice() === null ? 'Sin límite' : maxPrice() + ' soles'"
           (input)="set('price', 'MAX:' + $any($event.target).value)">
         <button type="button" class="clear-price" (click)="set('price', null)">Sin límite de precio</button>
-        @if (minPrice() !== null) { <small>Precio mínimo aplicado: {{ minPrice() }} €</small> }
+        @if (minPrice() !== null) { <small>Precio mínimo aplicado: S/ {{ minPrice() }}</small> }
 
         <label class="field-label" for="advanced-modality">Modalidad</label>
         <select id="advanced-modality" [value]="draft().modality ?? ''"

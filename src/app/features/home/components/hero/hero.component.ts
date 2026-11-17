@@ -28,7 +28,7 @@ export class HeroComponent {
 
   searchQuery     = signal('');
   isSearchFocused = signal(false);
-  city            = signal('Valencia');
+  city            = signal('Arequipa');
   searchResults   = signal<SearchResults | null>(null);
   searching       = signal(false);
 
@@ -116,7 +116,7 @@ export class HeroComponent {
 
   formatSearchDate(value: string | null): string {
     if (!value) return 'Fecha por confirmar';
-    return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: '2-digit', month: 'short' })
       .format(new Date(value))
       .replace('.', '');
   }

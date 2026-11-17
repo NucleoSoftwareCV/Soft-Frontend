@@ -97,7 +97,7 @@ export class EventTravelComponent {
       untracked(() => onCleanup(this.travel.watch(id)));
     });
   }
-  distance(km: number): string { return new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(km); }
+  distance(km: number): string { return new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(km); }
   shortDuration(minutes: number): string {
     if (minutes < 1) return '<1 min';
     const rounded = Math.ceil(minutes);
