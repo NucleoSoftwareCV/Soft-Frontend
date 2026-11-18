@@ -4,15 +4,15 @@ import { filterMapPoints } from './event-map-filter';
 
 const point: EventMapPoint = {
   occurrenceId: 1, eventId: 7, title: 'Yoga suave', summary: 'Una práctica de calma',
-  priceFrom: 20, currency: 'EUR', startsAt: '2026-10-22T22:30:00Z', endsAt: '2026-10-22T23:30:00Z',
-  locationName: 'Centro', address: 'Calle 12', cityName: 'Valencia', latitude: 39, longitude: -0.3,
+  priceFrom: 20, currency: 'PEN', startsAt: '2026-10-23T04:30:00Z', endsAt: '2026-10-23T05:30:00Z',
+  locationName: 'Centro', address: 'Calle 12', cityName: 'Lima', latitude: -12.121, longitude: -77.029,
   categoryId: 1, experienceTypeId: 3, specialistId: 8, modality: 'PRESENCIAL', isRecurring: false,
 };
 
 describe('Filtros avanzados del mapa', () => {
   it('combina categoría, tipo, ciudad, profesional y precio con AND', () => {
     const result = filterMapPoints([point, { ...point, occurrenceId: 2, specialistId: 9 }], {
-      categoryIds: [1, 2], experienceTypeId: 3, cityName: ' valencia ',
+      categoryIds: [1, 2], experienceTypeId: 3, cityName: ' lima ',
       specialistId: 8, maxPrice: 20, modality: EventModality.PRESENCIAL, isRecurring: false,
     });
     expect(result.map(item => item.occurrenceId)).toEqual([1]);
@@ -23,9 +23,9 @@ describe('Filtros avanzados del mapa', () => {
     expect(filterMapPoints([point, free, { ...point, priceFrom: null }], { maxPrice: 0 })).toEqual([free]);
   });
 
-  it('evalúa fechas y horas en Madrid, incluso cuando cambia el día respecto de UTC', () => {
-    expect(filterMapPoints([point], { dateFrom: '2026-10-23', dateTo: '2026-10-23', hourFrom: 0, hourTo: 0 })).toEqual([point]);
-    expect(filterMapPoints([point], { dateTo: '2026-10-22' })).toEqual([]);
+  it('evalúa fechas y horas en Lima, incluso cuando cambia el día respecto de UTC', () => {
+    expect(filterMapPoints([point], { dateFrom: '2026-10-22', dateTo: '2026-10-22', hourFrom: 23, hourTo: 23 })).toEqual([point]);
+    expect(filterMapPoints([point], { dateFrom: '2026-10-23' })).toEqual([]);
   });
 
   it('busca tanto en el título como en el resumen', () => {

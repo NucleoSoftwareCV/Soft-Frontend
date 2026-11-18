@@ -33,7 +33,7 @@ export class EventoCardComponent {
 
   formatDate(value: string | null): string {
     if (!value) return 'Fecha por confirmar';
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'short',
       day: '2-digit',
       month: 'short',
@@ -45,9 +45,9 @@ export class EventoCardComponent {
   formatPrice(): string {
     const item = this.evento();
     if (item.priceFrom === null || item.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: item.currency || 'EUR',
+      currency: item.currency || 'PEN',
       maximumFractionDigits: 0,
     }).format(item.priceFrom);
   }

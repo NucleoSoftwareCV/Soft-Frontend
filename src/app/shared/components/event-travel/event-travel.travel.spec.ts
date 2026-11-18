@@ -32,7 +32,7 @@ describe('Información de desplazamiento', () => {
     value.set({ occurrenceId: 7, status: 'AVAILABLE', distanceKm: 12.4, durationMinutes: null,
       method: 'STRAIGHT_LINE', approximate: true, address: 'Centro', cityName: 'Madrid', directionsUrl: null });
     f.detectChanges();
-    expect(f.nativeElement.textContent).toContain('12,4 km');
+    expect(f.nativeElement.textContent).toContain('12.4 km');
     expect(f.nativeElement.textContent).toContain('en línea recta');
     expect(f.nativeElement.querySelector('.travel-compact').title).toContain('Tiempo de viaje no disponible');
     expect(f.nativeElement.querySelector('.travel-compact').title).toContain('Ubicación aproximada');
@@ -58,7 +58,7 @@ describe('Información de desplazamiento', () => {
       method: 'ROUTE', approximate: true, address: 'Dirección larga de prueba', cityName: 'Valencia', directionsUrl: null });
     f.detectChanges();
     const compact = f.nativeElement.querySelector('.travel-compact');
-    expect(compact.textContent).toContain('166,0 km');
+    expect(compact.textContent).toContain('166.0 km');
     expect(compact.textContent).toContain('1 h 50 min');
     expect(compact.textContent).not.toContain('Dirección larga');
     expect(compact.title).toContain('Dirección larga');

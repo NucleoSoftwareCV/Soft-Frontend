@@ -56,7 +56,7 @@ export class FiltrosService {
   recurrenceOptions = ['Único', 'Recurrente'];
 
   /** Pills de precio (mismo diseño que el resto de chips del modal). */
-  priceOptions = ['Gratis', 'Hasta 15€', '15–30€', '30–50€', 'Más de 50€'];
+  priceOptions = ['Gratis', 'Hasta S/ 15', 'S/ 15–30', 'S/ 30–50', 'Más de S/ 50'];
 
   moodOptions = ['Relajacion', 'Energia', 'Conectar'];
 
@@ -155,10 +155,10 @@ export class FiltrosService {
     }
     switch (value) {
       case 'Gratis':     return { minPrice: 0, maxPrice: 0 };
-      case 'Hasta 15€':  return { maxPrice: 15 };
-      case '15–30€':     return { minPrice: 15, maxPrice: 30 };
-      case '30–50€':     return { minPrice: 30, maxPrice: 50 };
-      case 'Más de 50€': return { minPrice: 50 };
+      case 'Hasta S/ 15':  return { maxPrice: 15 };
+      case 'S/ 15–30':     return { minPrice: 15, maxPrice: 30 };
+      case 'S/ 30–50':     return { minPrice: 30, maxPrice: 50 };
+      case 'Más de S/ 50': return { minPrice: 50 };
       default:           return {};
     }
   }
