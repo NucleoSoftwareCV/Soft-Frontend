@@ -1,0 +1,23 @@
+<div class="attendance-toast"
+  [class.attendance-toast--positive]="type() === 'positivo'"
+  [class.attendance-toast--negative]="type() === 'negativo'">
+
+  <div class="attendance-toast-icon">
+    @if (type() === 'positivo') {
+      <svg lucideCircleCheck aria-hidden="true"></svg>
+    } @else {
+      <svg lucideX aria-hidden="true"></svg>
+    }
+  </div>
+
+  <div class="attendance-toast-content">
+    <strong>{{ title() }}</strong>
+    <p>{{ description() }}</p>
+  </div>
+
+  <button type="button" class="attendance-toast-close"
+    (click)="onClose()">
+    <svg lucideX aria-hidden="true"></svg>
+  </button>
+
+</div>
