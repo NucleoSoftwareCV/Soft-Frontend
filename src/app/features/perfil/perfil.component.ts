@@ -12,7 +12,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RewardService } from '../rewards/services/reward.service';
+import { RewardService } from '../../services/reward.service';
 import { TransactionsResponse } from '../rewards/interfaces/reward-points.interface';
 
 
