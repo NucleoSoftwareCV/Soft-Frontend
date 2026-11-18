@@ -48,6 +48,10 @@ export class AuthService {
     return this.currentUser()?.roles ?? [];
   }
 
+  get userId(): number | null {
+    return this.currentUser()?.id ?? null;
+  }
+
   register(
     request: RegisterRequest
   ): Observable<UserDTO> {
