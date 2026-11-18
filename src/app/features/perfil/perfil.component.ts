@@ -11,6 +11,9 @@ import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { RewardService } from '../rewards/services/reward.service';
+import { TransactionsResponse } from '../rewards/interfaces/reward-points.interface';
 
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
@@ -57,6 +60,7 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   private readonly followService = inject(ProfessionalFollowService);
   readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
+  private readonly rewardService = inject(RewardService);
 
   readonly favoritesDetails = signal<FavoriteResponse[]>([]);
   readonly favoritesLoading = signal(false);
@@ -70,7 +74,7 @@ readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
 
   seccionActiva = signal<Seccion>('perfil');
-  readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
+  readonly seccionCliente = signal<'reservas' | 'guardados' | 'puntos' | 'siguiendo'>('reservas');
   // La gestion profesional vive en /profesional; /perfil siempre es el espacio personal.
   readonly isProfessional = computed(() => false);
   readonly followedProfessionals = signal<FollowedProfessionalResponse[]>([]);
@@ -157,13 +161,15 @@ readonly professionalApplicationDismissed = signal(false);
 
   items = signal<ItemCreado[]>([]);
 
-  cambiarSeccionCliente(tab: 'reservas' | 'guardados' | 'siguiendo'): void {
+  cambiarSeccionCliente(tab: 'reservas' | 'guardados'| 'puntos' | 'siguiendo'): void {
     this.seccionCliente.set(tab);
     if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
       this.loadFollowedProfessionals(0);
     }
     if (tab === 'guardados') {
       this.loadFavoritesDetails();
+    }
+    if (tab === 'puntos') {
     }
     if (tab === 'reservas') {
       this.loadMyBookings();
@@ -906,5 +912,19 @@ ngOnInit(): void {
   cerrarSesion(): void {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  //Loyalty program
+  readonly pointsResource = rxResource({
+    stream: () => this.rewardService.getPointsByUserEmail()
+  });
+
+  readonly transactionsResource = rxResource({
+    stream: () => this.rewardService.getTransactionsByUserEmail()
+  });
+
+  getTransactionsByType(transactions: TransactionsResponse[] | undefined, targetType: 'EARN' | 'REDEEM'): TransactionsResponse[] {
+    if (!transactions) return [];
+    return transactions.filter(tx => tx.type === targetType);
   }
 }
