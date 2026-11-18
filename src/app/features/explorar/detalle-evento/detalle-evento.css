@@ -92,7 +92,7 @@
   overflow: hidden;
   border-radius: 1rem;
   position: relative;
-  
+
   /* SOLUCIÓN ANTI-SUBPIXEL: Fuerza el renderizado correcto del border-radius */
   will-change: transform;
   transform: translateZ(0);
@@ -105,9 +105,9 @@
   overflow: hidden;
   min-height: 0;
   position: relative;
-  
+
   /* Asegura que el contenedor del item no genere espacios fantasma abajo */
-  display: flex; 
+  display: flex;
 }
 
 .gallery-img {
@@ -638,14 +638,14 @@ swiper-slide{
   gap: 14px;
 }
 .organizer-info{
-  flex: 1 1 0%;             
+  flex: 1 1 0%;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 64px;          
+  height: 64px;
   padding: 8px;
-  margin-left: -8px; 
+  margin-left: -8px;
   border-radius: 16px;
   box-sizing: border-box;
   color: rgb(0, 66, 87);
@@ -683,7 +683,7 @@ swiper-slide{
   display: inline-flex;     /* Activa flexbox manteniendo el botón como elemento de línea */
   align-items: center;      /* Centra verticalmente el SVG y el texto */
   justify-content: center;   /* Centra horizontalmente el contenido */
-  gap: .5rem;    
+  gap: .5rem;
   border: none;
   background: rgb(253 230 138);
   color: rgb(146 64 14);
@@ -1053,7 +1053,7 @@ swiper-slide{
   gap:12px;
   overflow-x:auto;
   padding-bottom:8px;
-  scrollbar-width: none; 
+  scrollbar-width: none;
 
 }
 
@@ -1337,7 +1337,7 @@ swiper-slide{
 }
 
 @media (max-width: 767px) {
-  
+
   .gallery-desktop{
     display:none;
   }
@@ -1405,8 +1405,8 @@ swiper-slide{
     font-size: .875rem;
     line-height: 1.25rem;
   }
-  
-  
+
+
 
 }
 
@@ -2212,3 +2212,20 @@ swiper-slide{
 .venue-travel-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,1fr);gap:24px;align-items:start}
 .venue-location,.venue-travel-info{min-width:0}
 @media(max-width:900px){.venue-travel-layout{grid-template-columns:1fr}}
+
+.discount-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #334155;
+  font-weight: 500;
+}
+
+.coupon-input-wrapper {
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
