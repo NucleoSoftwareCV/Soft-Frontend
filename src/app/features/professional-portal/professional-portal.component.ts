@@ -73,7 +73,7 @@ import { EventAttendeeService } from '../../services/event-attendee.service';
 import { AttendanceStatus } from '../../shared/models/event-attendance.model';
 import { StatusAttendanceToastComponent } from '../../shared/components/status-attendance-toast/status-attendance-toast.component';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RewardService } from '../rewards/services/reward.service';
+import { RewardService } from '../../services/reward.service';
 
 type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
