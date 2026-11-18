@@ -17,7 +17,7 @@ import { EventoCardComponent } from '../../../shared/components/evento-card/even
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
 import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
-import { RewardService } from '../../rewards/services/reward.service';
+import { RewardService } from '../../../services/reward.service';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
