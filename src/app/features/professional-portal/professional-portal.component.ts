@@ -36,6 +36,8 @@ import {
   LucideX,
   LucideUsers,
   LucideEyeOff,
+  LucideBell,
+  LucideClock,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -67,6 +69,11 @@ import {
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
+import { EventAttendeeService } from '../../services/event-attendee.service';
+import { AttendanceStatus } from '../../shared/models/event-attendance.model';
+import { StatusAttendanceToastComponent } from '../../shared/components/status-attendance-toast/status-attendance-toast.component';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { RewardService } from '../../services/reward.service';
 
 type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
@@ -190,6 +197,9 @@ interface OccurrenceForm {
     LucideX,
     LucideUsers,
     LucideEyeOff,
+    LucideBell,
+    LucideClock,
+    StatusAttendanceToastComponent
   ],
   templateUrl: './professional-portal.component.html',
   styleUrl: './professional-portal.component.css',
@@ -201,6 +211,8 @@ export class ProfessionalPortalComponent {
   private readonly eventsApi = inject(EventManagementService);
   private readonly publicEventsApi = inject(EventosService);
   private readonly sessionsApi = inject(OneToOneServicesService);
+  private readonly eventAttendeeService = inject(EventAttendeeService);
+  private readonly rewardService = inject(RewardService);
 
   section = signal<PortalSection>('summary');
   profile = signal<SpecialistProfileResponse | null>(null);
@@ -233,6 +245,11 @@ export class ProfessionalPortalComponent {
   profilePhotoFailed = signal(false);
   uploadingGalleryImage = signal(false);
   previewImageUrl = signal<string | null>(null);
+  showDetailsModal = signal(false);
+  showAttendanceToast = signal(false);
+  toastTitle = signal('');
+  toastDescription = signal('');
+  toastType = signal<'positivo' | 'negativo'>('positivo');
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -1509,5 +1526,68 @@ export class ProfessionalPortalComponent {
 
   volverAListado(): void {
     this.selectedAttendeeDetail.set(null);
+  }
+
+  /** Attendance */
+  readonly selectedId = signal<number | null>(null);
+  readonly AttendanceStatus = AttendanceStatus;
+
+  openDetails(id: number): void {
+    this.selectedId.set(id);
+    this.showDetailsModal.set(true);
+  }
+
+  readonly attendeeResource = rxResource({
+    params: () => ({
+      id: this.selectedId(),
+    }),
+    stream: ({ params }) => {
+      if (!params.id) return of(null);
+      return this.eventAttendeeService.getEventAttendee({ eventId: params.id });
+    }
+  });
+
+  closeDetails(): void {
+    this.showDetailsModal.set(false);
+    this.selectedId.set(null);
+  }
+
+  updateAttendanceStatus(eventAttendeeId: number, status: AttendanceStatus){
+    this.eventAttendeeService.updateAttendanceStatus({eventAttendeeId, status})
+    .subscribe({
+      next: () => {
+        if (status === AttendanceStatus.ASISTIO) {
+          this.toastTitle.set('Asistencia registrada');
+          this.toastDescription.set(`El participante fue marcado como presente.`);
+          this.toastType.set('positivo');
+        } else {
+          this.toastTitle.set('Falta registrada');
+          this.toastDescription.set(`El participante fue marcado como ausente.`);
+          this.toastType.set('negativo');
+        }
+
+        this.showAttendanceToast.set(true);
+        setTimeout(() => {
+          this.showAttendanceToast.set(false);
+        }, 3500);
+        this.attendeeResource.reload();
+      },
+      error: (err) => {
+        console.error('Error estado:', err);
+      }
+    })
+  }
+
+  /** LOYALTY PROGRAM */
+  earnPoints(eventAttendanceId: number): void{
+    this.rewardService.earnPoints({eventAttendanceId})
+      .subscribe({
+      next: () => {
+        console.log('Puntos otorgados correctamente');
+      },
+      error: (error) => {
+        console.error('Error al otorgar puntos:', error);
+      }
+    });
   }
 }

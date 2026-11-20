@@ -233,6 +233,9 @@
                     <button (click)="openOccurrence(item)">
                       <svg lucidePlus aria-hidden="true"></svg>Añadir fecha
                     </button>
+                    <button (click)="openDetails(item.event.id)">
+                      <svg lucideEye aria-hidden="true"></svg>Detalles
+                    </button>
                     @if (item.status !== 'PUBLICADO') {
                       <button class="btn-publish" (click)="changeEventStatus(item, 'PUBLICADO')">
                         <svg lucideCircleCheck aria-hidden="true"></svg>Publicar
@@ -878,5 +881,232 @@
         </div>
       }
     </section>
+  }
+
+  @if (showDetailsModal()) {
+  <div class="attendance-modal-overlay" (click)="closeDetails()">
+    <div
+      class="attendance-modal-container"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="attendance-modal-header">
+        <div class="attendance-modal-heading">
+          <span class="attendance-modal-icon">
+            <svg lucideUsers aria-hidden="true"></svg>
+          </span>
+
+          <div>
+            <h2>Control de asistencia</h2>
+            <p>Participantes registrados en el evento</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="attendance-modal-close"
+          (click)="closeDetails()"
+          aria-label="Cerrar">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </div>
+
+      <!-- 1. Estado de Carga -->
+      @if (attendeeResource.isLoading()) {
+        <div class="attendance-loading">
+          <span class="attendance-spinner"></span>
+          <p>Cargando registros de asistencia...</p>
+        </div>
+      }
+
+      <!-- 2. Estado de Error -->
+      @else if (attendeeResource.error()) {
+        <div class="attendance-error">
+          <svg lucideTriangleAlert aria-hidden="true"></svg>
+          <div>
+            <strong>No se pudieron cargar los registros</strong>
+            <p>No se pudo obtener la información de asistencia.</p>
+          </div>
+        </div>
+      }
+
+      <!-- 3. Datos Existentes -->
+      @else if (attendeeResource.value(); as details) {
+        @if (details.length > 0) {
+
+          <!-- Summary -->
+          <div class="attendance-summary">
+
+            <div class="attendance-summary-card">
+              <span class="attendance-summary-icon">
+                <svg lucideUsers aria-hidden="true"></svg>
+              </span>
+              <div>
+                <strong>{{ details.length }}</strong>
+                <span>Total inscritos</span>
+              </div>
+            </div>
+
+            <div class="attendance-summary-card">
+              <span class="attendance-summary-icon attendance-summary-icon--success">
+                <svg lucideCircleCheck aria-hidden="true"></svg>
+              </span>
+              <div>
+                <strong>
+                  {{ details.filter(item => item.attendanceStatus === 'ASISTIO').length }}
+                </strong>
+                <span>Asistieron</span>
+              </div>
+            </div>
+
+            <div class="attendance-summary-card">
+              <span class="attendance-summary-icon attendance-summary-icon--pending">
+                <svg lucideClock3 aria-hidden="true"></svg>
+              </span>
+              <div>
+                <strong>
+                  {{ details.filter(item => item.attendanceStatus === 'PENDIENTE').length }}
+                </strong>
+                <span>Pendientes</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Participants -->
+          <div class="attendance-records">
+
+            <div class="attendance-records-heading">
+              <h3>Participantes</h3>
+              <span>{{ details.length }} registros</span>
+            </div>
+
+            @for (detail of details; track detail.id) {
+
+              <div class="attendance-record">
+
+                <!-- Avatar -->
+                <div class="attendance-record-avatar">
+                  {{ detail.attendeeName?.trim()?.charAt(0)?.toUpperCase() || '?' }}
+                </div>
+
+                <!-- Información del Participante -->
+                <div class="attendance-record-content">
+                  <div class="attendance-record-main">
+                    <h4>{{ detail.attendeeName || 'Nombre no disponible' }}</h4>
+                  </div>
+
+                  <div class="attendance-record-contact">
+                    <div class="attendance-field">
+                      <svg lucideMail aria-hidden="true"></svg>
+                      <span>{{ detail.attendeeEmail || 'Email no disponible' }}</span>
+                    </div>
+
+                    <div class="attendance-field">
+                      <svg lucidePhone aria-hidden="true"></svg>
+                      <span>{{ detail.attendeePhone || 'Teléfono no disponible' }}</span>
+                    </div>
+
+                    <div class="attendance-field">
+                      <svg lucideCalendar aria-hidden="true"></svg>
+                      <span>{{ detail.registeredAt | date:'HH:mm dd/MM/yyyy' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Estado de Asistencia -->
+                <div class="attendance-record-status">
+                  @if (detail.attendanceStatus === 'ASISTIO') {
+                    <span class="attendance-status attendance-status--attended">
+                      <svg lucideCircleCheck aria-hidden="true"></svg>
+                      Asistió
+                    </span>
+                  } @else if (detail.attendanceStatus === 'PENDIENTE') {
+                    <span class="attendance-status attendance-status--pending">
+                      <svg lucideClock aria-hidden="true"></svg>
+                      Pendiente
+                    </span>
+                  } @else {
+                    <span class="attendance-status attendance-status--absent">
+                      <svg lucideX aria-hidden="true"></svg>
+                      {{ detail.attendanceStatus }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="attendance-record-actions-wrapper">
+                  <span class="attendance-actions-title">Control</span>
+                  <div class="attendance-record-actions">
+
+                    <!-- Botón Asistió -->
+                    <button
+                      type="button"
+                      class="attendance-action-btn attendance-action-btn--check"
+                      (click)="
+                        updateAttendanceStatus(detail.id, AttendanceStatus.ASISTIO);
+                        earnPoints(detail.id)
+                      "
+                      title="Marcar como Asistió">
+                      <svg lucideCircleCheck aria-hidden="true"></svg>
+                    </button>
+
+                    <!-- Botón No Asistió -->
+                    <button
+                      type="button"
+                      class="attendance-action-btn attendance-action-btn--cross"
+                      (click)="
+                        updateAttendanceStatus(detail.id, AttendanceStatus.NO_ASISTIO);
+                        earnPoints(detail.id)
+                      "
+                      title="Marcar como No Asistió">
+                      <svg lucideX aria-hidden="true"></svg>
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+        } @else {
+
+          <!-- Empty state -->
+          <div class="attendance-empty">
+            <div class="attendance-empty-icon">
+              <svg lucideUsers aria-hidden="true"></svg>
+            </div>
+
+            <h3>Sin registros de asistencia</h3>
+            <p>
+              Todavía no hay participantes registrados en esta fecha del evento.
+            </p>
+          </div>
+
+        }
+      }
+
+      <!-- Footer -->
+      <div class="attendance-modal-footer">
+        <button
+          type="button"
+          class="attendance-button-close"
+          (click)="closeDetails()">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  @if (showAttendanceToast()) {
+  <app-status-attendance-toast
+    [title]="toastTitle()"
+    [description]="toastDescription()"
+    [type]="toastType()"
+    (closed)="showAttendanceToast.set(false)"
+  >
+  </app-status-attendance-toast>
   }
 </div>

@@ -17,6 +17,7 @@ import { EventoCardComponent } from '../../../shared/components/evento-card/even
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
 import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
+import { RewardService } from '../../../services/reward.service';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
@@ -35,6 +36,7 @@ export class DetalleEvento implements OnDestroy{
   private readonly checkoutService = inject(CheckoutService);
   private readonly platformId = inject(PLATFORM_ID);
   private carouselInterval?: ReturnType<typeof setInterval>;
+  private readonly rewardService = inject(RewardService);
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
@@ -64,7 +66,7 @@ export class DetalleEvento implements OnDestroy{
   bookingStep = signal(1); // 1: Datos de asistentes, 2: Pago online, 3: Éxito
   selectedOccurrence = signal<EventOccurrenceResponse | null>(null);
   numPlazas = signal(1);
-  
+
   // Datos del comprador
   compradorNombre = signal('');
   compradorApellido = signal('');
@@ -660,7 +662,7 @@ export class DetalleEvento implements OnDestroy{
     this.mensajeDescuento.set(null);
     this.asistentesAdicionales.set([]);
     this.recalcularAsistentes();
-    
+
     // Prefill comprador details
     const user = this.authService.currentUser();
     this.compradorNombre.set(user?.username ?? '');
@@ -947,21 +949,34 @@ export class DetalleEvento implements OnDestroy{
         ]
       : adicionales;
 
-    const orderRequest = {
-      items: [
-        {
-          referenceId: occurrence.id,
-          itemType: 'EVENTO' as const,
-          quantity: this.numPlazas(),
-          attendees: attendeesPayload
+    const orderRequest = this.puntosAplicados()
+      ? {
+          items: [
+            {
+              referenceId: occurrence.id,
+              itemType: 'EVENTO' as const,
+              quantity: this.numPlazas(),
+              attendees: attendeesPayload
+            }
+          ],
+          billingName: this.compradorNombre(),
+          redeemPoints: this.inputPuntos()!,
         }
-      ],
-      billingName: this.compradorNombre()
-    };
+      : {
+          items: [
+            {
+              referenceId: occurrence.id,
+              itemType: 'EVENTO' as const,
+              quantity: this.numPlazas(),
+              attendees: attendeesPayload
+            }
+          ],
+          billingName: this.compradorNombre()
+        };
 
     this.checkoutService.createOrder(orderRequest).subscribe({
       next: order => {
-        const paymentPayload = this.paymentMethod() === 'TARJETA' 
+        const paymentPayload = this.paymentMethod() === 'TARJETA'
           ? {
               method: 'TARJETA' as const,
               cardNumber: this.cardNumber(),
@@ -979,9 +994,14 @@ export class DetalleEvento implements OnDestroy{
           next: payResult => {
             this.bookingLoading.set(false);
             if (payResult.status === 'APROBADO') {
+
+              if (this.puntosAplicados()) {
+                this.createTransactionRedeem();
+              }
+
               this.createdOrderCode.set(order.code);
               this.bookingStep.set(3); // Éxito
-              
+
               occurrence.reservedSpots += this.numPlazas();
               occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
             } else {
@@ -1001,4 +1021,126 @@ export class DetalleEvento implements OnDestroy{
     });
   }
 
+/** LOYALTY PROGRAM */
+
+  // --- Signals y variables de estado para los puntos Oona ---
+  tienePuntosOona = signal<boolean>(false);
+  inputPuntos = signal<number | null>(null);
+  puntosAplicados = signal<boolean>(false);
+  descuentoPuntosMonto = signal<number>(0);
+  mensajePuntos = signal<string>('');
+
+  createTransactionRedeem(): void {
+    const userId = this.authService.userId;
+    if (userId === null) {
+      console.error('No se pudo obtener el ID del usuario');
+      return;
+    }
+
+    const puntos = this.inputPuntos();
+    if (!puntos || puntos <= 0) {
+      this.mensajePuntos.set('Ingresa una cantidad válida de puntos.');
+      return;
+    }
+
+    const eventId = this.evento()?.id;
+    if (!eventId) return;
+
+    this.rewardService.redeemPoints({ userId, eventId, redeemPoints: puntos })
+      .subscribe({
+        error: (err) => console.error('Error al registrar la redención de puntos:', err)
+      });
+  }
+
+  // Método para alternar el checkbox de "Usar puntos Oona"
+  togglePuntosOona(): void {
+    this.tienePuntosOona.set(!this.tienePuntosOona());
+    if (!this.tienePuntosOona()) {
+      this.removerPuntos();
+    }
+  }
+
+  // Método al presionar el botón "Aplicar" de puntos
+  aplicarPuntosOona(): void {
+    const userId = this.authService.userId;
+    if (userId === null) {
+      this.mensajePuntos.set('Debes iniciar sesión para usar tus puntos.');
+      return;
+    }
+
+    const puntos = this.inputPuntos();
+    const eventId = this.evento()?.id;
+
+    if (!puntos || puntos <= 0) {
+      this.mensajePuntos.set('Ingresa una cantidad válida de puntos.');
+      return;
+    }
+
+    if (!eventId) return;
+
+    // El backend recibe los parámetros y nos retorna el BigDecimal con el descuento exacto
+    this.rewardService.getRedemptionByPoints({ userId, eventId, redeemPoints: puntos })
+      .subscribe({
+        next: (montoDescuentoBackend: any) => {
+          const descuentoCalculado = Number(montoDescuentoBackend) || 0;
+
+          if (descuentoCalculado <= 0) {
+            this.mensajePuntos.set('Los puntos ingresados no generan ningún descuento válido.');
+            this.puntosAplicados.set(false);
+            return;
+          }
+
+          // Evitamos que visualmente el descuento supere el total de las plazas
+          const precioBase = (this.evento()?.priceFrom ?? 0) * this.numPlazas();
+          const descuentoFinal = Math.min(descuentoCalculado, precioBase);
+
+          this.descuentoPuntosMonto.set(descuentoFinal);
+          this.puntosAplicados.set(true);
+          this.mensajePuntos.set(`¡${puntos} puntos Oona aplicados con éxito!`);
+        },
+        error: (err) => {
+          this.mensajePuntos.set(err?.error?.message || 'No se pudieron aplicar los puntos.');
+          this.puntosAplicados.set(false);
+        }
+      });
+  }
+
+  removerPuntos(): void {
+    this.inputPuntos.set(null);
+    this.puntosAplicados.set(false);
+    this.descuentoPuntosMonto.set(0);
+    this.mensajePuntos.set('');
+  }
+
+  // Cálculo del precio base antes de descuentos
+  formatTotalBeforeDiscountPoints(): string {
+    const event = this.evento();
+    if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
+    const base = event.priceFrom * this.numPlazas();
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: event.currency || 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(base);
+  }
+
+  // Cálculo del precio final restando el descuento exacto retornado por el backend
+  overrideFormatTotalPrice(): string {
+    const event = this.evento();
+    if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
+
+    let base = event.priceFrom * this.numPlazas();
+
+    if (this.puntosAplicados()) {
+      base = Math.max(0, base - this.descuentoPuntosMonto());
+    }
+
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: event.currency || 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(base);
+  }
 }
