@@ -1,63 +1,73 @@
+
 <main class="circle-page">
 
-  <!-- =====================================================
-       CABECERA PRINCIPAL
-       ===================================================== -->
-
+  <!-- CABECERA PRINCIPAL -->
   <section class="circle-hero">
-
     <div class="circle-hero__content">
 
-      <h2>
-        ¿Eres terapeuta, coach, profe de yoga, acupunturista,<br />
-        facilitador/a de constelaciones, fisio o arteterapeuta...<br />
-        o gestionas un espacio con experiencias (respiración,<br />
-        talleres, retiros) u otras disciplinas de bienestar?
-      </h2>
+      <div class="circle-hero__heading">
 
-      <p class="circle-hero__subtitle">
-        Si lo eres, perfecto, este espacio es para ti.
-      </p>
+        <h1>
+          Un espacio para profesionales
+          del bienestar
+        </h1>
+
+        <p class="circle-hero__description">
+          ¿Eres terapeuta, coach, profe de yoga, acupunturista,
+          facilitador/a de constelaciones, fisio o arteterapeuta?
+          ¿O gestionas un espacio con experiencias de respiración,
+          talleres, retiros u otras disciplinas de bienestar?
+        </p>
+
+        <p class="circle-hero__subtitle">
+          Si lo eres, perfecto, este espacio es para ti.
+        </p>
+      </div>
 
       <div class="circle-image-container">
-
         <img
           src="/assets/circulo-oona.webp"
-          alt="Comunidad Círculo Oona"
+          alt="Profesionales compartiendo una experiencia de bienestar en comunidad"
         />
-
       </div>
 
     </div>
-
   </section>
 
-
-  <!-- =====================================================
-       CONTENIDO
-       ===================================================== -->
-
+  <!-- CONTENIDO PRINCIPAL -->
   <section class="circle-content">
 
     <div class="circle-bottom-intro">
 
       <h2>
-        Si estás buscando recursos para llenar más tus espacios y coincidir
-        con personas que les interese lo que tú haces...
+        Haz crecer tus experiencias con Oona
       </h2>
 
-      <p class="circle-bottom-intro__highlight">
-        Déjame tus datos para compartirte cómo Oona te puede ayudar.
+      <p class="circle-bottom-intro__description">
+        Si estás buscando recursos para llenar más tus espacios
+        y conectar con personas interesadas en lo que haces,
+        queremos conocerte.
       </p>
 
+      <p class="circle-bottom-intro__highlight">
+        Déjanos tus datos para compartirte cómo Oona puede ayudarte.
+      </p>
     </div>
 
-
-    <!-- ===================================================
-         FORMULARIO
-         =================================================== -->
-
+    <!-- FORMULARIO -->
     <div class="circle-form-container">
+
+      <div class="circle-form-header">
+        <h3>Solicitud para profesionales</h3>
+
+        <p>
+          Completa tus datos para formar parte de Círculo Oona.
+        </p>
+
+        <span class="circle-required-note">
+          Los campos marcados con * son obligatorios.
+        </span>
+      </div>
 
       <form
         class="circle-form"
@@ -66,150 +76,194 @@
       >
 
         <!-- NOMBRE -->
+        <div class="circle-field">
+          <label for="circle-full-name">
+            Nombre completo <span class="required">*</span>
+          </label>
 
-        <label class="circle-form__wide">
           <input
+            id="circle-full-name"
             type="text"
             name="fullName"
-            placeholder="Nombre"
+            placeholder="Escribe tu nombre completo"
             maxlength="200"
             autocomplete="name"
+            required
             [(ngModel)]="fullName"
             (input)="dismissError()"
           />
-        </label>
-
+        </div>
 
         <!-- CIUDAD -->
+        <div class="circle-field">
+          <label for="circle-city">
+            Ciudad <span class="required">*</span>
+          </label>
 
-        <label class="circle-form__wide">
           <select
+            id="circle-city"
             name="cityId"
+            required
             [(ngModel)]="cityId"
             (change)="dismissError()"
           >
-            <option [ngValue]="null" disabled selected>Selecciona tu ciudad</option>
+            <option [ngValue]="null" disabled>
+              Selecciona tu ciudad
+            </option>
+
             @for (city of cities(); track city.id) {
-              <option [ngValue]="city.id">{{ city.name }}</option>
+              <option [ngValue]="city.id">
+                {{ city.name }}
+              </option>
             }
           </select>
-        </label>
-
+        </div>
 
         <!-- TIPO PROFESIONAL -->
+        <div class="circle-field">
+          <label for="circle-professional-type">
+            Tipo de profesional <span class="required">*</span>
+          </label>
 
-        <label class="circle-form__wide">
           <select
+            id="circle-professional-type"
             name="professionalType"
+            required
             [(ngModel)]="professionalType"
             (change)="dismissError()"
           >
-            <option [ngValue]="''" disabled selected>Selecciona tu tipo de profesional</option>
+            <option [ngValue]="''" disabled>
+              Selecciona tu tipo de profesional
+            </option>
+
             @for (option of professionalTypeOptions; track option.value) {
-              <option [ngValue]="option.value">{{ option.label }}</option>
+              <option [ngValue]="option.value">
+                {{ option.label }}
+              </option>
             }
           </select>
-        </label>
-
+        </div>
 
         <!-- WHATSAPP -->
+        <div class="circle-field">
+          <label for="circle-whatsapp">
+            Número de WhatsApp <span class="required">*</span>
+          </label>
 
-        <label class="circle-form__wide">
           <input
+            id="circle-whatsapp"
             type="tel"
             name="whatsapp"
-            placeholder="WhatsApp"
+            placeholder="Ej. +34 600 000 000"
             maxlength="30"
             autocomplete="tel"
+            required
             [(ngModel)]="whatsapp"
             (input)="dismissError()"
           />
-        </label>
 
+          <span class="circle-field__hint">
+            Incluye el prefijo de tu país para facilitar el contacto.
+          </span>
+        </div>
 
         <!-- MOTIVO -->
+        <div class="circle-field">
+          <label for="circle-reason">
+            ¿Por qué quieres formar parte de Círculo Oona?
+            <span class="required">*</span>
+          </label>
 
-        <label class="circle-form__wide">
           <textarea
+            id="circle-reason"
             name="reason"
-            placeholder="¿Por qué quieres formar parte de Círculo Oona?"
+            placeholder="Cuéntanos brevemente sobre tu experiencia profesional y cómo te gustaría participar en nuestra comunidad..."
             maxlength="500"
-            rows="4"
+            rows="5"
+            required
             [(ngModel)]="reason"
             (input)="dismissError()"
           ></textarea>
-        </label>
 
-
-        <!-- PROFESIONAL -->
-
-        <label class="circle-check circle-form__wide">
-
-          <input
-            type="checkbox"
-            name="professional"
-            [(ngModel)]="professional"
-            (change)="dismissError()"
-          />
-
-          <span class="circle-checkbox-text">
-            Soy profesional del bienestar
+          <span class="circle-field__counter">
+            {{ reason.length }} / 500 caracteres
           </span>
+        </div>
 
-        </label>
+        <!-- CONFIRMACIONES -->
+        <div class="circle-form-confirmations">
 
+          <label class="circle-check">
+            <input
+              type="checkbox"
+              name="professional"
+              required
+              [(ngModel)]="professional"
+              (change)="dismissError()"
+            />
 
-        <!-- POLÍTICA -->
+            <span class="circle-checkbox-text">
+              Confirmo que soy profesional del bienestar.
+              <span class="required">*</span>
+            </span>
+          </label>
 
-        <label class="circle-check circle-form__wide">
+          <label class="circle-check">
+            <input
+              type="checkbox"
+              name="privacyAccepted"
+              required
+              [(ngModel)]="privacyAccepted"
+              (change)="dismissError()"
+            />
 
-          <input
-            type="checkbox"
-            name="privacyAccepted"
-            [(ngModel)]="privacyAccepted"
-            (change)="dismissError()"
-          />
+            <span class="circle-checkbox-text">
+              Acepto la Política de Privacidad de Oona
+              y recibir comunicaciones relacionadas.
+              <span class="required">*</span>
+            </span>
+          </label>
 
-          <span class="circle-checkbox-text">
-            Acepto la Política de Privacidad de Oona y recibir
-            comunicaciones relacionadas.
-          </span>
+        </div>
 
-        </label>
+        <!-- MENSAJES -->
+        @if (error()) {
+          <div
+            class="circle-error-message"
+            role="alert"
+            aria-live="assertive"
+          >
+            {{ error() }}
+          </div>
+        }
 
+        @if (success()) {
+          <div
+            class="circle-success-message"
+            role="status"
+            aria-live="polite"
+          >
+            {{ success() }}
+          </div>
+        }
 
         <!-- BOTÓN -->
-
         <button
           type="submit"
-          class="circle-button circle-button--success circle-form__wide"
+          class="circle-button circle-button--success"
           [disabled]="submitting()"
         >
           {{ submitting() ? 'Enviando...' : 'Recibir información' }}
         </button>
 
-
-        <!-- ERROR -->
-
-        @if (error()) {
-          <div class="circle-error-message">
-            {{ error() }}
-          </div>
-        }
-
-
-        <!-- ÉXITO -->
-
-        @if (success()) {
-          <div class="circle-success-message">
-            {{ success() }}
-          </div>
-        }
+        <p class="circle-form-footer">
+          Tu solicitud será revisada por el equipo de Oona.
+        </p>
 
       </form>
-
     </div>
 
   </section>
 
 </main>
+
