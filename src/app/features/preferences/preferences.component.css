@@ -715,3 +715,64 @@ transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-wrap: break-word;
   }
 }
+
+/* ===== ESPACIADO INTERNO DE UBICACIÓN ===== */
+
+:host ::ng-deep app-reference-location-editor
+.reference-section label[for="reference-label"] {
+  margin-top: 28px;
+  margin-bottom: 14px;
+}
+
+:host ::ng-deep app-reference-location-editor
+.reference-section #reference-help {
+  margin-top: 12px;
+  margin-bottom: 24px;
+}
+
+:host ::ng-deep app-reference-location-editor
+.reference-section .check {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+:host ::ng-deep app-reference-location-editor
+.reference-section > button.secondary {
+  margin-bottom: 20px;
+}
+
+:host ::ng-deep app-reference-location-editor
+.reference-section > p.hint {
+  margin-top: 12px;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+
+:host ::ng-deep app-reference-location-editor
+.reference-section .actions {
+  margin-top: 26px;
+  margin-bottom: 20px;
+}
+
+/* ===== AJUSTE PEQUEÑO DE ESPACIADO ===== */
+
+.preferences-section--communications .preferences-section__note {
+  margin-top: 20px;
+  margin-bottom: 0;
+  height: auto;
+}
+
+.preferences-section--communications {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.preferences-form__actions {
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.preferences-form__actions .save-button {
+  margin-top: 0;
+  margin-bottom: 0;
+}
