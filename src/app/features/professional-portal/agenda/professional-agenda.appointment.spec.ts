@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { ProfessionalAgendaComponent } from './professional-agenda.component';
@@ -10,13 +11,17 @@ describe('Configuración y revisión de la agenda profesional', () => {
   beforeEach(async () => {
     api = { rules: vi.fn().mockReturnValue(of([])), agenda: vi.fn().mockReturnValue(of([])), pending: vi.fn().mockReturnValue(of([])), agendaRange: vi.fn().mockReturnValue(of([])), addRule: vi.fn().mockReturnValue(of({})), removeRule: vi.fn().mockReturnValue(of({})), decide: vi.fn().mockReturnValue(of({})) };
     await TestBed.configureTestingModule({ imports: [ProfessionalAgendaComponent], providers: [
-      { provide: AppointmentService, useValue: api }, { provide: OneToOneServicesService, useValue: { getActiveLocations: () => of([]) } },
+      provideRouter([]),
+      { provide: AppointmentService, useValue: { ...api, blocks: () => of([]), summary: () => of(null) } },
+      { provide: OneToOneServicesService, useValue: { getActiveLocations: () => of([]) } },
     ] }).compileComponents();
   });
   it('guarda el día y las horas indicados con videollamada sin inventar una sede', () => {
     const f = TestBed.createComponent(ProfessionalAgendaComponent); f.detectChanges(); const c = f.componentInstance;
-    c.day = 3; c.start = '10:00'; c.end = '13:00'; c.validFrom = '2026-11-09'; c.validUntil = ''; c.saveRule();
-    expect(api.addRule).toHaveBeenCalledWith({ dayOfWeek: 3, startTime: '10:00', endTime: '13:00', validFrom: '2026-11-09', validUntil: null, locationId: null });
+    c.day = 3; c.start = '10:00'; c.end = '13:00'; c.validFrom = '2026-11-09'; c.validUntil = '';
+    c.virtualUrl = 'https://meet.example.com/cita';
+    c.saveRule();
+    expect(api.addRule).toHaveBeenCalledWith({ dayOfWeek: 3, startTime: '10:00', endTime: '13:00', validFrom: '2026-11-09', validUntil: null, locationId: null, breakMinutes: 0, virtualUrl: 'https://meet.example.com/cita' });
     expect(api.rules).toHaveBeenCalledTimes(2); expect(c.message()).toBe('Disponibilidad guardada.');
   });
   it('consulta la nueva fecha sin permitir que una respuesta antigua cambie el día mostrado', () => {
