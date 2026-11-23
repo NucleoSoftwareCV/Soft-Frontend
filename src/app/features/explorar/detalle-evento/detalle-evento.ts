@@ -285,16 +285,16 @@ export class DetalleEvento implements OnDestroy{
   formatPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: event.currency || 'EUR',
+      currency: event.currency || 'PEN',
       maximumFractionDigits: 0,
     }).format(event.priceFrom);
   }
 
   formatOccurrenceDate(occurrence: EventOccurrenceResponse | undefined): string {
     if (!occurrence?.startsAt) return 'Fecha por confirmar';
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'long',
       day: '2-digit',
       month: 'long',
@@ -306,7 +306,7 @@ export class DetalleEvento implements OnDestroy{
     if (!occurrence?.startsAt) return 'Hora por confirmar';
     const start = new Date(occurrence.startsAt);
     const end = occurrence.endsAt ? new Date(occurrence.endsAt) : null;
-    const formatter = new Intl.DateTimeFormat('es-ES', {
+    const formatter = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -469,7 +469,7 @@ export class DetalleEvento implements OnDestroy{
       return 'Por confirmar';
     }
 
-    const formatter = new Intl.DateTimeFormat('es-ES', {
+    const formatter = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'long',
       hour: '2-digit',
       minute: '2-digit',
@@ -479,13 +479,13 @@ export class DetalleEvento implements OnDestroy{
   }
 
   getOccurrenceWeekday(occurrence: EventOccurrenceResponse): string {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       weekday: 'long'
     }).format(new Date(occurrence.startsAt));
   }
 
   getOccurrenceDay(occurrence: EventOccurrenceResponse): string {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       day: 'numeric'
     }).format(new Date(occurrence.startsAt));
   }
@@ -493,11 +493,11 @@ export class DetalleEvento implements OnDestroy{
   getOccurrenceMonthHour(occurrence: EventOccurrenceResponse): string {
     const date = new Date(occurrence.startsAt);
 
-    const month = new Intl.DateTimeFormat('es-ES', {
+    const month = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       month: 'short'
     }).format(date);
 
-    const hour = new Intl.DateTimeFormat('es-ES', {
+    const hour = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima',
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
@@ -735,9 +735,9 @@ export class DetalleEvento implements OnDestroy{
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
     const base = event.priceFrom * this.numPlazas();
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-PE', {
       style: 'currency',
-      currency: event.currency || 'EUR',
+      currency: event.currency || 'PEN',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(base);

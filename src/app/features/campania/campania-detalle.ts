@@ -91,7 +91,7 @@ export class CampaniaDetalleComponent {
   formatPrize(detail: CampaignDetail): string {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: detail.summary.prizeCurrency || 'EUR',
+      currency: detail.summary.prizeCurrency || 'PEN',
       maximumFractionDigits: 0,
     }).format(detail.summary.prizeAmount);
   }

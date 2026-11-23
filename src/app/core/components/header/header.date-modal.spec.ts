@@ -178,9 +178,11 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
   });
 
   it('la etiqueta del mes se muestra capitalizada', () => {
-    component.calendarMonth.set(new Date(2026, 8, 1));
-    expect(component.monthLabel().startsWith('Septiembre')).toBe(true);
-    expect(component.monthLabel()).toContain('2026');
+    component.calendarMonth.set(new Date(2026, 8, 15));
+    const label = component.monthLabel();
+    // es-PE escribe "Setiembre"; otros entornos ICU pueden devolver "Septiembre".
+    expect(label).toMatch(/^Se(p)?tiembre/);
+    expect(label).toContain('2026');
   });
 
   it('los atajos ("Este finde"…) fijan el filtro CUÁNDO y cierran el modal', () => {

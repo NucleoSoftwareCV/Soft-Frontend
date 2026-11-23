@@ -522,7 +522,7 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
       badgeLabel: blankToNull(f.badgeLabel),
       heroImageUrl: blankToNull(f.heroImageUrl),
       prizeAmount: Number(f.prizeAmount),
-      prizeCurrency: (f.prizeCurrency || 'EUR').toUpperCase(),
+      prizeCurrency: (f.prizeCurrency || 'PEN').toUpperCase(),
       prizeDescription: blankToNull(f.prizeDescription),
       participationStartsAt: this.dateValue('participationStartsAt')!,
       participationEndsAt: this.dateValue('participationEndsAt')!,
@@ -609,7 +609,7 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
   formatPrize(c: AdminCampaign): string {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: c.detail.summary.prizeCurrency || 'EUR',
+      currency: c.detail.summary.prizeCurrency || 'PEN',
       maximumFractionDigits: 0,
     }).format(c.detail.summary.prizeAmount);
   }
@@ -618,7 +618,7 @@ export class AdminCampaignsComponent implements OnInit, OnDestroy {
 function emptyForm(): CampaignForm {
   return {
     slug: '', title: '', subtitle: '', description: '', badgeLabel: 'Participa en el sorteo', heroImageUrl: '',
-    prizeAmount: null, prizeCurrency: 'EUR', prizeDescription: '',
+    prizeAmount: null, prizeCurrency: 'PEN', prizeDescription: '',
     participationStartsAt: '', participationEndsAt: '', drawAt: '', prizeActivationDeadline: '',
     participationConditions: '', legalTerms: '', maxEntriesPerCustomer: null, faqs: [],
   };

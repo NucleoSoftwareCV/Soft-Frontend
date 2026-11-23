@@ -82,7 +82,7 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
   it('recalcula la cantidad al elegir un precio y solo lo aplica al confirmar', async () => {
     await openFilterAndCount(129);
 
-    component.pendingSelectPrice('15–30€');
+    component.pendingSelectPrice('S/ 15–30');
     fixture.detectChanges();
     expect(filtrosService.filterPrice()).toBeNull();
 
@@ -93,7 +93,7 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
     expect(component.applyButtonLabel()).toBe('Mostrar 14 experiencias');
 
     component.applyFilters();
-    expect(filtrosService.filterPrice()).toBe('15–30€');
+    expect(filtrosService.filterPrice()).toBe('S/ 15–30');
     expect(filtrosService.activeFilterCount).toBe(1);
     expect(component.isFilterOpen()).toBe(false);
   });
@@ -117,17 +117,17 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
   });
 
   it('deselecciona la pill al pulsarla de nuevo', () => {
-    component.pendingSelectPrice('Más de 50€');
-    expect(component.pendingPrice()).toBe('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
+    expect(component.pendingPrice()).toBe('Más de S/ 50');
 
-    component.pendingSelectPrice('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
     expect(component.pendingPrice()).toBeNull();
   });
 
   it('"Quitar filtros" limpia también el precio', async () => {
-    filtrosService.filterPrice.set('Hasta 15€');
+    filtrosService.filterPrice.set('Hasta S/ 15');
     await openFilterAndCount(10);
-    expect(component.pendingPrice()).toBe('Hasta 15€');
+    expect(component.pendingPrice()).toBe('Hasta S/ 15');
 
     component.pendingClearFilters();
 
@@ -141,7 +141,7 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
   it('combina el filtro de precio con el resto de filtros en la misma petición', async () => {
     await openFilterAndCount(129);
 
-    component.pendingSelectPrice('Más de 50€');
+    component.pendingSelectPrice('Más de S/ 50');
     component.pendingSelectModality('Online');
     fixture.detectChanges();
     await waitForCountDebounce();

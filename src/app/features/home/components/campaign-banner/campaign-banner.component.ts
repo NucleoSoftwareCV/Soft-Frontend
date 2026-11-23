@@ -79,7 +79,7 @@ export class CampaignBannerComponent implements OnInit, OnDestroy {
   prizeLabel(campaign: CampaignSummary): string {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: campaign.prizeCurrency || 'EUR',
+      currency: campaign.prizeCurrency || 'PEN',
       maximumFractionDigits: 0,
     }).format(campaign.prizeAmount);
   }

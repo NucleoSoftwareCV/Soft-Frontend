@@ -40,7 +40,7 @@ export function toTarjetaDirectorio(
     nombre: perfil.publicName,
 
     ubicacion: ciudad || 'Ciudad no indicada',
-    ubicacionCompleta: ciudad ? `${ciudad}, España` : 'Ciudad no indicada',
+    ubicacionCompleta: ciudad ? `${ciudad}, Perú` : 'Ciudad no indicada',
 
     cita: perfil.biography,
     bio: perfil.description || perfil.biography,

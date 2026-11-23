@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -140,6 +141,16 @@ export class AdminComponent {
   status =
     signal<ProfessionalApplicationStatus | null>('PENDIENTE');
 
+  // ============================================================
+// BÚSQUEDA Y FILTROS DE SOLICITUDES
+// ============================================================
+
+  applicationSearch = signal('');
+
+  applicationPeriod = signal<'ALL' | '7' | '30'>('ALL');
+
+  applicationOrder = signal<'NEWEST' | 'OLDEST'>('NEWEST');
+
   page =
     signal(0);
 
@@ -148,6 +159,80 @@ export class AdminComponent {
 
   totalElements =
     signal(0);
+
+  // Estadísticas globales, independientes del filtro y la página actual.
+  summaryTotal = signal<number | null>(null);
+  summaryPending = signal<number | null>(null);
+  summaryApproved = signal<number | null>(null);
+  summaryRejected = signal<number | null>(null);
+
+  summaryPercentage(value: number | null): number {
+    const total = this.summaryTotal() ?? 0;
+
+    if (total <= 0 || value === null) {
+      return 0;
+    }
+
+    return (value / total) * 100;
+  }
+
+  // Solicitudes pendientes para el resumen
+  summaryPendingApplications =
+    signal<ProfessionalApplicationResponse[]>([]);
+
+// Últimas solicitudes, independientemente de su estado
+  summaryRecentApplications =
+    signal<ProfessionalApplicationResponse[]>([]);
+
+  loadSummaryApplications(): void {
+
+    this.applicationsApi
+      .getForAdmin('PENDIENTE', 0, 5)
+      .subscribe({
+        next: response => {
+          this.summaryPendingApplications.set(response.content);
+        },
+        error: () => {
+          this.summaryPendingApplications.set([]);
+        }
+      });
+
+    this.applicationsApi
+      .getForAdmin(null, 0, 5)
+      .subscribe({
+        next: response => {
+          this.summaryRecentApplications.set(response.content);
+        },
+        error: () => {
+          this.summaryRecentApplications.set([]);
+        }
+      });
+
+  }
+
+  loadSummaryStats(): void {
+    this.loadSummaryApplications();
+    const queries: Array<{
+      status: ProfessionalApplicationStatus | null;
+      target: ReturnType<typeof signal<number | null>>;
+    }> = [
+      { status: null, target: this.summaryTotal },
+      { status: 'PENDIENTE', target: this.summaryPending },
+      { status: 'APROBADO', target: this.summaryApproved },
+      { status: 'RECHAZADO', target: this.summaryRejected },
+    ];
+
+    queries.forEach(({ status, target }) => {
+      this.applicationsApi.getForAdmin(status, 0, 1).subscribe({
+        next: response => target.set(response.totalElements),
+        error: () => {
+          target.set(null);
+          this.toastService.error('No se pudieron cargar las estadísticas.');
+        },
+      });
+    });
+  }
+
 
   approvePending =
     signal(false);
@@ -179,6 +264,42 @@ export class AdminComponent {
   cities =
     signal<CityResponse[]>([]);
 
+// Búsqueda de ciudades
+  citySearch = signal('');
+
+// Filtro por estado
+  cityStatusFilter = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+// Ciudades filtradas
+  filteredCities = computed(() => {
+    const query = this.citySearch()
+      .trim()
+      .toLocaleLowerCase();
+
+    const status = this.cityStatusFilter();
+
+    return this.cities().filter(city => {
+      const matchesSearch =
+        !query ||
+        (city.name ?? '').toLocaleLowerCase().includes(query) ||
+        (city.province ?? '').toLocaleLowerCase().includes(query) ||
+        (city.countryCode ?? '').toLocaleLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && city.active) ||
+        (status === 'INACTIVE' && !city.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+// Limpiar filtros
+  resetCityFilters(): void {
+    this.citySearch.set('');
+    this.cityStatusFilter.set('ALL');
+  }
+
   selectedCity =
     signal<CityResponse | null>(null);
 
@@ -208,6 +329,63 @@ export class AdminComponent {
       'workTopics' |
       'techniques'
     >('categories');
+
+  // Búsqueda y filtros de catálogos
+  catalogSearch = signal('');
+
+  catalogStatusFilter = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+// Filtrar categorías y tipos de experiencia
+  filteredCatalogItems = computed(() => {
+    const query = this.catalogSearch().trim().toLowerCase();
+    const status = this.catalogStatusFilter();
+
+    const items = this.catalogTab() === 'categories'
+      ? this.categories()
+      : this.experienceTypes();
+
+    return items.filter(item => {
+      const matchesSearch =
+        !query ||
+        item.name.toLowerCase().includes(query) ||
+        (item.description ?? '').toLowerCase().includes(query) ||
+        (item.slug ?? '').toLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && item.active) ||
+        (status === 'INACTIVE' && !item.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+// Filtrar temas y técnicas de sesión
+  filteredSessionCatalogItems = computed(() => {
+    const query = this.catalogSearch().trim().toLowerCase();
+    const status = this.catalogStatusFilter();
+
+    const items = this.catalogTab() === 'workTopics'
+      ? this.sessionWorkTopics()
+      : this.sessionTechniques();
+
+    return items.filter(item => {
+      const matchesSearch =
+        !query || item.name.toLowerCase().includes(query);
+
+      const matchesStatus =
+        status === 'ALL' ||
+        (status === 'ACTIVE' && item.active) ||
+        (status === 'INACTIVE' && !item.active);
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+  resetCatalogFilters(): void {
+    this.catalogSearch.set('');
+    this.catalogStatusFilter.set('ALL');
+  }
 
   categories =
     signal<CategoryCatalogItem[]>([]);
@@ -331,7 +509,55 @@ export class AdminComponent {
         )
         .length
   );
+  filteredApplications = computed(() => {
+    const query = this.applicationSearch()
+      .trim()
+      .toLocaleLowerCase();
 
+    const period = this.applicationPeriod();
+    const order = this.applicationOrder();
+
+    const now = Date.now();
+
+    let items = [...this.applications()];
+
+    if (query) {
+      items = items.filter(item =>
+        (item.fullName ?? '').toLocaleLowerCase().includes(query) ||
+        (item.email ?? '').toLocaleLowerCase().includes(query)
+      );
+    }
+
+    if (period !== 'ALL') {
+      const days = Number(period);
+      const startDate = now - days * 24 * 60 * 60 * 1000;
+
+      items = items.filter(item => {
+        const date = new Date(item.createdAt).getTime();
+        return Number.isFinite(date) &&
+          date >= startDate &&
+          date <= now;
+      });
+    }
+
+    items.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+
+      return order === 'NEWEST'
+        ? dateB - dateA
+        : dateA - dateB;
+    });
+
+    return items;
+
+  });
+  resetApplicationFilters(): void {
+    this.applicationSearch.set('');
+    this.applicationPeriod.set('ALL');
+    this.applicationOrder.set('NEWEST');
+    this.filter(null);
+  }
 
   // ============================================================
   // CONSTRUCTOR
@@ -339,6 +565,7 @@ export class AdminComponent {
 
   constructor() {
     this.load(0);
+    this.loadSummaryStats();
   }
 
 
@@ -355,6 +582,10 @@ export class AdminComponent {
       'campaigns' |
       'bookings'
   ): void {
+    if (section === 'summary') {
+      this.loadSummaryStats();
+      this.loadSummaryApplications();
+    }
 
     this.section.set(section);
 
@@ -397,6 +628,8 @@ export class AdminComponent {
   ): void {
 
     this.catalogTab.set(tab);
+
+    this.resetCatalogFilters();
 
     // Cerramos cualquier accordion abierto
     // cuando el usuario cambia de catálogo.
@@ -1189,7 +1422,7 @@ export class AdminComponent {
   }
 
 
- 
+
 select(item: ProfessionalApplicationResponse): void {
   this.selected.set(item);
 
@@ -1656,7 +1889,10 @@ select(item: ProfessionalApplicationResponse): void {
     this.approvePending.set(false);
 
     this.load(this.page());
+    this.loadSummaryStats();
 
+    this.loadSummaryStats();
+    this.loadSummaryApplications();
   }
 
 

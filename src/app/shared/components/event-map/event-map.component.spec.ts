@@ -131,7 +131,6 @@ describe('Mapa interactivo', () => {
     const fixture = TestBed.createComponent(EventMapComponent);
     fixture.componentRef.setInput('points', []);
     fixture.componentRef.setInput('selectable', true);
-    fixture.componentRef.setInput('referencePoint', { latitude: 0, longitude: 0 });
     fixture.detectChanges();
     await fixture.whenStable();
     await vi.waitFor(() => expect(fixture.componentInstance.ready()).toBe(true));
@@ -139,6 +138,9 @@ describe('Mapa interactivo', () => {
     const map = Reflect.get(fixture.componentInstance, 'map') as import('leaflet').Map;
     const selected = vi.fn();
     fixture.componentInstance.pointSelected.subscribe(selected);
+    expect(map.getCenter().lat).toBeCloseTo(-12.046, 3);
+    expect(map.getCenter().lng).toBeCloseTo(-77.043, 3);
+    expect(selected).not.toHaveBeenCalled();
     map.setView([0, 0], 14);
     fixture.nativeElement.querySelector('button').focus();
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
