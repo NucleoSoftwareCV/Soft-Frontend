@@ -46,46 +46,53 @@
 }
 
 .card-body {
-  padding: .75rem;
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+  padding: 16px;
 }
 
 .tag {
-  display: inline-block;
-  background: #e9f5f9;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: #edf5f5;
   color: #004e59;
-  font-size: 0.75rem;
-  line-height: 1rem;
-  font-weight: 500;
-  padding: 0.125rem 0.5rem;
-  border-radius: 999px;
-  gap: 0.25rem;
-  margin-bottom: 6px;
-  width: fit-content;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .date-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-success, #1f7a45);
-  font-size: 0.70rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  color: #647a7e;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
 }
-.date-row span{
-  color:rgb(76, 140, 43) !important;
-}
+
 .recurrence-badge {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
-  color: var(--color-muted, #888);
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: #f0f5f5;
+  color: #526b70;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: .04em;
 }
 
 .recurrence-badge svg {
@@ -93,28 +100,37 @@
 }
 
 .card h2 {
-  font-size: 1.05rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+  margin: 12px 0 0;
   color: #004e59;
   font-family: Sunset, Georgia, serif;
+  font-size: 18px;
   font-weight: 700;
-  line-height: 1.25;
-  margin: 6px 0 0;
+  line-height: 1.35;
 }
 
 .card-author {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: auto;
-  padding-top: .625rem;
+  padding-top: 14px;
+  border-top: 1px solid #e9eeee;
 }
 
 .author {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: #00566b;
-  font-size: 14px;
+  min-width: 0;
+  gap: 8px;
+  color: #526b70;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .author img {
@@ -125,7 +141,15 @@
 }
 
 .precio {
-  font-size: .78rem;
-  font-weight: 600;
+  flex: 0 0 auto;
   color: #004e59;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
 }
+
+/* Fecha con icono decorativo; el texto conserva su etiqueta completa. */
+.date-label { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.date-label svg { flex: 0 0 13px; }
+.author span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.author img { flex-shrink: 0; }

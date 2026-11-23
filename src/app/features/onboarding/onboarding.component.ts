@@ -1,3 +1,4 @@
+import { AuthReturnService } from '../../core/services/auth-return.service';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -51,6 +52,7 @@ export class OnboardingComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authReturn = inject(AuthReturnService);
 
   readonly step = signal<OnboardingStep>('interests');
   readonly loading = signal(true);
@@ -204,7 +206,7 @@ export class OnboardingComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.toast.success(this.editMode ? 'Tus preferencias se actualizaron.' : 'Tu experiencia ya esta personalizada.');
-        this.router.navigate(['/explorar']);
+        this.authReturn.resume(this.route.snapshot, '/explorar');
       },
       error: () => {
         this.saving.set(false);
@@ -218,7 +220,7 @@ export class OnboardingComponent implements OnInit {
     this.onboardingService.updateStatus('SKIPPED').subscribe({
       next: () => {
         this.saving.set(false);
-        this.router.navigate(['/explorar']);
+        this.authReturn.resume(this.route.snapshot, '/explorar');
       },
       error: () => {
         this.saving.set(false);
@@ -228,7 +230,7 @@ export class OnboardingComponent implements OnInit {
   }
 
   explore(): void {
-    this.router.navigate(['/explorar']);
+    this.authReturn.resume(this.route.snapshot, '/explorar');
   }
 
   eventImage(event: EventCardResponse): string {

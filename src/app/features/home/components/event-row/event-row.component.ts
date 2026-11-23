@@ -1,3 +1,5 @@
+import { EventReviewerPreview } from '../../../../shared/models/event-review.model';
+import { EventRatingComponent } from '../../../../shared/components/event-rating/event-rating.component';
 
 import { EventTravelComponent } from '../../../../shared/components/event-travel/event-travel.component';
 import {
@@ -34,6 +36,9 @@ export interface EventItem {
   hostAvatar: string;
   image: string;
   spotsLeft: number | null;
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
 }
 
 const CARD_GAP_PX = 12;
@@ -48,7 +53,7 @@ function getCardsPerPage(viewportWidth: number): number {
 @Component({
   selector: 'app-event-row',
   standalone: true,
-  imports: [RouterLink, AppIcon, EventTravelComponent],
+  imports: [RouterLink, AppIcon, EventTravelComponent, EventRatingComponent],
   templateUrl: './event-row.component.html',
   styleUrl: './event-row.component.css',
 })
@@ -291,6 +296,7 @@ export class EventRowComponent implements AfterViewInit, OnDestroy {
     });
 
   }
+
 
 }
 

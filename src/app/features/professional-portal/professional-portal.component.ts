@@ -1,8 +1,9 @@
+import { ProfessionalAgendaComponent } from './agenda/professional-agenda.component';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map, of, switchMap } from 'rxjs';
 import {
   ImageCroppedEvent,
@@ -36,6 +37,7 @@ import {
   LucideX,
   LucideUsers,
   LucideEyeOff,
+  LucideBell,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -67,8 +69,10 @@ import {
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { NotificationsService } from '../../services/notifications.service';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'agenda' | 'notifications';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -161,6 +165,8 @@ interface OccurrenceForm {
   standalone: true,
   imports: [
     ProfessionalReservationsComponent,
+    ProfessionalAgendaComponent,
+    NotificationsInboxComponent,
     CommonModule,
     FormsModule,
     ImageCropperComponent,
@@ -190,6 +196,7 @@ interface OccurrenceForm {
     LucideX,
     LucideUsers,
     LucideEyeOff,
+    LucideBell,
   ],
   templateUrl: './professional-portal.component.html',
   styleUrl: './professional-portal.component.css',
@@ -197,10 +204,12 @@ interface OccurrenceForm {
 export class ProfessionalPortalComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly profileApi = inject(SpecialistProfileService);
   private readonly eventsApi = inject(EventManagementService);
   private readonly publicEventsApi = inject(EventosService);
   private readonly sessionsApi = inject(OneToOneServicesService);
+  readonly notificationsService = inject(NotificationsService);
 
   section = signal<PortalSection>('summary');
   profile = signal<SpecialistProfileResponse | null>(null);
@@ -233,6 +242,7 @@ export class ProfessionalPortalComponent {
   profilePhotoFailed = signal(false);
   uploadingGalleryImage = signal(false);
   previewImageUrl = signal<string | null>(null);
+  readonly requestedAppointmentCode = signal<string | null>(null);
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -318,6 +328,14 @@ export class ProfessionalPortalComponent {
 
   constructor() {
     this.loadAll();
+    this.route.queryParams.subscribe(params => {
+      const requested = params['seccion'];
+      const valid: PortalSection[] = ['summary', 'profile', 'events', 'sessions', 'reservations', 'agenda', 'notifications'];
+      if (valid.includes(requested)) {
+        this.section.set(requested);
+      }
+      this.requestedAppointmentCode.set(params['cita'] ?? null);
+    });
   }
 
   show(section: PortalSection): void {
@@ -1467,6 +1485,13 @@ export class ProfessionalPortalComponent {
 
   private apiError(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
+      const violations: unknown = error.error?.errors;
+      if (Array.isArray(violations)) {
+        const messages = violations
+          .map(item => item?.message)
+          .filter((message): message is string => typeof message === 'string' && message.trim().length > 0);
+        if (messages.length) return [...new Set(messages)].join(' ');
+      }
       return error.error?.message || error.error?.detail || fallback;
     }
     return fallback;
