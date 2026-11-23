@@ -1,0 +1,457 @@
+<section class="erp__content">
+
+  <!-- ========================================================= -->
+  <!-- LISTADO -->
+  <!-- ========================================================= -->
+
+  @if (view() === 'list') {
+
+    <div class="erp__heading">
+      <div>
+        <h1>Sorteos y campañas</h1>
+        <p>Crea campañas promocionales, elige qué experiencias participan, publica y realiza el sorteo al cierre.</p>
+      </div>
+
+      <button class="primary icon-inline" type="button" (click)="openNew()">
+        <svg lucidePlus aria-hidden="true" class="icon-md"></svg>
+        Nueva campaña
+      </button>
+    </div>
+
+    @if (openNow().length > 1) {
+      <div class="notice" role="status">
+        Hay {{ openNow().length }} campañas abiertas a la vez. En la home y en Explorar se mostrarán en carrusel,
+        empezando por la que cierra antes. Una reserva de una experiencia incluida en varias suma participaciones en todas.
+      </div>
+    }
+
+    <div class="tabs" role="tablist" aria-label="Filtrar por estado">
+      @for (filter of filters; track filter) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="statusFilter() === filter"
+          [class.active]="statusFilter() === filter"
+          (click)="statusFilter.set(filter)">
+          {{ filter === 'TODAS' ? 'Todas' : statusLabels[filter] }}
+        </button>
+      }
+    </div>
+
+    <div class="table-shell">
+      <table>
+        <thead>
+          <tr>
+            <th>Campaña</th>
+            <th>Estado</th>
+            <th>Participación</th>
+            <th>Premio</th>
+            <th>Experiencias</th>
+            <th>Papeletas</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (loading()) {
+            @for (_ of [1, 2, 3]; track $index) {
+              <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
+            }
+          } @else {
+            @for (c of filtered(); track c.id) {
+              <tr>
+                <td>
+                  <strong>{{ c.detail.summary.title }}</strong>
+                  <small>/sorteo/{{ c.detail.summary.slug }}</small>
+                  @if (c.winner) {
+                    <small class="winner-line">
+                      <svg lucideTrophy aria-hidden="true" class="icon-sm"></svg>
+                      Ganó {{ c.winner.customerName }} · {{ c.winner.bookingCode }}
+                    </small>
+                  }
+                </td>
+                <td>
+                  <span class="status" [attr.data-status]="c.status">{{ statusLabels[c.status] }}</span>
+                  @if (c.status === 'PUBLICADA') {
+                    <span class="phase" [attr.data-phase]="c.phase">{{ phaseLabels[c.phase] }}</span>
+                  }
+                </td>
+                <td>
+                  <span class="dates">{{ formatDate(c.detail.summary.participationStartsAt) }}</span>
+                  <small>hasta {{ formatDate(c.detail.summary.participationEndsAt) }}</small>
+                </td>
+                <td>{{ formatPrize(c) }}</td>
+                <td>{{ c.events.length }}</td>
+                <td>
+                  <strong>{{ c.validTickets }}</strong>
+                  <small>{{ c.participantCount }} {{ c.participantCount === 1 ? 'cliente' : 'clientes' }}</small>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    @if (c.status !== 'FINALIZADA') {
+                      <button class="table-action table-action--square" type="button" title="Editar"
+                        [attr.aria-label]="'Editar ' + c.detail.summary.title" (click)="openEdit(c)">
+                        <svg lucidePencil aria-hidden="true" class="icon-sm"></svg>
+                      </button>
+                    }
+                    @if (c.entryCount > 0 || c.status !== 'BORRADOR') {
+                      <button class="table-action table-action--square" type="button" title="Participaciones"
+                        [attr.aria-label]="'Participaciones de ' + c.detail.summary.title" (click)="openEntries(c)">
+                        <svg lucideUsers aria-hidden="true" class="icon-sm"></svg>
+                      </button>
+                    }
+                    @if (c.status !== 'BORRADOR') {
+                      <a class="table-action table-action--square" title="Ver página pública" target="_blank" rel="noopener"
+                        [href]="'/sorteo/' + c.detail.summary.slug" [attr.aria-label]="'Ver página pública de ' + c.detail.summary.title">
+                        <svg lucideExternalLink aria-hidden="true" class="icon-sm"></svg>
+                      </a>
+                    }
+                    @if (c.status === 'BORRADOR') {
+                      <button class="table-action" type="button" (click)="ask('publish', c)">Publicar</button>
+                      <button class="table-action table-action--square table-action--danger" type="button" title="Eliminar"
+                        [attr.aria-label]="'Eliminar ' + c.detail.summary.title" (click)="ask('delete', c)">
+                        <svg lucideTrash2 aria-hidden="true" class="icon-sm"></svg>
+                      </button>
+                    }
+                    @if (c.status === 'PUBLICADA') {
+                      @if (canDraw(c)) {
+                        <button class="table-action table-action--draw" type="button" (click)="ask('draw', c)">
+                          <svg lucideTrophy aria-hidden="true" class="icon-sm"></svg>
+                          Realizar sorteo
+                        </button>
+                      }
+                      @if (!c.locked) {
+                        <button class="table-action" type="button" (click)="ask('unpublish', c)">A borrador</button>
+                      }
+                      <button class="table-action table-action--danger" type="button" (click)="ask('finish', c)">Finalizar</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty">
+                  {{ statusFilter() === 'TODAS' ? 'Todavía no hay campañas. Crea la primera con «Nueva campaña».' : 'No hay campañas en este estado.' }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- EDITOR -->
+  <!-- ========================================================= -->
+
+  @if (view() === 'form') {
+
+    <div class="erp__heading">
+      <div>
+        <button class="back" type="button" (click)="backToList()">
+          <svg lucideArrowLeft aria-hidden="true" class="icon-sm"></svg>
+          Volver a campañas
+        </button>
+        <h1>{{ editing() ? 'Editar campaña' : 'Nueva campaña' }}</h1>
+        <p>
+          {{ editing() ? 'Los cambios se publican al guardar si la campaña está publicada.' : 'Se guardará como borrador; podrás publicarla desde el listado.' }}
+        </p>
+      </div>
+    </div>
+
+    @if (locked()) {
+      <div class="notice notice--locked" role="status">
+        <svg lucideLock aria-hidden="true" class="icon-md"></svg>
+        <span>
+          Esta campaña ya tiene participaciones: el slug, la fecha de inicio y el premio están bloqueados,
+          el cierre solo puede ampliarse y no se pueden quitar experiencias (sí añadir).
+        </span>
+      </div>
+    }
+
+    <form class="campaign-form" (ngSubmit)="save()" novalidate>
+
+      <fieldset>
+        <legend>Datos de la campaña</legend>
+        <label class="wide">
+          Título *
+          <input name="title" [ngModel]="form.title" (ngModelChange)="onTitleChange($event)" maxlength="180" required />
+        </label>
+        <label>
+          Slug (URL) *
+          <input name="slug" [ngModel]="form.slug" (ngModelChange)="onSlugChange($event)" maxlength="80" [disabled]="locked()" required />
+          <small>Se verá en /sorteo/{{ form.slug || '…' }}</small>
+        </label>
+        <label>
+          Texto del distintivo
+          <input name="badgeLabel" [(ngModel)]="form.badgeLabel" maxlength="60" />
+          <small>Aparece en las tarjetas de las experiencias incluidas.</small>
+        </label>
+        <label class="wide">
+          Subtítulo
+          <input name="subtitle" [(ngModel)]="form.subtitle" maxlength="300" />
+        </label>
+        <label class="wide">
+          Descripción *
+          <textarea name="description" rows="4" [(ngModel)]="form.description" required></textarea>
+        </label>
+        <div class="wide image-field">
+          <span class="image-field__label">Imagen principal</span>
+          @if (imagePreview(); as preview) {
+            <img class="image-field__preview" [src]="preview" alt="Vista previa de la imagen principal" />
+          }
+          <div class="image-field__actions">
+            <label class="table-action image-field__pick">
+              <svg lucideUpload aria-hidden="true"></svg>
+              {{ imagePreview() ? 'Cambiar imagen' : 'Subir imagen' }}
+              <input type="file" accept="image/jpeg,image/png,image/webp" [disabled]="saving()" (change)="onImageSelected($event)" />
+            </label>
+            @if (imagePreview()) {
+              <button class="table-action" type="button" [disabled]="saving()" (click)="removeImage()">Quitar</button>
+            }
+          </div>
+          <p class="hint">JPG, PNG o WebP, máximo 5 MB. Se sube al guardar la campaña.</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Premio</legend>
+        <label>
+          Importe *
+          <input name="prizeAmount" type="number" min="0.01" step="0.01" [(ngModel)]="form.prizeAmount" [disabled]="locked()" required />
+        </label>
+        <label>
+          Moneda
+          <input name="prizeCurrency" [(ngModel)]="form.prizeCurrency" maxlength="3" [disabled]="locked()" />
+        </label>
+        <label class="wide">
+          Descripción del premio
+          <textarea name="prizeDescription" rows="2" [(ngModel)]="form.prizeDescription"></textarea>
+        </label>
+        <label>
+          Fecha límite para activar el premio
+          <input name="prizeActivationDeadline" type="datetime-local" [(ngModel)]="form.prizeActivationDeadline" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Fechas</legend>
+        <p class="hint wide">Todas las fechas se indican en hora de España (Madrid), como se muestran en la web.</p>
+        <label>
+          Inicio de la participación *
+          <input name="participationStartsAt" type="datetime-local" [(ngModel)]="form.participationStartsAt" [disabled]="locked()" required />
+        </label>
+        <label>
+          Cierre de la participación *
+          <input name="participationEndsAt" type="datetime-local" [(ngModel)]="form.participationEndsAt" required />
+          @if (locked()) { <small>Solo puede ampliarse.</small> }
+        </label>
+        <label>
+          Fecha prevista del sorteo
+          <input name="drawAt" type="datetime-local" [(ngModel)]="form.drawAt" />
+          <small>Informativa: el sorteo se realiza con el botón del listado tras el cierre.</small>
+        </label>
+        <label>
+          Máximo de papeletas por cliente
+          <input name="maxEntriesPerCustomer" type="number" min="1" step="1" [(ngModel)]="form.maxEntriesPerCustomer" placeholder="Sin límite" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Condiciones y bases legales</legend>
+        <label class="wide">
+          Condiciones de participación
+          <textarea name="participationConditions" rows="3" [(ngModel)]="form.participationConditions"></textarea>
+        </label>
+        <label class="wide">
+          Bases legales
+          <textarea name="legalTerms" rows="5" [(ngModel)]="form.legalTerms"></textarea>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Preguntas frecuentes</legend>
+        @for (faq of form.faqs; track $index; let i = $index; let first = $first; let last = $last) {
+          <div class="faq-row wide">
+            <div class="faq-fields">
+              <input [name]="'faq-q-' + i" [(ngModel)]="faq.question" maxlength="200" placeholder="Pregunta" [attr.aria-label]="'Pregunta ' + (i + 1)" />
+              <textarea [name]="'faq-a-' + i" rows="2" [(ngModel)]="faq.answer" placeholder="Respuesta" [attr.aria-label]="'Respuesta ' + (i + 1)"></textarea>
+            </div>
+            <div class="faq-actions">
+              <button class="table-action table-action--square" type="button" title="Subir" [disabled]="first" (click)="moveFaq(i, -1)" aria-label="Subir pregunta">
+                <svg lucideArrowUp aria-hidden="true" class="icon-sm"></svg>
+              </button>
+              <button class="table-action table-action--square" type="button" title="Bajar" [disabled]="last" (click)="moveFaq(i, 1)" aria-label="Bajar pregunta">
+                <svg lucideArrowDown aria-hidden="true" class="icon-sm"></svg>
+              </button>
+              <button class="table-action table-action--square table-action--danger" type="button" title="Quitar" (click)="removeFaq(i)" aria-label="Quitar pregunta">
+                <svg lucideTrash2 aria-hidden="true" class="icon-sm"></svg>
+              </button>
+            </div>
+          </div>
+        }
+        <div class="wide">
+          <button class="table-action" type="button" (click)="addFaq()">
+            <svg lucidePlus aria-hidden="true" class="icon-sm"></svg>
+            Añadir pregunta
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Experiencias que participan</legend>
+        <div class="wide event-picker">
+          <label class="search">
+            <svg lucideSearch aria-hidden="true" class="icon-md"></svg>
+            <input name="eventSearch" type="search" [ngModel]="eventSearch" (ngModelChange)="onEventSearch($event)"
+              placeholder="Buscar experiencias publicadas por nombre…" aria-label="Buscar experiencias" autocomplete="off" />
+          </label>
+
+          @if (searching()) {
+            <p class="hint">Buscando…</p>
+          } @else if (searchResults().length) {
+            <ul class="results">
+              @for (result of searchResults(); track result.id) {
+                <li>
+                  <span>{{ result.title }}</span>
+                  <button class="table-action" type="button" [disabled]="isSelected(result.id)" (click)="addEvent(result)">
+                    {{ isSelected(result.id) ? 'Añadida' : 'Añadir' }}
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (eventSearch.trim().length >= 2) {
+            <p class="hint">Sin resultados.</p>
+          }
+
+          <div class="chips" aria-label="Experiencias seleccionadas">
+            @for (event of selectedEvents(); track event.id) {
+              <span class="chip">
+                {{ event.title }}
+                @if (event.fixed) {
+                  <svg lucideLock aria-hidden="true" class="icon-sm" title="No se puede quitar"></svg>
+                } @else {
+                  <button type="button" (click)="removeEvent(event.id)" [attr.aria-label]="'Quitar ' + event.title">
+                    <svg lucideX aria-hidden="true" class="icon-sm"></svg>
+                  </button>
+                }
+              </span>
+            } @empty {
+              <p class="hint">Aún no hay experiencias. Hace falta al menos una para publicar.</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      @if (formError()) {
+        <div class="form-error" role="alert">{{ formError() }}</div>
+      }
+
+      <footer class="form-actions">
+        <button class="table-action" type="button" (click)="backToList()" [disabled]="saving()">Cancelar</button>
+        <button class="primary" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : (editing() ? 'Guardar cambios' : 'Crear borrador') }}
+        </button>
+      </footer>
+    </form>
+  }
+
+  <!-- ========================================================= -->
+  <!-- PARTICIPACIONES -->
+  <!-- ========================================================= -->
+
+  @if (view() === 'entries' && entriesCampaign(); as campaign) {
+
+    <div class="erp__heading">
+      <div>
+        <button class="back" type="button" (click)="backToList()">
+          <svg lucideArrowLeft aria-hidden="true" class="icon-sm"></svg>
+          Volver a campañas
+        </button>
+        <h1>Participaciones · {{ campaign.detail.summary.title }}</h1>
+        <p>
+          {{ campaign.validTickets }} papeletas válidas de {{ campaign.participantCount }}
+          {{ campaign.participantCount === 1 ? 'cliente' : 'clientes' }} · {{ campaign.entryCount }} registros en total.
+        </p>
+      </div>
+
+      <button class="primary icon-inline" type="button" [disabled]="!visibleEntries().length" (click)="exportCsv()">
+        <svg lucideDownload aria-hidden="true" class="icon-md"></svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    @if (campaign.winner; as winner) {
+      <div class="winner-card" role="status">
+        <svg lucideTrophy aria-hidden="true"></svg>
+        <div>
+          <strong>Ganó {{ winner.customerName }}</strong>
+          <span>{{ winner.customerEmail }} · reserva {{ winner.bookingCode }} · {{ winner.ticketCount }} papeletas · {{ formatDate(winner.drawnAt) }}</span>
+        </div>
+      </div>
+    }
+
+    <div class="tabs" role="tablist" aria-label="Filtrar participaciones">
+      <button type="button" role="tab" [class.active]="entriesFilter() === 'TODAS'" [attr.aria-selected]="entriesFilter() === 'TODAS'" (click)="entriesFilter.set('TODAS')">Todas</button>
+      <button type="button" role="tab" [class.active]="entriesFilter() === 'VALIDA'" [attr.aria-selected]="entriesFilter() === 'VALIDA'" (click)="entriesFilter.set('VALIDA')">Válidas</button>
+      <button type="button" role="tab" [class.active]="entriesFilter() === 'ANULADA'" [attr.aria-selected]="entriesFilter() === 'ANULADA'" (click)="entriesFilter.set('ANULADA')">Anuladas</button>
+    </div>
+
+    <div class="table-shell">
+      <table>
+        <thead>
+          <tr>
+            <th>Participación</th>
+            <th>Cliente</th>
+            <th>Experiencia</th>
+            <th>Papeletas</th>
+            <th>Estado</th>
+            <th>Registrada</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            @for (_ of [1, 2, 3]; track $index) {
+              <tr><td colspan="6"><div class="skeleton-row"></div></td></tr>
+            }
+          } @else {
+            @for (entry of visibleEntries(); track entry.code) {
+              <tr [class.is-winner]="campaign.winner?.entryCode === entry.code">
+                <td>
+                  <strong>{{ entry.code }}</strong>
+                  <small>Reserva {{ entry.bookingCode }}</small>
+                </td>
+                <td>
+                  <strong>{{ entry.customerName || '—' }}</strong>
+                  <small>{{ entry.customerEmail }}</small>
+                </td>
+                <td>{{ entry.eventTitle }}</td>
+                <td>{{ entry.ticketCount }}</td>
+                <td>
+                  <span class="status" [attr.data-status]="entry.status === 'VALIDA' ? 'APROBADO' : 'RECHAZADO'">
+                    {{ entry.status === 'VALIDA' ? 'Válida' : 'Anulada' }}
+                  </span>
+                  @if (entry.voidReason) { <small>{{ entry.voidReason }}</small> }
+                </td>
+                <td>{{ formatDate(entry.createdAt) }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty">No hay participaciones {{ entriesFilter() === 'TODAS' ? 'todavía' : 'con este estado' }}.</td></tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</section>
+
+<app-confirm-dialog
+  [open]="!!pending()"
+  [title]="pending()?.title ?? ''"
+  [description]="pending()?.description ?? ''"
+  [confirmLabel]="pending()?.confirmLabel ?? 'Confirmar'"
+  [loading]="acting()"
+  (confirmed)="confirmPending()"
+  (cancelled)="pending.set(null)" />

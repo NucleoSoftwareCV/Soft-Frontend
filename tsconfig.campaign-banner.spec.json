@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": ["src/**/*.d.ts", "src/app/features/home/components/campaign-banner/campaign-banner.component.spec.ts"]
+}

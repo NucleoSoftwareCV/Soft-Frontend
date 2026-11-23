@@ -7,6 +7,7 @@ import { EventRowComponent, EventItem } from './components/event-row/event-row.c
 import { ProfessionalsGridComponent } from './components/professionals-grid/professionals-grid.component';
 import { CommunityBannerComponent }   from './components/community-banner/community-banner.component';
 import { CtaBannerComponent }         from './components/cta-banner/cta-banner.component';
+import { CampaignBannerComponent }    from './components/campaign-banner/campaign-banner.component';
 
 import { OnInit, inject } from '@angular/core';
 import { EventosService } from '../../services/eventos.service';
@@ -27,6 +28,7 @@ interface HomeSectionViewModel extends HomeSectionResponse {
     ProfessionalsGridComponent,
     CommunityBannerComponent,
     CtaBannerComponent,
+    CampaignBannerComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl:    './home.component.css',

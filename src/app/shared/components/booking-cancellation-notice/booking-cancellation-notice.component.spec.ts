@@ -16,9 +16,23 @@ describe('BookingCancellationNoticeComponent', () => {
   let bookings: MyBooking[];
   const getMyBookings = vi.fn(() => of(bookings));
 
+  // Almacenamiento en memoria: en Node 25+ el localStorage global de Node (sin --localstorage-file)
+  // tapa al de jsdom y queda sin métodos.
+  function memoryStorage(): Storage {
+    const data = new Map<string, string>();
+    return {
+      get length() { return data.size; },
+      clear: () => data.clear(),
+      getItem: key => data.get(key) ?? null,
+      key: index => [...data.keys()][index] ?? null,
+      removeItem: key => { data.delete(key); },
+      setItem: (key, value) => { data.set(key, String(value)); },
+    };
+  }
+
   beforeEach(() => {
     vi.useFakeTimers();
-    localStorage.clear();
+    vi.stubGlobal('localStorage', memoryStorage());
     getMyBookings.mockClear();
     currentUser.set(null);
     bookings = [
@@ -36,7 +50,10 @@ describe('BookingCancellationNoticeComponent', () => {
       ],
     });
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   function render() {
     const fixture = TestBed.createComponent(BookingCancellationNoticeComponent);

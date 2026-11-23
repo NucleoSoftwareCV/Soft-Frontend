@@ -2237,6 +2237,43 @@ swiper-slide{
 #event-location-map { margin-top: 22px; }
 .event-location-link { display: inline-block; margin-top: 14px; color: #004e59; text-decoration: underline; }
 .event-location-note { color: #61757a; }
+
+
+/* Campaña promocional (sorteo) */
+.campaign-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 20px 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-coral, #d4856a);
+  border-radius: 14px;
+  background: #fff6f1;
+  color: var(--color-ink-light, #4a4a4a);
+  font-size: 14px;
+}
+
+.campaign-notice--stacked {
+  margin-top: -8px;
+}
+
+.campaign-notice a {
+  color: var(--principal, #004e59);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.campaign-success {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff6f1;
+  color: #8f4b33;
+  font-weight: 600;
+  text-align: center;
+}
+
 @media (max-width: 620px) {
   .venue-travel-layout { --venue-rows: auto auto auto auto; display: block; }
   .venue-location { margin-bottom: 16px; }

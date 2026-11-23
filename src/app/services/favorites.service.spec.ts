@@ -69,5 +69,23 @@ describe('FavoritesService', () => {
       currency: 'EUR',
       savedAt: '2026-07-30T00:00:00Z',
     }]);
+
+    // Cada favorito se completa con el detalle del evento (portada, organizador, próxima fecha).
+    http.expectOne(`${environment.apiUrl}/events/8`).flush({
+      id: 8,
+      coverImageUrl: 'https://cdn.example.com/yoga.jpg',
+      isRecurring: false,
+      organizer: { publicName: 'Ana' },
+      occurrences: [{ startsAt: '2030-01-10T10:00:00Z', location: { cityName: 'Lima' } }],
+    });
+  });
+
+  it('emits an empty list when there are no favorites', () => {
+    let result: unknown;
+    service.getFavorites().subscribe(favorites => (result = favorites));
+
+    http.expectOne(baseUrl).flush([]);
+
+    expect(result).toEqual([]);
   });
 });

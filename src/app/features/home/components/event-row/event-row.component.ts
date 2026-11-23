@@ -50,10 +50,12 @@ function getCardsPerPage(viewportWidth: number): number {
   return 4;
 }
 
+import { BookingIndicatorComponent } from '../../../../shared/components/booking-indicator/booking-indicator.component';
+
 @Component({
   selector: 'app-event-row',
   standalone: true,
-  imports: [RouterLink, AppIcon, EventTravelComponent, EventRatingComponent],
+  imports: [EventRatingComponent, RouterLink, AppIcon, EventTravelComponent, BookingIndicatorComponent],
   templateUrl: './event-row.component.html',
   styleUrl: './event-row.component.css',
 })

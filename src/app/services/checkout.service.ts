@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { CampaignEntrySummary } from '../shared/models/campania.model';
 
 export interface CheckoutAttendee {
   name: string;
@@ -38,7 +39,7 @@ export interface PaymentProcessRequest {
   cardExpiration?: string;
   cardCvv?: string;
   cardHolderName?: string;
-  yapePhone?: string;
+  yapePhoneNumber?: string;
   yapeOtp?: string;
 }
 
@@ -46,15 +47,18 @@ export interface PaymentResponse {
   status: 'APROBADO' | 'RECHAZADO';
   externalReference: string | null;
   errorMessage: string | null;
-}
-
-export interface WhatsAppRedirect {
-  redirectUrl: string;
+  /** Participaciones en sorteos generadas por este pago (vacía si ninguna). */
+  campaignEntries?: CampaignEntrySummary[];
 }
 
 export interface MyBooking {
   code: string;
-  status: 'PENDIENTE' | 'CONFIRMADA' | 'CANCELADA' | string;
+  /** Código con el que se paga la reserva. */
+  orderCode?: string | null;
+  occurrenceId?: number;
+  /** Solo en reservas aceptadas: límite para pagar antes de que se libere la plaza. */
+  paymentDeadline?: string | null;
+  status: 'PENDIENTE' | 'ACEPTADA' | 'CONFIRMADA' | 'CANCELADA' | string;
   quantity: number;
   totalAmount: number;
   currency: string;
@@ -66,8 +70,8 @@ export interface MyBooking {
   locationName: string | null;
   cityName: string | null;
   cancelledAt?: string | null;
-  /** RECHAZADA: la rechazó el profesional. EXPIRADA: la orden venció sin pago. */
-  cancellationCause?: 'RECHAZADA' | 'EXPIRADA' | null;
+  /** RECHAZADA: la rechazó el profesional. CLIENTE: la canceló el cliente. EXPIRADA: venció su plazo. */
+  cancellationCause?: 'RECHAZADA' | 'EXPIRADA' | 'CLIENTE' | null;
   cancellationReason?: string | null;
 }
 
@@ -84,15 +88,15 @@ export class CheckoutService {
     return this.http.post<PaymentResponse>(`${this.BASE}/orders/${code}/pay`, paymentData);
   }
 
-  getWhatsAppLink(code: string): Observable<WhatsAppRedirect> {
-    return this.http.get<WhatsAppRedirect>(`${this.BASE}/orders/${code}/whatsapp`);
-  }
-
   getDigitalReceipt(code: string): Observable<any> {
     return this.http.get<any>(`${this.BASE}/receipts/${code}`);
   }
 
   getMyBookings(): Observable<MyBooking[]> {
     return this.http.get<MyBooking[]>(`${this.BASE}/bookings/me`);
+  }
+
+  cancelMyBooking(code: string): Observable<void> {
+    return this.http.post<void>(`${this.BASE}/bookings/me/${encodeURIComponent(code)}/cancel`, {});
   }
 }

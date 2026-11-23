@@ -45,6 +45,7 @@ interface CalendarDayCell {
   isPast: boolean;
 }
 
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -1079,4 +1080,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   });
 
   readonly dateButtonLabel = computed(() => this.applyButtonLabel());
+
+  openNotifications(): void {
+    const professional = this.authService.currentUser()?.roles?.includes('PROFESSIONAL');
+    void this.router.navigate(
+      professional ? ['/profesional'] : ['/perfil'],
+      { queryParams: professional ? { seccion: 'notifications' } : { tab: 'notificaciones' } },
+    );
+  }
 }

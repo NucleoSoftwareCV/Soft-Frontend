@@ -15,10 +15,12 @@ export interface EventCard {
   date:        string | null; /* null = "MAÑANA" */
 }
 
+import { BookingIndicatorComponent } from '../../../../shared/components/booking-indicator/booking-indicator.component';
+
 @Component({
   selector: 'app-events-week',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, BookingIndicatorComponent],
   templateUrl: './events-week.component.html',
   styleUrl:    './events-week.component.css',
 })

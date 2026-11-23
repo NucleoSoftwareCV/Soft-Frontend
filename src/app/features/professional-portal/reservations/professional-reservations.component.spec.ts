@@ -61,7 +61,7 @@ describe('ProfessionalReservationsComponent', () => {
   it('prevents duplicate decisions while saving', () => {
     const response = new Subject<ProfessionalBookingDetail>();
     api.decide.mockReturnValue(response);
-    component.open('BKG-1'); component.decision.set('CONFIRMADA');
+    component.open('BKG-1'); component.decision.set('ACEPTADA');
     component.confirm(); component.confirm();
     expect(api.decide).toHaveBeenCalledTimes(1);
     expect(component.saving()).toBe(true);
@@ -80,7 +80,7 @@ describe('ProfessionalReservationsComponent', () => {
   });
   it('reloads state on a concurrent conflict', () => {
     api.decide.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
-    component.open('BKG-1'); component.decision.set('CONFIRMADA'); component.confirm();
+    component.open('BKG-1'); component.decision.set('ACEPTADA'); component.confirm();
     expect(component.saving()).toBe(false);
     expect(component.decision()).toBe(null);
     expect(component.notice()).toContain('cambió');

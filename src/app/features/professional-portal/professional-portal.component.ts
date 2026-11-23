@@ -4,6 +4,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, of, switchMap } from 'rxjs';
 import {
   ImageCroppedEvent,
@@ -32,12 +33,12 @@ import {
   LucideRotateCw,
   LucideTriangleAlert,
   LucideUpload,
+  LucideBell,
   LucideUserRound,
   LucideZoomIn,
   LucideX,
   LucideUsers,
   LucideEyeOff,
-  LucideBell,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -120,7 +121,6 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
-  paymentMethod: 'WHATSAPP' | 'ONLINE';
   experienceTypeId: number | null;
   occurrenceId: number | null;
   startsAt: string;
@@ -164,6 +164,7 @@ interface OccurrenceForm {
   selector: 'app-professional-portal',
   standalone: true,
   imports: [
+    NotificationsInboxComponent,
     ProfessionalReservationsComponent,
     ProfessionalAgendaComponent,
     NotificationsInboxComponent,
@@ -212,6 +213,8 @@ export class ProfessionalPortalComponent {
   readonly notificationsService = inject(NotificationsService);
 
   section = signal<PortalSection>('summary');
+  /** Reserva pedida por enlace desde una notificación. */
+  requestedBooking = signal<string | null>(null);
   profile = signal<SpecialistProfileResponse | null>(null);
   events = signal<EventManagementResponse[]>([]);
   sessions = signal<OneToOneServiceDetailResponse[]>([]);
@@ -328,13 +331,14 @@ export class ProfessionalPortalComponent {
 
   constructor() {
     this.loadAll();
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed()).subscribe(params => {
       const requested = params['seccion'];
       const valid: PortalSection[] = ['summary', 'profile', 'events', 'sessions', 'reservations', 'agenda', 'notifications'];
       if (valid.includes(requested)) {
         this.section.set(requested);
       }
       this.requestedAppointmentCode.set(params['cita'] ?? null);
+      this.requestedBooking.set(params['reserva'] ?? null);
     });
   }
 
@@ -889,7 +893,6 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
-      paymentMethod: event.paymentMethod ?? 'WHATSAPP',
       experienceTypeId: event.experienceTypeId,
       occurrenceId: occurrence?.id ?? null,
       startsAt: occurrence ? this.toLocalInput(occurrence.startsAt) : this.localDateTime(2),
@@ -1254,7 +1257,6 @@ export class ProfessionalPortalComponent {
       minimumAge: this.eventForm.minimumAge,
       featured: false,
       categoryId: this.eventForm.categoryId!,
-      paymentMethod: this.eventForm.paymentMethod,
       experienceTypeId: this.eventForm.experienceTypeId!,
       specialistId,
     };
@@ -1295,7 +1297,6 @@ export class ProfessionalPortalComponent {
       currency: 'PEN',
       minimumAge: 18,
       categoryId: null,
-      paymentMethod: 'WHATSAPP',
       experienceTypeId: null,
       occurrenceId: null,
       startsAt: this.localDateTime(2),
