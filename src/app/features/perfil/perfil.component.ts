@@ -14,6 +14,7 @@ import { BookingPaymentDialogComponent } from '../../shared/components/booking-p
 import { MyBookingsStore } from '../../services/my-bookings.store';
 import { bookingStatusLabel } from '../../shared/utils/booking-status.util';
 import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
+import { ProfilePointsComponent } from './profile-points.component';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
 import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
@@ -71,7 +72,7 @@ export function isActiveEventReservation(booking: MyBooking, now = Date.now()): 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, BookingPaymentDialogComponent, AppointmentRescheduleComponent, NotificationsInboxComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, BookingPaymentDialogComponent, AppointmentRescheduleComponent, NotificationsInboxComponent, ProfilePointsComponent],
   templateUrl: './perfil.component.html',
   styleUrls: ['./perfil.component.css', './perfil-appointments.css'],
 })
@@ -152,7 +153,7 @@ readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
 
   seccionActiva = signal<Seccion>('perfil');
-  readonly seccionCliente = signal<'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'>('reservas');
+  readonly seccionCliente = signal<'reservas' | 'notificaciones' | 'guardados' | 'siguiendo' | 'puntos'>('reservas');
   readonly myBookingsStore = inject(MyBookingsStore);
   readonly statusLabel = bookingStatusLabel;
   readonly paymentBooking = signal<MyBooking | null>(null);
@@ -247,7 +248,7 @@ readonly professionalApplicationDismissed = signal(false);
 
   items = signal<ItemCreado[]>([]);
 
-  cambiarSeccionCliente(tab: 'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'): void {
+  cambiarSeccionCliente(tab: 'reservas' | 'notificaciones' | 'guardados' | 'siguiendo' | 'puntos'): void {
     this.seccionCliente.set(tab);
     if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
       this.loadFollowedProfessionals(0);
@@ -627,8 +628,8 @@ ngOnInit(): void {
       this.cambiarSeccionCliente('notificaciones');
     } else if (tab === 'guardados') {
       this.cambiarSeccionCliente('guardados');
-    } else if (tab === 'notificaciones') {
-      this.cambiarSeccionCliente('notificaciones');
+    } else if (tab === 'puntos') {
+      this.cambiarSeccionCliente('puntos');
     } else if (tab === 'siguiendo') {
       this.cambiarSeccionCliente('siguiendo');
     } else if (tab === 'reservas') {
