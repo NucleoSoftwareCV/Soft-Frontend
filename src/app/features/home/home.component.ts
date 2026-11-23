@@ -92,6 +92,9 @@ export class HomeComponent implements OnInit {
 
     image: this.optimizarImagen(event.coverImageUrl),
 
+    averageRating: event.averageRating ?? null,
+    reviewCount: event.reviewCount ?? 0,
+    reviewers: event.reviewers ?? [],
     spotsLeft: null
 
   }));

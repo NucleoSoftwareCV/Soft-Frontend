@@ -7,15 +7,18 @@ import { ProfessionalFollowService } from '../../services/professional-follow.se
 import { FollowedProfessionalResponse } from '../../shared/models/professional-follow.model';
 import { FavoritesService } from '../../services/favorites.service';
 import { FavoriteResponse } from '../../shared/models/favorites.model';
+import { AppointmentReceipt, AppointmentService, appointmentDate } from '../../services/appointment.service';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { BookingPaymentDialogComponent } from '../../shared/components/booking-payment-dialog/booking-payment-dialog.component';
-import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
 import { MyBookingsStore } from '../../services/my-bookings.store';
-import { NotificationsService } from '../../services/notifications.service';
 import { bookingStatusLabel } from '../../shared/utils/booking-status.util';
+import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { NotificationsService } from '../../services/notifications.service';
+import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
@@ -47,12 +50,30 @@ interface ItemCreado {
   asistentes: { nombre: string; email: string; fecha: string }[];
 }
 
+export function isActiveAppointmentReservation(appointment: AppointmentReceipt, now = Date.now()): boolean {
+  if (Date.parse(appointment.startsAt) <= now) return false;
+  if (!['PENDIENTE', 'CONFIRMADA', 'REPROGRAMACION_PROPUESTA'].includes(appointment.status)) return false;
+  const requiresValidHold = appointment.status === 'PENDIENTE' || appointment.status === 'REPROGRAMACION_PROPUESTA';
+  return !requiresValidHold || !appointment.expiresAt || Date.parse(appointment.expiresAt) > now;
+}
+
+export function isAppointmentProposalAvailable(appointment: AppointmentReceipt, now = Date.now()): boolean {
+  return appointment.status === 'REPROGRAMACION_PROPUESTA'
+    && Date.parse(appointment.startsAt) > now
+    && (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now);
+}
+
+export function isActiveEventReservation(booking: MyBooking, now = Date.now()): boolean {
+  return Date.parse(booking.occurrenceStartsAt) > now &&
+    ['PENDIENTE', 'CONFIRMADA'].includes(booking.status);
+}
+
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, BookingPaymentDialogComponent, NotificationsInboxComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, BookingPaymentDialogComponent, AppointmentRescheduleComponent, NotificationsInboxComponent],
   templateUrl: './perfil.component.html',
-  styleUrl: './perfil.component.css',
+  styleUrls: ['./perfil.component.css', './perfil-appointments.css'],
 })
 export class PerfilComponent implements OnInit {
 private readonly professionalApplicationService = inject(ProfessionalApplicationService);
@@ -62,14 +83,70 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   private readonly followService = inject(ProfessionalFollowService);
   readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
+  readonly notificationsService = inject(NotificationsService);
 
   readonly favoritesDetails = signal<FavoriteResponse[]>([]);
   readonly favoritesLoading = signal(false);
   readonly favoritesError = signal<string | null>(null);
 
+  private readonly appointmentService = inject(AppointmentService);
+  readonly myAppointments = signal<AppointmentReceipt[]>([]);
+  readonly appointmentsLoading = signal(false);
+  readonly appointmentsError = signal(false);
+  readonly appointmentToCancel = signal<AppointmentReceipt | null>(null);
+  readonly appointmentToReschedule = signal<AppointmentReceipt | null>(null);
+  readonly cancellingAppointment = signal(false);
+  readonly cancellationError = signal('');
+  readonly cancellationMessage = signal('');
+  readonly appointmentDate = appointmentDate;
+  readonly appointmentStatuses: Record<string, string> = {
+    PENDIENTE: 'Pendiente de aceptación', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
+    COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Nuevo horario propuesto',
+  };
+
   readonly myBookings = signal<MyBooking[]>([]);
   readonly bookingsLoading = signal(false);
   readonly bookingsError = signal<string | null>(null);
+  readonly activeAppointments = computed(() =>
+    this.myAppointments().filter(appointment => this.isActiveAppointment(appointment)),
+  );
+  readonly activeEventBookings = computed(() =>
+    this.myBookings().filter(booking => this.isActiveEventBooking(booking)),
+  );
+  readonly activeReservationCount = computed(() =>
+    this.activeAppointments().length + this.activeEventBookings().length,
+  );
+  readonly nextReservationAt = computed(() => {
+    const candidates = [
+      ...this.activeAppointments().map(appointment => appointment.startsAt),
+      ...this.activeEventBookings().map(booking => booking.occurrenceStartsAt),
+    ]
+      .map(value => Date.parse(value))
+      .filter(value => Number.isFinite(value) && value > Date.now())
+      .sort((left, right) => left - right);
+
+    return candidates[0] ?? null;
+  });
+  readonly nextReservationLabel = computed(() => {
+    const next = this.nextReservationAt();
+    if (!next) return '—';
+
+    return new Intl.DateTimeFormat('es-PE', {
+      timeZone: 'America/Lima',
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(next));
+  });
+  readonly orderedAppointments = computed(() =>
+    [...this.myAppointments()].sort((left, right) => {
+      const leftActive = this.isActiveAppointment(left) ? 0 : 1;
+      const rightActive = this.isActiveAppointment(right) ? 0 : 1;
+      if (leftActive !== rightActive) return leftActive - rightActive;
+      return Date.parse(left.startsAt) - Date.parse(right.startsAt);
+    }),
+  );
   readonly professionalApplication = signal<ProfessionalApplicationResponse | null>(null);
 readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
@@ -77,7 +154,6 @@ readonly professionalApplicationDismissed = signal(false);
   seccionActiva = signal<Seccion>('perfil');
   readonly seccionCliente = signal<'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'>('reservas');
   readonly myBookingsStore = inject(MyBookingsStore);
-  readonly notificationsService = inject(NotificationsService);
   readonly statusLabel = bookingStatusLabel;
   readonly paymentBooking = signal<MyBooking | null>(null);
   readonly detailBooking = signal<MyBooking | null>(null);
@@ -187,6 +263,7 @@ readonly professionalApplicationDismissed = signal(false);
   loadMyBookings(): void {
     if (!this.authService.isLoggedIn) return;
 
+    this.loadMyAppointments();
     this.bookingsLoading.set(true);
     this.bookingsError.set(null);
     this.checkoutService.getMyBookings().subscribe({
@@ -239,6 +316,119 @@ readonly professionalApplicationDismissed = signal(false);
         this.cancellingBooking.set(null);
         this.bookingsError.set(error.error?.detail || 'No se pudo cancelar la reserva.');
         this.onBookingChanged();
+      },
+    });
+  }
+
+  loadMyAppointments(): void {
+    if (this.appointmentsLoading() || this.cancellingAppointment()) return;
+    this.appointmentsLoading.set(true);
+    this.appointmentsError.set(false);
+    this.appointmentService.myAppointments().subscribe({
+      next: appointments => {
+        this.myAppointments.set(appointments);
+        this.appointmentsLoading.set(false);
+      },
+      error: () => {
+        this.appointmentsError.set(true);
+        this.appointmentsLoading.set(false);
+      },
+    });
+  }
+
+  canCancelAppointment(appointment: AppointmentReceipt): boolean {
+    const now = Date.now();
+    return Date.parse(appointment.startsAt) > now &&
+      (appointment.status === 'CONFIRMADA' || this.isAppointmentProposalAvailable(appointment, now) || (appointment.status === 'PENDIENTE' &&
+        (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
+  }
+
+  isActiveAppointment(appointment: AppointmentReceipt, now = Date.now()): boolean {
+    return isActiveAppointmentReservation(appointment, now);
+  }
+
+  isActiveEventBooking(booking: MyBooking, now = Date.now()): boolean {
+    return isActiveEventReservation(booking, now);
+  }
+
+  appointmentStatusClass(status: string): string {
+    return status.toLocaleLowerCase('es-PE').replaceAll('_', '-');
+  }
+
+  canRescheduleAppointment(appointment: AppointmentReceipt): boolean {
+    return this.canCancelAppointment(appointment) && appointment.status !== 'REPROGRAMACION_PROPUESTA';
+  }
+
+  isAppointmentProposalAvailable(appointment: AppointmentReceipt, now = Date.now()): boolean {
+    return isAppointmentProposalAvailable(appointment, now);
+  }
+
+  appointmentStatusLabel(appointment: AppointmentReceipt): string {
+    return appointment.status === 'REPROGRAMACION_PROPUESTA' && !this.isAppointmentProposalAvailable(appointment)
+      ? 'Propuesta vencida'
+      : this.appointmentStatuses[appointment.status] || appointment.status;
+  }
+
+  appointmentStatusValue(appointment: AppointmentReceipt): string {
+    return appointment.status === 'REPROGRAMACION_PROPUESTA' && !this.isAppointmentProposalAvailable(appointment)
+      ? 'EXPIRADA'
+      : appointment.status;
+  }
+
+  appointmentImage(appointment: AppointmentReceipt): string {
+    return resolveAssetUrl(appointment.imageUrl);
+  }
+
+  respondToAppointmentProposal(appointment: AppointmentReceipt, accepted: boolean): void {
+    if (this.cancellingAppointment()) return;
+    this.cancellingAppointment.set(true);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('');
+    this.appointmentService.respondProposal(appointment.id, accepted).subscribe({
+      next: updated => {
+        this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.cancellingAppointment.set(false);
+        this.cancellationMessage.set(accepted
+          ? 'Aceptaste el nuevo horario. La cita quedó confirmada.'
+          : 'Rechazaste la propuesta. El horario quedó disponible.');
+      },
+      error: err => {
+        this.cancellingAppointment.set(false);
+        if (err.status === 409) {
+          this.cancellationMessage.set('La propuesta venció antes de que pudieras responder. Actualizamos tus citas.');
+        } else {
+          this.cancellationError.set(err.error?.detail || 'No pudimos responder a la propuesta.');
+        }
+        this.loadMyAppointments();
+      },
+    });
+  }
+
+  onAppointmentRescheduled(updated: AppointmentReceipt): void {
+    this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+    this.appointmentToReschedule.set(null);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('Cambio de horario solicitado. La cita quedó pendiente de aceptación del profesional.');
+  }
+
+  confirmAppointmentCancellation(reason: string): void {
+    const appointment = this.appointmentToCancel();
+    if (!appointment || this.cancellingAppointment() || this.appointmentsLoading()) return;
+    this.cancellingAppointment.set(true);
+    this.cancellationError.set('');
+    this.cancellationMessage.set('');
+    this.appointmentService.cancelMyAppointment(appointment.id, reason).subscribe({
+      next: updated => {
+        this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.cancellingAppointment.set(false);
+        this.appointmentToCancel.set(null);
+        this.cancellationMessage.set('Cita cancelada. El horario quedó liberado.');
+      },
+      error: err => {
+        this.cancellingAppointment.set(false);
+        this.appointmentToCancel.set(null);
+        this.cancellationError.set(err.error?.detail || 'No pudimos cancelar la cita.');
+        this.loadMyAppointments();
       },
     });
   }
@@ -437,6 +627,8 @@ ngOnInit(): void {
       this.cambiarSeccionCliente('notificaciones');
     } else if (tab === 'guardados') {
       this.cambiarSeccionCliente('guardados');
+    } else if (tab === 'notificaciones') {
+      this.cambiarSeccionCliente('notificaciones');
     } else if (tab === 'siguiendo') {
       this.cambiarSeccionCliente('siguiendo');
     } else if (tab === 'reservas') {

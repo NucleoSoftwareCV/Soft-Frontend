@@ -739,7 +739,7 @@
             <div class="mi-espacio__info-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendario"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h5"></path><path d="M17.5 17.5 16 16.3V14"></path><circle cx="16" cy="16" r="6"></circle></svg>
             </div>
-            <span class="mi-espacio__info-text">Próxima sesión <strong>—</strong></span>
+            <span class="mi-espacio__info-text">Próxima sesión <strong>{{ nextReservationLabel() }}</strong></span>
           </div>
           <div class="mi-espacio__info-card">
             <div class="mi-espacio__info-icon">
@@ -755,7 +755,13 @@
       <div class="mi-espacio__tabs">
         <button (click)="cambiarSeccionCliente('reservas')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'reservas'" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ticket"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
-          Reservas ({{ myBookings().length }})
+          Reservas ({{ activeReservationCount() }})
+        </button>
+        <button (click)="cambiarSeccionCliente('notificaciones')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'notificaciones'" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          Notificaciones ({{ notificationsService.unreadCount() }})
         </button>
         <button (click)="cambiarSeccionCliente('notificaciones')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'notificaciones'" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
@@ -912,8 +918,140 @@
       }
 
       <!-- Pestaña Reservas -->
+      @if (seccionCliente() === 'notificaciones') {
+        <app-notifications-inbox />
+      }
+
       @if (seccionCliente() === 'reservas') {
-        <button class="btn-outline" type="button" (click)="loadMyBookings()" [disabled]="bookingsLoading()">Actualizar reservas</button>
+        <section class="client-appointments" aria-labelledby="client-appointments-title">
+          <header class="client-appointments__header">
+            <div>
+              <span class="client-appointments__eyebrow">AGENDA PERSONAL</span>
+              <h2 id="client-appointments-title">Mis citas 1:1</h2>
+              <p>Consulta el estado y gestiona tus próximas sesiones con profesionales.</p>
+            </div>
+            <button class="client-appointments__refresh" type="button" (click)="loadMyBookings()"
+              [disabled]="bookingsLoading() || appointmentsLoading()">
+              <span aria-hidden="true">↻</span>
+              {{ bookingsLoading() || appointmentsLoading() ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+          </header>
+          @if (cancellationMessage()) { <p class="appointment-feedback appointment-feedback--success" role="status">{{ cancellationMessage() }}</p> }
+          @if (cancellationError()) { <p class="appointment-feedback appointment-feedback--error" role="alert">{{ cancellationError() }}</p> }
+          <app-confirm-dialog [open]="appointmentToCancel() !== null"
+            title="Cancelar cita" description="El horario quedará disponible para otra solicitud."
+            confirmLabel="Cancelar cita" [loading]="cancellingAppointment() || appointmentsLoading()"
+            reasonLabel="Motivo" [reasonRequired]="true"
+            reasonPlaceholder="Ej. Ya no podré asistir en ese horario"
+            (confirmed)="confirmAppointmentCancellation($event)" (cancelled)="appointmentToCancel.set(null)" />
+          @if (appointmentToReschedule(); as appointment) {
+            <app-appointment-reschedule [appointment]="appointment"
+              (closed)="appointmentToReschedule.set(null)"
+              (rescheduled)="onAppointmentRescheduled($event)" />
+          }
+          @if (appointmentsLoading()) {
+            <p role="status">Cargando tus citas...</p>
+          } @else if (appointmentsError()) {
+            <p class="appointment-feedback appointment-feedback--error" role="alert">No pudimos actualizar tus citas.</p>
+            <button class="btn-outline" type="button" (click)="loadMyAppointments()">Reintentar citas</button>
+          } @else {
+            <div class="appointment-grid">
+              @for (appointment of orderedAppointments(); track appointment.id) {
+                <article class="appointment-card" [class.appointment-card--inactive]="!isActiveAppointment(appointment)">
+                  <div class="appointment-card__summary">
+                    @if (appointmentImage(appointment); as imageUrl) {
+                      <img class="appointment-card__image" [src]="imageUrl" [alt]="'Imagen de ' + appointment.title">
+                    } @else {
+                      <div class="appointment-card__image appointment-card__image--fallback" aria-hidden="true">◷</div>
+                    }
+                    <div class="appointment-card__main">
+                      <header class="appointment-card__header">
+                        <span class="appointment-status" [attr.data-status]="appointmentStatusClass(appointmentStatusValue(appointment))">
+                          {{ appointmentStatusLabel(appointment) }}
+                        </span>
+                        <span class="appointment-card__code">{{ appointment.code }}</span>
+                      </header>
+                      <h3 class="appointment-card__title">{{ appointment.title }}</h3>
+                      <p class="appointment-card__primary"><span aria-hidden="true">◷</span>{{ appointmentDate(appointment.startsAt) }}</p>
+                      <p class="appointment-card__secondary"><span aria-hidden="true">○</span>{{ appointment.professionalName }} · {{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</p>
+                    </div>
+                  </div>
+
+                  <details class="appointment-card__more">
+                    <summary>Ver detalle <span aria-hidden="true">⌄</span></summary>
+                    <div class="appointment-card__details">
+                      <div class="appointment-card__detail">
+                        <span class="appointment-card__detail-icon" aria-hidden="true">▣</span>
+                        <span>
+                          <strong>{{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</strong>
+                          <small>{{ appointment.modality === 'ONLINE' ? 'Sesión online' : appointment.venue?.address || 'Ubicación presencial' }}</small>
+                        </span>
+                      </div>
+                      @if (appointment.reason) {
+                        <div class="appointment-card__note"><strong>Nota de la reserva</strong><p>{{ appointment.reason }}</p></div>
+                      }
+                    </div>
+                    @if (appointment.status === 'CANCELADA' && appointment.cancellationReason) {
+                      <div class="appointment-cancellation">
+                        <strong>{{ appointment.cancelledBy === 'CLIENTE' ? 'Cancelaste esta cita' : 'Cancelada por el profesional' }}</strong>
+                        <p>{{ appointment.cancellationReason }}</p>
+                        @if (appointment.cancelledAt) { <small>{{ appointmentDate(appointment.cancelledAt) }}</small> }
+                      </div>
+                    }
+                    @if (appointment.rescheduledAt && appointment.previousStartsAt) {
+                      <div class="appointment-reschedule-history">
+                        <strong>{{ appointment.rescheduledBy === 'PROFESIONAL' ? 'El profesional propuso este horario' : 'Horario reprogramado' }}</strong>
+                        <p>Antes: {{ appointmentDate(appointment.previousStartsAt) }}</p>
+                        @if (appointment.rescheduleReason) { <p>Motivo: {{ appointment.rescheduleReason }}</p> }
+                        <small>Solicitado {{ appointmentDate(appointment.rescheduledAt) }}</small>
+                      </div>
+                    }
+                    @if (appointment.status === 'REPROGRAMACION_PROPUESTA') {
+                      <div class="appointment-proposal" [class.appointment-proposal--expired]="!isAppointmentProposalAvailable(appointment)">
+                        <strong>El profesional propuso este nuevo horario</strong>
+                        @if (isAppointmentProposalAvailable(appointment)) {
+                          <p>Revisa la fecha y responde para confirmar o liberar la cita.</p>
+                        } @else {
+                          <p>Esta propuesta venció y ya no requiere una respuesta.</p>
+                        }
+                      </div>
+                    }
+                    <div class="appointment-actions appointment-card__detail-actions">
+                      @if (isAppointmentProposalAvailable(appointment)) {
+                        <button type="button" class="btn-primary" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, true)">Aceptar horario</button>
+                        <button type="button" class="btn-outline btn-outline--danger" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, false)">Rechazar</button>
+                      }
+                      @if (appointment.virtualUrl && appointment.status === 'CONFIRMADA') {
+                        <a class="btn-outline appointment-meet-link" [href]="appointment.virtualUrl" target="_blank" rel="noopener">Entrar a Google Meet</a>
+                      }
+                      @if (canCancelAppointment(appointment)) {
+                        @if (canRescheduleAppointment(appointment)) {
+                          <button type="button" class="btn-outline" (click)="appointmentToReschedule.set(appointment)">Reprogramar</button>
+                        }
+                        <button type="button" class="btn-outline btn-outline--danger" (click)="appointmentToCancel.set(appointment)">Cancelar cita</button>
+                      }
+                    </div>
+                    <span class="appointment-card__reference appointment-card__detail-reference">Referencia {{ appointment.code }}</span>
+                  </details>
+                </article>
+              } @empty {
+                <div class="appointment-empty">
+                  <span aria-hidden="true">◷</span>
+                  <h3>Aún no tienes citas 1:1</h3>
+                  <p>Elige un profesional y solicita una sesión para verla aquí.</p>
+                  <a routerLink="/profesionales" class="boton">Ver profesionales</a>
+                </div>
+              }
+            </div>
+          }
+        </section>
+        <header class="event-bookings-heading">
+          <div>
+            <span class="client-appointments__eyebrow">EXPERIENCIAS</span>
+            <h2>Reservas de eventos</h2>
+          </div>
+          <span>{{ activeEventBookings().length }} activa{{ activeEventBookings().length === 1 ? '' : 's' }}</span>
+        </header>
         @if (bookingsLoading()) {
           <div class="following-state" aria-live="polite">Cargando tus reservas...</div>
         } @else if (bookingsError()) {
@@ -932,7 +1070,7 @@
                 <path d="M9 16l2 2 4-4"></path>
               </svg>
             </div>
-            <h2 class="mi-espacio__empty-title">Aún no tienes reservas</h2>
+            <h2 class="mi-espacio__empty-title">Aún no tienes reservas de eventos</h2>
             <p class="mi-espacio__empty-text">
               Explora los eventos disponibles y reserva tu sesión. Aquí verás cada fecha que reserves.
             </p>

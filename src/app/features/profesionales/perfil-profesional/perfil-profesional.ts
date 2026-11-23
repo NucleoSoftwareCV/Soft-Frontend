@@ -1,5 +1,7 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { AppointmentRequestComponent } from './appointment-request.component';
+import { afterRenderEffect, Component, computed, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
 import { SpecialistProfileService, SpecialistProfileResponse} from '../../../services/profesionales.service';
@@ -31,6 +33,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     SesionCardComponent,
     EventoCalendarComponent,
     ConfirmDialogComponent,
+    AppointmentRequestComponent,
   ],
   templateUrl: './perfil-profesional.html',
   styleUrl: './perfil-profesional.css'
@@ -51,6 +54,37 @@ export class PerfilProfesional implements OnInit {
   private readonly eventosService = inject(EventosService);
   private readonly oneToOneServicesService = inject(OneToOneServicesService);
  
+  private readonly queryParams = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
+  private readonly appointmentSection = viewChild<ElementRef<HTMLElement>>('appointmentSection');
+  readonly appointmentRequested = computed(() => this.authService.isLoggedIn && this.queryParams().get('reservar') === '1' && !this.isOwnProfile());
+  readonly selectedAppointmentService = signal<number | null>(null);
+  readonly appointmentSaving = signal(false);
+  readonly sessionsLoading = signal(false);
+  readonly sessionsError = signal(false);
+
+  constructor() {
+    afterRenderEffect(() => {
+      const section = this.appointmentSection();
+      if (this.appointmentRequested() && section) {
+        section.nativeElement.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+        section.nativeElement.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  reserveAppointment(): void {
+    const profile = this.perfil();
+    if (!profile || this.isOwnProfile() || !profile.showOneToOneSessions) return;
+    const target = this.router.createUrlTree(['/profesionales', profile.slug], {
+      queryParams: { reservar: '1' }, fragment: 'citas',
+    });
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.serializeUrl(target) } });
+      return;
+    }
+    void this.router.navigateByUrl(target);
+  }
+
   readonly perfil = signal<TarjetaDirectorio | null>(null);
   readonly following = signal(false);
   readonly followLoading = signal(false);
@@ -223,6 +257,8 @@ export class PerfilProfesional implements OnInit {
   cargarSesiones(
     specialistId: number
   ): void {
+    this.sessionsLoading.set(true);
+    this.sessionsError.set(false);
 
     this.oneToOneServicesService
       .getServicesBySpecialist(specialistId)
@@ -230,9 +266,12 @@ export class PerfilProfesional implements OnInit {
 
         next: (response) => {
           this.sesiones.set(response.content);
+          this.sessionsLoading.set(false);
         },
 
         error: (error) => {
+          this.sessionsLoading.set(false);
+          this.sessionsError.set(true);
           console.error(
             'Error al cargar sesiones:',
             error
