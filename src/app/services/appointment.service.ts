@@ -26,6 +26,7 @@ export interface AppointmentReceipt extends AppointmentSlot {
   rescheduleReason?: string | null;
   rescheduledBy?: 'CLIENTE' | 'PROFESIONAL' | null;
   virtualUrl?: string | null;
+  imageUrl?: string | null;
 }
 export interface AppointmentReschedule {
   modality: AppointmentModality; locationId: number | null; startsAt: string; reason: string;
@@ -89,6 +90,9 @@ export class AppointmentService {
   }
   pending() {
     return this.http.get<AppointmentReceipt[]>(`${this.base}/professional-agenda/requests/pending`);
+  }
+  agendaAppointment(code: string) {
+    return this.http.get<AppointmentReceipt>(`${this.base}/professional-agenda/requests/code/${encodeURIComponent(code)}`);
   }
   decide(id: number, status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA', reason?: string) {
     return this.http.patch<AppointmentReceipt>(`${this.base}/professional-agenda/requests/${id}`, { status, reason: reason || null });

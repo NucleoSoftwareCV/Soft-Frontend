@@ -13,6 +13,9 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalApplicationResponse } from '../../shared/models/professional-application.model';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { NotificationsService } from '../../services/notifications.service';
+import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
@@ -47,7 +50,14 @@ interface ItemCreado {
 export function isActiveAppointmentReservation(appointment: AppointmentReceipt, now = Date.now()): boolean {
   if (Date.parse(appointment.startsAt) <= now) return false;
   if (!['PENDIENTE', 'CONFIRMADA', 'REPROGRAMACION_PROPUESTA'].includes(appointment.status)) return false;
-  return appointment.status !== 'PENDIENTE' || !appointment.expiresAt || Date.parse(appointment.expiresAt) > now;
+  const requiresValidHold = appointment.status === 'PENDIENTE' || appointment.status === 'REPROGRAMACION_PROPUESTA';
+  return !requiresValidHold || !appointment.expiresAt || Date.parse(appointment.expiresAt) > now;
+}
+
+export function isAppointmentProposalAvailable(appointment: AppointmentReceipt, now = Date.now()): boolean {
+  return appointment.status === 'REPROGRAMACION_PROPUESTA'
+    && Date.parse(appointment.startsAt) > now
+    && (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now);
 }
 
 export function isActiveEventReservation(booking: MyBooking, now = Date.now()): boolean {
@@ -58,7 +68,7 @@ export function isActiveEventReservation(booking: MyBooking, now = Date.now()): 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, AppointmentRescheduleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, AppointmentRescheduleComponent, NotificationsInboxComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
@@ -70,6 +80,7 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   private readonly followService = inject(ProfessionalFollowService);
   readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
+  readonly notificationsService = inject(NotificationsService);
 
   readonly favoritesDetails = signal<FavoriteResponse[]>([]);
   readonly favoritesLoading = signal(false);
@@ -138,7 +149,7 @@ readonly professionalApplicationLoading = signal(false);
 readonly professionalApplicationDismissed = signal(false);
 
   seccionActiva = signal<Seccion>('perfil');
-  readonly seccionCliente = signal<'reservas' | 'guardados' | 'siguiendo'>('reservas');
+  readonly seccionCliente = signal<'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'>('reservas');
   // La gestion profesional vive en /profesional; /perfil siempre es el espacio personal.
   readonly isProfessional = computed(() => false);
   readonly followedProfessionals = signal<FollowedProfessionalResponse[]>([]);
@@ -225,7 +236,7 @@ readonly professionalApplicationDismissed = signal(false);
 
   items = signal<ItemCreado[]>([]);
 
-  cambiarSeccionCliente(tab: 'reservas' | 'guardados' | 'siguiendo'): void {
+  cambiarSeccionCliente(tab: 'reservas' | 'notificaciones' | 'guardados' | 'siguiendo'): void {
     this.seccionCliente.set(tab);
     if (tab === 'siguiendo' && this.followedProfessionals().length === 0) {
       this.loadFollowedProfessionals(0);
@@ -274,7 +285,7 @@ readonly professionalApplicationDismissed = signal(false);
   canCancelAppointment(appointment: AppointmentReceipt): boolean {
     const now = Date.now();
     return Date.parse(appointment.startsAt) > now &&
-      (appointment.status === 'CONFIRMADA' || appointment.status === 'REPROGRAMACION_PROPUESTA' || (appointment.status === 'PENDIENTE' &&
+      (appointment.status === 'CONFIRMADA' || this.isAppointmentProposalAvailable(appointment, now) || (appointment.status === 'PENDIENTE' &&
         (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
   }
 
@@ -294,6 +305,26 @@ readonly professionalApplicationDismissed = signal(false);
     return this.canCancelAppointment(appointment) && appointment.status !== 'REPROGRAMACION_PROPUESTA';
   }
 
+  isAppointmentProposalAvailable(appointment: AppointmentReceipt, now = Date.now()): boolean {
+    return isAppointmentProposalAvailable(appointment, now);
+  }
+
+  appointmentStatusLabel(appointment: AppointmentReceipt): string {
+    return appointment.status === 'REPROGRAMACION_PROPUESTA' && !this.isAppointmentProposalAvailable(appointment)
+      ? 'Propuesta vencida'
+      : this.appointmentStatuses[appointment.status] || appointment.status;
+  }
+
+  appointmentStatusValue(appointment: AppointmentReceipt): string {
+    return appointment.status === 'REPROGRAMACION_PROPUESTA' && !this.isAppointmentProposalAvailable(appointment)
+      ? 'EXPIRADA'
+      : appointment.status;
+  }
+
+  appointmentImage(appointment: AppointmentReceipt): string {
+    return resolveAssetUrl(appointment.imageUrl);
+  }
+
   respondToAppointmentProposal(appointment: AppointmentReceipt, accepted: boolean): void {
     if (this.cancellingAppointment()) return;
     this.cancellingAppointment.set(true);
@@ -309,7 +340,11 @@ readonly professionalApplicationDismissed = signal(false);
       },
       error: err => {
         this.cancellingAppointment.set(false);
-        this.cancellationError.set(err.error?.detail || 'No pudimos responder a la propuesta.');
+        if (err.status === 409) {
+          this.cancellationMessage.set('La propuesta venció antes de que pudieras responder. Actualizamos tus citas.');
+        } else {
+          this.cancellationError.set(err.error?.detail || 'No pudimos responder a la propuesta.');
+        }
         this.loadMyAppointments();
       },
     });
@@ -529,6 +564,8 @@ ngOnInit(): void {
 
     if (tab === 'guardados') {
       this.cambiarSeccionCliente('guardados');
+    } else if (tab === 'notificaciones') {
+      this.cambiarSeccionCliente('notificaciones');
     } else if (tab === 'siguiendo') {
       this.cambiarSeccionCliente('siguiendo');
     } else if (tab === 'reservas') {

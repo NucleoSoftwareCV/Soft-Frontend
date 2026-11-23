@@ -135,6 +135,36 @@
       </div>
       @if (summary()?.nextAppointment; as next) { <p class="next-appointment"><strong>Próxima reunión:</strong> {{ next.title }} con {{ next.customerName }} · {{ formatDate(next.startsAt) }}</p> }
     }
+    @if (requestedAppointmentCode()) {
+      <section class="focused-appointment" aria-live="polite">
+        <header>
+          <div><span>DESDE NOTIFICACIONES</span><h3>Cita vinculada</h3></div>
+          <button type="button" (click)="clearFocusedAppointment()">Volver a la agenda</button>
+        </header>
+        @if (focusedAppointmentLoading()) {
+          <p>Abriendo la cita…</p>
+        } @else if (focusedAppointmentError()) {
+          <p class="notice notice--error">{{ focusedAppointmentError() }}</p>
+        } @else if (focusedAppointment(); as item) {
+          <article class="request request--focused">
+            <h3>{{ item.title }}</h3>
+            <p><strong>{{ item.customerName }}</strong> · <span class="status-badge" [attr.data-status]="item.status">{{ statusLabels[item.status] || item.status }}</span></p>
+            <p>{{ formatDate(item.startsAt) }} – {{ formatDate(item.endsAt) }}</p>
+            <p>{{ item.modality === 'ONLINE' ? 'Videollamada' : 'Presencial · ' + item.venue?.name }} · {{ item.price | currency:item.currency:'symbol':'1.2-2':'es-PE' }}</p>
+            <details class="request-details"><summary>Ver detalles</summary>
+              @if (item.reason) { <p class="reason">{{ item.reason }}</p> }
+              @if (item.cancellationReason) { <p class="reason"><strong>Motivo:</strong> {{ item.cancellationReason }}</p> }
+              <p>Referencia {{ item.code }}</p>
+            </details>
+            <div class="choices">
+              @if (item.status === 'PENDIENTE' && canCancel(item)) { <button type="button" class="primary" [disabled]="saving()" (click)="decide(item.id, 'CONFIRMADA')">Aceptar</button><button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Rechazar</button> }
+              @if ((item.status === 'CONFIRMADA' || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
+              @if (item.status === 'CONFIRMADA' && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
+            </div>
+          </article>
+        }
+      </section>
+    }
     <div class="agenda-filters">
       <label>Buscar<input type="search" placeholder="Servicio, cliente o referencia" [ngModel]="search()" (ngModelChange)="search.set($event)"></label>
       @if (view() !== 'pending') {

@@ -44,6 +44,11 @@ button.calendar-day { padding: 4px; display: flex; align-items: center; justify-
 .cancellation-detail small { color: #745d59; }
 .form-grid__wide { grid-column: 1 / -1; }
 .next-appointment { margin: 12px 0 0; padding: 14px 16px; border-left: 4px solid #00515f; border-radius: 10px; background: #f4f8f6; }
+.focused-appointment { margin: 18px 0; padding: 16px; border: 1px solid #85bbb2; border-radius: 14px; background: #f1f8f7; }
+.focused-appointment > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.focused-appointment > header span { color: #5d9339; font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+.focused-appointment > header h3 { margin: 4px 0 0; font-size: 1.15rem; }
+.request--focused { margin-bottom: 0; background: #fff; }
 .contacts-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr); gap: 24px; align-items: start; }
 .contact-list { display: grid; gap: 10px; }
 button.contact-card { display: grid; width: 100%; gap: 4px; text-align: left; padding: 16px; }

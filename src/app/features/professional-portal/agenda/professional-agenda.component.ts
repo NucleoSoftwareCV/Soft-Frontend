@@ -1,7 +1,8 @@
-import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentBlock, AppointmentService, AppointmentSummary, AvailabilityRule, AppointmentReceipt,
   AppointmentModality, AppointmentOptions, AppointmentSlot,
@@ -33,6 +34,9 @@ export class ProfessionalAgendaComponent implements OnInit {
   private readonly api = inject(AppointmentService);
   private readonly sessions = inject(OneToOneServicesService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly requestedAppointmentCode = input<string | null>(null);
   readonly rules = signal<AvailabilityRule[]>([]);
   readonly appointmentToCancel = signal<AppointmentReceipt | null>(null);
   readonly appointments = signal<AppointmentReceipt[]>([]);
@@ -47,6 +51,9 @@ export class ProfessionalAgendaComponent implements OnInit {
   readonly appointmentToReschedule = signal<AppointmentReceipt | null>(null);
   readonly venues = signal<LocationResponse[]>([]);
   readonly loading = signal(false);
+  readonly focusedAppointment = signal<AppointmentReceipt | null>(null);
+  readonly focusedAppointmentLoading = signal(false);
+  readonly focusedAppointmentError = signal<string | null>(null);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly message = signal<string | null>(null);
@@ -76,6 +83,48 @@ export class ProfessionalAgendaComponent implements OnInit {
     COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Cambio propuesto',
   };
   private agendaRequest?: Subscription;
+  private focusedAppointmentRequest?: Subscription;
+
+  constructor() {
+    effect(() => {
+      const code = this.requestedAppointmentCode();
+      if (!code) {
+        this.focusedAppointmentRequest?.unsubscribe();
+        this.focusedAppointment.set(null);
+        this.focusedAppointmentError.set(null);
+        return;
+      }
+      this.loadFocusedAppointment(code);
+    });
+  }
+
+  private loadFocusedAppointment(code: string): void {
+    this.focusedAppointmentRequest?.unsubscribe();
+    this.focusedAppointmentLoading.set(true);
+    this.focusedAppointmentError.set(null);
+    this.focusedAppointmentRequest = this.api.agendaAppointment(code)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: appointment => {
+          this.focusedAppointment.set(appointment);
+          this.focusedAppointmentLoading.set(false);
+        },
+        error: err => {
+          this.focusedAppointment.set(null);
+          this.focusedAppointmentError.set(err.error?.detail || 'No pudimos abrir la cita indicada.');
+          this.focusedAppointmentLoading.set(false);
+        },
+      });
+  }
+
+  clearFocusedAppointment(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { cita: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   readonly period = computed(() => {
     const selected = this.agendaDate();
@@ -277,7 +326,10 @@ export class ProfessionalAgendaComponent implements OnInit {
   removeContact(contact:ProfessionalContact):void { if(contact.source!=='MANUAL'||this.saving()) return; this.saving.set(true); this.api.removeContact(contact.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:()=>{this.saving.set(false);this.contactDetail.set(null);this.loadContacts();},error:err=>{this.saving.set(false);this.error.set(err.error?.detail||'No pudimos eliminar el contacto.');}}); }
   decide(id: number, status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA', reason?: string): void {
     if (this.saving()) return; this.saving.set(true); this.error.set(null);
-    this.api.decide(id, status, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { this.saving.set(false); this.message.set(status === 'CANCELADA' ? 'La cita se canceló y el horario quedó disponible.' : null); this.loadAgenda(); }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos actualizar la solicitud.'); } });
+    this.api.decide(id, status, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => {
+      this.saving.set(false); this.message.set(status === 'CANCELADA' ? 'La cita se canceló y el horario quedó disponible.' : null); this.loadAgenda(); this.loadSummary();
+      const code = this.requestedAppointmentCode(); if (code) this.loadFocusedAppointment(code);
+    }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos actualizar la solicitud.'); } });
   }
   confirmCancellation(reason: string): void {
     const item = this.appointmentToCancel();
@@ -285,7 +337,10 @@ export class ProfessionalAgendaComponent implements OnInit {
     this.appointmentToCancel.set(null);
     this.decide(item.id, 'CANCELADA', reason);
   }
-  onProfessionalRescheduled(updated:AppointmentReceipt):void { this.appointmentToReschedule.set(null); this.message.set('Propuesta enviada al cliente.'); this.loadAgenda(); this.loadSummary(); }
+  onProfessionalRescheduled(updated:AppointmentReceipt):void {
+    this.appointmentToReschedule.set(null); this.message.set('Propuesta enviada al cliente.'); this.loadAgenda(); this.loadSummary();
+    const code = this.requestedAppointmentCode(); if (code) this.loadFocusedAppointment(code);
+  }
 
   cancellationActor(item: AppointmentReceipt): string {
     return item.cancelledBy === 'CLIENTE' ? 'Cancelada por el cliente' : 'Cancelada por el profesional';

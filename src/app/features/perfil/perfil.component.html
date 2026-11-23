@@ -757,6 +757,12 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ticket"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
           Reservas ({{ activeReservationCount() }})
         </button>
+        <button (click)="cambiarSeccionCliente('notificaciones')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'notificaciones'" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          Notificaciones ({{ notificationsService.unreadCount() }})
+        </button>
         <button (click)="cambiarSeccionCliente('guardados')" class="mi-espacio__tab-btn" [class.mi-espacio__tab-btn--active]="seccionCliente() === 'guardados'" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -901,6 +907,10 @@
 
 
       <!-- Pestaña Reservas -->
+      @if (seccionCliente() === 'notificaciones') {
+        <app-notifications-inbox />
+      }
+
       @if (seccionCliente() === 'reservas') {
         <section class="client-appointments" aria-labelledby="client-appointments-title">
           <header class="client-appointments__header">
@@ -937,33 +947,39 @@
             <div class="appointment-grid">
               @for (appointment of orderedAppointments(); track appointment.id) {
                 <article class="appointment-card" [class.appointment-card--inactive]="!isActiveAppointment(appointment)">
-                  <header class="appointment-card__header">
-                    <span class="appointment-status" [attr.data-status]="appointmentStatusClass(appointment.status)">
-                      {{ appointmentStatuses[appointment.status] || appointment.status }}
-                    </span>
-                    <span class="appointment-card__code">{{ appointment.code }}</span>
-                  </header>
-
-                  <h3 class="appointment-card__title">{{ appointment.title }}</h3>
-
-                  <div class="appointment-card__details">
-                    <div class="appointment-card__detail">
-                      <span class="appointment-card__detail-icon" aria-hidden="true">◷</span>
-                      <span><strong>{{ appointmentDate(appointment.startsAt) }}</strong><small>Hora de Perú</small></span>
-                    </div>
-                    <div class="appointment-card__detail">
-                      <span class="appointment-card__detail-icon" aria-hidden="true">○</span>
-                      <span><strong>{{ appointment.professionalName }}</strong><small>Profesional</small></span>
-                    </div>
-                    <div class="appointment-card__detail">
-                      <span class="appointment-card__detail-icon" aria-hidden="true">{{ appointment.modality === 'ONLINE' ? '▣' : '⌖' }}</span>
-                      <span>
-                        <strong>{{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</strong>
-                        <small>{{ appointment.modality === 'ONLINE' ? 'Sesión online' : appointment.venue?.address || 'Ubicación presencial' }}</small>
-                      </span>
+                  <div class="appointment-card__summary">
+                    @if (appointmentImage(appointment); as imageUrl) {
+                      <img class="appointment-card__image" [src]="imageUrl" [alt]="'Imagen de ' + appointment.title">
+                    } @else {
+                      <div class="appointment-card__image appointment-card__image--fallback" aria-hidden="true">◷</div>
+                    }
+                    <div class="appointment-card__main">
+                      <header class="appointment-card__header">
+                        <span class="appointment-status" [attr.data-status]="appointmentStatusClass(appointmentStatusValue(appointment))">
+                          {{ appointmentStatusLabel(appointment) }}
+                        </span>
+                        <span class="appointment-card__code">{{ appointment.code }}</span>
+                      </header>
+                      <h3 class="appointment-card__title">{{ appointment.title }}</h3>
+                      <p class="appointment-card__primary"><span aria-hidden="true">◷</span>{{ appointmentDate(appointment.startsAt) }}</p>
+                      <p class="appointment-card__secondary"><span aria-hidden="true">○</span>{{ appointment.professionalName }} · {{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</p>
                     </div>
                   </div>
 
+                  <details class="appointment-card__more">
+                    <summary>Ver detalle <span aria-hidden="true">⌄</span></summary>
+                    <div class="appointment-card__details">
+                      <div class="appointment-card__detail">
+                        <span class="appointment-card__detail-icon" aria-hidden="true">▣</span>
+                        <span>
+                          <strong>{{ appointment.modality === 'ONLINE' ? 'Videollamada' : appointment.venue?.name || 'Presencial' }}</strong>
+                          <small>{{ appointment.modality === 'ONLINE' ? 'Sesión online' : appointment.venue?.address || 'Ubicación presencial' }}</small>
+                        </span>
+                      </div>
+                      @if (appointment.reason) {
+                        <div class="appointment-card__note"><strong>Nota de la reserva</strong><p>{{ appointment.reason }}</p></div>
+                      }
+                    </div>
                     @if (appointment.status === 'CANCELADA' && appointment.cancellationReason) {
                       <div class="appointment-cancellation">
                         <strong>{{ appointment.cancelledBy === 'CLIENTE' ? 'Cancelaste esta cita' : 'Cancelada por el profesional' }}</strong>
@@ -980,16 +996,17 @@
                       </div>
                     }
                     @if (appointment.status === 'REPROGRAMACION_PROPUESTA') {
-                      <div class="appointment-proposal">
+                      <div class="appointment-proposal" [class.appointment-proposal--expired]="!isAppointmentProposalAvailable(appointment)">
                         <strong>El profesional propuso este nuevo horario</strong>
-                        <p>Revisa la fecha y responde para confirmar o liberar la cita.</p>
+                        @if (isAppointmentProposalAvailable(appointment)) {
+                          <p>Revisa la fecha y responde para confirmar o liberar la cita.</p>
+                        } @else {
+                          <p>Esta propuesta venció y ya no requiere una respuesta.</p>
+                        }
                       </div>
                     }
-
-                  <footer class="appointment-card__footer">
-                    <span class="appointment-card__reference">Referencia {{ appointment.code }}</span>
-                    <div class="appointment-actions">
-                      @if (appointment.status === 'REPROGRAMACION_PROPUESTA') {
+                    <div class="appointment-actions appointment-card__detail-actions">
+                      @if (isAppointmentProposalAvailable(appointment)) {
                         <button type="button" class="btn-primary" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, true)">Aceptar horario</button>
                         <button type="button" class="btn-outline btn-outline--danger" [disabled]="cancellingAppointment()" (click)="respondToAppointmentProposal(appointment, false)">Rechazar</button>
                       }
@@ -1003,7 +1020,8 @@
                         <button type="button" class="btn-outline btn-outline--danger" (click)="appointmentToCancel.set(appointment)">Cancelar cita</button>
                       }
                     </div>
-                  </footer>
+                    <span class="appointment-card__reference appointment-card__detail-reference">Referencia {{ appointment.code }}</span>
+                  </details>
                 </article>
               } @empty {
                 <div class="appointment-empty">

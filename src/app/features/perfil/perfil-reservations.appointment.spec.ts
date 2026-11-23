@@ -1,9 +1,11 @@
+import '@angular/compiler';
 import { describe, expect, it } from 'vitest';
 
 import { AppointmentReceipt } from '../../services/appointment.service';
 import { MyBooking } from '../../services/checkout.service';
 import {
   isActiveAppointmentReservation,
+  isAppointmentProposalAvailable,
   isActiveEventReservation,
 } from './perfil.component';
 
@@ -58,6 +60,16 @@ describe('contadores de reservas del perfil', () => {
     expect(isActiveAppointmentReservation(appointment('CANCELADA', '2026-11-14T15:00:00Z'), now)).toBe(false);
     expect(isActiveAppointmentReservation(appointment('COMPLETADA', '2026-11-14T15:00:00Z'), now)).toBe(false);
     expect(isActiveAppointmentReservation(appointment('PENDIENTE', '2026-11-14T15:00:00Z', '2026-11-13T14:00:00Z'), now)).toBe(false);
+    expect(isActiveAppointmentReservation(appointment('REPROGRAMACION_PROPUESTA', '2026-11-14T15:00:00Z', '2026-11-13T14:00:00Z'), now)).toBe(false);
+  });
+
+  it('no permite responder propuestas vencidas', () => {
+    expect(isAppointmentProposalAvailable(
+      appointment('REPROGRAMACION_PROPUESTA', '2026-11-14T15:00:00Z', '2026-11-13T14:00:00Z'), now,
+    )).toBe(false);
+    expect(isAppointmentProposalAvailable(
+      appointment('REPROGRAMACION_PROPUESTA', '2026-11-14T15:00:00Z', '2026-11-13T16:00:00Z'), now,
+    )).toBe(true);
   });
 
   it('cuenta únicamente reservas futuras de eventos activas', () => {
