@@ -1,6 +1,6 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, map, Observable, switchMap, tap, throwError } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   FavoriteEntityType,
@@ -150,8 +150,9 @@ export class FavoritesService {
       ),
 
      
+      // forkJoin([]) completa sin emitir: sin favoritos hay que devolver la lista vacía.
       switchMap(requests =>
-        forkJoin(requests)
+        requests.length ? forkJoin(requests) : of([])
       )
 
     );

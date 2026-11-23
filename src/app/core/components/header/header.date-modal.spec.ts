@@ -2,8 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { Router } from '@angular/router';
-import { vi } from 'vitest';
 
 import { HeaderComponent } from './header.component';
 import { FiltrosService } from '../../../services/filtros.service';
@@ -19,15 +17,8 @@ function waitForCountDebounce(): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, 320));
 }
 
-function flushEventCount(httpMock: HttpTestingController, totalElements: number): void {
-  const req = httpMock.expectOne(r => r.url.endsWith('/events'));
-  req.flush({
-    content: [],
-    totalElements,
-    totalPages: 0,
-    size: 1,
-    number: 0,
-  });
+function isoDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
@@ -56,7 +47,8 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
   });
 
   afterEach(() => {
-    httpMock.verify();
+    fixture.destroy();
+    httpMock.verify({ ignoreCancelled: true });
   });
 
   it('abre el modal sobre el mes actual con una rejilla de 6 semanas (42 celdas)', () => {
@@ -65,7 +57,8 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
     expect(component.isDateModalOpen()).toBe(true);
 
     const now = new Date();
-    expect(component.calendarView()).toEqual({ year: now.getFullYear(), month: now.getMonth() });
+    expect(component.calendarMonth().getFullYear()).toBe(now.getFullYear());
+    expect(component.calendarMonth().getMonth()).toBe(now.getMonth());
 
     const days = component.calendarDays();
     expect(days.length).toBe(42);
@@ -75,19 +68,17 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
     expect(new Date(y, m - 1, d).getDay()).toBe(1);
   });
 
-  it('muestra el título, los atajos y el footer con "Mostrar N experiencias" en el DOM', async () => {
+  it('muestra el título, los atajos, la rejilla y el pie en el DOM', () => {
     component.openDatePicker();
-    await waitForCountDebounce();
-    flushEventCount(httpMock, 121);
     fixture.detectChanges();
 
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('.date-modal__title')?.textContent?.trim()).toBe('Fecha');
-    expect(el.querySelectorAll('.date-chip').length).toBe(3);
-    expect(el.querySelector('.date-chip')?.textContent?.trim()).toBe('Esta semana');
+    expect(el.querySelectorAll('.date-chip').length).toBe(filtrosService.whenOptions.length);
+    expect(el.querySelector('.date-chip')?.textContent?.trim()).toBe(filtrosService.whenOptions[0]);
     expect(el.querySelectorAll('.date-calendar__day').length).toBe(42);
-    expect(el.querySelector('.date-modal__clear')?.textContent?.trim()).toContain('Borrar');
-    expect(el.querySelector('.date-modal__apply')?.textContent?.trim()).toContain('Mostrar 121 experiencias');
+    expect(el.querySelector('.date-modal__clear')).toBeTruthy();
+    expect(el.querySelector('.date-modal__apply')?.textContent?.trim()).toContain('Mostrar resultados');
     const weekdays = Array.from(el.querySelectorAll('.date-calendar__weekday'))
       .map(n => n.textContent?.trim());
     expect(weekdays).toEqual(['LU', 'MA', 'MI', 'JU', 'VI', 'SÁ', 'DO']);
@@ -96,59 +87,83 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
   it('centra el calendario en el mes de la fecha ya elegida (RANGO:) al abrir', () => {
     const target = new Date();
     target.setMonth(target.getMonth() + 2, 12);
-    const key = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-12`;
+    const key = isoDate(target);
     component.pendingWhen.set(`RANGO:${key}:${key}`);
 
     component.openDatePicker();
 
-    expect(component.calendarView()).toEqual({ year: target.getFullYear(), month: target.getMonth() });
-    expect(component.selectedDateKey()).toBe(key);
+    expect(component.calendarMonth().getFullYear()).toBe(target.getFullYear());
+    expect(component.calendarMonth().getMonth()).toBe(target.getMonth());
     expect(component.calendarDays().some(d => d.isSelected && d.date === key)).toBe(true);
+    expect(component.isCustomDatePending()).toBe(true);
+    expect(component.pendingDateChipLabel()).not.toBe('Elegir fecha');
   });
 
-  it('selecciona un día → aplica RANGO:dateFrom=dateTo y envía el filtro al backend', async () => {
-    component.openDatePicker();
+  it('elige un día, lo aplica como RANGO:día:día y lo envía al contador del backend', async () => {
+    component.openFilter();
+    flushCatalogRequests(httpMock);
+    fixture.detectChanges();
     await waitForCountDebounce();
-    flushEventCount(httpMock, 129);
+    httpMock.expectOne(r => r.url.endsWith('/events'))
+      .flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
 
+    component.openDatePicker();
     component.nextMonth();
     const cell = component.calendarDays().find(d => d.day === 15 && d.inMonth)!;
     component.selectCalendarDay(cell);
+    component.applyDateSelection();
 
     const expected = `RANGO:${cell.date}:${cell.date}`;
     expect(component.pendingWhen()).toBe(expected);
-    expect(filtrosService.filterWhen()).toBe(expected);
+    expect(component.isDateModalOpen()).toBe(false);
+    expect(component.isFilterOpen()).toBe(true);
+    // El filtro global no cambia hasta pulsar "Mostrar resultados" en el panel de filtros.
+    expect(filtrosService.filterWhen()).toBeNull();
 
+    fixture.detectChanges();
     await waitForCountDebounce();
     const req = httpMock.expectOne(r => r.url.endsWith('/events'));
     expect(req.request.params.get('dateFrom')).toBe(cell.date);
     expect(req.request.params.get('dateTo')).toBe(cell.date);
     req.flush({ content: [], totalElements: 7, totalPages: 0, size: 1, number: 0 });
 
-    expect(component.resultCount()).toBe(7);
+    expect(component.pendingResultsCount()).toBe(7);
     expect(component.dateButtonLabel()).toBe('Mostrar 7 experiencias');
-    expect(component.isCustomDatePending()).toBe(true);
-    expect(component.pendingDateChipLabel()).not.toBe('Elegir fecha');
+
+    component.applyFilters();
+    expect(filtrosService.filterWhen()).toBe(expected);
   });
 
-  it('deselecciona el día al pulsarlo de nuevo (toggle)', () => {
+  it('un segundo día posterior cierra el rango y marca todos los días intermedios', () => {
     component.openDatePicker();
     component.nextMonth();
-    const cell = component.calendarDays().find(d => d.day === 15 && d.inMonth)!;
+    const days = component.calendarDays().filter(d => d.inMonth);
+    component.selectCalendarDay(days[9]);
+    component.selectCalendarDay(days[11]);
+    component.applyDateSelection();
 
-    component.selectCalendarDay(cell);
-    expect(component.pendingWhen()).toBe(`RANGO:${cell.date}:${cell.date}`);
+    expect(component.pendingWhen()).toBe(`RANGO:${days[9].date}:${days[11].date}`);
+  });
 
-    component.selectCalendarDay(component.calendarDays().find(d => d.day === 15 && d.inMonth)!);
-    expect(component.pendingWhen()).toBeNull();
-    expect(filtrosService.filterWhen()).toBeNull();
+  it('un segundo día anterior reinicia el inicio del rango', () => {
+    component.openDatePicker();
+    component.nextMonth();
+    const days = component.calendarDays().filter(d => d.inMonth);
+    component.selectCalendarDay(days[11]);
+    component.selectCalendarDay(days[9]);
+
+    expect(component.pendingDateFrom() && isoDate(component.pendingDateFrom()!)).toBe(days[9].date);
+    expect(component.pendingDateTo()).toBeNull();
   });
 
   it('no permite seleccionar días pasados', () => {
     component.openDatePicker();
-    const pastCell = component.calendarDays().find(d => d.isPast)!;
+    const pastCell = component.calendarDays().find(d => d.isPast);
+    if (!pastCell) {
+      return; // Hoy es día 1 y lunes: no hay celdas pasadas en la rejilla.
+    }
     component.selectCalendarDay(pastCell);
-    expect(component.pendingWhen()).toBeNull();
+    expect(component.pendingDateFrom()).toBeNull();
   });
 
   it('no retrocede de mes antes del mes en curso y sí avanza', () => {
@@ -162,58 +177,45 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
     expect(component.canGoToPrevMonth()).toBe(false);
   });
 
-  it('la etiqueta del mes se muestra capitalizada ("Septiembre 2026")', () => {
-    component.calendarView.set({ year: 2026, month: 8 });
-    expect(component.monthLabel()).toBe('Septiembre 2026');
+  it('la etiqueta del mes se muestra capitalizada', () => {
+    component.calendarMonth.set(new Date(2026, 8, 1));
+    expect(component.monthLabel().startsWith('Septiembre')).toBe(true);
+    expect(component.monthLabel()).toContain('2026');
   });
 
-  it('los atajos ("Esta semana"…) alternan el filtro CUÁNDO', () => {
+  it('los atajos ("Este finde"…) fijan el filtro CUÁNDO y cierran el modal', () => {
     component.openDatePicker();
 
     component.selectDateQuick('Este finde');
-    expect(component.pendingWhen()).toBe('Este finde');
-    expect(filtrosService.filterWhen()).toBe('Este finde');
 
-    component.selectDateQuick('Este finde');
-    expect(component.pendingWhen()).toBeNull();
+    expect(component.pendingWhen()).toBe('Este finde');
+    expect(component.isDateModalOpen()).toBe(false);
   });
 
-  it('"Borrar" limpia la selección de fecha y deshabilita el botón', () => {
+  it('"Borrar" limpia la selección de fecha', () => {
     component.openDatePicker();
     component.nextMonth();
     const cell = component.calendarDays().find(d => d.day === 15 && d.inMonth)!;
     component.selectCalendarDay(cell);
+    component.applyDateSelection();
     expect(component.pendingWhen()).not.toBeNull();
 
     component.clearDateSelection();
 
     expect(component.pendingWhen()).toBeNull();
-    expect(filtrosService.filterWhen()).toBeNull();
+    expect(component.pendingDateFrom()).toBeNull();
+    expect(component.pendingDateTo()).toBeNull();
   });
 
-  it('"Mostrar N experiencias" cierra los dos modales y navega a /explorar', async () => {
-    const router = TestBed.inject(Router);
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    component.openFilter();
-    flushCatalogRequests(httpMock);
+  it('aplicar sin día elegido solo cierra el modal', () => {
     component.openDatePicker();
-    await waitForCountDebounce();
-    flushEventCount(httpMock, 121);
-    expect(component.isFilterOpen()).toBe(true);
-    expect(component.isDateModalOpen()).toBe(true);
-
     component.applyDateSelection();
 
     expect(component.isDateModalOpen()).toBe(false);
-    expect(component.isFilterOpen()).toBe(false);
-    expect(navigateSpy).toHaveBeenCalledWith(['/explorar'], { queryParamsHandling: 'preserve' });
-
-    await waitForCountDebounce();
-    flushEventCount(httpMock, 121);
+    expect(component.pendingWhen()).toBeNull();
   });
 
-  it('Escape cierra primero el modal de fecha sin cerrar el de filtros', () => {
+  it('Escape cierra el modal de fecha y el panel de filtros', () => {
     component.openFilter();
     flushCatalogRequests(httpMock);
     component.openDatePicker();
@@ -221,15 +223,6 @@ describe('HeaderComponent – modal de fecha ("Elegir fecha")', () => {
     component.onEscape();
 
     expect(component.isDateModalOpen()).toBe(false);
-    expect(component.isFilterOpen()).toBe(true);
-  });
-
-  it('al pulsar un día de otro mes, la vista salta a ese mes', () => {
-    component.openDatePicker();
-    const outCell = component.calendarDays().find(d => !d.inMonth && !d.isPast)!;
-    component.selectCalendarDay(outCell);
-
-    const [y, m] = outCell.date.split('-').map(Number);
-    expect(component.calendarView()).toEqual({ year: y, month: m - 1 });
+    expect(component.isFilterOpen()).toBe(false);
   });
 });

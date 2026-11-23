@@ -42,7 +42,7 @@ describe('Integración del encabezado con los cambios de main', () => {
     fixture.detectChanges();
     const links = fixture.nativeElement.querySelectorAll('.auth-dropdown-menu a');
     expect([...links].map((link: Element) => link.getAttribute('href')))
-      .toEqual(['/auth/login', '/auth/create']);
+      .toEqual(['/auth/login', '/auth/register']);
     fixture.componentInstance.onEscape();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.auth-dropdown-menu')).toBeNull();

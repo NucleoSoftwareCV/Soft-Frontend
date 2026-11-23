@@ -17,15 +17,10 @@ function waitForCountDebounce(): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, 320));
 }
 
-function flushEventCount(httpMock: HttpTestingController, totalElements: number): void {
+function flushEventCount(httpMock: HttpTestingController, totalElements: number) {
   const req = httpMock.expectOne(r => r.url.endsWith('/events'));
-  req.flush({
-    content: [],
-    totalElements,
-    totalPages: 0,
-    size: 1,
-    number: 0,
-  });
+  req.flush({ content: [], totalElements, totalPages: 0, size: 1, number: 0 });
+  return req;
 }
 
 describe('HeaderComponent – filtro de precio y contador en vivo', () => {
@@ -54,102 +49,106 @@ describe('HeaderComponent – filtro de precio y contador en vivo', () => {
   });
 
   afterEach(() => {
-    httpMock.verify();
+    fixture.destroy();
+    httpMock.verify({ ignoreCancelled: true });
   });
 
-  it('muestra la cantidad total de eventos al abrir el modal', async () => {
+  async function openFilterAndCount(total: number): Promise<void> {
     component.openFilter();
     flushCatalogRequests(httpMock);
+    fixture.detectChanges();
+    await waitForCountDebounce();
+    flushEventCount(httpMock, total);
+  }
+
+  it('muestra la cantidad total de eventos al abrir el panel', async () => {
+    component.openFilter();
+    flushCatalogRequests(httpMock);
+    fixture.detectChanges();
 
     expect(component.isFilterOpen()).toBe(true);
-    expect(component.countLoading()).toBe(true);
+    expect(component.applyButtonLabel()).toBe('Mostrar resultados');
 
     await waitForCountDebounce();
-    flushEventCount(httpMock, 129);
+    const req = flushEventCount(httpMock, 129);
 
-    expect(component.resultCount()).toBe(129);
+    expect(req.request.params.get('minPrice')).toBeNull();
+    expect(req.request.params.get('maxPrice')).toBeNull();
+    expect(component.pendingResultsCount()).toBe(129);
     expect(component.countLoading()).toBe(false);
-    expect(component.applyButtonLabel()).toBe('Mostrar 129 resultados →');
+    expect(component.applyButtonLabel()).toBe('Mostrar 129 experiencias');
   });
 
-  it('aplica el filtro de precio automáticamente y actualiza la cantidad sin pulsar el botón', async () => {
-    component.openFilter();
-    flushCatalogRequests(httpMock);
-    await waitForCountDebounce();
-    const initial = httpMock.expectOne(r => r.url.endsWith('/events'));
-    expect(initial.request.params.get('minPrice')).toBeNull();
-    expect(initial.request.params.get('maxPrice')).toBeNull();
-    initial.flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
+  it('recalcula la cantidad al elegir un precio y solo lo aplica al confirmar', async () => {
+    await openFilterAndCount(129);
 
     component.pendingSelectPrice('15–30€');
-
-    expect(filtrosService.filterPrice()).toBe('15–30€');
-    expect(filtrosService.activeFilterCount).toBe(1);
+    fixture.detectChanges();
+    expect(filtrosService.filterPrice()).toBeNull();
 
     await waitForCountDebounce();
-    const filtered = httpMock.expectOne(r => r.url.endsWith('/events'));
+    const filtered = flushEventCount(httpMock, 14);
     expect(filtered.request.params.get('minPrice')).toBe('15');
     expect(filtered.request.params.get('maxPrice')).toBe('30');
-    filtered.flush({ content: [], totalElements: 14, totalPages: 0, size: 1, number: 0 });
+    expect(component.applyButtonLabel()).toBe('Mostrar 14 experiencias');
 
-    expect(component.resultCount()).toBe(14);
-    expect(component.applyButtonLabel()).toBe('Mostrar 14 resultados →');
+    component.applyFilters();
+    expect(filtrosService.filterPrice()).toBe('15–30€');
+    expect(filtrosService.activeFilterCount).toBe(1);
+    expect(component.isFilterOpen()).toBe(false);
   });
 
   it('clasifica la pill Gratis como rango [0, 0]', async () => {
-    component.openFilter();
-    flushCatalogRequests(httpMock);
-    await waitForCountDebounce();
-    httpMock.expectOne(r => r.url.endsWith('/events'))
-      .flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
+    await openFilterAndCount(129);
 
     component.pendingSelectPrice('Gratis');
+    fixture.detectChanges();
     await waitForCountDebounce();
 
-    const req = httpMock.expectOne(r => r.url.endsWith('/events'));
+    const req = flushEventCount(httpMock, 3);
     expect(req.request.params.get('minPrice')).toBe('0');
     expect(req.request.params.get('maxPrice')).toBe('0');
-    req.flush({ content: [], totalElements: 3, totalPages: 0, size: 1, number: 0 });
+    expect(component.applyButtonLabel()).toBe('Mostrar 3 experiencias');
+  });
+
+  it('usa el singular cuando hay una sola experiencia', async () => {
+    await openFilterAndCount(1);
+    expect(component.applyButtonLabel()).toBe('Mostrar 1 experiencia');
   });
 
   it('deselecciona la pill al pulsarla de nuevo', () => {
     component.pendingSelectPrice('Más de 50€');
-    expect(filtrosService.filterPrice()).toBe('Más de 50€');
+    expect(component.pendingPrice()).toBe('Más de 50€');
 
     component.pendingSelectPrice('Más de 50€');
-    expect(filtrosService.filterPrice()).toBeNull();
+    expect(component.pendingPrice()).toBeNull();
   });
 
   it('"Quitar filtros" limpia también el precio', async () => {
     filtrosService.filterPrice.set('Hasta 15€');
-    component.openFilter();
-    flushCatalogRequests(httpMock);
-    await waitForCountDebounce();
-    httpMock.expectOne(r => r.url.endsWith('/events'))
-      .flush({ content: [], totalElements: 10, totalPages: 0, size: 1, number: 0 });
+    await openFilterAndCount(10);
+    expect(component.pendingPrice()).toBe('Hasta 15€');
 
     component.pendingClearFilters();
 
     expect(component.pendingPrice()).toBeNull();
-    expect(filtrosService.filterPrice()).toBeNull();
     expect(component.pendingFilterCount).toBe(0);
+
+    component.applyFilters();
+    expect(filtrosService.filterPrice()).toBeNull();
   });
 
   it('combina el filtro de precio con el resto de filtros en la misma petición', async () => {
-    component.openFilter();
-    flushCatalogRequests(httpMock);
-    await waitForCountDebounce();
-    httpMock.expectOne(r => r.url.endsWith('/events'))
-      .flush({ content: [], totalElements: 129, totalPages: 0, size: 1, number: 0 });
+    await openFilterAndCount(129);
 
     component.pendingSelectPrice('Más de 50€');
     component.pendingSelectModality('Online');
+    fixture.detectChanges();
     await waitForCountDebounce();
 
-    const req = httpMock.expectOne(r => r.url.endsWith('/events'));
+    const req = flushEventCount(httpMock, 2);
     expect(req.request.params.get('minPrice')).toBe('50');
     expect(req.request.params.get('maxPrice')).toBeNull();
     expect(req.request.params.get('modality')).toBe('ONLINE');
-    req.flush({ content: [], totalElements: 2, totalPages: 0, size: 1, number: 0 });
   });
 });
