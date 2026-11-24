@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { OneToOneServiceCardResponse } from '../../models/one-to-one-service.model';
 import { resolveAssetUrl } from '../../utils/asset-url.util';
+import { formatDisplayPrice } from '../../utils/moneda.util';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=700&auto=format&fit=crop&q=85';
@@ -36,15 +37,11 @@ export class SesionCardComponent {
 
   formatPrice(): string {
     const sesion = this.sesion();
-    if (sesion.price === null || sesion.price === undefined || Number(sesion.price) === 0) {
+    if (sesion.price == null || sesion.price === 0) {
       return 'Gratis';
     }
-
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: sesion.currency || 'PEN',
-      maximumFractionDigits: 0,
-    }).format(Number(sesion.price));
+    const price = formatDisplayPrice(sesion.price, sesion.currency);
+    return price && Number(sesion.price) === 0 ? 'Gratis' : price;
   }
 
   durationLabel(): string {
