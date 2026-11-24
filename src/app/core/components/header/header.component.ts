@@ -32,6 +32,7 @@ import { SpecialistProfileResponse } from '../../../services/profesionales.servi
 import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 import { CityInterestService } from '../../../services/city-interest.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { NotificationsService } from '../../../services/notifications.service';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -43,6 +44,7 @@ interface CalendarDayCell {
   isSelected: boolean;
   isPast: boolean;
 }
+
 
 @Component({
   selector: 'app-header',
@@ -59,6 +61,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   readonly filtrosService = inject(FiltrosService);
   readonly authService = inject(AuthService);
+  readonly notificationsService = inject(NotificationsService);
 
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
@@ -1077,4 +1080,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   });
 
   readonly dateButtonLabel = computed(() => this.applyButtonLabel());
+
+  openNotifications(): void {
+    const professional = this.authService.currentUser()?.roles?.includes('PROFESSIONAL');
+    void this.router.navigate(
+      professional ? ['/profesional'] : ['/perfil'],
+      { queryParams: professional ? { seccion: 'notifications' } : { tab: 'notificaciones' } },
+    );
+  }
 }

@@ -1,0 +1,78 @@
+<div class="payment-backdrop" (click)="close()"></div>
+<section class="payment-dialog" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+  <header>
+    <div>
+      <span>{{ booking().eventTitle }}</span>
+      <h2 id="payment-title">{{ done() ? '¡Tu reserva está confirmada!' : 'Pagar reserva' }}</h2>
+    </div>
+    <button type="button" class="payment-close" aria-label="Cerrar" [disabled]="loading()" (click)="close()">✕</button>
+  </header>
+
+  @if (done()) {
+    <div class="payment-body">
+      <p>Hemos verificado tu pago. Tu reserva {{ booking().code }} se encuentra confirmada.</p>
+      @for (entry of campaignEntries(); track entry.campaignSlug + entry.bookingCode) {
+        <p class="payment-campaign">
+          🎁 ¡Ya participas en «{{ entry.campaignTitle }}» con
+          {{ entry.ticketCount }} {{ entry.ticketCount === 1 ? 'participación' : 'participaciones' }}!
+        </p>
+      }
+    </div>
+    <footer><button type="button" class="payment-primary" (click)="close()">Entendido</button></footer>
+  } @else {
+    <div class="payment-body">
+      <dl>
+        <div><dt>Fecha</dt><dd>{{ booking().occurrenceStartsAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        <div><dt>Plazas</dt><dd>{{ booking().quantity }}</dd></div>
+        <div><dt>Total</dt><dd>{{ booking().totalAmount | currency: booking().currency }}</dd></div>
+        @if (booking().paymentDeadline) {
+          <div><dt>Paga antes del</dt><dd>{{ booking().paymentDeadline | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        }
+      </dl>
+
+      @if (error()) {
+        <p class="payment-error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="payment-tabs" role="group" aria-label="Método de pago">
+        <button type="button" [class.active]="method() === 'TARJETA'" (click)="method.set('TARJETA')">Tarjeta Visa</button>
+        <button type="button" [class.active]="method() === 'YAPE'" (click)="method.set('YAPE')">Yape</button>
+      </div>
+
+      @if (method() === 'TARJETA') {
+        <div class="payment-grid">
+          <label class="wide">Número de tarjeta
+            <input name="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="4111 2222 3333 4444"
+              [ngModel]="cardNumber" (ngModelChange)="onCardNumber($event)" />
+          </label>
+          <label>Fecha de expiración
+            <input name="cardExpiration" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA"
+              [ngModel]="cardExpiration" (ngModelChange)="onCardExpiration($event)" />
+          </label>
+          <label>CVV
+            <input name="cardCvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" [(ngModel)]="cardCvv" />
+          </label>
+          <label class="wide">Nombre del titular
+            <input name="cardHolderName" autocomplete="cc-name" maxlength="50" placeholder="Como figura en la tarjeta" [(ngModel)]="cardHolderName" />
+          </label>
+        </div>
+        <p class="payment-note">Simulación: una tarjeta que termina en 4444 se rechaza por fondos insuficientes.</p>
+      } @else {
+        <div class="payment-grid">
+          <label>Número de celular
+            <input name="yapePhone" inputmode="numeric" maxlength="9" placeholder="999888777" [(ngModel)]="yapePhone" />
+          </label>
+          <label>Código de aprobación
+            <input name="yapeOtp" inputmode="numeric" maxlength="6" placeholder="123456" [(ngModel)]="yapeOtp" />
+          </label>
+        </div>
+      }
+    </div>
+    <footer>
+      <button type="button" class="payment-secondary" [disabled]="loading()" (click)="close()">Ahora no</button>
+      <button type="button" class="payment-primary" [disabled]="loading()" (click)="pay()">
+        {{ loading() ? 'Procesando…' : 'Confirmar pago' }}
+      </button>
+    </footer>
+  }
+</section>

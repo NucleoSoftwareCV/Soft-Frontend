@@ -135,7 +135,7 @@
 
       <p class="login-register">
         ¿Aún no tienes cuenta?
-        <button type="button" routerLink="/auth/role-selection" class="login-register__link"
+        <button type="button" routerLink="/auth/role-selection" [queryParams]="authQueryParams" class="login-register__link"
           style="background: none; border: none; padding: 0; font: inherit; cursor: pointer;">Crea una cuenta</button>
       </p>
 
@@ -201,7 +201,7 @@
 
       <p class="login-register">
         ¿Aún no tienes cuenta?
-        <button type="button" routerLink="/auth/register" class="login-register__link"
+        <button type="button" routerLink="/auth/register" [queryParams]="authQueryParams" class="login-register__link"
           style="background: none; border: none; padding: 0; font: inherit; cursor: pointer;">Regístrate como
           profesional</button>
       </p>

@@ -1,0 +1,185 @@
+<section class="campania-page">
+  <div class="container">
+    @if (loading()) {
+      <div class="campania-state" aria-live="polite">Cargando la promoción…</div>
+    } @else if (notFound()) {
+      <div class="campania-state">
+        <h1>Esta promoción no está disponible</h1>
+        <p>Puede que haya terminado o que el enlace no sea correcto.</p>
+        <a class="btn-primary" routerLink="/explorar">Explorar experiencias</a>
+      </div>
+    } @else if (error()) {
+      <div class="campania-state" role="alert">{{ error() }}</div>
+    } @else if (campaign(); as detail) {
+
+      <!-- HERO -->
+      <header class="campania-hero">
+        <span class="hero-kicker"><span aria-hidden="true">🎁</span> {{ detail.summary.subtitle || 'Sorteo' }}</span>
+        <h1>{{ detail.summary.title }}</h1>
+        <p class="hero-description">{{ detail.description }}</p>
+
+        @switch (detail.summary.phase) {
+          @case ('PROXIMA') {
+            <p class="hero-phase">Empieza el {{ formatDateTime(detail.summary.participationStartsAt) }}.</p>
+          }
+          @case ('CERRADA') {
+            @if (!detail.winnerDisplayName) {
+              <p class="hero-phase">
+                El periodo de participación terminó el {{ formatDate(detail.summary.participationEndsAt) }}.
+                @if (detail.summary.drawAt) { El sorteo se celebra el {{ formatDate(detail.summary.drawAt) }}. }
+              </p>
+            }
+          }
+        }
+
+        @if (detail.winnerDisplayName) {
+          <div class="hero-winner" role="status">
+            <span aria-hidden="true">🏆</span>
+            <div>
+              <strong>Sorteo realizado{{ detail.drawnAt ? ' el ' + formatDate(detail.drawnAt) : '' }}</strong>
+              <span>Ha ganado <b>{{ detail.winnerDisplayName }}</b> — ¡gracias a todas las personas que participaron!</span>
+            </div>
+          </div>
+        }
+
+        <div class="hero-actions">
+          @if (isOpen()) {
+            <a class="btn-primary" routerLink="/explorar" [queryParams]="explorarQuery()">
+              Ver experiencias que participan
+            </a>
+          }
+          <button type="button" class="btn-secondary" (click)="scrollToLegal()">Consultar bases legales</button>
+        </div>
+      </header>
+
+      <!-- MIS PARTICIPACIONES -->
+      @if (myEntries(); as mine) {
+        @if (mine.validTickets > 0) {
+          <p class="my-entries" aria-live="polite">
+            Tienes <strong>{{ mine.validTickets }}</strong>
+            {{ mine.validTickets === 1 ? 'participación' : 'participaciones' }} en este sorteo.
+          </p>
+        }
+      }
+
+      <!-- EXPERIENCIAS -->
+      @if (isOpen()) {
+        <section class="campania-section" aria-labelledby="experiencias-title">
+          <div class="section-head">
+            <div>
+              <h2 id="experiencias-title">Elige tu próxima experiencia</h2>
+              <p>Reserva cualquiera de estas experiencias y participa en el sorteo.</p>
+            </div>
+            @if (totalEventos() > 0) {
+              <a class="see-all" routerLink="/explorar" [queryParams]="explorarQuery()">Ver todo</a>
+            }
+          </div>
+
+          @if (eventosLoading()) {
+            <p class="muted">Cargando experiencias…</p>
+          } @else if (eventos().length === 0) {
+            <p class="muted">Pronto anunciaremos las experiencias participantes.</p>
+          } @else {
+            <div class="cards-row">
+              @for (evento of eventos(); track evento.id) {
+                <app-evento-card [evento]="evento" />
+              }
+            </div>
+          }
+        </section>
+      }
+
+      <!-- CÓMO PARTICIPAR -->
+      <section class="campania-section" aria-labelledby="como-title">
+        <h2 id="como-title">Cómo participar</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-label">Paso 1</span>
+            <strong>Elige una experiencia</strong>
+            <span>Busca el distintivo 🎁 «{{ detail.summary.badgeLabel }}».</span>
+          </li>
+          <li>
+            <span class="step-label">Paso 2</span>
+            <strong>Reserva tu plaza</strong>
+            <span>Hazlo antes del {{ formatDateTime(detail.summary.participationEndsAt) }}, como cualquier otra reserva.</span>
+          </li>
+          <li>
+            <span class="step-label">Paso 3</span>
+            <strong>¡Ya participas!</strong>
+            <span>Cada plaza de una reserva confirmada es una participación.</span>
+          </li>
+        </ol>
+      </section>
+
+      <!-- PREMIO Y FECHAS -->
+      <section class="campania-grid">
+        <article class="prize-card" aria-labelledby="premio-title">
+          <span class="card-kicker" id="premio-title">El premio</span>
+          <strong class="prize-amount">{{ formatPrize(detail) }}</strong>
+          @if (detail.prizeDescription) {
+            <p>{{ detail.prizeDescription }}</p>
+          }
+        </article>
+
+        <article class="dates-card" aria-labelledby="fechas-title">
+          <span class="card-kicker" id="fechas-title">Fechas clave</span>
+          <ul>
+            @for (item of keyDates(); track item.label) {
+              <li><strong>{{ item.value }}</strong><span>{{ item.label }}</span></li>
+            }
+          </ul>
+        </article>
+      </section>
+
+      <!-- COMPARTIR -->
+      <section class="share-card" aria-labelledby="share-title">
+        <h2 id="share-title">¿Con quién compartirías un año de bienestar?</h2>
+        <p>Envíale el sorteo a alguien con quien te encantaría vivir tu próxima experiencia.</p>
+        <div class="share-actions">
+          <a class="btn-primary" [href]="whatsappShareUrl(detail)" target="_blank" rel="noopener">Compartir por WhatsApp</a>
+          <button type="button" class="btn-secondary" (click)="copyLink()">
+            {{ linkCopied() ? '¡Enlace copiado!' : 'Copiar enlace' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      @if (detail.faqs.length) {
+        <section class="campania-section" aria-labelledby="faq-title">
+          <h2 id="faq-title">Preguntas frecuentes</h2>
+          <div class="faq-list">
+            @for (faq of detail.faqs; track faq.question) {
+              <details>
+                <summary>{{ faq.question }}</summary>
+                <p>{{ faq.answer }}</p>
+              </details>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- BASES LEGALES -->
+      <section class="campania-section legal" id="bases-legales" aria-labelledby="bases-title">
+        <h2 id="bases-title">Condiciones y bases legales</h2>
+        @if (detail.participationConditions) {
+          <p>{{ detail.participationConditions }}</p>
+        }
+        @if (detail.legalTerms) {
+          <p>{{ detail.legalTerms }}</p>
+        }
+        @if (detail.maxEntriesPerCustomer) {
+          <p>Máximo {{ detail.maxEntriesPerCustomer }} participaciones por persona.</p>
+        }
+      </section>
+
+      <!-- CTA FINAL -->
+      @if (isOpen()) {
+        <section class="final-cta">
+          <h2>Reserva hasta el {{ formatDate(detail.summary.participationEndsAt) }}</h2>
+          <p>Cada plaza reservada y confirmada es una participación.</p>
+          <a class="btn-primary" routerLink="/explorar" [queryParams]="explorarQuery()">Ver experiencias que participan</a>
+        </section>
+      }
+    }
+  </div>
+</section>

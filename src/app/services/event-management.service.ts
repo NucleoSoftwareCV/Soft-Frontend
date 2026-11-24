@@ -87,4 +87,10 @@ export class EventManagementService {
   getOccurrenceAttendees(occurrenceId: number): Observable<OccurrenceAttendee[]> {
     return this.http.get<OccurrenceAttendee[]>(`${this.base}/occurrences/${occurrenceId}/attendees`);
   }
+
+  registerAttendance(occurrenceId: number, attendeeId: number, status: 'ASISTIO' | 'NO_ASISTIO'): Observable<void> {
+    return this.http.patch<void>(
+      `${this.base}/occurrences/${occurrenceId}/attendees/${attendeeId}/attendance`, { status }
+    );
+  }
 }

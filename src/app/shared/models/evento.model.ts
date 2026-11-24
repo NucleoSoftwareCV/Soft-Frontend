@@ -1,3 +1,7 @@
+import { CampaignBadge } from './campania.model';
+
+
+import { EventReviewerPreview } from './event-review.model';
 export interface EventOccurrenceResponse {
   id: number;
   startsAt: string;
@@ -72,6 +76,9 @@ export enum EventMood {
 }
 
 export interface EventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   occurrenceId?: number | null;
   id: number;
   title: string;
@@ -93,6 +100,8 @@ export interface EventCardResponse {
   experienceTypeSlug: string | null;
   isRecurring: boolean;
   mood?: string;
+  /** Campañas promocionales abiertas en las que participa (vacía si ninguna). */
+  campaignBadges?: CampaignBadge[];
 }
 
 export interface EventOrganizerResponse {
@@ -137,6 +146,7 @@ export interface EventDetailResponse {
   updatedAt: string;
   coverImageUrl: string | null;
   images: { id: number; url: string }[];
+  campaignBadges?: CampaignBadge[];
 }
 
 export interface SpringPage<T> {
@@ -169,6 +179,8 @@ export interface EventFilterParams {
   size?: number;
   sort?: string;
   mood?: string;
+  /** Solo eventos que participan en la campaña abierta indicada. */
+  campaignSlug?: string;
 }
 
 export interface HomeEventSectionsResponse {
@@ -204,6 +216,9 @@ export interface HomeViewAllFilters {
 }
 
 export interface HomeEventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   occurrenceId?: number | null;
   id: number;
   title: string;

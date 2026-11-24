@@ -59,7 +59,7 @@
       </div>
 
       <!-- Mobile -->
-      <div class="gallery-mobile">
+      <div class="gallery-mobile">   
         <swiper-container
           class="gallery-swiper"
           navigation="false"
@@ -146,6 +146,19 @@
 
       </div>
     }
+    @for (badge of event.campaignBadges ?? []; track badge.slug; let first = $first) {
+      <div class="campaign-notice" [class.campaign-notice--stacked]="!first" role="note">
+        <app-campania-badge [badges]="[badge]" [inline]="true" />
+        <span>
+          @if ((event.campaignBadges?.length ?? 0) > 1) {
+            <strong>{{ badge.title }}</strong>: cada plaza confirmada es una participación en este sorteo.
+          } @else {
+            Reserva esta experiencia y participa en el sorteo: cada plaza confirmada es una participación.
+          }
+        </span>
+        <a [routerLink]="['/sorteo', badge.slug]">Ver condiciones</a>
+      </div>
+    }
     <div class="title-row">
       <h1>{{ event.title }}</h1>
       <div class="actions">
@@ -185,7 +198,7 @@
                 [class.follow-btn--active]="following()"
                 [disabled]="followLoading()"
                 (click)="toggleFollow(); $event.preventDefault()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell h-4 w-4"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> 
                 @if (followLoading()) {
                   Guardando...
                 } @else {
@@ -200,7 +213,7 @@
           <article class="info-card">
             <div class="section-title">
               <div class="icon-box icon-green">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar h-5 w-5 text-primary"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar h-5 w-5 text-primary"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg> 
               </div>
               <h2>Fecha y hora</h2>
             </div>
@@ -396,23 +409,14 @@
               </div>
             </div>
 
-            <!-- Botón de Pago / WhatsApp -->
+            <!-- Solicitud de reserva -->
+            <app-booking-indicator [eventId]="event.id" />
             <div class="pay-btn">
               <button
                 class="wait-btn"
-                [disabled]="!isOccurrenceBookable(selectedOccurrence())"
-                (click)="abrirReserva()">
-                <ng-container *ngIf="occurrenceUnavailableLabel(selectedOccurrence()) as unavailableLabel; else activeBookingBtn">
-                  <span>{{ unavailableLabel }}</span>
-                </ng-container>
-                <ng-template #activeBookingBtn>
-                  <ng-container *ngIf="event.paymentMethod === 'WHATSAPP'; else onlineBookingBtn">
-                    <span>Contactar por WhatsApp</span>
-                  </ng-container>
-                  <ng-template #onlineBookingBtn>
-                    <span>Comprar entrada - {{ formatPrice() }}</span>
-                  </ng-template>
-                </ng-template>
+                [disabled]="bookingActionDisabled()"
+                (click)="bookingAction()">
+                <span>{{ bookingActionLabel() }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-5 w-5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
               </button>
             </div>
@@ -446,7 +450,7 @@
             }
           </div>
         </div>
-
+          
           <!--<a
             *ngIf="whatsappUrl() as contactUrl; else contactoNoDisponible"
             class="question-box"
@@ -473,6 +477,103 @@
               </div>
             </div>
           </ng-template>-->
+      </section>
+
+      <section class="event-reviews" aria-labelledby="event-reviews-title">
+        <h2 id="event-reviews-title">Calificaciones del evento</h2>
+        <div aria-live="polite" [attr.aria-busy]="cargandoCalificaciones()">
+          @if (cargandoCalificaciones()) {
+            <p>Cargando calificaciones...</p>
+          } @else if (errorCalificaciones()) {
+            <p role="alert">{{ errorCalificaciones() }}</p>
+            <button type="button" (click)="cargarCalificaciones(event.id)">Reintentar consulta</button>
+          } @else if (resumenCalificacion(); as summary) {
+            @if (summary.reviewCount === 0) {
+              <p>Este evento todavía no tiene reseñas.</p>
+            } @else {
+              <p class="event-reviews__summary">
+                <span aria-hidden="true">★</span>
+                <strong>{{ promedioCalificacionTexto() }} de 5</strong>
+                · {{ summary.reviewCount }} {{ summary.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+              </p>
+            }
+          } @else {
+            <p>Calificaciones pendientes de consulta.</p>
+          }
+        </div>
+
+        <div class="event-reviews__list" aria-live="polite" [attr.aria-busy]="cargandoResenas()">
+          @if (cargandoResenas()) {
+            <p>Cargando reseñas...</p>
+          } @else if (errorResenas()) {
+            <p role="alert">{{ errorResenas() }}</p>
+            <button type="button" (click)="cargarResenas(event.id, paginaResenas()?.number ?? 0)">Reintentar reseñas</button>
+          } @else if (paginaResenas(); as page) {
+            @for (review of page.content; track review.id) {
+              <article class="event-reviews__item" [id]="'review-' + review.id">
+                <header><strong>{{ review.authorName }}</strong><time [attr.datetime]="review.createdAt">{{ fechaResena(review.createdAt) }}</time></header>
+                <p class="event-reviews__rating" [attr.aria-label]="review.stars + ' de 5 estrellas'">
+                  @for (star of estrellasDisponibles; track star) {
+                    <span aria-hidden="true">{{ star <= review.stars ? '★' : '☆' }}</span>
+                  }
+                </p>
+                @if (review.comment) { <p class="event-reviews__comment">{{ review.comment }}</p> }
+              </article>
+            }
+            @if (page.totalPages > 1) {
+              <nav class="event-reviews__pagination" aria-label="Páginas de reseñas">
+                <button type="button" [disabled]="page.first" (click)="cargarResenas(event.id, page.number - 1)">Anterior</button>
+                <span>Página {{ page.number + 1 }} de {{ page.totalPages }}</span>
+                <button type="button" [disabled]="page.last" (click)="cargarResenas(event.id, page.number + 1)">Siguiente</button>
+              </nav>
+            }
+          }
+        </div>
+
+        @if (!sesionCalificacionActiva()) {
+          <p>Inicia sesión para comprobar si puedes calificar este evento.</p>
+          <button type="button" (click)="iniciarSesionParaCalificar()">Iniciar sesión</button>
+        } @else if (consultandoPermisoCalificacion()) {
+          <p role="status">Comprobando permiso para calificar...</p>
+        } @else if (errorPermisoCalificacion()) {
+          <p role="alert">{{ errorPermisoCalificacion() }}</p>
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso</button>
+        } @else if (permisoCalificacion(); as permission) {
+          @if (permission.canReview) {
+            <form (ngSubmit)="enviarCalificacion()" class="event-reviews__form">
+              <fieldset [disabled]="enviandoCalificacion()">
+                <legend>Tu calificación (obligatoria)</legend>
+                <div class="event-reviews__stars">
+                  @for (star of estrellasDisponibles; track star) {
+                    <label class="event-reviews__star" [class.is-selected]="star <= estrellasSeleccionadas()">
+                      <input type="radio" name="eventRating" [value]="star"
+                             [ngModel]="estrellasSeleccionadas()"
+                             (ngModelChange)="seleccionarEstrellas($event)"
+                             [attr.aria-label]="star + (star === 1 ? ' estrella' : ' estrellas')" required>
+                      <span aria-hidden="true">★</span>
+                    </label>
+                  }
+                </div>
+                <label for="event-review-comment">Comentario (opcional, hasta 2000 caracteres)</label>
+                <textarea id="event-review-comment" name="reviewComment" rows="4" maxlength="2000"
+                          [ngModel]="comentarioResena()" (ngModelChange)="comentarioResena.set($event)"></textarea>
+                <button type="submit" [disabled]="!puedeEnviarCalificacion()">
+                  {{ enviandoCalificacion() ? 'Enviando...' : 'Enviar calificación' }}
+                </button>
+              </fieldset>
+            </form>
+          } @else {
+            <p>{{ permission.reason || 'Actualmente no puedes calificar este evento.' }}</p>
+          }
+        } @else {
+          <button type="button" (click)="consultarPermisoCalificacion(event.id)">Comprobar permiso para calificar</button>
+        }
+        @if (errorRegistroCalificacion()) {
+          <p role="alert">{{ errorRegistroCalificacion() }}</p>
+        }
+        @if (mensajeCalificacion()) {
+          <p role="status">{{ mensajeCalificacion() }}</p>
+        }
       </section>
 
       @if (eventosSimilares().length > 0) {
@@ -532,9 +633,9 @@
         </div>
 
         <button
-          [disabled]="!isOccurrenceBookable(selectedOccurrence())"
-          (click)="abrirReserva()">
-          {{ occurrenceUnavailableLabel(selectedOccurrence()) ?? (event.paymentMethod === 'WHATSAPP' ? 'Contactar por WhatsApp' : 'Reservar plaza') }}
+          [disabled]="bookingActionDisabled()"
+          (click)="bookingAction()">
+          {{ selectedBooking() ? bookingActionLabel() : (occurrenceUnavailableLabel(selectedOccurrence()) ?? 'Solicitar reserva') }}
         </button>
       </div>
 
@@ -549,7 +650,7 @@
               {{ event.title }}
             </span>
             <h2 style="font-family: Sunset, Georgia, serif; font-size: 22px; font-weight: 700; color: white !important; margin: 2px 0 6px;">
-              ¡Reserva tu plaza!
+              Solicita tu reserva
             </h2>
             <div class="event-occurrence-time" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.85) !important; font-weight: 500;">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar" style="color: rgba(255, 255, 255, 0.85) !important;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></svg>
@@ -568,7 +669,7 @@
 
           <!-- STEP 1: Datos de Asistentes -->
           <div class="booking-step-content" *ngIf="bookingStep() === 1">
-
+            
             <!-- Nombre y apellidos -->
             <div class="form-field-wrapper">
               <div class="field-label-row">
@@ -612,8 +713,7 @@
               <p class="field-help-text">El profesional te enviará información del evento por WhatsApp.</p>
             </div>
 
-            <!-- Número de plazas & Puntos Oona -->
-            <!-- Número de plazas & Puntos Oona -->
+            <!-- Número de plazas & Código de descuento -->
             <div class="form-field-wrapper mt-4">
               <div class="field-label-row">
                 <span class="field-label">
@@ -627,43 +727,8 @@
                   <span class="counter-val">{{ numPlazas() }}</span>
                   <button type="button" class="counter-btn" (click)="updatePlazas(1)" [disabled]="selectedOccurrence() && numPlazas() >= selectedOccurrence()!.availableSpots">+</button>
                 </div>
-
-                <!-- NUEVO: Usar puntos Oona -->
-                <label class="discount-checkbox-label">
-                  <input type="checkbox" [checked]="tienePuntosOona()" (change)="togglePuntosOona()" />
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award" style="color: #005766 !important;"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
-                  <span>Usar puntos Oona</span>
-                </label>
               </div>
 
-              <!-- Input de Puntos Oona Box -->
-              <div class="coupon-input-wrapper mt-3" *ngIf="tienePuntosOona()">
-                <div style="display: flex; gap: 8px; width: 100%;">
-                  <input
-                    type="number"
-                    [ngModel]="inputPuntos()"
-                    (ngModelChange)="inputPuntos.set($event)"
-                    placeholder="Cantidad de puntos"
-                    style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px;"
-                  />
-                  <button
-                    type="button"
-                    (click)="aplicarPuntosOona()"
-                    style="background: #005766; border: none; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 600; color: white; cursor: pointer;">
-                    Aplicar
-                  </button>
-                </div>
-
-                <p class="coupon-msg" *ngIf="mensajePuntos()" [style.color]="puntosAplicados() ? '#16a34a' : '#ef4444'" style="font-size: 11px; margin-top: 4px; font-weight: 600; text-align: left;">
-                  {{ mensajePuntos() }}
-                </p>
-
-                <!-- Vista del precio tachado y descuento aplicado -->
-                <div *ngIf="puntosAplicados()" style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px;">
-                  <span style="text-decoration: line-through; color: #94a3b8;">{{ formatTotalBeforeDiscountPoints() }}</span>
-                  <span style="color: #16a34a; font-weight: 700;">Descuento: - S/. {{ descuentoPuntosMonto().toFixed(2) }}</span>
-                </div>
-              </div>
             </div>
 
             <!-- Card: La reserva es para mí -->
@@ -688,7 +753,7 @@
               <p style="font-size: 11px; color: #64748b !important; margin-bottom: 12px; line-height: 1.4; text-align: left;" *ngIf="yoTambienAsisto()">
                 Ocupas la plaza 1. Si quieres, indica los datos de la otra persona (opcional). Recibirán su entrada por email.
               </p>
-
+              
               <div class="attendee-subform-card" *ngFor="let ast of asistentesAdicionales(); let i = index">
                 <div class="subform-card-header">
                   <span>Asistente {{ yoTambienAsisto() ? i + 2 : i + 1 }}</span>
@@ -705,59 +770,7 @@
             </section>
           </div>
 
-          <!-- STEP 2: Pago Online Ficticio -->
-          <div class="booking-step-content" *ngIf="bookingStep() === 2">
-            <section class="form-section">
-              <h3>Selecciona tu método de pago</h3>
-              <div class="payment-method-selector">
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'TARJETA'" (click)="paymentMethod.set('TARJETA')">
-                  Tarjeta de Crédito / Débito
-                </button>
-                <button type="button" class="payment-tab" [class.active]="paymentMethod() === 'YAPE'" (click)="paymentMethod.set('YAPE')">
-                  Yape
-                </button>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'TARJETA'">
-              <div class="form-grid">
-                <div class="form-group wide">
-                  <label>Número de tarjeta *</label>
-                  <input type="text" [(ngModel)]="cardNumber" (input)="onCardNumberInput($event)" placeholder="4111 2222 3333 4444" maxlength="19" required />
-                </div>
-                <div class="form-group">
-                  <label>Fecha de Expiración *</label>
-                  <input type="text" [(ngModel)]="cardExpiration" (input)="onCardExpirationInput($event)" placeholder="MM/AA" maxlength="5" required />
-                </div>
-                <div class="form-group">
-                  <label>CVV *</label>
-                  <input type="text" [(ngModel)]="cardCvv" (input)="onCardCvvInput($event)" placeholder="123" maxlength="4" required />
-                </div>
-                <div class="form-group wide">
-                  <label>Nombre del Titular *</label>
-                  <input type="text" [(ngModel)]="cardHolderName" (input)="onCardHolderNameInput($event)" placeholder="Como figura en la tarjeta" maxlength="50" required />
-                </div>
-              </div>
-              <div class="alert alert-info mt-3">
-                <p><strong>Nota de simulación:</strong> El número de tarjeta que termina en 4444 simulará fondos insuficientes (rechazo). Cualquier otro número será aprobado.</p>
-              </div>
-            </section>
-
-            <section class="form-section mt-4" *ngIf="paymentMethod() === 'YAPE'">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Número de Celular *</label>
-                  <input type="text" [(ngModel)]="yapePhone" (input)="onYapePhoneInput($event)" placeholder="999888777" maxlength="9" required />
-                </div>
-                <div class="form-group">
-                  <label>Código de Aprobación *</label>
-                  <input type="text" [(ngModel)]="yapeOtp" (input)="onYapeOtpInput($event)" placeholder="123456" maxlength="6" required />
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <!-- STEP 3: Confirmación / Éxito -->
+          <!-- Solicitud enviada -->
           <div class="booking-step-content booking-success-content" *ngIf="bookingStep() === 3">
             <div class="success-icon-wrapper">
               <svg class="success-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -765,14 +778,17 @@
                 <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
               </svg>
             </div>
-
-            <h2>¡Tu reserva está registrada!</h2>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'WHATSAPP'">
-              Hemos abierto WhatsApp para que coordines el pago directamente con el profesional. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
+            
+            <h2>Solicitud enviada correctamente</h2>
+            <p class="success-msg">
+              Tu solicitud de reserva ha sido enviada. Estamos esperando la respuesta del profesional.
+              Te avisaremos en tus notificaciones y, si la acepta, podrás pagar desde Mis reservas.
             </p>
-            <p class="success-msg" *ngIf="event.paymentMethod === 'ONLINE'">
-              El pago ha sido procesado exitosamente. Tu reserva ha sido guardada. El código de tu orden es: <strong>{{ createdOrderCode() }}</strong>.
-            </p>
+            @if (campaignBadge()) {
+              <p class="campaign-success">
+                🎁 Cuando tu reserva quede confirmada, participarás en {{ (evento()?.campaignBadges?.length ?? 0) > 1 ? 'los sorteos' : 'el sorteo' }}.
+              </p>
+            }
 
             <div class="booking-summary-box mt-4">
               <h4>Resumen del evento</h4>
@@ -780,7 +796,7 @@
                 <div class="summary-row"><span>Evento:</span><strong>{{ event.title }}</strong></div>
                 <div class="summary-row"><span>Fecha:</span><strong>{{ formatOccurrenceDate(selectedOccurrence() || undefined) }}</strong></div>
                 <div class="summary-row"><span>Hora:</span><strong>{{ formatOccurrenceTime(selectedOccurrence() || undefined) }}</strong></div>
-                <div class="summary-row"><span>Plazas reservadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
+                <div class="summary-row"><span>Plazas solicitadas:</span><strong>{{ numPlazas() }} plaza(s)</strong></div>
                 <div class="summary-row total"><span>Monto Total:</span><strong>{{ formatTotalPrice() }}</strong></div>
               </div>
             </div>
@@ -791,42 +807,31 @@
           <div class="footer-summary" *ngIf="bookingStep() < 3">
             <span class="total-label" style="text-transform: lowercase; font-size: 13px; color: #64748b; font-weight: 500;">
               {{ numPlazas() }} plaza{{ numPlazas() > 1 ? 's' : '' }}
-              @if (puntosAplicados()) {
-                <small style="color: #16a34a; display: block; font-weight: 600;">(Puntos Oona aplicados)</small>
-              }
             </span>
             <strong class="total-price" style="font-size: 1.5rem; font-weight: 800; color: #005766; display: block; margin-top: -2px;">
-              {{ overrideFormatTotalPrice() }}
+              {{ formatTotalPrice() }}
             </strong>
           </div>
           <div class="footer-actions">
-            <button type="button" class="btn btn-secondary" *ngIf="bookingStep() === 2" (click)="bookingStep.set(1)" [disabled]="bookingLoading()">
-              Atrás
-            </button>
-
             <!-- STEP 1 Action Buttons -->
             <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 1" (click)="confirmarReserva()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Generando...</span>
+              <span *ngIf="bookingLoading()">Enviando...</span>
               <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
-                Confirmar reserva <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                Enviar solicitud <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </span>
             </button>
 
-            <!-- STEP 2 Action Buttons -->
-            <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 2" (click)="realizarPagoOnline()" [disabled]="bookingLoading()">
-              <span *ngIf="bookingLoading()">Procesando...</span>
-              <span *ngIf="!bookingLoading()" style="display: flex; align-items: center; gap: 8px;">
-                Confirmar pago <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </span>
-            </button>
-
-            <!-- STEP 3 Action Button -->
+            <!-- Solicitud enviada -->
             <button type="button" class="confirm-booking-btn" *ngIf="bookingStep() === 3" (click)="cerrarReserva()">
               Entendido
             </button>
           </div>
         </footer>
       </div>
+
+      @if (paymentBooking(); as booking) {
+        <app-booking-payment-dialog [booking]="booking" (paid)="onBookingPaid()" (closed)="paymentBooking.set(null)" />
+      }
 
     </section>
   }
@@ -934,7 +939,7 @@
 
     <div class="image-counter">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images h-4 w-4" aria-hidden="true"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"></path><circle cx="12" cy="8" r="2"></circle><rect width="16" height="16" x="6" y="2" rx="2"></rect></svg>
-      {{ counterImageModal(getTodasLasImagenes()) }}
+      {{ counterImageModal(getTodasLasImagenes()) }}  
     </div>
 
     <button class="nav prev acciones"
@@ -942,7 +947,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left h-6 w-6"><path d="m15 18-6-6 6-6"></path></svg>
     </button>
 
-    <img
+    <img 
       class="gallery-big"
       [src]="getTodasLasImagenes()[selectedImageIndex()]">
 
@@ -950,9 +955,9 @@
       (click)="nextImage(getTodasLasImagenes())">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-6 w-6"><path d="m9 18 6-6-6-6"></path></svg>
     </button>
-
+    
     <div class="gallery-thumbs">
-      <img
+      <img 
         *ngFor="let img of getTodasLasImagenes(); let i=index"
         [src]="img"
         [class.active]="selectedImageIndex() === i"

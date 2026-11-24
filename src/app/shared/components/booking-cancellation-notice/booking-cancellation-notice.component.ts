@@ -53,7 +53,7 @@ export class BookingCancellationNoticeComponent {
   private show(bookings: MyBooking[], userId: number): void {
     const seen = this.readSeen(userId);
     const limit = Date.now() - MAX_NOTICE_AGE_MS;
-    const fresh = bookings.filter(b => b.status === 'CANCELADA' && b.cancellationCause
+    const fresh = bookings.filter(b => b.status === 'CANCELADA' && b.cancellationCause && b.cancellationCause !== 'CLIENTE'
       && !seen.has(b.code) && (!b.cancelledAt || Date.parse(b.cancelledAt) >= limit));
     // Mantiene en pantalla lo que ya se estaba mostrando y añade lo nuevo.
     const shown = new Set(this.notices().map(b => b.code));

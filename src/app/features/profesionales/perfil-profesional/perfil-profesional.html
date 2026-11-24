@@ -60,6 +60,11 @@
             </p>
 
             @if (!isOwnProfile()) {
+            @if (p.showOneToOneSessions) {
+              <button type="button" class="profile-appointment-btn" (click)="reserveAppointment()">
+                Reservar una cita
+              </button>
+            }
             <button
               class="profile-follow-btn"
               [class.profile-follow-btn--active]="following()"
@@ -264,15 +269,30 @@
       </section>
     }
 
-    @if (mostrarSesiones()) {
-      <section class="profile-section profile-section--full">
-        <h3 class="topics_title">Sesiones 1 a 1</h3>
+    @if (mostrarSesiones() || (appointmentRequested() && p.showOneToOneSessions)) {
+      <section #appointmentSection id="citas" tabindex="-1" class="profile-section profile-section--full profile-appointment-section" aria-labelledby="appointment-title">
+        <h3 id="appointment-title" class="topics_title">Sesiones 1 a 1</h3>
+        @if (appointmentRequested()) {
+          <p class="profile-appointment-intro">Elige un servicio de {{ p.nombre }} para consultar su disponibilidad y solicitar una cita.</p>
+          @if (sessionsLoading()) {
+            <p role="status">Cargando servicios...</p>
+          } @else if (sessionsError()) {
+            <p role="alert">No pudimos cargar los servicios.</p>
+            <button type="button" class="profile-appointment-btn" (click)="cargarSesiones(p.id)">Reintentar</button>
+          } @else if (sesiones().length === 0) {
+            <p>Este profesional todavía no tiene servicios publicados.</p>
+          }
+        }
         <div class="cards-grid">
           @for (sesion of sesiones(); track sesion.id) {
-            <app-sesion-card [sesion]="sesion"></app-sesion-card>
+            <app-sesion-card [sesion]="sesion" [selectionMode]="appointmentRequested()" [selected]="selectedAppointmentService() === sesion.id" [selectionDisabled]="appointmentSaving()" (serviceSelected)="selectedAppointmentService.set($event)" />
           }
         </div>
       </section>
+    }
+
+    @if (appointmentRequested() && selectedAppointmentService(); as serviceId) {
+      <app-appointment-request [serviceId]="serviceId" (busy)="appointmentSaving.set($event)" />
     }
 
     @if (mostrarGaleria()) {

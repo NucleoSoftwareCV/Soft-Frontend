@@ -1,8 +1,10 @@
+import { ProfessionalAgendaComponent } from './agenda/professional-agenda.component';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, of, switchMap } from 'rxjs';
 import {
   ImageCroppedEvent,
@@ -31,13 +33,12 @@ import {
   LucideRotateCw,
   LucideTriangleAlert,
   LucideUpload,
+  LucideBell,
   LucideUserRound,
   LucideZoomIn,
   LucideX,
   LucideUsers,
   LucideEyeOff,
-  LucideBell,
-  LucideClock,
 } from '@lucide/angular';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -69,13 +70,10 @@ import {
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
-import { EventAttendeeService } from '../../services/event-attendee.service';
-import { AttendanceStatus } from '../../shared/models/event-attendance.model';
-import { StatusAttendanceToastComponent } from '../../shared/components/status-attendance-toast/status-attendance-toast.component';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { RewardService } from '../../services/reward.service';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { NotificationsService } from '../../services/notifications.service';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'agenda' | 'notifications';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -123,7 +121,6 @@ interface EventForm {
   currency: string;
   minimumAge: number;
   categoryId: number | null;
-  paymentMethod: 'WHATSAPP' | 'ONLINE';
   experienceTypeId: number | null;
   occurrenceId: number | null;
   startsAt: string;
@@ -167,7 +164,10 @@ interface OccurrenceForm {
   selector: 'app-professional-portal',
   standalone: true,
   imports: [
+    NotificationsInboxComponent,
     ProfessionalReservationsComponent,
+    ProfessionalAgendaComponent,
+    NotificationsInboxComponent,
     CommonModule,
     FormsModule,
     ImageCropperComponent,
@@ -198,8 +198,6 @@ interface OccurrenceForm {
     LucideUsers,
     LucideEyeOff,
     LucideBell,
-    LucideClock,
-    StatusAttendanceToastComponent
   ],
   templateUrl: './professional-portal.component.html',
   styleUrl: './professional-portal.component.css',
@@ -207,14 +205,16 @@ interface OccurrenceForm {
 export class ProfessionalPortalComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly profileApi = inject(SpecialistProfileService);
   private readonly eventsApi = inject(EventManagementService);
   private readonly publicEventsApi = inject(EventosService);
   private readonly sessionsApi = inject(OneToOneServicesService);
-  private readonly eventAttendeeService = inject(EventAttendeeService);
-  private readonly rewardService = inject(RewardService);
+  readonly notificationsService = inject(NotificationsService);
 
   section = signal<PortalSection>('summary');
+  /** Reserva pedida por enlace desde una notificación. */
+  requestedBooking = signal<string | null>(null);
   profile = signal<SpecialistProfileResponse | null>(null);
   events = signal<EventManagementResponse[]>([]);
   sessions = signal<OneToOneServiceDetailResponse[]>([]);
@@ -245,11 +245,7 @@ export class ProfessionalPortalComponent {
   profilePhotoFailed = signal(false);
   uploadingGalleryImage = signal(false);
   previewImageUrl = signal<string | null>(null);
-  showDetailsModal = signal(false);
-  showAttendanceToast = signal(false);
-  toastTitle = signal('');
-  toastDescription = signal('');
-  toastType = signal<'positivo' | 'negativo'>('positivo');
+  readonly requestedAppointmentCode = signal<string | null>(null);
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -288,6 +284,10 @@ export class ProfessionalPortalComponent {
   participantsList = signal<OccurrenceAttendee[]>([]);
   selectedAttendeeDetail = signal<OccurrenceAttendee | null>(null);
   participantsOccurrenceLabel = signal<string>('');
+  readonly participantsOccurrence = signal<EventOccurrenceManagement | null>(null);
+  readonly attendanceSaving = signal(false);
+  readonly attendanceMessage = signal('');
+  readonly attendanceError = signal('');
   cropImageFile = signal<File | null>(null);
   cropImageUrl = signal<string | null>(null);
   cropTransform: ImageTransform = { scale: 1, rotate: 0 };
@@ -335,6 +335,15 @@ export class ProfessionalPortalComponent {
 
   constructor() {
     this.loadAll();
+    this.route.queryParams.pipe(takeUntilDestroyed()).subscribe(params => {
+      const requested = params['seccion'];
+      const valid: PortalSection[] = ['summary', 'profile', 'events', 'sessions', 'reservations', 'agenda', 'notifications'];
+      if (valid.includes(requested)) {
+        this.section.set(requested);
+      }
+      this.requestedAppointmentCode.set(params['cita'] ?? null);
+      this.requestedBooking.set(params['reserva'] ?? null);
+    });
   }
 
   show(section: PortalSection): void {
@@ -888,7 +897,6 @@ export class ProfessionalPortalComponent {
       currency: event.currency,
       minimumAge: event.minimumAge ?? 18,
       categoryId: event.categoryId,
-      paymentMethod: event.paymentMethod ?? 'WHATSAPP',
       experienceTypeId: event.experienceTypeId,
       occurrenceId: occurrence?.id ?? null,
       startsAt: occurrence ? this.toLocalInput(occurrence.startsAt) : this.localDateTime(2),
@@ -1253,7 +1261,6 @@ export class ProfessionalPortalComponent {
       minimumAge: this.eventForm.minimumAge,
       featured: false,
       categoryId: this.eventForm.categoryId!,
-      paymentMethod: this.eventForm.paymentMethod,
       experienceTypeId: this.eventForm.experienceTypeId!,
       specialistId,
     };
@@ -1294,7 +1301,6 @@ export class ProfessionalPortalComponent {
       currency: 'PEN',
       minimumAge: 18,
       categoryId: null,
-      paymentMethod: 'WHATSAPP',
       experienceTypeId: null,
       occurrenceId: null,
       startsAt: this.localDateTime(2),
@@ -1484,6 +1490,13 @@ export class ProfessionalPortalComponent {
 
   private apiError(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
+      const violations: unknown = error.error?.errors;
+      if (Array.isArray(violations)) {
+        const messages = violations
+          .map(item => item?.message)
+          .filter((message): message is string => typeof message === 'string' && message.trim().length > 0);
+        if (messages.length) return [...new Set(messages)].join(' ');
+      }
       return error.error?.message || error.error?.detail || fallback;
     }
     return fallback;
@@ -1491,6 +1504,9 @@ export class ProfessionalPortalComponent {
 
   // ── Participants modal methods ──────────────────────────────────────────
   verParticipantes(occurrence: EventOccurrenceManagement): void {
+    this.participantsOccurrence.set(occurrence);
+    this.attendanceMessage.set('');
+    this.attendanceError.set('');
     const label = new Date(occurrence.startsAt).toLocaleString('es-PE', { timeZone: 'America/Lima',
       day: '2-digit', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
@@ -1504,10 +1520,12 @@ export class ProfessionalPortalComponent {
 
     this.eventsApi.getOccurrenceAttendees(occurrence.id).subscribe({
       next: list => {
+        if (this.participantsOccurrence() !== occurrence) return;
         this.participantsList.set(list);
         this.participantsLoading.set(false);
       },
       error: err => {
+        if (this.participantsOccurrence() !== occurrence) return;
         this.participantsError.set(this.apiError(err, 'No se pudo cargar la lista de participantes.'));
         this.participantsLoading.set(false);
       }
@@ -1515,6 +1533,7 @@ export class ProfessionalPortalComponent {
   }
 
   cerrarParticipantes(): void {
+    this.participantsOccurrence.set(null);
     this.showParticipantsModal.set(false);
     this.selectedAttendeeDetail.set(null);
     this.participantsList.set([]);
@@ -1524,70 +1543,38 @@ export class ProfessionalPortalComponent {
     this.selectedAttendeeDetail.set(attendee);
   }
 
-  volverAListado(): void {
-    this.selectedAttendeeDetail.set(null);
+  canRegisterAttendance(attendee: OccurrenceAttendee): boolean {
+    const occurrence = this.participantsOccurrence();
+    return !!occurrence && occurrence.status !== 'CANCELADA'
+      && Date.parse(occurrence.startsAt) <= Date.now()
+      && (attendee.bookingStatus === 'CONFIRMADA' || attendee.bookingStatus === 'COMPLETADA')
+      && attendee.attendanceStatus === 'PENDIENTE';
   }
 
-  /** Attendance */
-  readonly selectedId = signal<number | null>(null);
-  readonly AttendanceStatus = AttendanceStatus;
-
-  openDetails(id: number): void {
-    this.selectedId.set(id);
-    this.showDetailsModal.set(true);
-  }
-
-  readonly attendeeResource = rxResource({
-    params: () => ({
-      id: this.selectedId(),
-    }),
-    stream: ({ params }) => {
-      if (!params.id) return of(null);
-      return this.eventAttendeeService.getEventAttendee({ eventId: params.id });
-    }
-  });
-
-  closeDetails(): void {
-    this.showDetailsModal.set(false);
-    this.selectedId.set(null);
-  }
-
-  updateAttendanceStatus(eventAttendeeId: number, status: AttendanceStatus){
-    this.eventAttendeeService.updateAttendanceStatus({eventAttendeeId, status})
-    .subscribe({
+  registerAttendance(attendee: OccurrenceAttendee, status: 'ASISTIO' | 'NO_ASISTIO'): void {
+    const occurrence = this.participantsOccurrence();
+    if (!occurrence || !this.canRegisterAttendance(attendee) || this.attendanceSaving()) return;
+    this.attendanceSaving.set(true);
+    this.attendanceMessage.set('');
+    this.attendanceError.set('');
+    this.eventsApi.registerAttendance(occurrence.id, attendee.attendeeId, status).subscribe({
       next: () => {
-        if (status === AttendanceStatus.ASISTIO) {
-          this.toastTitle.set('Asistencia registrada');
-          this.toastDescription.set(`El participante fue marcado como presente.`);
-          this.toastType.set('positivo');
-        } else {
-          this.toastTitle.set('Falta registrada');
-          this.toastDescription.set(`El participante fue marcado como ausente.`);
-          this.toastType.set('negativo');
-        }
-
-        this.showAttendanceToast.set(true);
-        setTimeout(() => {
-          this.showAttendanceToast.set(false);
-        }, 3500);
-        this.attendeeResource.reload();
+        this.attendanceSaving.set(false);
+        if (this.participantsOccurrence() !== occurrence) return;
+        this.participantsList.update(list => list.map(item => item.attendeeId === attendee.attendeeId
+          ? { ...item, attendanceStatus: status }
+          : item));
+        this.attendanceMessage.set('Asistencia registrada.');
       },
-      error: (err) => {
-        console.error('Error estado:', err);
-      }
-    })
-  }
-
-  /** LOYALTY PROGRAM */
-  earnPoints(eventAttendanceId: number): void{
-    this.rewardService.earnPoints({eventAttendanceId})
-      .subscribe({
-      next: () => {
-        console.log('Puntos otorgados correctamente');
-      },
-      error: (error) => {
-        console.error('Error al otorgar puntos:', error);
+      error: err => {
+        this.attendanceSaving.set(false);
+        if (this.participantsOccurrence() !== occurrence) return;
+        this.attendanceError.set(this.apiError(err, 'No se pudo registrar la asistencia.'));
       }
     });
+  }
+
+  volverAListado(): void {
+    this.selectedAttendeeDetail.set(null);
   }
 }

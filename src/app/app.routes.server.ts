@@ -10,6 +10,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
+    path: 'sorteo/:slug',
+    renderMode: RenderMode.Server
+  },
+  {
     path: 'profesionales',
     renderMode: RenderMode.Client
   },

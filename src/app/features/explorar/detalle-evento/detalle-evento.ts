@@ -1,5 +1,9 @@
 import { EventTravelComponent } from '../../../shared/components/event-travel/event-travel.component';
 import { Component, HostListener, PLATFORM_ID, computed, inject, signal, OnDestroy } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
+import { EventReviewsService } from '../../../services/event-reviews.service';
+import { EventRatingSummaryResponse, EventReviewEligibilityResponse, EventReviewPageResponse } from '../../../shared/models/event-review.model';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,23 +14,31 @@ import { ProfessionalFollowService } from '../../../services/professional-follow
 import { EventCardResponse, EventDetailResponse, EventOccurrenceResponse } from '../../../shared/models/evento.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoritesService } from '../../../services/favorites.service';
-import { CheckoutService } from '../../../services/checkout.service';
+import { CheckoutService, MyBooking } from '../../../services/checkout.service';
+import { MyBookingsStore } from '../../../services/my-bookings.store';
+import { NotificationsService } from '../../../services/notifications.service';
+import { BookingIndicatorComponent } from '../../../shared/components/booking-indicator/booking-indicator.component';
+import { BookingPaymentDialogComponent } from '../../../shared/components/booking-payment-dialog/booking-payment-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { EventMapComponent } from '../../../shared/components/event-map/event-map.component';
+import { CampaniaBadgeComponent } from '../../../shared/components/campania-badge/campania-badge.component';
 import { EventMapPoint, hasMapCoordinates } from '../../../shared/models/event-map.model';
-import { RewardService } from '../../../services/reward.service';
 @Component({
   selector: 'app-detalle-evento',
   standalone: true,
-  imports: [EventTravelComponent,CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent],
+  imports: [BookingIndicatorComponent, BookingPaymentDialogComponent, EventTravelComponent, CommonModule, RouterLink, FormsModule, ConfirmDialogComponent, EventoCardComponent, EventMapComponent, CampaniaBadgeComponent],
   templateUrl: './detalle-evento.html',
   styleUrl: './detalle-evento.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DetalleEvento implements OnDestroy{
+  private eventLoadVersion = 0;
+  private readonly reviewsService = inject(EventReviewsService);
+  private readonly reviewRequestsCancelled$ = new Subject<void>();
+  private readonly reviewListCancelled$ = new Subject<void>();
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly eventosService = inject(EventosService);
@@ -34,9 +46,10 @@ export class DetalleEvento implements OnDestroy{
   private readonly authService = inject(AuthService);
   private readonly favoritesService = inject(FavoritesService);
   private readonly checkoutService = inject(CheckoutService);
+  private readonly myBookings = inject(MyBookingsStore);
+  private readonly notifications = inject(NotificationsService);
   private readonly platformId = inject(PLATFORM_ID);
   private carouselInterval?: ReturnType<typeof setInterval>;
-  private readonly rewardService = inject(RewardService);
 
   evento = signal<EventDetailResponse | null>(null);
   loading = signal(true);
@@ -63,7 +76,7 @@ export class DetalleEvento implements OnDestroy{
 
   // Reserva y Checkout
   showBookingModal = signal(false);
-  bookingStep = signal(1); // 1: Datos de asistentes, 2: Pago online, 3: Éxito
+  bookingStep = signal(1); // 1: Datos de asistentes, 3: Solicitud enviada
   selectedOccurrence = signal<EventOccurrenceResponse | null>(null);
   numPlazas = signal(1);
 
@@ -77,25 +90,232 @@ export class DetalleEvento implements OnDestroy{
   asistentesAdicionales = signal<{ name: string; lastName: string; email: string }[]>([]);
   yoTambienAsisto = signal(true);
 
-  // Descuento
-  tieneCodigoDescuento = signal(false);
-  codigoDescuento = signal('');
-  codigoAplicado = signal(false);
-  mensajeDescuento = signal<string | null>(null);
-
-  // Datos de pago
-  paymentMethod = signal<'TARJETA' | 'YAPE'>('TARJETA');
-  cardNumber = signal('');
-  cardExpiration = signal('');
-  cardCvv = signal('');
-  cardHolderName = signal('');
-  yapePhone = signal('');
-  yapeOtp = signal('');
-
   // Estados de carga y error local
   bookingLoading = signal(false);
   bookingError = signal<string | null>(null);
   createdOrderCode = signal<string | null>(null);
+  /** Campaña abierta en la que participa el evento (si hay varias, la primera). */
+  readonly campaignBadge = computed(() => this.evento()?.campaignBadges?.[0] ?? null);
+  /** Reserva activa del cliente en la fecha elegida: una fecha admite una sola. */
+  readonly selectedBooking = computed(() => {
+    const occurrence = this.selectedOccurrence();
+    return occurrence ? this.myBookings.forOccurrence(occurrence.id) : null;
+  });
+  /** Reserva aceptada que se está pagando. */
+  readonly paymentBooking = signal<MyBooking | null>(null);
+
+  // La autorización definitiva y el cálculo del promedio pertenecen al backend.
+  readonly paginaResenas = signal<EventReviewPageResponse | null>(null);
+  readonly cargandoResenas = signal(false);
+  readonly errorResenas = signal<string | null>(null);
+  readonly estrellasDisponibles = [1, 2, 3, 4, 5];
+  readonly estrellasSeleccionadas = signal(0);
+  readonly comentarioResena = signal('');
+  readonly resumenCalificacion = signal<EventRatingSummaryResponse | null>(null);
+  readonly permisoCalificacion = signal<EventReviewEligibilityResponse | null>(null);
+  readonly cargandoCalificaciones = signal(false);
+  readonly consultandoPermisoCalificacion = signal(false);
+  readonly enviandoCalificacion = signal(false);
+  readonly errorCalificaciones = signal<string | null>(null);
+  readonly errorPermisoCalificacion = signal<string | null>(null);
+  readonly errorRegistroCalificacion = signal<string | null>(null);
+  readonly mensajeCalificacion = signal<string | null>(null);
+
+  readonly sesionCalificacionActiva = computed(() => !!this.authService.currentUser());
+  readonly puedeEnviarCalificacion = computed(() => {
+    const stars = this.estrellasSeleccionadas();
+    return this.sesionCalificacionActiva() &&
+      this.permisoCalificacion()?.canReview === true &&
+      !this.consultandoPermisoCalificacion() &&
+      !this.enviandoCalificacion() &&
+      Number.isInteger(stars) && stars >= 1 && stars <= 5 &&
+      this.comentarioResena().trim().length <= 2000;
+  });
+
+  readonly promedioCalificacionTexto = computed(() => {
+    const summary = this.resumenCalificacion();
+    if (!summary || summary.reviewCount === 0 || summary.averageRating === null) return null;
+    return new Intl.NumberFormat('es-PE', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 2,
+    }).format(summary.averageRating);
+  });
+
+  seleccionarEstrellas(stars: number): void {
+    if (this.enviandoCalificacion() || !Number.isInteger(stars) || stars < 1 || stars > 5) return;
+    this.estrellasSeleccionadas.set(stars);
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+  }
+
+  iniciarSesionParaCalificar(): void {
+    void this.router.navigate(['/auth/login'], {
+      queryParams: { returnUrl: this.router.url },
+    });
+  }
+
+  cargarCalificaciones(eventId: number): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId) return;
+    this.cargandoCalificaciones.set(true);
+    this.errorCalificaciones.set(null);
+    this.resumenCalificacion.set(null);
+    this.reviewsService.getSummary(eventId)
+      .pipe(takeUntil(this.reviewRequestsCancelled$))
+      .subscribe({
+        next: summary => {
+          if (this.evento()?.id !== eventId) return;
+          this.cargandoCalificaciones.set(false);
+          if (!this.esResumenValido(summary, eventId)) {
+            this.errorCalificaciones.set('El servidor devolvió un resumen de calificaciones no válido.');
+            return;
+          }
+          this.resumenCalificacion.set(summary);
+        },
+        error: () => {
+          if (this.evento()?.id !== eventId) return;
+          this.cargandoCalificaciones.set(false);
+          this.errorCalificaciones.set('No se pudieron cargar las calificaciones.');
+        },
+      });
+  }
+
+  consultarPermisoCalificacion(eventId: number): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId) return;
+    this.permisoCalificacion.set(null);
+    this.errorPermisoCalificacion.set(null);
+    if (!this.sesionCalificacionActiva()) return;
+    this.consultandoPermisoCalificacion.set(true);
+    this.reviewsService.getEligibility(eventId)
+      .pipe(takeUntil(this.reviewRequestsCancelled$))
+      .subscribe({
+        next: permission => {
+          if (this.evento()?.id !== eventId) return;
+          this.consultandoPermisoCalificacion.set(false);
+          if (permission.eventId !== eventId || typeof permission.canReview !== 'boolean') {
+            this.errorPermisoCalificacion.set('No se pudo comprobar tu permiso para calificar.');
+            return;
+          }
+          this.permisoCalificacion.set(permission);
+        },
+        error: () => {
+          if (this.evento()?.id !== eventId) return;
+          this.consultandoPermisoCalificacion.set(false);
+          this.errorPermisoCalificacion.set('No se pudo comprobar tu permiso para calificar.');
+        },
+      });
+  }
+
+  enviarCalificacion(): void {
+    const eventId = this.evento()?.id;
+    if (!eventId || this.enviandoCalificacion()) return;
+    if (!this.sesionCalificacionActiva()) {
+      this.iniciarSesionParaCalificar();
+      return;
+    }
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+    if (!this.puedeEnviarCalificacion()) {
+      this.errorRegistroCalificacion.set('Verifica el permiso, selecciona de 1 a 5 estrellas y usa un comentario de hasta 2000 caracteres.');
+      return;
+    }
+    this.enviandoCalificacion.set(true);
+    this.reviewsService.createReview(eventId, {
+      stars: this.estrellasSeleccionadas(),
+      comment: this.comentarioResena().trim() || null,
+    }).pipe(takeUntil(this.reviewRequestsCancelled$)).subscribe({
+      next: () => {
+        if (this.evento()?.id !== eventId) return;
+        this.enviandoCalificacion.set(false);
+        this.estrellasSeleccionadas.set(0);
+        this.comentarioResena.set('');
+        this.mensajeCalificacion.set('Tu calificación se registró correctamente.');
+        this.permisoCalificacion.set({
+          eventId, canReview: false, reason: 'Ya registraste una reseña para este evento.',
+        });
+        this.cargarCalificaciones(eventId);
+        this.cargarResenas(eventId);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.evento()?.id !== eventId) return;
+        this.enviandoCalificacion.set(false);
+        const messages: Record<number, string> = {
+          400: 'Revisa la calificación y el comentario.',
+          401: 'Tu sesión expiró. Inicia sesión nuevamente.',
+          403: 'No tienes autorización para calificar este evento.',
+          404: 'No se encontró el recurso de calificaciones solicitado.',
+          409: 'Ya registraste una reseña para este evento.',
+        };
+        this.errorRegistroCalificacion.set(messages[error.status] ??
+          'No se pudo confirmar el registro. Comprueba el estado antes de volver a enviar.');
+        if (error.status === 409) {
+          this.permisoCalificacion.set({
+            eventId, canReview: false, reason: messages[409],
+          });
+          this.cargarCalificaciones(eventId);
+          this.cargarResenas(eventId);
+        } else if (error.status === 401 || error.status === 403) {
+          this.permisoCalificacion.set(null);
+        }
+      },
+    });
+  }
+
+  cargarResenas(eventId: number, page = 0): void {
+    if (!isPlatformBrowser(this.platformId) || this.evento()?.id !== eventId || page < 0) return;
+    this.reviewListCancelled$.next();
+    this.cargandoResenas.set(true);
+    this.errorResenas.set(null);
+    this.reviewsService.getReviews(eventId, page).pipe(
+      takeUntil(this.reviewRequestsCancelled$), takeUntil(this.reviewListCancelled$)
+    ).subscribe({
+      next: result => {
+        if (this.evento()?.id !== eventId) return;
+        this.cargandoResenas.set(false);
+        if (result.content.some(review => review.eventId !== eventId)) {
+          this.errorResenas.set('No se pudieron cargar las reseñas de este evento.');
+          return;
+        }
+        this.paginaResenas.set(result);
+      },
+      error: () => {
+        if (this.evento()?.id !== eventId) return;
+        this.cargandoResenas.set(false);
+        this.errorResenas.set('No se pudieron cargar las reseñas.');
+      },
+    });
+  }
+
+  fechaResena(value: string): string {
+    return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: 'America/Lima' }).format(new Date(value));
+  }
+
+  private esResumenValido(summary: EventRatingSummaryResponse, eventId: number): boolean {
+    return summary.eventId === eventId &&
+      Number.isSafeInteger(summary.reviewCount) && summary.reviewCount >= 0 &&
+      (summary.reviewCount === 0
+        ? summary.averageRating === null
+        : typeof summary.averageRating === 'number' &&
+        Number.isFinite(summary.averageRating) &&
+        summary.averageRating >= 1 && summary.averageRating <= 5);
+  }
+
+  private reiniciarCalificaciones(): void {
+    this.reviewRequestsCancelled$.next();
+    this.paginaResenas.set(null);
+    this.cargandoResenas.set(false);
+    this.errorResenas.set(null);
+    this.estrellasSeleccionadas.set(0);
+    this.comentarioResena.set('');
+    this.resumenCalificacion.set(null);
+    this.permisoCalificacion.set(null);
+    this.cargandoCalificaciones.set(false);
+    this.consultandoPermisoCalificacion.set(false);
+    this.enviandoCalificacion.set(false);
+    this.errorCalificaciones.set(null);
+    this.errorPermisoCalificacion.set(null);
+    this.errorRegistroCalificacion.set(null);
+    this.mensajeCalificacion.set(null);
+  }
 
   private galleryImages(): string[] {
     const images = this.evento()?.images ?? [];
@@ -133,6 +353,9 @@ export class DetalleEvento implements OnDestroy{
   }
 
   ngOnDestroy(): void {
+    this.reviewRequestsCancelled$.next();
+    this.reviewRequestsCancelled$.complete();
+    this.reviewListCancelled$.complete();
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
     }
@@ -381,14 +604,16 @@ export class DetalleEvento implements OnDestroy{
   }
 
   private loadEvento(id: number): void {
+    const loadVersion = this.eventLoadVersion;
     if (!id) {
       this.error.set('Evento no encontrado.');
       this.loading.set(false);
       return;
     }
 
-    this.eventosService.getEvento(id).subscribe({
+    this.eventosService.getEvento(id).pipe(takeUntil(this.reviewRequestsCancelled$)).subscribe({
       next: event => {
+        if (loadVersion !== this.eventLoadVersion) return;
         this.evento.set(event);
         if (event.occurrences && event.occurrences.length > 0) {
           const firstBookable = event.occurrences.find(occ => this.isOccurrenceBookable(occ));
@@ -401,8 +626,12 @@ export class DetalleEvento implements OnDestroy{
         this.loading.set(false);
         this.loadFollowStatus(event.organizer?.id);
         this.loadRelatedEvents(event.id);
+        this.cargarResenas(event.id);
+        this.cargarCalificaciones(event.id);
+        this.consultarPermisoCalificacion(event.id);
       },
       error: () => {
+        if (loadVersion !== this.eventLoadVersion) return;
         this.error.set('No pudimos cargar este evento.');
         this.loading.set(false);
       },
@@ -422,6 +651,8 @@ export class DetalleEvento implements OnDestroy{
   }
 
   private resetEventState(): void {
+    this.eventLoadVersion++;
+    this.reiniciarCalificaciones();
     this.loading.set(true);
     this.error.set(null);
     this.evento.set(null);
@@ -642,6 +873,34 @@ export class DetalleEvento implements OnDestroy{
     this.selectedOccurrence.set(occurrence);
   }
 
+  bookingActionDisabled(): boolean {
+    return !this.selectedBooking() && !this.isOccurrenceBookable(this.selectedOccurrence());
+  }
+
+  bookingActionLabel(): string {
+    const booking = this.selectedBooking();
+    if (booking) {
+      return booking.status === 'ACEPTADA' ? 'Completar pago' : 'Ver mi reserva';
+    }
+    return this.occurrenceUnavailableLabel(this.selectedOccurrence()) ?? `Solicitar reserva - ${this.formatPrice()}`;
+  }
+
+  bookingAction(): void {
+    const booking = this.selectedBooking();
+    if (!booking) {
+      this.abrirReserva();
+    } else if (booking.status === 'ACEPTADA') {
+      this.paymentBooking.set(booking);
+    } else {
+      void this.router.navigate(['/perfil'], { queryParams: { tab: 'reservas', reserva: booking.code } });
+    }
+  }
+
+  onBookingPaid(): void {
+    this.myBookings.refresh();
+    this.notifications.refreshUnread();
+  }
+
   abrirReserva(): void {
     if (!this.authService.isLoggedIn) {
       void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
@@ -656,10 +915,6 @@ export class DetalleEvento implements OnDestroy{
     this.bookingStep.set(1);
     this.numPlazas.set(1);
     this.yoTambienAsisto.set(true);
-    this.tieneCodigoDescuento.set(false);
-    this.codigoDescuento.set('');
-    this.codigoAplicado.set(false);
-    this.mensajeDescuento.set(null);
     this.asistentesAdicionales.set([]);
     this.recalcularAsistentes();
 
@@ -669,14 +924,6 @@ export class DetalleEvento implements OnDestroy{
     this.compradorEmail.set(user?.email ?? '');
     this.compradorTelefono.set('');
 
-    // Reset payment data
-    this.paymentMethod.set('TARJETA');
-    this.cardNumber.set('');
-    this.cardExpiration.set('');
-    this.cardCvv.set('');
-    this.cardHolderName.set(user?.username ?? '');
-    this.yapePhone.set('');
-    this.yapeOtp.set('');
     this.createdOrderCode.set(null);
 
     this.showBookingModal.set(true);
@@ -716,40 +963,9 @@ export class DetalleEvento implements OnDestroy{
     this.recalcularAsistentes();
   }
 
-  aplicarCodigoDescuento(): void {
-    const codigo = this.codigoDescuento().trim().toUpperCase();
-    if (!codigo) {
-      this.mensajeDescuento.set(null);
-      this.codigoAplicado.set(false);
-      return;
-    }
-    if (codigo === 'DESCUENTO10') {
-      this.codigoAplicado.set(true);
-      this.mensajeDescuento.set('Código DESCUENTO10 aplicado correctamente.');
-    } else {
-      this.codigoAplicado.set(false);
-      this.mensajeDescuento.set('Código de descuento inválido.');
-    }
-  }
-
   formatTotalPrice(): string {
     const event = this.evento();
     if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-    let base = event.priceFrom * this.numPlazas();
-    if (this.codigoAplicado()) {
-      base = base * 0.9; // 10% discount
-    }
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: event.currency || 'PEN',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
-  }
-
-  formatTotalBeforeDiscount(): string {
-    const event = this.evento();
-    if (!event || event.priceFrom === null || event.priceFrom === undefined) return '';
     const base = event.priceFrom * this.numPlazas();
     return new Intl.NumberFormat('es-PE', {
       style: 'currency',
@@ -757,58 +973,6 @@ export class DetalleEvento implements OnDestroy{
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(base);
-  }
-
-  onCardNumberInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 16) val = val.substring(0, 16);
-    const matches = val.match(/\d{1,4}/g);
-    const formatted = matches ? matches.join(' ') : '';
-    this.cardNumber.set(formatted);
-    input.value = formatted;
-  }
-
-  onCardExpirationInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 4) val = val.substring(0, 4);
-    if (val.length > 2) {
-      val = val.substring(0, 2) + '/' + val.substring(2);
-    }
-    this.cardExpiration.set(val);
-    input.value = val;
-  }
-
-  onCardCvvInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 4) val = val.substring(0, 4);
-    this.cardCvv.set(val);
-    input.value = val;
-  }
-
-  onCardHolderNameInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/[^a-zA-Z\s]/g, '');
-    this.cardHolderName.set(val);
-    input.value = val;
-  }
-
-  onYapePhoneInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 9) val = val.substring(0, 9);
-    this.yapePhone.set(val);
-    input.value = val;
-  }
-
-  onYapeOtpInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val.length > 6) val = val.substring(0, 6);
-    this.yapeOtp.set(val);
-    input.value = val;
   }
 
   confirmarReserva(): void {
@@ -844,303 +1008,41 @@ export class DetalleEvento implements OnDestroy{
 
     const attendeesPayload = this.yoTambienAsisto()
       ? [
-          {
-            name: this.compradorNombre(),
-            lastName: this.compradorApellido(),
-            email: this.compradorEmail()
-          },
-          ...adicionales
-        ]
-      : adicionales;
-
-    if (event.paymentMethod === 'WHATSAPP') {
-      this.bookingLoading.set(true);
-      const requestPayload = {
-        items: [
-          {
-            referenceId: occurrence.id,
-            itemType: 'EVENTO' as const,
-            quantity: this.numPlazas(),
-            attendees: attendeesPayload
-          }
-        ],
-        billingName: this.compradorNombre()
-      };
-
-      this.checkoutService.createOrder(requestPayload).subscribe({
-        next: order => {
-          this.checkoutService.getWhatsAppLink(order.code).subscribe({
-            next: redirect => {
-              this.bookingLoading.set(false);
-              this.createdOrderCode.set(order.code);
-              this.bookingStep.set(3); // success screen
-              if (redirect.redirectUrl) {
-                window.open(redirect.redirectUrl, '_blank');
-              }
-            },
-            error: () => {
-              this.bookingLoading.set(false);
-              this.bookingError.set('No se pudo generar el enlace de WhatsApp.');
-            }
-          });
+        {
+          name: this.compradorNombre(),
+          lastName: this.compradorApellido(),
+          email: this.compradorEmail()
         },
-        error: error => {
-          this.bookingLoading.set(false);
-          this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
-        }
-      });
-    } else {
-      if (this.bookingStep() === 1) {
-        this.bookingStep.set(2);
-      }
-    }
-  }
-
-  realizarPagoOnline(): void {
-    const occurrence = this.selectedOccurrence();
-    if (!occurrence) return;
-
-    if (this.paymentMethod() === 'TARJETA') {
-      const cleanCard = this.cardNumber().replace(/\s/g, '');
-      if (cleanCard.length < 15 || cleanCard.length > 16) {
-        this.bookingError.set('El número de tarjeta debe tener 15 o 16 dígitos.');
-        return;
-      }
-      if (!/^\d{2}\/\d{2}$/.test(this.cardExpiration())) {
-        this.bookingError.set('La fecha de expiración debe tener el formato MM/AA.');
-        return;
-      }
-      const month = parseInt(this.cardExpiration().substring(0, 2), 10);
-      if (month < 1 || month > 12) {
-        this.bookingError.set('El mes de expiración no es válido (debe ser de 01 a 12).');
-        return;
-      }
-      if (this.cardCvv().length < 3 || this.cardCvv().length > 4) {
-        this.bookingError.set('El CVV debe tener 3 o 4 dígitos.');
-        return;
-      }
-      if (!this.cardHolderName().trim()) {
-        this.bookingError.set('Por favor, indica el nombre del titular.');
-        return;
-      }
-    } else {
-      if (this.yapePhone().length !== 9) {
-        this.bookingError.set('El número de celular de Yape debe tener exactamente 9 dígitos.');
-        return;
-      }
-      if (this.yapeOtp().length !== 6) {
-        this.bookingError.set('El código de aprobación de Yape debe tener exactamente 6 dígitos.');
-        return;
-      }
-    }
+        ...adicionales
+      ]
+      : adicionales;
 
     this.bookingLoading.set(true);
-    this.bookingError.set(null);
-
-    const adicionales = this.asistentesAdicionales();
-    const attendeesPayload = this.yoTambienAsisto()
-      ? [
-          {
-            name: this.compradorNombre(),
-            lastName: this.compradorApellido(),
-            email: this.compradorEmail()
-          },
-          ...adicionales
-        ]
-      : adicionales;
-
-    const orderRequest = this.puntosAplicados()
-      ? {
-          items: [
-            {
-              referenceId: occurrence.id,
-              itemType: 'EVENTO' as const,
-              quantity: this.numPlazas(),
-              attendees: attendeesPayload
-            }
-          ],
-          billingName: this.compradorNombre(),
-          redeemPoints: this.inputPuntos()!,
+    this.checkoutService.createOrder({
+      items: [
+        {
+          referenceId: occurrence.id,
+          itemType: 'EVENTO' as const,
+          quantity: this.numPlazas(),
+          attendees: attendeesPayload
         }
-      : {
-          items: [
-            {
-              referenceId: occurrence.id,
-              itemType: 'EVENTO' as const,
-              quantity: this.numPlazas(),
-              attendees: attendeesPayload
-            }
-          ],
-          billingName: this.compradorNombre()
-        };
-
-    this.checkoutService.createOrder(orderRequest).subscribe({
+      ],
+      billingName: this.compradorNombre()
+    }).subscribe({
       next: order => {
-        const paymentPayload = this.paymentMethod() === 'TARJETA'
-          ? {
-              method: 'TARJETA' as const,
-              cardNumber: this.cardNumber(),
-              cardExpiration: this.cardExpiration(),
-              cardCvv: this.cardCvv(),
-              cardHolderName: this.cardHolderName() || this.compradorNombre()
-            }
-          : {
-              method: 'YAPE' as const,
-              yapePhone: this.yapePhone(),
-              yapeOtp: this.yapeOtp()
-            };
-
-        this.checkoutService.processPayment(order.code, paymentPayload).subscribe({
-          next: payResult => {
-            this.bookingLoading.set(false);
-            if (payResult.status === 'APROBADO') {
-
-              if (this.puntosAplicados()) {
-                this.createTransactionRedeem();
-              }
-
-              this.createdOrderCode.set(order.code);
-              this.bookingStep.set(3); // Éxito
-
-              occurrence.reservedSpots += this.numPlazas();
-              occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
-            } else {
-              this.bookingError.set(payResult.errorMessage || 'El pago fue rechazado. Revisa tus fondos o tarjeta.');
-            }
-          },
-          error: error => {
-            this.bookingLoading.set(false);
-            this.bookingError.set(error.error?.message || 'Error procesando el pago. Inténtalo de nuevo.');
-          }
-        });
+        this.bookingLoading.set(false);
+        this.createdOrderCode.set(order.code);
+        this.bookingStep.set(3);
+        occurrence.reservedSpots += this.numPlazas();
+        occurrence.availableSpots = Math.max(0, occurrence.capacity - occurrence.reservedSpots);
+        this.myBookings.refresh();
+        this.notifications.refreshUnread();
       },
       error: error => {
         this.bookingLoading.set(false);
-        this.bookingError.set(error.error?.message || 'No se pudo crear la reserva.');
+        this.bookingError.set(error.error?.detail || error.error?.message || 'No se pudo enviar la solicitud.');
       }
     });
   }
 
-/** LOYALTY PROGRAM */
-
-  // --- Signals y variables de estado para los puntos Oona ---
-  tienePuntosOona = signal<boolean>(false);
-  inputPuntos = signal<number | null>(null);
-  puntosAplicados = signal<boolean>(false);
-  descuentoPuntosMonto = signal<number>(0);
-  mensajePuntos = signal<string>('');
-
-  createTransactionRedeem(): void {
-    const userId = this.authService.userId;
-    if (userId === null) {
-      console.error('No se pudo obtener el ID del usuario');
-      return;
-    }
-
-    const puntos = this.inputPuntos();
-    if (!puntos || puntos <= 0) {
-      this.mensajePuntos.set('Ingresa una cantidad válida de puntos.');
-      return;
-    }
-
-    const eventId = this.evento()?.id;
-    if (!eventId) return;
-
-    this.rewardService.redeemPoints({ userId, eventId, redeemPoints: puntos })
-      .subscribe({
-        error: (err) => console.error('Error al registrar la redención de puntos:', err)
-      });
-  }
-
-  // Método para alternar el checkbox de "Usar puntos Oona"
-  togglePuntosOona(): void {
-    this.tienePuntosOona.set(!this.tienePuntosOona());
-    if (!this.tienePuntosOona()) {
-      this.removerPuntos();
-    }
-  }
-
-  // Método al presionar el botón "Aplicar" de puntos
-  aplicarPuntosOona(): void {
-    const userId = this.authService.userId;
-    if (userId === null) {
-      this.mensajePuntos.set('Debes iniciar sesión para usar tus puntos.');
-      return;
-    }
-
-    const puntos = this.inputPuntos();
-    const eventId = this.evento()?.id;
-
-    if (!puntos || puntos <= 0) {
-      this.mensajePuntos.set('Ingresa una cantidad válida de puntos.');
-      return;
-    }
-
-    if (!eventId) return;
-
-    // El backend recibe los parámetros y nos retorna el BigDecimal con el descuento exacto
-    this.rewardService.getRedemptionByPoints({ userId, eventId, redeemPoints: puntos })
-      .subscribe({
-        next: (montoDescuentoBackend: any) => {
-          const descuentoCalculado = Number(montoDescuentoBackend) || 0;
-
-          if (descuentoCalculado <= 0) {
-            this.mensajePuntos.set('Los puntos ingresados no generan ningún descuento válido.');
-            this.puntosAplicados.set(false);
-            return;
-          }
-
-          // Evitamos que visualmente el descuento supere el total de las plazas
-          const precioBase = (this.evento()?.priceFrom ?? 0) * this.numPlazas();
-          const descuentoFinal = Math.min(descuentoCalculado, precioBase);
-
-          this.descuentoPuntosMonto.set(descuentoFinal);
-          this.puntosAplicados.set(true);
-          this.mensajePuntos.set(`¡${puntos} puntos Oona aplicados con éxito!`);
-        },
-        error: (err) => {
-          this.mensajePuntos.set(err?.error?.message || 'No se pudieron aplicar los puntos.');
-          this.puntosAplicados.set(false);
-        }
-      });
-  }
-
-  removerPuntos(): void {
-    this.inputPuntos.set(null);
-    this.puntosAplicados.set(false);
-    this.descuentoPuntosMonto.set(0);
-    this.mensajePuntos.set('');
-  }
-
-  // Cálculo del precio base antes de descuentos
-  formatTotalBeforeDiscountPoints(): string {
-    const event = this.evento();
-    if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-    const base = event.priceFrom * this.numPlazas();
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
-  }
-
-  // Cálculo del precio final restando el descuento exacto retornado por el backend
-  overrideFormatTotalPrice(): string {
-    const event = this.evento();
-    if (!event || event.priceFrom === null || event.priceFrom === undefined) return 'Gratis';
-
-    let base = event.priceFrom * this.numPlazas();
-
-    if (this.puntosAplicados()) {
-      base = Math.max(0, base - this.descuentoPuntosMonto());
-    }
-
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: event.currency || 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(base);
-  }
 }
