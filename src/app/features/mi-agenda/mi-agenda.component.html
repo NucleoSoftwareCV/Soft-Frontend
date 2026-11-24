@@ -1,0 +1,168 @@
+<main class="agenda-page">
+  <h1 class="agenda-page__title">Mi agenda</h1>
+
+  @if (bookingsLoading()) {
+    <div class="agenda-state" aria-live="polite">Cargando tu agenda...</div>
+  } @else if (bookingsError()) {
+    <div class="agenda-state" role="alert">
+      <p>{{ bookingsError() }}</p>
+      <button type="button" class="btn-outline-agenda" (click)="loadMyBookings()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="agenda-layout">
+      <div class="agenda-main">
+
+        <!-- Próxima experiencia destacada -->
+        @if (proximaReserva(); as proxima) {
+          <section class="agenda-section">
+            <h2 class="agenda-section__title">Tu próxima experiencia</h2>
+            <div class="featured-experience-card">
+              <div class="featured-experience-card__image-wrap">
+                <img src="/assets/retiro-yoga-setup.jpeg" alt="" class="featured-experience-card__image" />
+              </div>
+              <div class="featured-experience-card__content">
+                <div class="featured-experience-card__header-tag">
+                  <span class="badge-status">
+                    Reserva confirmada
+                  </span>
+                </div>
+                <h3 class="featured-experience-card__title">{{ proxima.eventTitle }}</h3>
+                <div class="featured-experience-card__meta">
+                  <p class="meta-row">
+                    <span>{{ formatDateTime(proxima.occurrenceStartsAt) }}</span>
+                  </p>
+                  <p class="meta-row">
+                    <span>{{ proxima.modality === 'ONLINE' ? 'Online' : (proxima.cityName || 'Presencial') }}</span>
+                  </p>
+                </div>
+                <div class="featured-experience-card__actions">
+                  <a routerLink="/perfil" [queryParams]="{ tab: 'reservas', reserva: proxima.code }"
+                     class="btn-primary-agenda">Ver mi reserva →</a>
+                  <a routerLink="/perfil" [queryParams]="{ tab: 'reservas' }" class="btn-outline-agenda">Todas las reservas</a>
+                </div>
+              </div>
+            </div>
+          </section>
+        } @else {
+          <div class="agenda-state">
+            <h2 class="agenda-empty-title">Tu agenda está libre</h2>
+            <p class="agenda-empty-text">No tienes ninguna reserva próxima confirmada.</p>
+            <div class="agenda-state__actions">
+              <a routerLink="/explorar" class="btn-primary-agenda">Explorar experiencias</a>
+              <a routerLink="/perfil" [queryParams]="{ tab: 'reservas' }" class="btn-outline-agenda">Todas las reservas</a>
+            </div>
+          </div>
+        }
+
+        <!-- Lo que viene después -->
+        @if (siguientesReservas().length > 0) {
+          <section class="agenda-section">
+            <div class="agenda-section__header">
+              <h2 class="agenda-section__title">Lo que viene después</h2>
+              <a routerLink="/perfil" [queryParams]="{ tab: 'reservas' }" class="agenda-link-btn">Ver todas →</a>
+            </div>
+
+            <div class="agenda-timeline">
+              @for (item of siguientesReservas(); track item.code) {
+                <a class="timeline-card" routerLink="/perfil" [queryParams]="{ tab: 'reservas', reserva: item.code }">
+                  <div class="timeline-card__date">
+                    <span class="timeline-day">{{ getDayNumber(item.occurrenceStartsAt) }}</span>
+                    <span class="timeline-weekday">{{ getShortWeekday(item.occurrenceStartsAt) }}</span>
+                  </div>
+                  <div class="timeline-card__info">
+                    <h3 class="timeline-title">{{ item.eventTitle }}</h3>
+                    <p class="timeline-subtitle">{{ formatHourAndModality(item) }}</p>
+                  </div>
+                  <span class="timeline-card__tag">{{ item.modality }}</span>
+                  <span class="timeline-card__arrow" aria-hidden="true">→</span>
+                </a>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Banner Descubrimiento -->
+        @if (proximaReserva()) {
+        <div class="agenda-banner">
+          <div class="agenda-banner__text">
+            <span class="agenda-banner__icon">🌿</span>
+            <div>
+              <h3>¿Te apetece algo nuevo?</h3>
+              <p>Descubre encuentros elegidos para ti, cerca de casa.</p>
+            </div>
+          </div>
+          <a routerLink="/explorar" class="btn-primary">Explorar eventos →</a>
+        </div>
+        }
+
+      </div>
+
+      <!-- Barra lateral de agenda: Calendario + Preferencias -->
+      <aside class="agenda-sidebar">
+        <div class="mini-calendar-card">
+          <div class="mini-calendar-card__header">
+            <h3>{{ currentMonthName }}</h3>
+            <span>{{ currentYear }}</span>
+          </div>
+
+          <div class="mini-calendar-grid">
+            <span class="cal-h">L</span><span class="cal-h">M</span><span class="cal-h">X</span>
+            <span class="cal-h">J</span><span class="cal-h">V</span><span class="cal-h">S</span><span class="cal-h">D</span>
+
+            @for (day of calendarDays(); track $index) {
+              @if (day === null) {
+                <span></span>
+              } @else if (day.bookingCount > 0) {
+                <button type="button" class="cal-d cal-d--highlight"
+                        [attr.aria-pressed]="selectedDay() === day.dayNumber"
+                        [attr.aria-current]="day.isToday ? 'date' : null"
+                        [attr.aria-label]="day.dayNumber + ' de ' + currentMonthName + ', reservas: ' + day.bookingCount"
+                        (click)="selectedDay.set(day.dayNumber)">
+                  {{ day.dayNumber }}
+                </button>
+              } @else {
+                <span class="cal-d" [class.cal-d--today]="day.isToday"
+                      [attr.aria-current]="day.isToday ? 'date' : null">
+                  {{ day.dayNumber }}
+                </span>
+              }
+            }
+          </div>
+
+          <p class="mini-calendar-footer">
+            {{ reservasEsteMes() }} momento{{ reservasEsteMes() === 1 ? '' : 's' }} para ti este mes
+          </p>
+          @if (selectedDay(); as day) {
+            <section class="calendar-day-bookings" aria-live="polite">
+              <h4>Reservas del {{ day }} de {{ currentMonthName }}</h4>
+              <ul>
+                @for (booking of selectedDayBookings(); track booking.code) {
+                  <li>
+                    <a routerLink="/perfil" [queryParams]="{ tab: 'reservas', reserva: booking.code }">
+                      {{ booking.eventTitle }}
+                    </a>
+                    <span>{{ formatHourAndModality(booking) }}</span>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+
+        <div class="preferences-summary-card">
+          <h3>Tus preferencias</h3>
+          <p class="preferences-subtitle">Lo que te hace sentir bien</p>
+          @if (preferencias().length) {
+            <div class="preferences-chips">
+              @for (preferencia of preferencias(); track $index) {
+                <span class="pref-chip">{{ preferencia.name }}</span>
+              }
+            </div>
+          }
+          <a routerLink="/preferencias" class="preferences-link">Editar preferencias →</a>
+        </div>
+      </aside>
+
+    </div>
+  }
+</main>
