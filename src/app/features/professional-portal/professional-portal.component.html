@@ -792,6 +792,8 @@
         </button>
       </header>
 
+      @if (attendanceMessage()) { <p role="status">{{ attendanceMessage() }}</p> }
+      @if (attendanceError()) { <p class="participants-error" role="alert">{{ attendanceError() }}</p> }
       @if (participantsLoading()) {
         <div class="participants-loading">
           <svg lucideRotateCw aria-hidden="true" class="spin"></svg>
@@ -830,6 +832,12 @@
                       <span class="att-status" [attr.data-status]="att.attendanceStatus">
                         {{ att.attendanceStatus }}
                       </span>
+                      @if (canRegisterAttendance(att)) {
+                        <button type="button" class="secondary" [disabled]="attendanceSaving()"
+                          (click)="registerAttendance(att, 'ASISTIO')">Asistió</button>
+                        <button type="button" class="secondary" [disabled]="attendanceSaving()"
+                          (click)="registerAttendance(att, 'NO_ASISTIO')">No asistió</button>
+                      }
                     </td>
                     <td>
                       <button class="btn-detail" (click)="mostrarDetalleAsistente(att)" aria-label="Ver detalle">

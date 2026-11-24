@@ -284,6 +284,10 @@ export class ProfessionalPortalComponent {
   participantsList = signal<OccurrenceAttendee[]>([]);
   selectedAttendeeDetail = signal<OccurrenceAttendee | null>(null);
   participantsOccurrenceLabel = signal<string>('');
+  readonly participantsOccurrence = signal<EventOccurrenceManagement | null>(null);
+  readonly attendanceSaving = signal(false);
+  readonly attendanceMessage = signal('');
+  readonly attendanceError = signal('');
   cropImageFile = signal<File | null>(null);
   cropImageUrl = signal<string | null>(null);
   cropTransform: ImageTransform = { scale: 1, rotate: 0 };
@@ -1500,6 +1504,9 @@ export class ProfessionalPortalComponent {
 
   // ── Participants modal methods ──────────────────────────────────────────
   verParticipantes(occurrence: EventOccurrenceManagement): void {
+    this.participantsOccurrence.set(occurrence);
+    this.attendanceMessage.set('');
+    this.attendanceError.set('');
     const label = new Date(occurrence.startsAt).toLocaleString('es-PE', { timeZone: 'America/Lima',
       day: '2-digit', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
@@ -1513,10 +1520,12 @@ export class ProfessionalPortalComponent {
 
     this.eventsApi.getOccurrenceAttendees(occurrence.id).subscribe({
       next: list => {
+        if (this.participantsOccurrence() !== occurrence) return;
         this.participantsList.set(list);
         this.participantsLoading.set(false);
       },
       error: err => {
+        if (this.participantsOccurrence() !== occurrence) return;
         this.participantsError.set(this.apiError(err, 'No se pudo cargar la lista de participantes.'));
         this.participantsLoading.set(false);
       }
@@ -1524,6 +1533,7 @@ export class ProfessionalPortalComponent {
   }
 
   cerrarParticipantes(): void {
+    this.participantsOccurrence.set(null);
     this.showParticipantsModal.set(false);
     this.selectedAttendeeDetail.set(null);
     this.participantsList.set([]);
@@ -1531,6 +1541,37 @@ export class ProfessionalPortalComponent {
 
   mostrarDetalleAsistente(attendee: OccurrenceAttendee): void {
     this.selectedAttendeeDetail.set(attendee);
+  }
+
+  canRegisterAttendance(attendee: OccurrenceAttendee): boolean {
+    const occurrence = this.participantsOccurrence();
+    return !!occurrence && occurrence.status !== 'CANCELADA'
+      && Date.parse(occurrence.startsAt) <= Date.now()
+      && (attendee.bookingStatus === 'CONFIRMADA' || attendee.bookingStatus === 'COMPLETADA')
+      && attendee.attendanceStatus === 'PENDIENTE';
+  }
+
+  registerAttendance(attendee: OccurrenceAttendee, status: 'ASISTIO' | 'NO_ASISTIO'): void {
+    const occurrence = this.participantsOccurrence();
+    if (!occurrence || !this.canRegisterAttendance(attendee) || this.attendanceSaving()) return;
+    this.attendanceSaving.set(true);
+    this.attendanceMessage.set('');
+    this.attendanceError.set('');
+    this.eventsApi.registerAttendance(occurrence.id, attendee.attendeeId, status).subscribe({
+      next: () => {
+        this.attendanceSaving.set(false);
+        if (this.participantsOccurrence() !== occurrence) return;
+        this.participantsList.update(list => list.map(item => item.attendeeId === attendee.attendeeId
+          ? { ...item, attendanceStatus: status }
+          : item));
+        this.attendanceMessage.set('Asistencia registrada.');
+      },
+      error: err => {
+        this.attendanceSaving.set(false);
+        if (this.participantsOccurrence() !== occurrence) return;
+        this.attendanceError.set(this.apiError(err, 'No se pudo registrar la asistencia.'));
+      }
+    });
   }
 
   volverAListado(): void {
