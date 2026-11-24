@@ -76,7 +76,6 @@ export class DetalleEvento implements OnDestroy{
   compradorNombre = signal('');
   compradorApellido = signal('');
   compradorEmail = signal('');
-  compradorTelefono = signal('');
 
   // Asistentes adicionales
   asistentesAdicionales = signal<{ name: string; lastName: string; email: string }[]>([]);
@@ -690,7 +689,6 @@ export class DetalleEvento implements OnDestroy{
     const user = this.authService.currentUser();
     this.compradorNombre.set(user?.username ?? '');
     this.compradorEmail.set(user?.email ?? '');
-    this.compradorTelefono.set('');
 
     this.createdOrderCode.set(null);
 
