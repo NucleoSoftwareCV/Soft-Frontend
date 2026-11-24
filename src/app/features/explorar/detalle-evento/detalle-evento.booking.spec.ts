@@ -66,8 +66,14 @@ describe('DetalleEvento booking request', () => {
     component.compradorNombre.set('Ana');
     component.compradorApellido.set('López');
     component.compradorEmail.set('ana@x.es');
-    component.compradorTelefono.set('+34600111222');
   }
+
+  it('does not ask for WhatsApp in the booking form', () => {
+    component.abrirReserva();
+    fixture.detectChanges();
+    const form: HTMLElement = fixture.nativeElement;
+    expect(form.querySelector('.booking-step-content input[type="tel"]')).toBeNull();
+  });
 
   it('sends every event through the same request, without WhatsApp or payment', () => {
     createOrder.mockReturnValue(of({ code: 'ORD-1' }));
