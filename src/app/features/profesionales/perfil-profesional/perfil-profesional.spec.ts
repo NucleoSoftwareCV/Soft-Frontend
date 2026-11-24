@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { PerfilProfesional } from './perfil-profesional';
@@ -16,7 +16,10 @@ describe('PerfilProfesional', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: new Map([['slug', 'ana-yoga']]) } },
+          useValue: {
+            snapshot: { paramMap: new Map([['slug', 'ana-yoga']]), queryParamMap: convertToParamMap({}) },
+            queryParamMap: of(convertToParamMap({})),
+          },
         },
         { provide: Router, useValue: { navigate: vi.fn() } },
         {
