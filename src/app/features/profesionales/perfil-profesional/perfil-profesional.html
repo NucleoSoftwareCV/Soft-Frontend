@@ -495,6 +495,33 @@
     </div>
   </div>
 }
+    @if (showLoginPrompt()) {
+      <div class="appointment-login-modal" (click)="closeLoginPrompt()">
+        <section
+          class="appointment-login-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="appointment-login-title"
+          aria-describedby="appointment-login-description"
+          (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="appointment-login-modal__close"
+            aria-label="Cerrar"
+            (click)="closeLoginPrompt()">×</button>
+          <span class="appointment-login-modal__icon" aria-hidden="true">↗</span>
+          <p class="appointment-login-modal__eyebrow">RESERVAS 1:1</p>
+          <h2 id="appointment-login-title">Inicia sesión para reservar</h2>
+          <p id="appointment-login-description">
+            Necesitas una cuenta activa para solicitar una cita y recibir las actualizaciones de tu reserva.
+          </p>
+          <footer class="appointment-login-modal__actions">
+            <button type="button" class="appointment-login-modal__secondary" (click)="closeLoginPrompt()">Ahora no</button>
+            <button type="button" class="appointment-login-modal__primary" (click)="continueToLogin()">Iniciar sesión</button>
+          </footer>
+        </section>
+      </div>
+    }
 
 } @else {
 

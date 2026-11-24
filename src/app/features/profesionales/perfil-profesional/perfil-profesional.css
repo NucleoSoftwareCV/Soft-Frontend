@@ -1038,3 +1038,108 @@ height: 16px;
 .tarjeta12--active .tarjeta13-short {
   color: #ffffff !important;
 }
+
+.appointment-login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 36, 41, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.appointment-login-modal__card {
+  position: relative;
+  width: min(430px, 100%);
+  padding: 30px;
+  border: 1px solid #d9e5e2;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(5, 35, 40, 0.22);
+  color: #073f48;
+}
+
+.appointment-login-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f4;
+  color: #386166;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.appointment-login-modal__close:hover { background: #e2ece9; }
+
+.appointment-login-modal__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: #e9f5f3;
+  color: #007582;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.appointment-login-modal__eyebrow {
+  margin: 0 0 7px;
+  color: #6b9134;
+  font: 700 0.72rem/1 Arial, sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.appointment-login-modal__card h2 {
+  margin: 0 0 9px;
+  font: 700 1.55rem/1.2 Georgia, serif;
+}
+
+.appointment-login-modal__card p:not(.appointment-login-modal__eyebrow) {
+  margin: 0;
+  color: #607174;
+  font: 400 0.94rem/1.55 Arial, sans-serif;
+}
+
+.appointment-login-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.appointment-login-modal__actions button {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 8px;
+  font: 700 0.88rem Arial, sans-serif;
+  cursor: pointer;
+}
+
+.appointment-login-modal__secondary {
+  border: 1px solid #b9cdca;
+  background: #fff;
+  color: #0a5964;
+}
+
+.appointment-login-modal__primary {
+  border: 1px solid #006c78;
+  background: #006c78;
+  color: #fff;
+}
+
+.appointment-login-modal__secondary:hover { background: #f2f7f5; }
+.appointment-login-modal__primary:hover { background: #005862; }
+
+@media (max-width: 480px) {
+  .appointment-login-modal__card { padding: 26px 20px 20px; }
+  .appointment-login-modal__actions { flex-direction: column-reverse; }
+  .appointment-login-modal__actions button { width: 100%; }
+}
