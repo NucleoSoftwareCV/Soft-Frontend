@@ -27,6 +27,10 @@ export interface AppointmentReceipt extends AppointmentSlot {
   rescheduledBy?: 'CLIENTE' | 'PROFESIONAL' | null;
   virtualUrl?: string | null;
   imageUrl?: string | null;
+  /** Orden con la que el cliente paga una cita aceptada por el profesional. */
+  orderCode?: string | null;
+  /** Solo en citas aceptadas: límite para pagar antes de que se libere el horario. */
+  paymentDeadline?: string | null;
 }
 export interface AppointmentReschedule {
   modality: AppointmentModality; locationId: number | null; startsAt: string; reason: string;
@@ -94,6 +98,7 @@ export class AppointmentService {
   agendaAppointment(code: string) {
     return this.http.get<AppointmentReceipt>(`${this.base}/professional-agenda/requests/code/${encodeURIComponent(code)}`);
   }
+  /** CONFIRMADA acepta la solicitud: si la sesión tiene precio, el cliente debe pagar para confirmarla. */
   decide(id: number, status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA', reason?: string) {
     return this.http.patch<AppointmentReceipt>(`${this.base}/professional-agenda/requests/${id}`, { status, reason: reason || null });
   }

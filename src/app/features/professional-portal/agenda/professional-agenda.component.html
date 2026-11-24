@@ -158,8 +158,8 @@
             </details>
             <div class="choices">
               @if (item.status === 'PENDIENTE' && canCancel(item)) { <button type="button" class="primary" [disabled]="saving()" (click)="decide(item.id, 'CONFIRMADA')">Aceptar</button><button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Rechazar</button> }
-              @if ((item.status === 'CONFIRMADA' || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
-              @if (item.status === 'CONFIRMADA' && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
+              @if ((isBooked(item) || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
+              @if (isBooked(item) && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
             </div>
           </article>
         }
@@ -198,6 +198,9 @@
       @if (item.status === 'PENDIENTE' && item.expiresAt) {
         <p class="deadline">Responder antes del {{ formatDate(item.expiresAt) }}</p>
       }
+      @if (item.status === 'ACEPTADA' && item.paymentDeadline) {
+        <p class="deadline">El cliente debe pagar antes del {{ formatDate(item.paymentDeadline) }}</p>
+      }
       <details class="request-details"><summary>Ver detalles</summary>
         @if (item.reason) { <p class="reason">{{ item.reason }}</p> }
         @if (item.status === 'CANCELADA' && item.cancellationReason) {
@@ -211,8 +214,8 @@
       </details>
       <div class="choices">
         @if (item.status === 'PENDIENTE' && canCancel(item)) { <button type="button" class="primary" [disabled]="saving()" (click)="decide(item.id, 'CONFIRMADA')">Aceptar</button><button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Rechazar</button> }
-        @if ((item.status === 'CONFIRMADA' || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
-        @if (item.status === 'CONFIRMADA' && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
+        @if ((isBooked(item) || item.status === 'PENDIENTE') && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToReschedule.set(item)">Proponer otro horario</button> }
+        @if (isBooked(item) && canCancel(item)) { <button type="button" [disabled]="saving()" (click)="appointmentToCancel.set(item)">Cancelar cita</button> }
         @if (canComplete(item)) { <button type="button" [disabled]="saving()" (click)="decide(item.id, 'COMPLETADA')">Marcar completada</button> }
       </div>
     </article>

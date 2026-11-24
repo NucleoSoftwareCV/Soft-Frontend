@@ -52,9 +52,27 @@ interface ItemCreado {
 
 export function isActiveAppointmentReservation(appointment: AppointmentReceipt, now = Date.now()): boolean {
   if (Date.parse(appointment.startsAt) <= now) return false;
-  if (!['PENDIENTE', 'CONFIRMADA', 'REPROGRAMACION_PROPUESTA'].includes(appointment.status)) return false;
-  const requiresValidHold = appointment.status === 'PENDIENTE' || appointment.status === 'REPROGRAMACION_PROPUESTA';
+  if (!['PENDIENTE', 'ACEPTADA', 'CONFIRMADA', 'REPROGRAMACION_PROPUESTA'].includes(appointment.status)) return false;
+  const requiresValidHold = appointment.status !== 'CONFIRMADA';
   return !requiresValidHold || !appointment.expiresAt || Date.parse(appointment.expiresAt) > now;
+}
+
+/** Cita aceptada por el profesional cuyo plazo de pago sigue abierto. */
+export function isAppointmentPayable(appointment: AppointmentReceipt, now = Date.now()): boolean {
+  return appointment.status === 'ACEPTADA' && !!appointment.orderCode
+    && Date.parse(appointment.startsAt) > now
+    && (!appointment.paymentDeadline || Date.parse(appointment.paymentDeadline) > now);
+}
+
+/** El diálogo de pago de reservas también cobra citas: comparten orden, Visa y Yape. */
+export function appointmentAsPayment(appointment: AppointmentReceipt): MyBooking {
+  return {
+    code: appointment.code, orderCode: appointment.orderCode, paymentDeadline: appointment.paymentDeadline,
+    status: appointment.status, quantity: 1, totalAmount: appointment.price, currency: appointment.currency,
+    createdAt: appointment.startsAt, eventId: appointment.serviceId, eventTitle: appointment.title,
+    occurrenceStartsAt: appointment.startsAt, modality: appointment.modality,
+    locationName: appointment.venue?.name ?? null, cityName: null,
+  };
 }
 
 export function isAppointmentProposalAvailable(appointment: AppointmentReceipt, now = Date.now()): boolean {
@@ -100,7 +118,7 @@ private readonly professionalApplicationService = inject(ProfessionalApplication
   readonly cancellationMessage = signal('');
   readonly appointmentDate = appointmentDate;
   readonly appointmentStatuses: Record<string, string> = {
-    PENDIENTE: 'Pendiente de aceptación', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
+    PENDIENTE: 'Pendiente de aceptación', ACEPTADA: 'Aceptada · pendiente de pago', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
     COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Nuevo horario propuesto',
   };
 
@@ -328,6 +346,7 @@ readonly professionalApplicationDismissed = signal(false);
       next: appointments => {
         this.myAppointments.set(appointments);
         this.appointmentsLoading.set(false);
+        this.openRequestedAppointment();
       },
       error: () => {
         this.appointmentsError.set(true);
@@ -339,8 +358,25 @@ readonly professionalApplicationDismissed = signal(false);
   canCancelAppointment(appointment: AppointmentReceipt): boolean {
     const now = Date.now();
     return Date.parse(appointment.startsAt) > now &&
-      (appointment.status === 'CONFIRMADA' || this.isAppointmentProposalAvailable(appointment, now) || (appointment.status === 'PENDIENTE' &&
-        (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
+      (appointment.status === 'CONFIRMADA' || this.isAppointmentProposalAvailable(appointment, now)
+        || ((appointment.status === 'PENDIENTE' || appointment.status === 'ACEPTADA') &&
+          (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now)));
+  }
+
+  isAppointmentPayable(appointment: AppointmentReceipt): boolean {
+    return isAppointmentPayable(appointment);
+  }
+
+  payAppointment(appointment: AppointmentReceipt): void {
+    this.paymentBooking.set(appointmentAsPayment(appointment));
+  }
+
+  /** Un aviso "Realizar pago" de una cita abre directamente su pago. */
+  private openRequestedAppointment(): void {
+    const appointment = this.myAppointments().find(a => a.code === this.requestedBooking);
+    if (!appointment) return;
+    this.requestedBooking = null;
+    if (this.isAppointmentPayable(appointment)) this.payAppointment(appointment);
   }
 
   isActiveAppointment(appointment: AppointmentReceipt, now = Date.now()): boolean {
@@ -388,9 +424,11 @@ readonly professionalApplicationDismissed = signal(false);
       next: updated => {
         this.myAppointments.update(items => items.map(item => item.id === updated.id ? updated : item));
         this.cancellingAppointment.set(false);
-        this.cancellationMessage.set(accepted
-          ? 'Aceptaste el nuevo horario. La cita quedó confirmada.'
-          : 'Rechazaste la propuesta. El horario quedó disponible.');
+        this.cancellationMessage.set(!accepted
+          ? 'Rechazaste la propuesta. El horario quedó disponible.'
+          : updated.status === 'ACEPTADA'
+            ? 'Aceptaste el nuevo horario. Realiza el pago para confirmar la cita.'
+            : 'Aceptaste el nuevo horario. La cita quedó confirmada.');
       },
       error: err => {
         this.cancellingAppointment.set(false);
@@ -435,6 +473,7 @@ readonly professionalApplicationDismissed = signal(false);
 
   onBookingChanged(): void {
     this.loadMyBookings();
+    this.loadMyAppointments();
     this.myBookingsStore.refresh();
     this.notificationsService.refreshUnread();
   }
