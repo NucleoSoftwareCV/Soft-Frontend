@@ -252,6 +252,15 @@ export const routes: Routes = [
   },
 
   {
+    path: 'mi-agenda',
+    canActivate: [roleGuard('USER')],
+    loadComponent: () =>
+      import('./features/mi-agenda/mi-agenda.component')
+        .then(m => m.MiAgendaComponent),
+    title: 'Mi agenda - Oona',
+  },
+
+  {
     path: 'onboarding',
     canActivate: [roleGuard('USER')],
     loadComponent: () =>

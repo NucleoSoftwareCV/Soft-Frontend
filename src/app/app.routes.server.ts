@@ -59,6 +59,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'mi-agenda',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'onboarding',
     renderMode: RenderMode.Client
   },
