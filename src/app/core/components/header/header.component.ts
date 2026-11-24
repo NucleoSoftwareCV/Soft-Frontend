@@ -32,6 +32,7 @@ import { SpecialistProfileResponse } from '../../../services/profesionales.servi
 import { resolveAssetUrl } from '../../../shared/utils/asset-url.util';
 import { CityInterestService } from '../../../services/city-interest.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { NotificationsService } from '../../../services/notifications.service';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -44,7 +45,6 @@ interface CalendarDayCell {
   isPast: boolean;
 }
 
-import { NotificationsService } from '../../../services/notifications.service';
 
 @Component({
   selector: 'app-header',

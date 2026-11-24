@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -7,6 +7,7 @@ import {
   AppNotification,
   NOTIFICATION_TYPE_LABELS,
   NotificationPage,
+  PROFESSIONAL_APPOINTMENT_NOTIFICATIONS,
   PROFESSIONAL_NOTIFICATIONS,
 } from '../../models/notification.model';
 
@@ -27,6 +28,13 @@ export class NotificationsInboxComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly unread = this.api.unreadCount;
+  readonly filter = signal<'all' | 'unread'>('all');
+  readonly visibleNotifications = computed(() => {
+    const notifications = this.page()?.content ?? [];
+    return this.filter() === 'unread'
+      ? notifications.filter((notification) => !notification.read)
+      : notifications;
+  });
 
   ngOnInit(): void {
     this.load();
@@ -54,7 +62,11 @@ export class NotificationsInboxComponent implements OnInit {
     if (!notification.bookingCode) {
       return;
     }
-    if (PROFESSIONAL_NOTIFICATIONS.includes(notification.type)) {
+    if (PROFESSIONAL_APPOINTMENT_NOTIFICATIONS.includes(notification.type)) {
+      void this.router.navigate(['/profesional'], {
+        queryParams: { seccion: 'agenda', cita: notification.bookingCode },
+      });
+    } else if (PROFESSIONAL_NOTIFICATIONS.includes(notification.type)) {
       void this.router.navigate(['/profesional'], {
         queryParams: { seccion: 'reservations', reserva: notification.bookingCode },
       });
@@ -70,6 +82,15 @@ export class NotificationsInboxComponent implements OnInit {
         content: current.content.map((n) => ({ ...n, read: true })),
       }),
     });
+  }
+
+  setFilter(filter: 'all' | 'unread'): void {
+    this.filter.set(filter);
+  }
+
+  markRead(notification: AppNotification): void {
+    if (notification.read) return;
+    this.api.markRead(notification.id).subscribe({ next: () => this.setRead(notification.id) });
   }
 
   private setRead(id: number): void {

@@ -1,5 +1,7 @@
 import { CampaignBadge } from './campania.model';
 
+
+import { EventReviewerPreview } from './event-review.model';
 export interface EventOccurrenceResponse {
   id: number;
   startsAt: string;
@@ -74,6 +76,9 @@ export enum EventMood {
 }
 
 export interface EventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   occurrenceId?: number | null;
   id: number;
   title: string;
@@ -211,6 +216,9 @@ export interface HomeViewAllFilters {
 }
 
 export interface HomeEventCardResponse {
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviewers?: EventReviewerPreview[];
   occurrenceId?: number | null;
   id: number;
   title: string;

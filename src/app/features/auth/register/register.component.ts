@@ -1,5 +1,6 @@
+import { AuthReturnService } from '../../../core/services/auth-return.service';
 import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { GoogleIdentityService } from '../../../core/services/google-identity.service';
@@ -14,6 +15,9 @@ import { GoogleIdentityService } from '../../../core/services/google-identity.se
 export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly authReturn = inject(AuthReturnService);
+  readonly authQueryParams = this.authReturn.queryParams(this.route.snapshot);
   private readonly googleIdentity = inject(GoogleIdentityService);
 
   private readonly googleBtnContainer = viewChild<ElementRef<HTMLElement>>('googleBtn');
@@ -93,11 +97,11 @@ export class RegisterComponent {
         }).subscribe({
           next: () => {
             this.isLoading.set(false);
-            this.router.navigate(['/onboarding']);
+            this.router.navigate(['/onboarding'], { queryParams: this.authQueryParams });
           },
           error: (err) => {
             this.isLoading.set(false);
-            this.router.navigate(['/login']);
+            this.router.navigate(['/auth/login'], { queryParams: this.authQueryParams });
             console.error(err);
           }
         });
@@ -137,11 +141,11 @@ export class RegisterComponent {
       next: response => {
         this.isLoading.set(false);
         if (response.newlyRegistered || response.onboardingRequired) {
-          this.router.navigate(['/onboarding']);
+          this.router.navigate(['/onboarding'], { queryParams: this.authQueryParams });
         } else if (this.authService.roles.includes('PROFESSIONAL')) {
-          this.router.navigate(['/']); // o manejo correspondiente
+          this.authReturn.resume(this.route.snapshot);
         } else {
-          this.router.navigate(['/']);
+          this.authReturn.resume(this.route.snapshot);
         }
       },
       error: (err) => {

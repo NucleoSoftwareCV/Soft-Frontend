@@ -1,11 +1,10 @@
+import { ProfessionalAgendaComponent } from './agenda/professional-agenda.component';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NotificationsService } from '../../services/notifications.service';
-import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
 import { map, of, switchMap } from 'rxjs';
 import {
   ImageCroppedEvent,
@@ -71,8 +70,10 @@ import {
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 import { ExperienceTypeCatalogItem } from '../../shared/models/event-catalog.model';
 import { ProfessionalReservationsComponent } from './reservations/professional-reservations.component';
+import { NotificationsInboxComponent } from '../../shared/components/notifications-inbox/notifications-inbox.component';
+import { NotificationsService } from '../../services/notifications.service';
 
-type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'notifications';
+type PortalSection = 'summary' | 'profile' | 'events' | 'sessions' | 'reservations' | 'agenda' | 'notifications';
 type EventStepKey = 'info' | 'format' | 'schedule' | 'extra';
 type SessionStepKey = 'info' | 'format' | 'specialty';
 type CropAsset = 'photo' | 'banner' | 'eventCover' | 'sessionCover';
@@ -165,6 +166,8 @@ interface OccurrenceForm {
   imports: [
     NotificationsInboxComponent,
     ProfessionalReservationsComponent,
+    ProfessionalAgendaComponent,
+    NotificationsInboxComponent,
     CommonModule,
     FormsModule,
     ImageCropperComponent,
@@ -189,12 +192,12 @@ interface OccurrenceForm {
     LucideRotateCw,
     LucideTriangleAlert,
     LucideUpload,
-  LucideBell,
     LucideUserRound,
     LucideZoomIn,
     LucideX,
     LucideUsers,
     LucideEyeOff,
+    LucideBell,
   ],
   templateUrl: './professional-portal.component.html',
   styleUrl: './professional-portal.component.css',
@@ -202,16 +205,16 @@ interface OccurrenceForm {
 export class ProfessionalPortalComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly profileApi = inject(SpecialistProfileService);
   private readonly eventsApi = inject(EventManagementService);
   private readonly publicEventsApi = inject(EventosService);
   private readonly sessionsApi = inject(OneToOneServicesService);
+  readonly notificationsService = inject(NotificationsService);
 
   section = signal<PortalSection>('summary');
   /** Reserva pedida por enlace desde una notificación. */
   requestedBooking = signal<string | null>(null);
-  private readonly route = inject(ActivatedRoute);
-  readonly notificationsService = inject(NotificationsService);
   profile = signal<SpecialistProfileResponse | null>(null);
   events = signal<EventManagementResponse[]>([]);
   sessions = signal<OneToOneServiceDetailResponse[]>([]);
@@ -242,6 +245,7 @@ export class ProfessionalPortalComponent {
   profilePhotoFailed = signal(false);
   uploadingGalleryImage = signal(false);
   previewImageUrl = signal<string | null>(null);
+  readonly requestedAppointmentCode = signal<string | null>(null);
 
   // ── Wizard: crear/editar evento ─────────────────────────────────────────
   // Nota: eventForm es un objeto plano (no signal), así que eventSteps/currentEventStepKey
@@ -327,12 +331,14 @@ export class ProfessionalPortalComponent {
 
   constructor() {
     this.loadAll();
-    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
-      const section = params.get('seccion');
-      if (section === 'reservations' || section === 'notifications') {
-        this.section.set(section);
+    this.route.queryParams.pipe(takeUntilDestroyed()).subscribe(params => {
+      const requested = params['seccion'];
+      const valid: PortalSection[] = ['summary', 'profile', 'events', 'sessions', 'reservations', 'agenda', 'notifications'];
+      if (valid.includes(requested)) {
+        this.section.set(requested);
       }
-      this.requestedBooking.set(params.get('reserva'));
+      this.requestedAppointmentCode.set(params['cita'] ?? null);
+      this.requestedBooking.set(params['reserva'] ?? null);
     });
   }
 
@@ -1480,6 +1486,13 @@ export class ProfessionalPortalComponent {
 
   private apiError(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
+      const violations: unknown = error.error?.errors;
+      if (Array.isArray(violations)) {
+        const messages = violations
+          .map(item => item?.message)
+          .filter((message): message is string => typeof message === 'string' && message.trim().length > 0);
+        if (messages.length) return [...new Set(messages)].join(' ');
+      }
       return error.error?.message || error.error?.detail || fallback;
     }
     return fallback;

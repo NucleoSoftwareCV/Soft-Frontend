@@ -53,6 +53,11 @@
 .confirm-dialog__content { padding-right: 24px; }
 .confirm-dialog__content h2 { margin: 0 0 8px; font: 700 1.18rem/1.3 Georgia, serif; color: #073f48; }
 .confirm-dialog__content p { margin: 0; font: 400 .9rem/1.55 Arial, sans-serif; color: #607174; }
+.confirm-dialog__reason { display: grid; gap: 7px; margin-top: 18px; font: 600 .86rem Arial, sans-serif; color: #173f44; }
+.confirm-dialog__reason textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 82px; padding: 10px 12px; border: 1px solid #ccd7d5; border-radius: 7px; font: 400 .9rem/1.45 Arial, sans-serif; color: #173f44; }
+.confirm-dialog__reason textarea:focus { outline: 3px solid rgba(204, 127, 89, .28); border-color: #cc7f59; }
+.confirm-dialog__reason small { justify-self: end; color: #687b7d; font-weight: 400; }
+.confirm-dialog__error { margin-top: 6px !important; color: #b42318 !important; }
 
 .confirm-dialog__actions {
   display: flex;

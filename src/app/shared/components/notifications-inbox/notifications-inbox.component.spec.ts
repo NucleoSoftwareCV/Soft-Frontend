@@ -50,14 +50,14 @@ describe('NotificationsInboxComponent', () => {
     expect(items[0].textContent).toContain('Nueva');
     expect(items[0].textContent).toContain('Aceptada');
     expect(items[0].querySelector('time')).not.toBeNull();
-    expect(items[0].querySelector('button')?.textContent).toContain('Realizar pago');
+    expect(items[0].querySelector('.inbox-action')?.textContent).toContain('Realizar pago');
     expect(items[1].classList.contains('unread')).toBe(false);
   });
 
   it('marks as read and goes to the booking of the customer', () => {
     api.list.mockReturnValue(of(page([notification(1, {})])));
     const fixture = render();
-    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('li button')!.click();
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('li .inbox-action')!.click();
     fixture.detectChanges();
     expect(api.markRead).toHaveBeenCalledWith(1);
     expect(navigate).toHaveBeenCalledWith(['/perfil'], { queryParams: { tab: 'reservas', reserva: 'BKG-1' } });
@@ -67,7 +67,7 @@ describe('NotificationsInboxComponent', () => {
   it('sends professional notices to the reservations of the panel', () => {
     api.list.mockReturnValue(of(page([notification(1, { type: 'NUEVA_SOLICITUD', read: true })])));
     const fixture = render();
-    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('li button')!.click();
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('li .inbox-action')!.click();
     expect(api.markRead).not.toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['/profesional'], { queryParams: { seccion: 'reservations', reserva: 'BKG-1' } });
   });
