@@ -8,6 +8,7 @@ import { CampaniaBadgeComponent } from '../campania-badge/campania-badge.compone
 import { BookingIndicatorComponent } from '../booking-indicator/booking-indicator.component';
 import { resolveAssetUrl } from '../../utils/asset-url.util';
 import { categoryIcon } from '../../utils/category-icon.util';
+import { formatDisplayPrice } from '../../utils/moneda.util';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&auto=format&fit=crop&q=85';
@@ -48,10 +49,6 @@ export class EventoCardComponent {
   formatPrice(): string {
     const item = this.evento();
     if (item.priceFrom === null || item.priceFrom === undefined) return 'Gratis';
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: item.currency || 'PEN',
-      maximumFractionDigits: 0,
-    }).format(item.priceFrom);
+    return formatDisplayPrice(item.priceFrom, item.currency);
   }
 }

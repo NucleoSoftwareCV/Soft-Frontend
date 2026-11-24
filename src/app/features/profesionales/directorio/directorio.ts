@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, of, switchMap } from 'rxjs';
 import { AppIcon } from '../../../shared/components/icon/icon';
 import { SpecialistProfileService } from '../../../services/profesionales.service';
+import { formatDisplayPrice } from '../../../shared/utils/moneda.util';
 import {
   DirectoryFeaturedService, DirectoryProfile, DirectoryType,
   ProfessionalDirectoryService,
@@ -123,9 +124,7 @@ export class Directorio implements OnInit {
   }
 
   price(value: number, currency: string | null): string {
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency', currency: currency || 'PEN', maximumFractionDigits: 2,
-    }).format(value);
+    return formatDisplayPrice(value, currency);
   }
 
   date(value: string): string {
