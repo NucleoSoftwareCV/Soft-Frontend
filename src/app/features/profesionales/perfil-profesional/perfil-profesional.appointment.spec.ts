@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PerfilProfesional } from './perfil-profesional';
 import { AuthService } from '../../../core/services/auth.service';
 import { SpecialistProfileService } from '../../../services/profesionales.service';
@@ -30,8 +30,12 @@ describe('Acceso a citas desde un perfil publicado', () => {
     c.perfil.set({ id: 7, userId: 70, slug: 'ana-gomez', tipo: 'Profesional', nombre: 'Ana', ubicacion: 'Lima', cita: '', tags: [], showOneToOneSessions: true });
     return c;
   }
-  it('invita a acceder conservando el profesional y la intención', () => {
-    component().reserveAppointment();
+  it('muestra la ventana de acceso y conserva el profesional y la intención', () => {
+    const c = component();
+    c.reserveAppointment();
+    expect(c.showLoginPrompt()).toBe(true);
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+    c.continueToLogin();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/auth/login'], { queryParams: { returnUrl: '/profesionales/ana-gomez?reservar=1#citas' } });
   });
   it('con sesión activa abre los servicios sin repetir el acceso', () => {

@@ -20,7 +20,6 @@ import { OneToOneServiceCardResponse } from '../../../shared/models/one-to-one-s
 import { EventoCardComponent } from '../../../shared/components/evento-card/evento-card.component';
 import { SesionCardComponent } from '../../../shared/components/sesion-card/sesion-card.component';
 import { EventoCalendarComponent } from '../../../shared/components/evento-calendar/evento-calendar.component';
-import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-perfil-profesional',
@@ -32,7 +31,6 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     EventoCardComponent,
     SesionCardComponent,
     EventoCalendarComponent,
-    ConfirmDialogComponent,
     AppointmentRequestComponent,
   ],
   templateUrl: './perfil-profesional.html',
@@ -61,6 +59,8 @@ export class PerfilProfesional implements OnInit {
   readonly appointmentSaving = signal(false);
   readonly sessionsLoading = signal(false);
   readonly sessionsError = signal(false);
+  readonly showLoginPrompt = signal(false);
+  private readonly pendingLoginReturnUrl = signal<string | null>(null);
 
   constructor() {
     afterRenderEffect(() => {
@@ -79,10 +79,24 @@ export class PerfilProfesional implements OnInit {
       queryParams: { reservar: '1' }, fragment: 'citas',
     });
     if (!this.authService.isLoggedIn) {
-      void this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.serializeUrl(target) } });
+      this.pendingLoginReturnUrl.set(this.router.serializeUrl(target));
+      this.showLoginPrompt.set(true);
       return;
     }
     void this.router.navigateByUrl(target);
+  }
+
+  closeLoginPrompt(): void {
+    this.showLoginPrompt.set(false);
+    this.pendingLoginReturnUrl.set(null);
+  }
+
+  continueToLogin(): void {
+    const returnUrl = this.pendingLoginReturnUrl();
+    if (!returnUrl) return;
+    this.showLoginPrompt.set(false);
+    this.pendingLoginReturnUrl.set(null);
+    void this.router.navigate(['/auth/login'], { queryParams: { returnUrl } });
   }
 
   readonly perfil = signal<TarjetaDirectorio | null>(null);
