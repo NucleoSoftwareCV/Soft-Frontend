@@ -6,6 +6,8 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { CheckoutService, MyBooking } from '../../services/checkout.service';
 import { ClientPreferencesService } from '../../services/client-preferences.service';
 import { ClientInterestCategoryResponse } from '../../shared/models/client-preferences.model';
+import { getScheduledBookings } from '../../shared/utils/booking-schedule.util';
+import { bookingStatusLabel } from '../../shared/utils/booking-status.util';
 
 const LIMA_TIME_ZONE = 'America/Lima';
 const calendarDateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -38,18 +40,17 @@ export class MiAgendaComponent implements OnInit {
   readonly preferencias = signal<ClientInterestCategoryResponse[]>([]);
   readonly selectedDay = signal<number | null>(null);
 
-  private readonly reservasConfirmadas = computed(() =>
-    this.myBookings()
-      .filter(({ status }) => status === 'CONFIRMED' || status === 'CONFIRMADA')
-      .map((booking) => ({ booking, date: new Date(booking.occurrenceStartsAt) }))
-      .filter(({ date }) => Number.isFinite(date.getTime()))
-      .sort((a, b) => a.date.getTime() - b.date.getTime()),
-  );
+  private readonly reservasProgramadas = computed(() => getScheduledBookings(this.myBookings()));
+  readonly statusLabel = bookingStatusLabel;
+
+  isAwaitingAction(booking: MyBooking): boolean {
+    return booking.status === 'PENDIENTE' || booking.status === 'PENDING' || booking.status === 'ACEPTADA';
+  }
 
   private readonly proximasReservas = computed(() => {
     const now = Date.now();
-    return this.reservasConfirmadas()
-      .filter(({ date }) => date.getTime() >= now)
+    return this.reservasProgramadas()
+      .filter(({ date }) => date.getTime() > now)
       .map(({ booking }) => booking);
   });
 
@@ -64,7 +65,7 @@ export class MiAgendaComponent implements OnInit {
 
   private readonly reservasPorDia = computed(() => {
     const bookingsByDay = new Map<number, MyBooking[]>();
-    for (const { booking, date } of this.reservasConfirmadas()) {
+    for (const { booking, date } of this.reservasProgramadas()) {
       const { year, month, day } = calendarDate(date);
       if (year !== this.currentYear || month !== this.todayInLima.month) continue;
       const bookings = bookingsByDay.get(day) ?? [];

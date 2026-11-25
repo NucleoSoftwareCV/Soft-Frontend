@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { GrupoWhatsAppComponent } from './features/whatsapp/grupowhatsapp';
@@ -243,7 +244,13 @@ export const routes: Routes = [
 
   {
     path: 'perfil',
-    canActivate: [roleGuard('USER')],
+    canActivate: [
+      roleGuard('USER'),
+      route => route.queryParamMap.get('tab') === 'agenda'
+        ? inject(Router).createUrlTree(['/mi-agenda'])
+        : true,
+    ],
+    runGuardsAndResolvers: 'paramsOrQueryParamsChange',
     loadComponent: () =>
       import('./features/perfil/perfil.component')
         .then(m => m.PerfilComponent),

@@ -138,6 +138,11 @@
   text-transform: uppercase;
 }
 
+.badge-status--pending {
+  background-color: #f6e8c6;
+  color: #67460b;
+}
+
 .featured-experience-card__title {
   font-family: Sunset, Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 1.3rem;

@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { BookingPaymentDialogComponent } from '../../shared/components/booking-payment-dialog/booking-payment-dialog.component';
 import { MyBookingsStore } from '../../services/my-bookings.store';
 import { bookingStatusLabel } from '../../shared/utils/booking-status.util';
+import { isActiveEventReservation } from '../../shared/utils/booking-schedule.util';
 import { AppointmentRescheduleComponent } from './appointment-reschedule.component';
 import { ProfilePointsComponent } from './profile-points.component';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
@@ -21,6 +22,7 @@ import { NotificationsInboxComponent } from '../../shared/components/notificatio
 import { NotificationsService } from '../../services/notifications.service';
 import { resolveAssetUrl } from '../../shared/utils/asset-url.util';
 
+export { isActiveEventReservation } from '../../shared/utils/booking-schedule.util';
 
 type Seccion = 'perfil' | 'eventos' | 'dashboard';
 type ModalStep = 'tipo' | 'sesion' | 'evento';
@@ -62,11 +64,6 @@ export function isAppointmentProposalAvailable(appointment: AppointmentReceipt, 
   return appointment.status === 'REPROGRAMACION_PROPUESTA'
     && Date.parse(appointment.startsAt) > now
     && (!appointment.expiresAt || Date.parse(appointment.expiresAt) > now);
-}
-
-export function isActiveEventReservation(booking: MyBooking, now = Date.now()): boolean {
-  return Date.parse(booking.occurrenceStartsAt) > now &&
-    ['PENDIENTE', 'CONFIRMADA'].includes(booking.status);
 }
 
 @Component({
@@ -297,7 +294,7 @@ readonly professionalApplicationDismissed = signal(false);
   }
 
   activeBookingsCount(): number {
-    return this.myBookings().filter((b) => ['PENDIENTE', 'ACEPTADA', 'CONFIRMADA'].includes(b.status)).length;
+    return this.activeEventBookings().length;
   }
 
   confirmCancelBooking(): void {

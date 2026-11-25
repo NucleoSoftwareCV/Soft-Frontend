@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { PerfilComponent } from './perfil.component';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckoutService } from '../../services/checkout.service';
+import { AppointmentService } from '../../services/appointment.service';
 import { ProfessionalApplicationService } from '../../services/professional-application.service';
 import { ProfessionalFollowService } from '../../services/professional-follow.service';
 import { FavoritesService } from '../../services/favorites.service';
@@ -21,6 +22,7 @@ describe('PerfilComponent booking refresh', () => {
     TestBed.configureTestingModule({ providers: [
       { provide: AuthService, useValue: { isLoggedIn: true } },
       { provide: CheckoutService, useValue: api },
+      { provide: AppointmentService, useValue: { myAppointments: () => of([]) } },
       { provide: Router, useValue: {} },
       { provide: ActivatedRoute, useValue: {} },
       { provide: ProfessionalApplicationService, useValue: {} },
@@ -73,8 +75,15 @@ describe('PerfilComponent booking refresh', () => {
     expect(api.getMyBookings).toHaveBeenCalled();
     expect(component.cancelLoading()).toBe(false);
   });
-  it('counts only the active bookings', () => {
-    component.myBookings.set([{ status: 'ACEPTADA' }, { status: 'CANCELADA' }, { status: 'CONFIRMADA' }] as never);
+  it('counts upcoming accepted and confirmed bookings and excludes past and cancelled ones', () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const past = new Date(Date.now() - 60_000).toISOString();
+    component.myBookings.set([
+      { status: 'ACEPTADA', occurrenceStartsAt: future },
+      { status: 'CANCELADA', occurrenceStartsAt: future },
+      { status: 'CONFIRMADA', occurrenceStartsAt: future },
+      { status: 'CONFIRMADA', occurrenceStartsAt: past },
+    ] as never);
     expect(component.activeBookingsCount()).toBe(2);
   });
 });
