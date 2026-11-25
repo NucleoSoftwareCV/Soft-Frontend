@@ -22,8 +22,8 @@
               </div>
               <div class="featured-experience-card__content">
                 <div class="featured-experience-card__header-tag">
-                  <span class="badge-status">
-                    Reserva confirmada
+                  <span class="badge-status" [class.badge-status--pending]="isAwaitingAction(proxima)">
+                    {{ statusLabel(proxima) }}
                   </span>
                 </div>
                 <h3 class="featured-experience-card__title">{{ proxima.eventTitle }}</h3>
@@ -46,7 +46,7 @@
         } @else {
           <div class="agenda-state">
             <h2 class="agenda-empty-title">Tu agenda está libre</h2>
-            <p class="agenda-empty-text">No tienes ninguna reserva próxima confirmada.</p>
+            <p class="agenda-empty-text">No tienes reservas próximas.</p>
             <div class="agenda-state__actions">
               <a routerLink="/explorar" class="btn-primary-agenda">Explorar experiencias</a>
               <a routerLink="/perfil" [queryParams]="{ tab: 'reservas' }" class="btn-outline-agenda">Todas las reservas</a>
@@ -71,7 +71,7 @@
                   </div>
                   <div class="timeline-card__info">
                     <h3 class="timeline-title">{{ item.eventTitle }}</h3>
-                    <p class="timeline-subtitle">{{ formatHourAndModality(item) }}</p>
+                    <p class="timeline-subtitle">{{ formatHourAndModality(item) }} · {{ statusLabel(item) }}</p>
                   </div>
                   <span class="timeline-card__tag">{{ item.modality }}</span>
                   <span class="timeline-card__arrow" aria-hidden="true">→</span>
@@ -141,7 +141,7 @@
                     <a routerLink="/perfil" [queryParams]="{ tab: 'reservas', reserva: booking.code }">
                       {{ booking.eventTitle }}
                     </a>
-                    <span>{{ formatHourAndModality(booking) }}</span>
+                    <span>{{ formatHourAndModality(booking) }} · {{ statusLabel(booking) }}</span>
                   </li>
                 }
               </ul>

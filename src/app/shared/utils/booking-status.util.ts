@@ -3,8 +3,10 @@ import { MyBooking } from '../../services/checkout.service';
 /** Estado de la reserva tal como lo lee el cliente. */
 export function bookingStatusLabel(booking: Pick<MyBooking, 'status' | 'cancellationCause'>): string {
   switch (booking.status) {
+    case 'PENDING':
     case 'PENDIENTE': return 'Pendiente de aceptación';
     case 'ACEPTADA': return 'Aceptada, pendiente de pago';
+    case 'CONFIRMED':
     case 'CONFIRMADA': return 'Confirmada y pagada';
     case 'CANCELADA':
       if (booking.cancellationCause === 'RECHAZADA') return 'Rechazada';
