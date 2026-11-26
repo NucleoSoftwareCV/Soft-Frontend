@@ -35,7 +35,7 @@
 
       <button
         title="Resumen"
-        [class.active]="section() === 'summary'"
+        [class.active]="!supportActive() && section() === 'summary'"
         (click)="show('summary')"
       >
         <svg lucideLayoutDashboard aria-hidden="true"></svg>
@@ -44,7 +44,7 @@
 
       <button
         title="Solicitudes"
-        [class.active]="section() === 'applications'"
+        [class.active]="!supportActive() && section() === 'applications'"
         (click)="show('applications')"
       >
         <svg lucideClipboardList aria-hidden="true"></svg>
@@ -57,7 +57,7 @@
 
       <button
         title="Ciudades"
-        [class.active]="section() === 'cities'"
+        [class.active]="!supportActive() && section() === 'cities'"
         (click)="show('cities')"
       >
         <svg lucideMapPin aria-hidden="true"></svg>
@@ -66,7 +66,7 @@
 
       <button
         title="Catálogos"
-        [class.active]="section() === 'catalogs'"
+        [class.active]="!supportActive() && section() === 'catalogs'"
         (click)="show('catalogs')"
       >
         <svg lucideTags aria-hidden="true"></svg>
@@ -75,7 +75,7 @@
 
       <button
         title="Sorteos"
-        [class.active]="section() === 'campaigns'"
+        [class.active]="!supportActive() && section() === 'campaigns'"
         (click)="show('campaigns')"
       >
         <svg lucideGift aria-hidden="true"></svg>
@@ -84,12 +84,23 @@
 
       <button
         title="Reservas"
-        [class.active]="section() === 'bookings'"
+        [class.active]="!supportActive() && section() === 'bookings'"
         (click)="show('bookings')"
       >
         <svg lucideCalendarCheck aria-hidden="true"></svg>
         <span class="nav-label">Reservas</span>
       </button>
+
+      <a
+        routerLink="/admin/soporte"
+        title="Oona Support · Revisión"
+        aria-label="Oona Support · Revisión"
+        [attr.aria-current]="supportActive() ? 'page' : null"
+        [class.active]="supportActive()"
+      >
+        <svg lucideHeadset aria-hidden="true"></svg>
+        <span class="nav-label">Oona Support · Revisión</span>
+      </a>
 
     </nav>
 
@@ -120,7 +131,7 @@
 
         <strong>
           {{
-            section() === 'summary'
+            supportActive() ? 'Oona Support · Revisión' : section() === 'summary'
               ? 'Resumen operativo'
               : section() === 'cities'
                 ? 'Catálogo de ciudades'
@@ -174,7 +185,7 @@
 
     <!-- ALERT -->
 
-    @if (error()) {
+    @if (!supportActive() && error()) {
       <div class="erp__alert" role="alert">
         {{ error() }}
       </div>
@@ -185,7 +196,11 @@
     <!-- RESUMEN -->
     <!-- ========================================================= -->
 
-    @if (section() === 'summary') {
+    @if (supportActive()) {
+      <div class="erp__content">
+        <router-outlet />
+      </div>
+    } @else if (section() === 'summary') {
 
       <section class="erp__content">
 

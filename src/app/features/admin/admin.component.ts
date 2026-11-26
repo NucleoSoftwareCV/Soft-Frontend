@@ -2,9 +2,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { isActive, Router, RouterLink, RouterOutlet } from '@angular/router';
 
 import {
+  LucideHeadset,
   LucideClipboardList,
   LucideGift,
   LucideCalendarCheck,
@@ -59,6 +60,9 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
+    RouterOutlet,
+    LucideHeadset,
     AdminBookingsComponent,
     AdminCampaignsComponent,
 
@@ -105,6 +109,13 @@ export class AdminComponent {
 
   private readonly router =
     inject(Router);
+
+  readonly supportActive = isActive('/admin/soporte', this.router, {
+    paths: 'subset',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
+  });
 
 
   readonly currentUser = this.auth.currentUser;
@@ -582,6 +593,10 @@ export class AdminComponent {
       'campaigns' |
       'bookings'
   ): void {
+    if (this.supportActive()) {
+      void this.router.navigate(['/admin']);
+    }
+
     if (section === 'summary') {
       this.loadSummaryStats();
       this.loadSummaryApplications();

@@ -973,6 +973,16 @@
                     </div>
                   </div>
 
+                  @if (isAppointmentPayable(appointment)) {
+                    <div class="appointment-payment" role="status">
+                      <div>
+                        <strong>El profesional aceptó tu cita</strong>
+                        <p>{{ appointment.price }} {{ appointment.currency }}@if (appointment.paymentDeadline) { · paga antes del {{ appointmentDate(appointment.paymentDeadline) }}}</p>
+                      </div>
+                      <button type="button" class="btn-primary" (click)="payAppointment(appointment)">Pagar cita</button>
+                    </div>
+                  }
+
                   <details class="appointment-card__more">
                     <summary>Ver detalle <span aria-hidden="true">⌄</span></summary>
                     <div class="appointment-card__details">

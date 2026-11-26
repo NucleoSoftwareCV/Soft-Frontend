@@ -62,7 +62,11 @@ export class NotificationsInboxComponent implements OnInit {
     if (!notification.bookingCode) {
       return;
     }
-    if (PROFESSIONAL_APPOINTMENT_NOTIFICATIONS.includes(notification.type)) {
+    if (notification.type === 'REEMBOLSO_APROBADO' || notification.type === 'REEMBOLSO_RECHAZADO') {
+      void this.router.navigate(['/soporte/reembolsos'], {
+        queryParams: { solicitud: notification.bookingCode },
+      });
+    } else if (PROFESSIONAL_APPOINTMENT_NOTIFICATIONS.includes(notification.type)) {
       void this.router.navigate(['/profesional'], {
         queryParams: { seccion: 'agenda', cita: notification.bookingCode },
       });
