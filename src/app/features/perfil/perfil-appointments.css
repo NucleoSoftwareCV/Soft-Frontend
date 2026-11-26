@@ -139,6 +139,11 @@
   color: #85620a;
 }
 
+.appointment-status[data-status="aceptada"] {
+  background: #e7f1fb;
+  color: #1f5c8f;
+}
+
 .appointment-status[data-status="reprogramacion-propuesta"] {
   background: #e8f4f7;
   color: #006674;
@@ -226,6 +231,26 @@
   border-radius: 8px;
   background: #edf8f8;
   color: #075864;
+}
+
+.appointment-payment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid #1f5c8f;
+  border-radius: 8px;
+  background: #eef5fb;
+  color: #1d4f78;
+}
+
+.appointment-payment p {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .appointment-proposal p {

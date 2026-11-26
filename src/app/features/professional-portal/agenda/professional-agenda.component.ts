@@ -79,7 +79,7 @@ export class ProfessionalAgendaComponent implements OnInit {
   readonly statusFilter = signal('');
   readonly search = signal('');
   readonly statusLabels: Record<string, string> = {
-    PENDIENTE: 'Pendiente', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
+    PENDIENTE: 'Pendiente', ACEPTADA: 'Esperando pago', CONFIRMADA: 'Confirmada', CANCELADA: 'Cancelada',
     COMPLETADA: 'Completada', EXPIRADA: 'Vencida', REPROGRAMACION_PROPUESTA: 'Cambio propuesto',
   };
   private agendaRequest?: Subscription;
@@ -326,8 +326,11 @@ export class ProfessionalAgendaComponent implements OnInit {
   removeContact(contact:ProfessionalContact):void { if(contact.source!=='MANUAL'||this.saving()) return; this.saving.set(true); this.api.removeContact(contact.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:()=>{this.saving.set(false);this.contactDetail.set(null);this.loadContacts();},error:err=>{this.saving.set(false);this.error.set(err.error?.detail||'No pudimos eliminar el contacto.');}}); }
   decide(id: number, status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA', reason?: string): void {
     if (this.saving()) return; this.saving.set(true); this.error.set(null);
-    this.api.decide(id, status, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => {
-      this.saving.set(false); this.message.set(status === 'CANCELADA' ? 'La cita se canceló y el horario quedó disponible.' : null); this.loadAgenda(); this.loadSummary();
+    this.api.decide(id, status, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: updated => {
+      this.saving.set(false);
+      this.message.set(status === 'CANCELADA' ? 'La cita se canceló y el horario quedó disponible.'
+        : updated?.status === 'ACEPTADA' ? 'Cita aceptada. El cliente ya puede pagar para confirmarla.' : null);
+      this.loadAgenda(); this.loadSummary();
       const code = this.requestedAppointmentCode(); if (code) this.loadFocusedAppointment(code);
     }, error: err => { this.saving.set(false); this.error.set(err.error?.detail || 'No pudimos actualizar la solicitud.'); } });
   }
@@ -349,6 +352,9 @@ export class ProfessionalAgendaComponent implements OnInit {
   canCancel(item: AppointmentReceipt): boolean {
     return Date.parse(item.startsAt) > Date.now();
   }
+
+  /** Aceptada (esperando pago) o confirmada: el profesional aún puede cambiarla o cancelarla. */
+  isBooked(item: AppointmentReceipt): boolean { return item.status === 'ACEPTADA' || item.status === 'CONFIRMADA'; }
 
   canComplete(item: AppointmentReceipt): boolean { return item.status === 'CONFIRMADA' && new Date(item.endsAt).getTime() <= Date.now(); }
 }
