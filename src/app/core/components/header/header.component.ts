@@ -114,6 +114,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     { label: 'Sesiones 1:1', path: '/sesiones' },
     { label: 'Profesionales', path: '/profesionales' },
     { label: 'Conocer gente', path: '/match-bienestar' },
+    { label: 'Centro de soporte', path: '/soporte' },
   ];
 
   inspirationTags = [
@@ -173,7 +174,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.filtrosService.priceOptions;
   }
 
-  get moodOptions(){
+  get moodOptions() {
     return this.filtrosService.moodOptions;
   }
 
@@ -692,9 +693,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isFilterOpen.set(true);
     this.isCityOpen.set(false);
 
-    this.pendingMood.set(
-      this.filtrosService.filterMood()
-    );
+    this.pendingMood.set(this.filtrosService.filterMood());
   }
 
   applyFilters(): void {
@@ -759,11 +758,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   pendingSelectMood(m: string): void {
-    this.pendingMood.set(
-      this.pendingMood()?.toUpperCase() === m.toUpperCase()
-        ? null
-        : m
-    );
+    this.pendingMood.set(this.pendingMood()?.toUpperCase() === m.toUpperCase() ? null : m);
   }
 
   pendingClearFilters(): void {

@@ -310,7 +310,7 @@ button {
    ============================================================ */
 
 .erp {
-  --sidebar-width: 248px;
+  --sidebar-width: 272px;
 
   min-height: 100dvh;
 
@@ -443,10 +443,12 @@ button {
 
 .erp__sidebar nav {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
 }
 
 .erp__sidebar nav button,
+.erp__sidebar nav a,
 .erp__logout {
   min-height: 42px;
 
@@ -475,17 +477,20 @@ button {
 }
 
 .erp__sidebar nav button:hover,
+.erp__sidebar nav a:hover,
 .erp__logout:hover {
   background: var(--color-bg-hover);
 }
 
 .erp__sidebar nav button:focus-visible,
+.erp__sidebar nav a:focus-visible,
 .erp__logout:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus-ring);
 }
 
-.erp__sidebar nav button.active {
+.erp__sidebar nav button.active,
+.erp__sidebar nav a.active {
   color: var(--color-sage-dark);
   background: var(--color-sage-tint);
   border-left-color: var(--color-sage);
@@ -542,6 +547,7 @@ button {
 }
 
 .erp--collapsed .erp__sidebar nav button,
+.erp--collapsed .erp__sidebar nav a,
 .erp--collapsed .erp__logout {
   justify-content: center;
   padding: 0;
@@ -2094,11 +2100,13 @@ tbody tr:hover {
     overflow-x: auto;
   }
 
-  .erp__sidebar nav button {
+  .erp__sidebar nav button,
+  .erp__sidebar nav a {
     flex: 0 0 auto;
   }
 
-  .erp--collapsed .erp__sidebar nav button {
+  .erp--collapsed .erp__sidebar nav button,
+  .erp--collapsed .erp__sidebar nav a {
     justify-content: flex-start;
 
     padding: 0 11px;

@@ -1,9 +1,11 @@
+import { ADMIN_SUPPORT_ROUTES, SUPPORT_ROUTES } from './features/support/support.routes';
 import { Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { GrupoWhatsAppComponent } from './features/whatsapp/grupowhatsapp';
 
 export const routes: Routes = [
+  ...SUPPORT_ROUTES,
 
   // =========================
   // SESIONES
@@ -11,16 +13,13 @@ export const routes: Routes = [
 
   {
     path: 'sesiones',
-    loadComponent: () =>
-      import('./features/sesiones/sesiones')
-        .then(m => m.SesionesComponent),
+    loadComponent: () => import('./features/sesiones/sesiones').then((m) => m.SesionesComponent),
   },
 
   {
     path: 'sesiones/:id',
     loadComponent: () =>
-      import('./features/sesion-detalle/sesion-detalle')
-        .then(m => m.SesionDetalleComponent),
+      import('./features/sesion-detalle/sesion-detalle').then((m) => m.SesionDetalleComponent),
   },
 
   // =========================
@@ -29,9 +28,7 @@ export const routes: Routes = [
 
   {
     path: '',
-    loadComponent: () =>
-      import('./features/home/home.component')
-        .then(m => m.HomeComponent),
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
     title: 'Oona | Eventos y profesionales de bienestar cerca de ti',
   },
 
@@ -41,16 +38,13 @@ export const routes: Routes = [
 
   {
     path: 'explorar',
-    loadComponent: () =>
-      import('./features/explorar/eventos/eventos')
-        .then(m => m.Eventos),
+    loadComponent: () => import('./features/explorar/eventos/eventos').then((m) => m.Eventos),
   },
 
   {
     path: 'evento/:id',
     loadComponent: () =>
-      import('./features/explorar/detalle-evento/detalle-evento')
-        .then(m => m.DetalleEvento),
+      import('./features/explorar/detalle-evento/detalle-evento').then((m) => m.DetalleEvento),
   },
 
   // =========================
@@ -60,15 +54,15 @@ export const routes: Routes = [
   {
     path: 'profesionales',
     loadComponent: () =>
-      import('./features/profesionales/directorio/directorio')
-        .then(m => m.Directorio),
+      import('./features/profesionales/directorio/directorio').then((m) => m.Directorio),
   },
 
   {
     path: 'profesionales/:slug',
     loadComponent: () =>
-      import('./features/profesionales/perfil-profesional/perfil-profesional')
-        .then(m => m.PerfilProfesional),
+      import('./features/profesionales/perfil-profesional/perfil-profesional').then(
+        (m) => m.PerfilProfesional,
+      ),
   },
 
   // =========================
@@ -77,9 +71,7 @@ export const routes: Routes = [
 
   {
     path: 'retiros',
-    loadComponent: () =>
-      import('./features/retiros/retiros')
-        .then(m => m.Retiros),
+    loadComponent: () => import('./features/retiros/retiros').then((m) => m.Retiros),
   },
 
   // =========================
@@ -89,15 +81,14 @@ export const routes: Routes = [
   {
     path: 'match-bienestar',
     loadComponent: () =>
-      import('./features/match-bienestar/match-bienestar')
-        .then(m => m.MatchBienestarComponent),
+      import('./features/match-bienestar/match-bienestar').then((m) => m.MatchBienestarComponent),
     title: 'Match de Bienestar - Oona',
   },
 
   {
     path: 'conocer-gente',
     redirectTo: 'match-bienestar',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
 
   // =========================
@@ -107,41 +98,36 @@ export const routes: Routes = [
   {
     path: 'circulo-oona',
     loadComponent: () =>
-      import('./features/circulo-oona/circulo-oona.component')
-        .then(m => m.CirculoOonaComponent),
+      import('./features/circulo-oona/circulo-oona.component').then((m) => m.CirculoOonaComponent),
     title: 'Circulo Oona | Solicitud profesional',
   },
-// =========================
-// PÁGINAS LEGALES
-// =========================
+  // =========================
+  // PÁGINAS LEGALES
+  // =========================
 
-{
-  path: 'aviso-legal',
-  loadComponent: () =>
-    import('./features/legales/aviso-legal/aviso-legal')
-      .then(m => m.AvisoLegalComponent),
-},
+  {
+    path: 'aviso-legal',
+    loadComponent: () =>
+      import('./features/legales/aviso-legal/aviso-legal').then((m) => m.AvisoLegalComponent),
+  },
 
-{
-  path: 'privacidad',
-  loadComponent: () =>
-    import('./features/legales/privacidad/privacidad')
-      .then(m => m.PrivacidadComponent),
-},
+  {
+    path: 'privacidad',
+    loadComponent: () =>
+      import('./features/legales/privacidad/privacidad').then((m) => m.PrivacidadComponent),
+  },
 
-{
-  path: 'cookies',
-  loadComponent: () =>
-    import('./features/legales/cookies/cookies')
-      .then(m => m.CookiesComponent),
-},
+  {
+    path: 'cookies',
+    loadComponent: () =>
+      import('./features/legales/cookies/cookies').then((m) => m.CookiesComponent),
+  },
 
-{
-  path: 'terminos',
-  loadComponent: () =>
-    import('./features/legales/terminos/terminos')
-      .then(m => m.TerminosComponent),
-},
+  {
+    path: 'terminos',
+    loadComponent: () =>
+      import('./features/legales/terminos/terminos').then((m) => m.TerminosComponent),
+  },
   // =========================
   // AUTENTICACIÓN
   // =========================
@@ -149,24 +135,22 @@ export const routes: Routes = [
   {
     path: 'auth/erp/login',
     loadComponent: () =>
-      import('./features/auth/admin-login/admin-login.component')
-        .then(m => m.AdminLoginComponent),
+      import('./features/auth/admin-login/admin-login.component').then(
+        (m) => m.AdminLoginComponent,
+      ),
     title: 'Acceso ERP - Oona',
   },
 
   {
     path: 'auth',
     loadComponent: () =>
-      import('./features/auth/auth-shell/auth-shell.component')
-        .then(m => m.AuthShellComponent),
+      import('./features/auth/auth-shell/auth-shell.component').then((m) => m.AuthShellComponent),
 
     children: [
-
       {
         path: 'login',
         loadComponent: () =>
-          import('./features/auth/login/login.component')
-            .then(m => m.LoginComponent),
+          import('./features/auth/login/login.component').then((m) => m.LoginComponent),
 
         title: 'Iniciar sesion - Oona',
       },
@@ -174,8 +158,7 @@ export const routes: Routes = [
       {
         path: 'register',
         loadComponent: () =>
-          import('./features/auth/register/register.component')
-            .then(m => m.RegisterComponent),
+          import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
 
         title: 'Registrar cuenta - Oona',
       },
@@ -183,8 +166,9 @@ export const routes: Routes = [
       {
         path: 'role-selection',
         loadComponent: () =>
-          import('./features/auth/role-selection/role-selection.component')
-            .then(m => m.RoleSelectionComponent),
+          import('./features/auth/role-selection/role-selection.component').then(
+            (m) => m.RoleSelectionComponent,
+          ),
 
         title: 'Iniciar sesion - Oona',
       },
@@ -192,8 +176,9 @@ export const routes: Routes = [
       {
         path: 'recuperar',
         loadComponent: () =>
-          import('./features/auth/forgot-password/forgot-password.component')
-            .then(m => m.ForgotPasswordComponent),
+          import('./features/auth/forgot-password/forgot-password.component').then(
+            (m) => m.ForgotPasswordComponent,
+          ),
 
         title: 'Recuperar contraseña - Oona',
       },
@@ -201,8 +186,9 @@ export const routes: Routes = [
       {
         path: 'reset-password',
         loadComponent: () =>
-          import('./features/auth/reset-password/reset-password.component')
-            .then(m => m.ResetPasswordComponent),
+          import('./features/auth/reset-password/reset-password.component').then(
+            (m) => m.ResetPasswordComponent,
+          ),
 
         title: 'Restablecer contraseña - Oona',
       },
@@ -225,13 +211,11 @@ export const routes: Routes = [
   // ESPACIO PERSONAL
   // =========================
 
-
   {
     path: 'perfil',
     canActivate: [roleGuard('USER')],
     loadComponent: () =>
-      import('./features/perfil/perfil.component')
-        .then(m => m.PerfilComponent),
+      import('./features/perfil/perfil.component').then((m) => m.PerfilComponent),
 
     title: 'Mi Perfil - Oona',
   },
@@ -240,23 +224,19 @@ export const routes: Routes = [
     path: 'onboarding',
     canActivate: [roleGuard('USER')],
     loadComponent: () =>
-      import('./features/onboarding/onboarding.component')
-        .then(m => m.OnboardingComponent),
+      import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
     title: 'Personaliza tu experiencia - Oona',
   },
-{
-  path: 'favoritos',
-  loadComponent: () =>
-    import('./features/favoritos/favoritos')
-      .then(m => m.FavoritosComponent),
-  title: 'Guardados - Oona',
-},
+  {
+    path: 'favoritos',
+    loadComponent: () => import('./features/favoritos/favoritos').then((m) => m.FavoritosComponent),
+    title: 'Guardados - Oona',
+  },
   {
     path: 'preferencias',
     canActivate: [roleGuard('USER')],
     loadComponent: () =>
-      import('./features/preferences/preferences.component')
-        .then(m => m.PreferencesComponent),
+      import('./features/preferences/preferences.component').then((m) => m.PreferencesComponent),
     title: 'Mis preferencias - Oona',
   },
 
@@ -267,10 +247,9 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [adminGuard],
-    loadComponent: () =>
-      import('./features/admin/admin.component')
-        .then(m => m.AdminComponent),
+    loadComponent: () => import('./features/admin/admin.component').then((m) => m.AdminComponent),
 
+    children: ADMIN_SUPPORT_ROUTES,
     title: 'Panel de Administracion - Oona',
   },
 
@@ -282,8 +261,9 @@ export const routes: Routes = [
     path: 'profesional',
     canActivate: [roleGuard('PROFESSIONAL')],
     loadComponent: () =>
-      import('./features/professional-portal/professional-portal.component')
-        .then(m => m.ProfessionalPortalComponent),
+      import('./features/professional-portal/professional-portal.component').then(
+        (m) => m.ProfessionalPortalComponent,
+      ),
     title: 'Panel profesional - Oona',
   },
 
@@ -294,8 +274,7 @@ export const routes: Routes = [
   {
     path: 'grupo-whatsapp',
     loadComponent: () =>
-      import('./features/whatsapp/grupowhatsapp')
-        .then(m => m.GrupoWhatsAppComponent),
+      import('./features/whatsapp/grupowhatsapp').then((m) => m.GrupoWhatsAppComponent),
     title: 'Grupo de WhatsApp - Oona',
   },
 

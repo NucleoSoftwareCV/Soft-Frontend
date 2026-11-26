@@ -1,66 +1,69 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
+  { path: 'soporte', renderMode: RenderMode.Client },
+  { path: 'soporte/**', renderMode: RenderMode.Client },
+  { path: 'admin/soporte', renderMode: RenderMode.Client },
+  { path: 'admin/soporte/**', renderMode: RenderMode.Client },
   {
     path: 'explorar',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
-   {
+  {
     path: 'evento/:id',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Server,
   },
   {
     path: 'profesionales',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'retiros',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'profesionales/:slug',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Server,
   },
   {
     path: 'sesiones',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
 
   {
     path: 'sesiones/:id',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'match-bienestar',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'conocer-gente',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: '**',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Prerender,
   },
-    {
+  {
     path: 'admin',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'perfil',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'preferencias',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'onboarding',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
   {
     path: 'profesional',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Client,
   },
-
 ];

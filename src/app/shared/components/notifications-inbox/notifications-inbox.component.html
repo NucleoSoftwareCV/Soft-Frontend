@@ -1,0 +1,87 @@
+<section class="inbox" aria-labelledby="inbox-title">
+  <header class="inbox__header">
+    <div>
+      <span class="inbox__eyebrow">CENTRO DE AVISOS</span>
+      <h2 id="inbox-title">Notificaciones</h2>
+      <p>Revisa las novedades de tus reservas y accede rápidamente a cada gestión.</p>
+    </div>
+    <div class="inbox__header-actions">
+      <button type="button" class="inbox-icon-button" (click)="load(page()?.number ?? 0)" [disabled]="loading()" aria-label="Actualizar notificaciones" title="Actualizar">
+        ↻
+      </button>
+      @if (unread() > 0) {
+        <button type="button" class="inbox-link" (click)="markAllRead()">Marcar todas como leídas</button>
+      }
+    </div>
+  </header>
+
+  <div class="inbox__toolbar">
+    <div class="inbox__filters" aria-label="Filtrar notificaciones">
+      <button type="button" [class.active]="filter() === 'all'" (click)="setFilter('all')">Todas</button>
+      <button type="button" [class.active]="filter() === 'unread'" (click)="setFilter('unread')">
+        No leídas @if (unread() > 0) { <span>{{ unread() }}</span> }
+      </button>
+    </div>
+    @if (unread() > 0) {
+      <span class="inbox__summary">Tienes {{ unread() }} {{ unread() === 1 ? 'aviso nuevo' : 'avisos nuevos' }}</span>
+    }
+  </div>
+
+  @if (loading() && !page()) {
+    <p class="inbox-state" aria-live="polite">Cargando notificaciones…</p>
+  } @else if (error()) {
+    <div class="inbox-state" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" class="inbox-link" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (page(); as result) {
+    @if (result.content.length === 0) {
+      <p class="inbox-state">Aún no tienes notificaciones. Aquí verás los cambios de tus reservas.</p>
+    } @else if (visibleNotifications().length === 0) {
+      <div class="inbox-state">
+        <strong>Todo está al día</strong>
+        <p>No tienes notificaciones sin leer en esta página.</p>
+        <button type="button" class="inbox-link" (click)="setFilter('all')">Ver todas</button>
+      </div>
+    } @else {
+      <ul>
+        @for (item of visibleNotifications(); track item.id) {
+          <li [class.unread]="!item.read">
+            <div class="inbox-meta">
+              <span class="inbox-type">{{ typeLabels[item.type] }}</span>
+              @if (!item.read) {
+                <span class="inbox-new">Nueva</span>
+              }
+              <time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</time>
+            </div>
+            <div class="inbox-item__heading">
+              <h3>{{ item.title }}</h3>
+              @if (!item.read) {
+                <button type="button" class="inbox-read" (click)="markRead(item)">Marcar como leída</button>
+              }
+            </div>
+            <p>{{ item.message }}</p>
+            @if (item.eventTitle) {
+              <small>{{ item.eventTitle }}</small>
+            }
+            <div class="inbox-item__actions">
+              @if (item.bookingCode && item.actionLabel) {
+                <button type="button" class="inbox-action" (click)="open(item)">{{ item.actionLabel }}</button>
+              }
+              @if (!item.read && !item.bookingCode) {
+                <button type="button" class="inbox-link" (click)="markRead(item)">Entendido</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+      @if (result.totalPages > 1) {
+        <nav aria-label="Páginas de notificaciones">
+          <button type="button" class="inbox-link" [disabled]="result.number === 0" (click)="load(result.number - 1)">Anterior</button>
+          <span>Página {{ result.number + 1 }} de {{ result.totalPages }}</span>
+          <button type="button" class="inbox-link" [disabled]="result.number + 1 >= result.totalPages" (click)="load(result.number + 1)">Siguiente</button>
+        </nav>
+      }
+    }
+  }
+</section>
