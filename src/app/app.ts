@@ -5,13 +5,21 @@ import { HeaderComponent } from './core/components/header/header.component';
 import { FooterComponent } from './core/components/footer/footer.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { BookingCancellationNoticeComponent } from './shared/components/booking-cancellation-notice/booking-cancellation-notice.component';
+import { RefundDecisionNoticeComponent } from './shared/components/refund-decision-notice/refund-decision-notice.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, ToastComponent, BookingCancellationNoticeComponent],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    FooterComponent,
+    ToastComponent,
+    BookingCancellationNoticeComponent,
+    RefundDecisionNoticeComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -28,17 +36,18 @@ export class App {
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(e => e.urlAfterRedirects),
+      map((e) => e.urlAfterRedirects),
       startWith(this.initialUrl),
     ),
-    { initialValue: this.initialUrl }
+    { initialValue: this.initialUrl },
   );
 
-  readonly isAuthRoute = computed(() =>
-    this.currentUrl().startsWith('/auth')
-      || this.currentUrl().startsWith('/login')
-      || this.SHELLLESS_ROUTES.some(route =>
-        this.currentUrl() === route || this.currentUrl().startsWith(`${route}/`)
-      )
+  readonly isAuthRoute = computed(
+    () =>
+      this.currentUrl().startsWith('/auth') ||
+      this.currentUrl().startsWith('/login') ||
+      this.SHELLLESS_ROUTES.some(
+        (route) => this.currentUrl() === route || this.currentUrl().startsWith(`${route}/`),
+      ),
   );
 }

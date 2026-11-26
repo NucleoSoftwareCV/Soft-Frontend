@@ -1,3 +1,4 @@
+import { ADMIN_SUPPORT_ROUTES, SUPPORT_ROUTES } from './features/support/support.routes';
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
@@ -5,6 +6,7 @@ import { adminGuard } from './core/guards/admin.guard';
 import { GrupoWhatsAppComponent } from './features/whatsapp/grupowhatsapp';
 
 export const routes: Routes = [
+  ...SUPPORT_ROUTES,
 
   // =========================
   // SESIONES
@@ -302,6 +304,7 @@ export const routes: Routes = [
       import('./features/admin/admin.component')
         .then(m => m.AdminComponent),
 
+    children: ADMIN_SUPPORT_ROUTES,
     title: 'Panel de Administracion - Oona',
   },
 

@@ -46,6 +46,10 @@ export class NotificationsService {
     return this.http.get<NotificationPage>(`${this.base}/me`, { params });
   }
 
+  unreadRefundDecisions(): Observable<NotificationPage> {
+    return this.http.get<NotificationPage>(`${this.base}/me/refund-decisions`);
+  }
+
   markRead(id: number): Observable<AppNotification> {
     return this.http.patch<AppNotification>(`${this.base}/${id}/read`, {}).pipe(tap(() => this.refreshUnread()));
   }
